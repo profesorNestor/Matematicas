@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Graficador Matemático ProfeNestor - Ultra Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --accent-color: #667eea;
+            --success-color: #4ade80;
+            --error-color: #f87171;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Partículas animadas de fondo */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        /* Contenedor principal con glassmorphism */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            align-items: center;
+        }
+
+        /* Panel de control con efectos glass */
+        .control-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            min-width: 400px;
+            box-shadow: 0 8px 32px var(--shadow-color), var(--shadow-glow);
+            animation: slideInLeft 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            }
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Título con gradiente animado */
+        .title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 3s ease infinite;
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: -1px;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Tarjeta de tips con efecto hover */
+        .tips-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .tips-card:hover {
+            background: rgba(102, 126, 234, 0.15);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tips-card::before {
+            content: '💡';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 60px;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+
+        /* Grupos de formulario mejorados */
+        .form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Inputs y textareas con efectos de neón */
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Grupo de inputs para rango */
+        .range-inputs {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .range-inputs .form-input {
+            flex: 1;
+        }
+
+        /* Color pickers estilizados */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .color-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .color-picker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .color-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Switches modernos */
+        .switch-group {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .switch-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .switch input {
+            display: none;
+        }
+
+        .switch-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .switch input:checked ~ .switch-slider {
+            transform: translateX(30px);
+            background: var(--accent-color);
+        }
+
+        .switch input:checked ~ .switch {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        /* Sliders de tamaño modernos */
+        .size-controls {
+            margin: 2rem 0;
+        }
+
+        .slider-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+
+        .slider-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .slider-value {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .modern-slider {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .modern-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .modern-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.7);
+        }
+
+        /* Botón principal con efectos */
+        .btn-primary {
+            width: 100%;
+            padding: 1.2rem 2rem;
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Contenedor del gráfico */
+        .plot-wrapper {
+            flex: 1;
+            animation: slideInRight 0.6s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .plot-container {
+            width: 100%;
+            height: 600px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px var(--shadow-color), var(--shadow-glow);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .plot-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 2rem;
+        }
+
+        .placeholder-icon {
+            font-size: 80px;
+            opacity: 0.3;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.5;
+            }
+        }
+
+        .placeholder-text {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Toggle de modo oscuro flotante */
+        .theme-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px var(--shadow-color);
+        }
+
+        .theme-icon {
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        /* Efectos de loading */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-panel {
+                min-width: unset;
+                width: 100%;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .plot-container {
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+
+            .control-panel {
+                padding: 1.5rem;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
+
+            .switch-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Animación de entrada para elementos */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Efectos de notificación */
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-color: var(--success-color);
+            box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+        }
+
+        .notification.error {
+            border-color: var(--error-color);
+            box-shadow: 0 4px 20px rgba(248, 113, 113, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Partículas de fondo -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Contenedor principal -->
+    <div class="main-container">
+        <!-- Panel de control -->
+        <aside class="control-panel">
+            <h1 class="title">
+                <i class="fas fa-chart-line"></i> MathGraph Pro
+            </h1>
+
+            <div class="tips-card fade-in">
+                <h3 style="margin-bottom: 0.8rem; color: var(--accent-color);">
+                    <i class="fas fa-lightbulb"></i> Consejos Pro
+                </h3>
+                <p style="font-size: 0.9rem; line-height: 1.6;">
+                    • Funciones: <code>sin(x)</code>, <code>x^2</code>, <code>log(x)</code><br>
+                    • Múltiples: separa con comas<br>
+                    • Operadores: +, -, *, /, ^, sqrt(), abs()
+                </p>
+            </div>
+
+            <div class="form-group fade-in">
+                <label class="form-label">
+                    <i class="fas fa-function"></i> Funciones f(x)
+                </label>
+                <textarea 
+                    id="plot-funcs" 
+                    class="form-textarea" 
+                    placeholder="sin(x), cos(x), x^2 - 4*x + 3"
+                    rows="3"
+                ></textarea>
+            </div>
+
+            <div class="form-group fade-in">
+                <label class="form-label">
+                    <i class="fas fa-palette"></i> Colores de las funciones
+                </label>
+                <div id="color-pickers" class="color-grid"></div>
+            </div>
+
+            <div class="form-group fade-in">
+                <label class="form-label">
+                    <i class="fas fa-arrows-alt-h"></i> Rango del eje X
+                </label>
+                <div class="range-inputs">
+                    <input type="number" id="plot-xmin" class="form-input" value="-10" step="0.1">
+                    <input type="number" id="plot-xmax" class="form-input" value="10" step="0.1">
+                </div>
+            </div>
+
+            <div class="switch-group fade-in">
+                <div class="switch-item">
+                    <label class="switch">
+                        <input type="checkbox" id="show-grid" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span>Cuadrícula</span>
+                </div>
+                <div class="switch-item">
+                    <label class="switch">
+                        <input type="checkbox" id="show-legend" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span>Leyenda</span>
+                </div>
+            </div>
+
+            <div class="size-controls fade-in">
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span class="slider-label">Ancho</span>
+                        <span class="slider-value" id="width-value">900px</span>
+                    </div>
+                    <input type="range" id="width-slider" class="modern-slider" min="400" max="1200" value="900">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span class="slider-label">Alto</span>
+                        <span class="slider-value" id="height-value">600px</span>
+                    </div>
+                    <input type="range" id="height-slider" class="modern-slider" min="300" max="800" value="600">
+                </div>
+            </div>
+
+            <button id="plot-calculate" class="btn-primary fade-in">
+                <i class="fas fa-rocket"></i> Graficar Funciones
+            </button>
+        </aside>
+
+        <!-- Área del gráfico -->
+        <main class="plot-wrapper">
+            <div id="plot-container" class="plot-container">
+                <div class="plot-placeholder">
+                    <div class="placeholder-icon">📊</div>
+                    <div class="placeholder-text">
+                        <strong>¡Bienvenido a MathGraph Pro!</strong><br>
+                        Ingresa tus funciones y presiona "Graficar"
+                    </div>
+                </div>
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Toggle de tema -->
+    <div class="theme-toggle" id="theme-toggle">
+        <i class="fas fa-moon theme-icon" id="theme-icon"></i>
+    </div>
+
+    <!-- Notificaciones -->
+    <div class="notification" id="notification"></div>
+
+    <script>
+        // Generación de partículas
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 20) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Variables globales
+        const funcsInput = document.getElementById('plot-funcs');
+        const xMinInput = document.getElementById('plot-xmin');
+        const xMaxInput = document.getElementById('plot-xmax');
+        const calculateBtn = document.getElementById('plot-calculate');
+        const plotContainer = document.getElementById('plot-container');
+        const showGridCheck = document.getElementById('show-grid');
+        const showLegendCheck = document.getElementById('show-legend');
+        const colorPickersDiv = document.getElementById('color-pickers');
+        const widthSlider = document.getElementById('width-slider');
+        const heightSlider = document.getElementById('height-slider');
+        const widthValue = document.getElementById('width-value');
+        const heightValue = document.getElementById('height-value');
+        const notification = document.getElementById('notification');
+
+        // Colores modernos predefinidos
+        const modernColors = [
+            '#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a',
+            '#fee140', '#30cfd0', '#764ba2', '#f5576c', '#4481eb',
+            '#04befe', '#c471f5', '#feada6', '#a8edea', '#13547a'
+        ];
+
+        // Funciones de ejemplo
+        funcsInput.value = "sin(x), cos(x), x^2/10, sqrt(abs(x))";
+
+        // Actualizar color pickers
+        function updateColorPickers() {
+            const funcArr = funcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+            colorPickersDiv.innerHTML = "";
+            
+            funcArr.forEach((f, i) => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                
+                const colorPicker = document.createElement('input');
+                colorPicker.type = 'color';
+                colorPicker.className = 'color-picker';
+                colorPicker.value = modernColors[i % modernColors.length];
+                colorPicker.id = `color-func-${i}`;
+                colorPicker.addEventListener('input', plotFunctions);
+                
+                const label = document.createElement('span');
+                label.className = 'color-label';
+                label.innerText = `f${i + 1}`;
+                
+                colorItem.appendChild(colorPicker);
+                colorItem.appendChild(label);
+                colorPickersDiv.appendChild(colorItem);
+            });
+        }
+
+        // Actualizar valores de los sliders
+        widthSlider.addEventListener('input', () => {
+            widthValue.textContent = widthSlider.value + 'px';
+            plotFunctions();
+        });
+
+        heightSlider.addEventListener('input', () => {
+            heightValue.textContent = heightSlider.value + 'px';
+            plotFunctions();
+        });
+
+        // Mostrar notificación
+        function showNotification(message, type = 'success') {
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Layout del gráfico con tema moderno
+        function getPlotLayout() {
+            const isDark = document.body.classList.contains('dark-theme');
+            
+            return {
+                title: {
+                    text: 'Visualización de Funciones Matemáticas',
+                    font: {
+                        family: 'Inter, sans-serif',
+                        size: 24,
+                        color: '#ffffff'
+                    }
+                },
+                xaxis: {
+                    title: {
+                        text: 'x',
+                        font: { size: 16, color: '#ffffff' }
+                    },
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    showgrid: showGridCheck.checked,
+                    zerolinecolor: 'rgba(255, 255, 255, 0.3)',
+                    zerolinewidth: 2,
+                    tickfont: { color: 'rgba(255, 255, 255, 0.8)' }
+                },
+                yaxis: {
+                    title: {
+                        text: 'f(x)',
+                        font: { size: 16, color: '#ffffff' }
+                    },
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    showgrid: showGridCheck.checked,
+                    zerolinecolor: 'rgba(255, 255, 255, 0.3)',
+                    zerolinewidth: 2,
+                    tickfont: { color: 'rgba(255, 255, 255, 0.8)' }
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.2)',
+                font: {
+                    family: 'Inter, sans-serif',
+                    color: '#ffffff'
+                },
+                legend: {
+                    bgcolor: 'rgba(0, 0, 0, 0.3)',
+                    bordercolor: 'rgba(255, 255, 255, 0.1)',
+                    borderwidth: 1,
+                    font: { color: '#ffffff' },
+                    x: 1,
+                    xanchor: 'right',
+                    y: 1,
+                    yanchor: 'top'
+                },
+                showlegend: showLegendCheck.checked,
+                margin: { l: 60, r: 30, b: 60, t: 80 },
+                hovermode: 'x unified',
+                hoverlabel: {
+                    bgcolor: 'rgba(0, 0, 0, 0.8)',
+                    bordercolor: 'rgba(255, 255, 255, 0.2)',
+                    font: { color: '#ffffff' }
+                },
+                width: parseInt(widthSlider.value),
+                height: parseInt(heightSlider.value)
+            };
+        }
+
+        // Función principal para graficar
+        function plotFunctions() {
+            const funcStrings = funcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+            const xmin = parseFloat(xMinInput.value);
+            const xmax = parseFloat(xMaxInput.value);
+
+            // Actualizar color pickers si es necesario
+            if (colorPickersDiv.children.length !== funcStrings.length) {
+                updateColorPickers();
+            }
+
+            // Validaciones
+            if (funcStrings.length === 0) {
+                plotContainer.innerHTML = `
+                    <div class="plot-placeholder">
+                        <div class="placeholder-icon">📊</div>
+                        <div class="placeholder-text">
+                            <strong>¡Ingresa una función para comenzar!</strong><br>
+                            Ejemplo: sin(x), cos(x), x^2
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            if (isNaN(xmin) || isNaN(xmax) || xmin >= xmax) {
+                showNotification('El rango del eje X no es válido', 'error');
+                return;
+            }
+
+            // Mostrar loading
+            plotContainer.querySelector('.loading').style.display = 'block';
+            plotContainer.querySelector('.plot-placeholder')?.remove();
+
+            const traces = [];
+            const colorPickers = colorPickersDiv.querySelectorAll('.color-picker');
+
+            // Procesar cada función
+            funcStrings.forEach((funcStr, i) => {
+                const x = [];
+                const y = [];
+                let compiledFunc;
+
+                try {
+                    // Compilar la función con mathjs
+                    compiledFunc = math.compile(funcStr);
+                } catch (e) {
+                    traces.push({
+                        x: [xmin, xmax],
+                        y: [null, null],
+                        name: `❌ Error: "${funcStr}"`,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: {
+                            color: '#f87171',
+                            width: 3,
+                            dash: 'dot'
+                        },
+                        hoverinfo: 'skip'
+                    });
+                    return;
+                }
+
+                // Generar puntos para la función
+                const numPoints = 1000;
+                const step = (xmax - xmin) / numPoints;
+
+                for (let xVal = xmin; xVal <= xmax; xVal += step) {
+                    x.push(xVal);
+                    try {
+                        const yVal = compiledFunc.evaluate({ x: xVal });
+                        y.push(isFinite(yVal) ? yVal : null);
+                    } catch {
+                        y.push(null);
+                    }
+                }
+
+                // Añadir el trazo
+                traces.push({
+                    x: x,
+                    y: y,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: funcStr,
+                    line: {
+                        color: colorPickers[i] ? colorPickers[i].value : modernColors[i % modernColors.length],
+                        width: 3,
+                        shape: 'spline'
+                    },
+                    hovertemplate: '%{y:.3f}<extra></extra>'
+                });
+            });
+
+            // Configuración de Plotly
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToAdd: [
+                    {
+                        name: 'Descargar como PNG',
+                        icon: Plotly.Icons.camera,
+                        click: function(gd) {
+                            Plotly.downloadImage(gd, {
+                                format: 'png',
+                                width: 1920,
+                                height: 1080,
+                                filename: 'grafico-matematico'
+                            });
+                        }
+                    }
+                ],
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d']
+            };
+
+            // Crear el gráfico
+            Plotly.newPlot(plotContainer, traces, getPlotLayout(), config).then(() => {
+                plotContainer.querySelector('.loading').style.display = 'none';
+                showNotification('Gráfico generado exitosamente', 'success');
+            });
+        }
+
+        // Event listeners
+        funcsInput.addEventListener('input', updateColorPickers);
+        calculateBtn.addEventListener('click', plotFunctions);
+        showGridCheck.addEventListener('change', plotFunctions);
+        showLegendCheck.addEventListener('change', plotFunctions);
+
+        // Animación del botón
+        calculateBtn.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        });
+
+        // Tema claro/oscuro
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            if (document.body.classList.contains('dark-theme')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+            plotFunctions();
+        });
+
+        // Atajos de teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    calculateBtn.click();
+                }
+            }
+        });
+
+        // Inicialización
+        updateColorPickers();
+        plotFunctions();
+
+        // Efecto de parallax en las partículas con el mouse
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            particlesContainer.style.transform = `translate(${x * 20}px, ${y * 20}px)`;
+        });
+
+        // Animaciones de entrada escalonadas
+        const fadeElements = document.querySelectorAll('.fade-in');
+        fadeElements.forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+        });
+    </script>
+</body>
+</html>
