@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cálculo Simbólico - ProfeNestor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --calculus-gradient: linear-gradient(135deg, #1976d2 0%, #1de9b6 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --dark-glass: rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --shadow-soft: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --shadow-hover: 0 15px 35px rgba(31, 38, 135, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #1976d2 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: float 20s infinite linear;
+        }
+
+        .floating-circle:nth-child(1) { width: 80px; height: 80px; top: 20%; left: 10%; animation-delay: 0s; }
+        .floating-circle:nth-child(2) { width: 120px; height: 120px; top: 60%; right: 15%; animation-delay: 5s; }
+        .floating-circle:nth-child(3) { width: 60px; height: 60px; bottom: 30%; left: 20%; animation-delay: 10s; }
+        .floating-circle:nth-child(4) { width: 100px; height: 100px; top: 40%; right: 40%; animation-delay: 15s; }
+
+        @keyframes float {
+            from { transform: translateY(0px) rotate(0deg); }
+            to { transform: translateY(-20px) rotate(360deg); }
+        }
+
+        .main-grid {
+            display: flex;
+            gap: 2rem;
+            max-width: 1400px;
+            margin: 2rem auto 0 auto;
+            padding: 0 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .calc-controls {
+            padding: 2.5rem;
+            min-width: 400px;
+            margin-bottom: 1rem;
+        }
+
+        .calc-results {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .card {
+            padding: 2rem;
+        }
+
+        .title-main {
+            color: white;
+            font-size: 2.2em;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .emoji-icon {
+            font-size: 1.2em;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .tips-box {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 500;
+            line-height: 1.6;
+        }
+
+        .tips-box b {
+            color: #ffd700;
+        }
+
+        .tips-box code {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 0.2em 0.5em;
+            border-radius: 6px;
+            font-family: 'Fira Code', monospace;
+            color: #ffd700;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            color: white;
+            font-weight: 600;
+            margin-bottom: 0.8rem;
+            font-size: 1.1em;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .input-expr {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .input-expr:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1), 0 0 0 3px rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        #variable {
+            max-width: 110px;
+        }
+
+        #lim-point {
+            max-width: 80px;
+        }
+
+        .op-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .op-btn {
+            background: var(--calculus-gradient);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-weight: 700;
+            font-size: 1.1em;
+            padding: 1.2rem 1rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .op-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .op-btn:hover::before {
+            left: 100%;
+        }
+
+        .op-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .op-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .op-btn:nth-child(2) { background: var(--secondary-gradient); }
+        .op-btn:nth-child(3) { background: var(--accent-gradient); }
+        .op-btn:nth-child(4) { background: var(--success-gradient); }
+
+        .result-title {
+            color: white;
+            font-size: 1.6em;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-box, .steps-box {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 2rem;
+            font-size: 1.32em;
+            color: var(--text-primary);
+            min-height: 100px;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow-x: auto;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .result-box::before, .steps-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--success-gradient);
+            border-radius: 15px 15px 0 0;
+        }
+
+        .result-box.error {
+            background: rgba(255, 107, 107, 0.15);
+            color: #c62828;
+            border-color: rgba(255, 107, 107, 0.3);
+            font-weight: bold;
+        }
+
+        .result-box.error::before {
+            background: linear-gradient(90deg, #ff6b6b, #ee5a52);
+        }
+
+        .steps-box {
+            background: rgba(173, 216, 230, 0.2);
+            color: var(--text-secondary);
+            font-size: 1.08em;
+        }
+
+        .steps-box::before {
+            background: var(--accent-gradient);
+        }
+
+        .opacity-70 {
+            opacity: 0.7;
+            font-style: italic;
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        /* Efectos de entrada */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .main-grid {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1.5rem;
+                padding: 0 0.5rem;
+            }
+            
+            .calc-controls {
+                min-width: 0;
+                padding: 2rem;
+            }
+            
+            .title-main {
+                font-size: 1.8em;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .op-group {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .op-btn {
+                font-size: 1em;
+                padding: 1rem;
+            }
+            
+            .result-title {
+                font-size: 1.4em;
+            }
+        }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Animaciones para mostrar/ocultar campos */
+        .form-group {
+            transition: all 0.3s ease;
+        }
+
+        .form-group[style*="display: none"] {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+    </style>
+    <!-- Librerías -->
+    <script src="../libs/nerdamer/all.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+    </div>
+
+    <div class="main-grid">
+        <!-- Panel de Control -->
+        <section class="calc-controls glass-card fade-in">
+            <div class="title-main">
+                <span class="emoji-icon">🧮</span> 
+                <span>Cálculo <span style="color:#1de9b6">Simbólico</span></span>
+            </div>
+            <div class="tips-box">
+                <b>💡 Tips:</b> Usa <b>x, y, e, pi, etc.</b><br>
+                <b>Ej:</b> <b>x^3 + sin(x) + 2*e^x</b>, <b>sin(x^2)</b>, <b>x^2 + y^2</b><br>
+                <b>Derivar:</b> Deriva respecto a la variable elegida.<br>
+                <b>Límite:</b> Ejemplo <code>sin(x)/x</code> cuando x→0.<br>
+                <b>Integral:</b> Ejemplo x^2*e^x, 1/(1+x^2).<br>
+                <b>Laplace:</b> Solo funciones de t (Ej: <code>exp(-2t)*sin(3t)</code>)
+            </div>
+            <div class="form-group">
+                <label for="exprA">Expresión:</label>
+                <input type="text" id="exprA" class="input-expr" placeholder="Ejemplo: sin(x)">
+            </div>
+            <div class="form-group" id="group-var" style="display:none;">
+                <label for="variable">Variable (por defecto x):</label>
+                <input type="text" id="variable" class="input-expr" value="x">
+            </div>
+            <div class="form-group" id="group-limit" style="display:none;">
+                <label>Límite cuando x→</label>
+                <input type="text" id="lim-point" class="input-expr" value="0">
+            </div>
+            <div class="op-group">
+                <button class="op-btn" data-op="derive">🧮 Derivar</button>
+                <button class="op-btn" data-op="integrate">∫ Integrar</button>
+                <button class="op-btn" data-op="limit">🔻 Límite</button>
+                <button class="op-btn" data-op="laplace">𝓛 Laplace</button>
+            </div>
+        </section>
+
+        <!-- Resultados -->
+        <section class="calc-results">
+            <div class="card glass-card fade-in">
+                <div class="result-title"><span>📊</span> Resultado</div>
+                <div id="result-box" class="result-box">
+                    <span class="opacity-70 pulse">El resultado aparecerá aquí...</span>
+                </div>
+            </div>
+            <div class="card glass-card fade-in">
+                <div class="result-title"><span>👣</span> Pasos</div>
+                <div id="steps-box" class="steps-box">
+                    <span class="opacity-70">Esperando un cálculo válido...</span>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const exprA = document.getElementById('exprA');
+            const resultBox = document.getElementById('result-box');
+            const stepsBox = document.getElementById('steps-box');
+            const opBtns = document.querySelectorAll('.op-btn');
+            const groupVar = document.getElementById('group-var');
+            const variableInput = document.getElementById('variable');
+            const groupLimit = document.getElementById('group-limit');
+            const limPointInput = document.getElementById('lim-point');
+
+            // Muestra/oculta campos de variable/límite según operación
+            function showFields(op) {
+                groupVar.style.display = (op === 'derive' || op === 'integrate' || op === 'limit') ? '' : 'none';
+                groupLimit.style.display = op === 'limit' ? '' : 'none';
+            }
+
+            opBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const op = btn.dataset.op;
+                    showFields(op);
+
+                    const expr = exprA.value.trim();
+                    let variable = (variableInput.value || 'x').trim();
+                    let limPoint = limPointInput.value.trim();
+
+                    if (!expr) {
+                        renderError("Por favor, escribe una expresión.");
+                        return;
+                    }
+                    try {
+                        let result, steps;
+                        switch (op) {
+                            case 'derive':
+                                result = nerdamer.diff(expr, variable);
+                                renderResult(`\\(${result.toTeX()}\\)`);
+                                steps = `\\text{Derivada de } ${nerdamer(expr).toTeX()} \\text{ respecto a } ${variable}: \\ ${result.toTeX()}`;
+                                break;
+                            case 'integrate':
+                                result = nerdamer.integrate(expr, variable);
+                                renderResult(`\\(${result.toTeX()}+C\\)`);
+                                steps = `\\text{Integral de } ${nerdamer(expr).toTeX()} \\text{ respecto a } ${variable}: \\ ${result.toTeX()}+C`;
+                                break;
+                            case 'limit':
+                                let limVal = limPoint || "0";
+                                result = nerdamer.limit(expr, variable, limVal);
+                                renderResult(`\\(${result.toTeX()}\\)`);
+                                steps = `\\text{Límite de } ${nerdamer(expr).toTeX()} \\text{ cuando } ${variable}\\to${limVal}: \\ ${result.toTeX()}`;
+                                break;
+                            case 'laplace':
+                                // Laplace solo en variable t
+                                result = nerdamer.laplace(expr, 't', 's');
+                                renderResult(`\\(${result.toTeX()}\\)`);
+                                steps = `\\text{Transformada de Laplace de } ${nerdamer(expr).toTeX()} \\text{ respecto a t}: \\ ${result.toTeX()}`;
+                                break;
+                        }
+                        renderSteps(`\\(${steps}\\)`);
+                    } catch (e) {
+                        renderError("❌ Error en la expresión: " + e.message);
+                    }
+                });
+            });
+
+            function renderResult(latex) {
+                resultBox.className = "result-box";
+                resultBox.innerHTML = latex;
+                if (window.MathJax) MathJax.typesetPromise([resultBox]);
+            }
+            function renderSteps(tex) {
+                stepsBox.innerHTML = tex;
+                if (window.MathJax) MathJax.typesetPromise([stepsBox]);
+            }
+            function renderError(msg) {
+                resultBox.className = "result-box error";
+                resultBox.innerHTML = msg;
+                stepsBox.innerHTML = `<span class="opacity-70">Esperando un cálculo válido...</span>`;
+            }
+            // Mostrar campos según la operación inicial
+            showFields();
+
+            // Animaciones de entrada secuenciales
+            const cards = document.querySelectorAll('.fade-in');
+            cards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.2}s`;
+            });
+        });
+    </script>
+</body>
+</html>

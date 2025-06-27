@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polígonos Regulares Interactivos</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body {
+            background: linear-gradient(120deg, #e0eafc, #cfdef3 80%);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0; min-height: 100vh;
+        }
+        .poly-container {
+            max-width: 950px;
+            margin: 2.5rem auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 2px 18px #0002;
+            padding: 2.2rem 2.2rem 2.8rem 2.2rem;
+            display: flex;
+            gap: 2.2rem;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+        .poly-controls {
+            min-width: 260px;
+            flex: 1 1 270px;
+            background: #e8f0fc;
+            border-radius: 15px;
+            padding: 1.3rem 1.3rem 1.5rem 1.3rem;
+            box-shadow: 0 1px 6px #2294ff22;
+        }
+        .poly-controls label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+        .poly-controls .form-group {
+            margin-bottom: 1.3rem;
+        }
+        .color-row {
+            display: flex;
+            gap: 0.9em;
+            align-items: center;
+            margin-bottom: 1em;
+        }
+        .color-row label { min-width: 112px; }
+        .poly-canvas-wrap {
+            flex: 2 1 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .poly-canvas-bg {
+            background: #f3f6ff;
+            border-radius: 14px;
+            box-shadow: 0 1.5px 8px #a3bffa33;
+            padding: 1.1rem;
+        }
+        #polygon-canvas {
+            background: #f8fafc;
+            border-radius: 12px;
+            box-shadow: 0 1.5px 8px #2294ff13;
+            display: block;
+        }
+        .poly-info {
+            margin-top: 1.2rem;
+            background: #fffde7;
+            border-radius: 12px;
+            padding: 1rem 1.4rem;
+            color: #ad6800;
+            font-size: 1.1em;
+            box-shadow: 0 1px 6px #ffb30016;
+            min-width: 350px;
+            max-width: 420px;
+            word-break: break-word;
+        }
+        .poly-info strong { color: #ff9800; }
+        @media (max-width: 900px) {
+            .poly-container { flex-direction: column; gap: 1.5rem; }
+            .poly-info { min-width: unset; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="poly-container">
+        <section class="poly-controls">
+            <h2 style="color:#1976d2; margin-bottom:1.3em;">
+                <span style="font-size:1.8em;">🔷</span> Polígonos Regulares Interactivos
+            </h2>
+            <div class="form-group">
+                <label for="lados">Número de lados (n):</label>
+                <input type="number" id="lados" min="3" max="32" value="5" style="width:75px; font-size:1.1em;">
+            </div>
+            <div class="form-group">
+                <label for="longitud">Longitud del lado (a):</label>
+                <input type="number" id="longitud" min="10" max="300" value="100" style="width:100px; font-size:1.1em;">
+            </div>
+            <div class="color-row">
+                <label for="color-fondo">Color de fondo:</label>
+                <input type="color" id="color-fondo" value="#f8fafc">
+            </div>
+            <div class="color-row">
+                <label for="color-lados">Color de lados:</label>
+                <input type="color" id="color-lados" value="#1976d2">
+            </div>
+            <div class="color-row">
+                <label for="color-vertices">Color de vértices:</label>
+                <input type="color" id="color-vertices" value="#ff9800">
+            </div>
+            <div style="margin-top:1.1em; color:#0366d6; font-size:0.99em;">
+                <b>Consejos:</b> Usa el mouse o el dedo para explorar el gráfico. <br>
+                Prueba diferentes polígonos y colores.
+            </div>
+        </section>
+        <section class="poly-canvas-wrap">
+            <div class="poly-canvas-bg">
+                <canvas id="polygon-canvas" width="420" height="420"></canvas>
+            </div>
+            <div class="poly-info" id="poly-info"></div>
+        </section>
+    </div>
+    <script>
+        const ladosInput = document.getElementById('lados');
+        const longitudInput = document.getElementById('longitud');
+        const colorFondoInput = document.getElementById('color-fondo');
+        const colorLadosInput = document.getElementById('color-lados');
+        const colorVerticesInput = document.getElementById('color-vertices');
+        const canvas = document.getElementById('polygon-canvas');
+        const ctx = canvas.getContext('2d');
+        const infoDiv = document.getElementById('poly-info');
+
+        function dibujarPoligono() {
+            const n = Math.max(3, Math.min(32, parseInt(ladosInput.value) || 5));
+            const a = Math.max(10, Math.min(300, parseFloat(longitudInput.value) || 100));
+            const colorFondo = colorFondoInput.value;
+            const colorLados = colorLadosInput.value;
+            const colorVertices = colorVerticesInput.value;
+            // --- Cálculos geométricos
+            const R = a / (2 * Math.sin(Math.PI / n)); // Radio circunscrito
+            const r = a / (2 * Math.tan(Math.PI / n)); // Apotema
+            const perimetro = a * n;
+            const area = (perimetro * r) / 2;
+
+            // --- Ajuste dinámico para centrar el polígono
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.save();
+            ctx.fillStyle = colorFondo;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.translate(canvas.width/2, canvas.height/2);
+
+            // --- Dibuja lados
+            ctx.beginPath();
+            for (let i=0; i<=n; i++) {
+                const ang = (2 * Math.PI * i) / n - Math.PI/2;
+                const x = R * Math.cos(ang);
+                const y = R * Math.sin(ang);
+                if(i===0) ctx.moveTo(x, y);
+                else ctx.lineTo(x, y);
+            }
+            ctx.strokeStyle = colorLados;
+            ctx.lineWidth = 3;
+            ctx.shadowColor = colorLados+'55';
+            ctx.shadowBlur = 7;
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+
+            // --- Dibuja vértices
+            for (let i=0; i<n; i++) {
+                const ang = (2 * Math.PI * i) / n - Math.PI/2;
+                const x = R * Math.cos(ang);
+                const y = R * Math.sin(ang);
+                ctx.beginPath();
+                ctx.arc(x, y, 7, 0, 2*Math.PI);
+                ctx.fillStyle = colorVertices;
+                ctx.shadowColor = colorVertices+'66';
+                ctx.shadowBlur = 4;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.strokeStyle = "#fff";
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // --- Actualiza info geométrica
+            infoDiv.innerHTML = `
+                <b>Número de lados:</b> <strong>${n}</strong> <br>
+                <b>Longitud del lado:</b> <strong>${a.toFixed(2)}</strong> <br>
+                <b>Perímetro:</b> <strong>${perimetro.toFixed(2)}</strong> <br>
+                <b>Apotema:</b> <strong>${r.toFixed(2)}</strong> <br>
+                <b>Área:</b> <strong>${area.toFixed(2)}</strong> <br>
+                <b>Radio circunscrito:</b> <strong>${R.toFixed(2)}</strong>
+            `;
+        }
+
+        // --- Listeners reactivos
+        [ladosInput, longitudInput, colorFondoInput, colorLadosInput, colorVerticesInput]
+            .forEach(el => el.addEventListener('input', dibujarPoligono));
+
+        // --- Inicializa el dibujo
+        dibujarPoligono();
+    </script>
+</body>
+</html>

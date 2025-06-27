@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora de Matrices</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --warning-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            --danger-gradient: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --dark-glass: rgba(0, 0, 0, 0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --shadow-soft: 0 8px 32px rgba(31, 38, 135, 0.37);
+            --shadow-hover: 0 15px 35px rgba(31, 38, 135, 0.5);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4facfe 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .floating-circle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            animation: float 20s infinite linear;
+        }
+
+        .floating-circle:nth-child(1) { width: 80px; height: 80px; top: 15%; left: 10%; animation-delay: 0s; }
+        .floating-circle:nth-child(2) { width: 120px; height: 120px; top: 70%; right: 15%; animation-delay: 5s; }
+        .floating-circle:nth-child(3) { width: 60px; height: 60px; bottom: 20%; left: 20%; animation-delay: 10s; }
+        .floating-circle:nth-child(4) { width: 100px; height: 100px; top: 45%; right: 40%; animation-delay: 15s; }
+
+        @keyframes float {
+            from { transform: translateY(0px) rotate(0deg); }
+            to { transform: translateY(-20px) rotate(360deg); }
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-soft);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        h1 {
+            color: white;
+            font-size: 3rem;
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 2rem;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .emoji-icon {
+            font-size: 1em;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .matrix-controls {
+            display: flex;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .matrix-input {
+            flex: 1;
+            min-width: 350px;
+            padding: 2rem;
+        }
+
+        .matrix-title {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .matrix-size {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .size-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .size-label {
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+
+        .size-input {
+            width: 80px;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            font-size: 1rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .size-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1), 0 0 0 3px rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .matrix-grid {
+            display: inline-grid;
+            gap: 8px;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .matrix-cell {
+            width: 60px;
+            height: 40px;
+            padding: 8px;
+            text-align: center;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .matrix-cell:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2), 0 0 0 2px rgba(79, 172, 254, 0.5);
+            transform: translateY(-2px) scale(1.05);
+        }
+
+        .operations {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 2rem 0;
+            padding: 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .operations::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+        }
+
+        .operation-btn {
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: white;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .operation-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .operation-btn:hover::before {
+            left: 100%;
+        }
+
+        .operation-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+        }
+
+        .operation-btn:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        /* Diferentes gradientes para tipos de operaciones */
+        .operation-btn.basic { background: var(--primary-gradient); }
+        .operation-btn.advanced { background: var(--secondary-gradient); }
+        .operation-btn.determinant { background: var(--accent-gradient); }
+        .operation-btn.transform { background: var(--success-gradient); }
+        .operation-btn.inverse { background: var(--warning-gradient); }
+
+        .operation-btn:disabled {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .operation-btn:disabled:hover {
+            transform: none;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+        }
+
+        .result {
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .result-title {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .result-matrix {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 2rem;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+        }
+
+        .result-matrix::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: var(--success-gradient);
+            border-radius: 15px 15px 0 0;
+        }
+
+        #resultMatrix {
+            display: inline-grid;
+            gap: 8px;
+        }
+
+        #resultMatrix .matrix-cell {
+            background: rgba(79, 172, 254, 0.1);
+            border: 2px solid rgba(79, 172, 254, 0.3);
+            color: var(--text-primary);
+            font-weight: 700;
+            cursor: default;
+        }
+
+        #resultMatrix .scalar-result {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--text-primary);
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(79, 172, 254, 0.1);
+            border: 2px solid rgba(79, 172, 254, 0.3);
+            border-radius: 12px;
+        }
+
+        .error {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .matrix-controls {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+
+            .matrix-input {
+                min-width: 0;
+                padding: 1.5rem;
+            }
+
+            .operations {
+                grid-template-columns: 1fr;
+                padding: 1.5rem;
+            }
+
+            .matrix-size {
+                gap: 1rem;
+            }
+
+            .matrix-cell {
+                width: 50px;
+                height: 35px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Animación de entrada secuencial */
+        .matrix-input:nth-child(1) { animation-delay: 0.1s; }
+        .matrix-input:nth-child(2) { animation-delay: 0.2s; }
+        .operations { animation-delay: 0.3s; }
+        .result { animation-delay: 0.4s; }
+
+        /* Scrollbar personalizada */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-elements">
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+        <div class="floating-circle"></div>
+    </div>
+
+    <div class="container">
+        <h1 class="fade-in">
+            <span class="emoji-icon">🧮</span>
+            Calculadora de Matrices
+        </h1>
+        
+        <!-- Matrices A y B -->
+        <div class="matrix-controls">
+            <div class="matrix-input glass-card fade-in">
+                <h3 class="matrix-title">
+                    <span class="emoji-icon">🔵</span>
+                    Matriz A
+                </h3>
+                <div class="matrix-size">
+                    <div class="size-group">
+                        <label class="size-label">Filas:</label>
+                        <input type="number" id="rowsA" class="size-input" value="2" min="1" max="5">
+                    </div>
+                    <div class="size-group">
+                        <label class="size-label">Columnas:</label>
+                        <input type="number" id="colsA" class="size-input" value="2" min="1" max="5">
+                    </div>
+                </div>
+                <div id="matrixA" class="matrix-grid"></div>
+            </div>
+
+            <div class="matrix-input glass-card fade-in">
+                <h3 class="matrix-title">
+                    <span class="emoji-icon">🟢</span>
+                    Matriz B
+                </h3>
+                <div class="matrix-size">
+                    <div class="size-group">
+                        <label class="size-label">Filas:</label>
+                        <input type="number" id="rowsB" class="size-input" value="2" min="1" max="5">
+                    </div>
+                    <div class="size-group">
+                        <label class="size-label">Columnas:</label>
+                        <input type="number" id="colsB" class="size-input" value="2" min="1" max="5">
+                    </div>
+                </div>
+                <div id="matrixB" class="matrix-grid"></div>
+            </div>
+        </div>
+
+        <!-- Operaciones -->
+        <div class="operations fade-in">
+            <button class="operation-btn basic" onclick="performOperation('add')">
+                <span class="emoji-icon">➕</span> Sumar (A + B)
+            </button>
+            <button class="operation-btn basic" onclick="performOperation('subtract')">
+                <span class="emoji-icon">➖</span> Restar (A - B)
+            </button>
+            <button class="operation-btn advanced" onclick="performOperation('multiply')">
+                <span class="emoji-icon">✖️</span> Multiplicar (A × B)
+            </button>
+            <button class="operation-btn determinant" onclick="performOperation('determinantA')">
+                <span class="emoji-icon">🔍</span> Determinante de A
+            </button>
+            <button class="operation-btn determinant" onclick="performOperation('determinantB')">
+                <span class="emoji-icon">🔍</span> Determinante de B
+            </button>
+            <button class="operation-btn transform" onclick="performOperation('transposeA')">
+                <span class="emoji-icon">🔄</span> Transpuesta de A
+            </button>
+            <button class="operation-btn transform" onclick="performOperation('transposeB')">
+                <span class="emoji-icon">🔄</span> Transpuesta de B
+            </button>
+            <button class="operation-btn inverse" onclick="performOperation('inverseA')">
+                <span class="emoji-icon">🔀</span> Inversa de A
+            </button>
+            <button class="operation-btn inverse" onclick="performOperation('inverseB')">
+                <span class="emoji-icon">🔀</span> Inversa de B
+            </button>
+        </div>
+
+        <!-- Resultado -->
+        <div class="result glass-card fade-in">
+            <h3 class="result-title">
+                <span class="emoji-icon">📊</span>
+                Resultado
+            </h3>
+            <div class="result-matrix">
+                <div id="resultMatrix" class="matrix-grid">
+                    <div style="text-align: center; color: #64748b; font-style: italic; padding: 2rem;">
+                        Selecciona una operación para ver el resultado...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Inicialización con animación
+        document.addEventListener('DOMContentLoaded', function() {
+            // Crear matrices iniciales
+            createMatrix('A');
+            createMatrix('B');
+
+            // Event listeners para cambios de tamaño
+            document.getElementById('rowsA').addEventListener('change', () => createMatrix('A'));
+            document.getElementById('colsA').addEventListener('change', () => createMatrix('A'));
+            document.getElementById('rowsB').addEventListener('change', () => createMatrix('B'));
+            document.getElementById('colsB').addEventListener('change', () => createMatrix('B'));
+        });
+
+        function createMatrix(matrixId) {
+            const rows = parseInt(document.getElementById(`rows${matrixId}`).value);
+            const cols = parseInt(document.getElementById(`cols${matrixId}`).value);
+            const container = document.getElementById(`matrix${matrixId}`);
+            
+            container.style.gridTemplateColumns = `repeat(${cols}, 60px)`;
+            container.innerHTML = '';
+            
+            for(let i = 0; i < rows; i++) {
+                for(let j = 0; j < cols; j++) {
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.className = 'matrix-cell';
+                    input.value = i === j ? '1' : '0'; // Matriz identidad por defecto
+                    input.step = '0.01';
+                    container.appendChild(input);
+                }
+            }
+        }
+
+        function getMatrixValues(matrixId) {
+            const rows = parseInt(document.getElementById(`rows${matrixId}`).value);
+            const cols = parseInt(document.getElementById(`cols${matrixId}`).value);
+            const cells = document.querySelectorAll(`#matrix${matrixId} input`);
+            const matrix = [];
+            
+            for(let i = 0; i < rows; i++) {
+                const row = [];
+                for(let j = 0; j < cols; j++) {
+                    row.push(parseFloat(cells[i * cols + j].value) || 0);
+                }
+                matrix.push(row);
+            }
+            
+            return matrix;
+        }
+
+        function displayResult(result, isScalar = false) {
+            const container = document.getElementById('resultMatrix');
+            container.innerHTML = '';
+            
+            if (isScalar) {
+                const div = document.createElement('div');
+                div.className = 'scalar-result';
+                div.textContent = parseFloat(result.toFixed(6));
+                container.appendChild(div);
+                return;
+            }
+            
+            container.style.gridTemplateColumns = `repeat(${result[0].length}, 60px)`;
+            
+            for(let i = 0; i < result.length; i++) {
+                for(let j = 0; j < result[0].length; j++) {
+                    const div = document.createElement('div');
+                    div.className = 'matrix-cell';
+                    div.textContent = parseFloat(result[i][j].toFixed(4));
+                    container.appendChild(div);
+                }
+            }
+            
+            // Añadir animación al resultado
+            container.parentElement.classList.add('fade-in');
+        }
+
+        function displayError(message) {
+            const container = document.getElementById('resultMatrix');
+            container.innerHTML = `<div class="error">⚠️ ${message}</div>`;
+        }
+
+        function matrixAdd(A, B) {
+            if(A.length !== B.length || A[0].length !== B[0].length) {
+                throw new Error('Las matrices deben tener las mismas dimensiones para sumarlas');
+            }
+            
+            return A.map((row, i) => row.map((val, j) => val + B[i][j]));
+        }
+
+        function matrixSubtract(A, B) {
+            if(A.length !== B.length || A[0].length !== B[0].length) {
+                throw new Error('Las matrices deben tener las mismas dimensiones para restarlas');
+            }
+            
+            return A.map((row, i) => row.map((val, j) => val - B[i][j]));
+        }
+
+        function matrixMultiply(A, B) {
+            if(A[0].length !== B.length) {
+                throw new Error('El número de columnas de A debe ser igual al número de filas de B');
+            }
+            
+            const result = [];
+            for(let i = 0; i < A.length; i++) {
+                result[i] = [];
+                for(let j = 0; j < B[0].length; j++) {
+                    result[i][j] = A[i].reduce((sum, val, k) => sum + val * B[k][j], 0);
+                }
+            }
+            return result;
+        }
+
+        function matrixTranspose(A) {
+            return A[0].map((_, i) => A.map(row => row[i]));
+        }
+
+        function determinant(matrix) {
+            if(matrix.length !== matrix[0].length) {
+                throw new Error('La matriz debe ser cuadrada para calcular su determinante');
+            }
+            
+            if(matrix.length === 1) return matrix[0][0];
+            if(matrix.length === 2) {
+                return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
+            }
+            
+            let det = 0;
+            for(let i = 0; i < matrix[0].length; i++) {
+                det += matrix[0][i] * cofactor(matrix, 0, i);
+            }
+            return det;
+        }
+
+        function cofactor(matrix, row, col) {
+            const minor = matrix
+                .filter((_, index) => index !== row)
+                .map(row => row.filter((_, index) => index !== col));
+            return Math.pow(-1, row + col) * determinant(minor);
+        }
+
+        function adjugate(matrix) {
+            if(matrix.length !== matrix[0].length) {
+                throw new Error('La matriz debe ser cuadrada para calcular su adjunta');
+            }
+
+            const n = matrix.length;
+            const adj = Array(n).fill().map(() => Array(n).fill(0));
+
+            for(let i = 0; i < n; i++) {
+                for(let j = 0; j < n; j++) {
+                    adj[j][i] = cofactor(matrix, i, j);
+                }
+            }
+
+            return adj;
+        }
+
+        function inverseMatrix(matrix) {
+            const det = determinant(matrix);
+            
+            if(Math.abs(det) < 1e-10) {
+                throw new Error('La matriz no es invertible (determinante = 0)');
+            }
+
+            const adj = adjugate(matrix);
+            return adj.map(row => row.map(val => val / det));
+        }
+
+        function performOperation(op) {
+            try {
+                const A = getMatrixValues('A');
+                const B = getMatrixValues('B');
+                let result;
+                
+                switch(op) {
+                    case 'add':
+                        result = matrixAdd(A, B);
+                        break;
+                    case 'subtract':
+                        result = matrixSubtract(A, B);
+                        break;
+                    case 'multiply':
+                        result = matrixMultiply(A, B);
+                        break;
+                    case 'determinantA':
+                        result = determinant(A);
+                        displayResult(result, true);
+                        return;
+                    case 'determinantB':
+                        result = determinant(B);
+                        displayResult(result, true);
+                        return;
+                    case 'transposeA':
+                        result = matrixTranspose(A);
+                        break;
+                    case 'transposeB':
+                        result = matrixTranspose(B);
+                        break;
+                    case 'inverseA':
+                        result = inverseMatrix(A);
+                        break;
+                    case 'inverseB':
+                        result = inverseMatrix(B);
+                        break;
+                }
+                
+                displayResult(result);
+            } catch(error) {
+                displayError(error.message);
+            }
+        }
+    </script>
+</body>
+</html>

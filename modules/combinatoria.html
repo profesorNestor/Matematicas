@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, minimum-scale=0.5, maximum-scale=3.0">
+    <meta name="theme-color" content="#0f0c29">
+    <title>Combinatoria Interactiva Plus</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 35%, #24243e 100%);
+            min-height: 100vh;
+            padding: 10px;
+            -webkit-font-smoothing: antialiased;
+            scroll-behavior: smooth;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(15, 12, 41, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            color: white;
+            text-align: center;
+            padding: clamp(20px, 5vw, 40px);
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: clamp(1.8rem, 5vw, 3rem);
+            margin-bottom: 10px;
+            font-weight: 800;
+        }
+
+        .main-content {
+            padding: clamp(15px, 4vw, 35px);
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .controls-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .control-group {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 20px;
+            border-radius: 16px;
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .control-group:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+
+        .control-group select,
+        .control-group input {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #2d3748;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .element-type-selector {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .custom-selector {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .element-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 8px;
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+        }
+
+        .element-option {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            background: #ffffff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2em;
+            border: 2px solid transparent;
+            color: #1a202c;
+            font-weight: 700;
+            min-height: 45px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .element-option:hover {
+            background: #e2e8f0;
+            transform: scale(1.05);
+            color: #2b6cb0;
+            border-color: #4facfe;
+        }
+
+        .element-option.selected {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #ffffff;
+            border-color: #ffffff;
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(79, 172, 254, 0.4);
+        }
+
+        .selected-elements-display {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 10px;
+            min-height: 60px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .selected-element {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 1.1em;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .selected-element:hover {
+            transform: scale(1.1);
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: white;
+        }
+
+        .clear-btn {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .select-all-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .random-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .action-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4);
+        }
+
+        .calculate-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 50%, #4facfe 100%);
+            color: white;
+            border: none;
+            padding: 18px 32px;
+            border-radius: 50px;
+            font-size: 1.3em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 24px;
+            text-transform: uppercase;
+            min-height: 60px;
+        }
+
+        .calculate-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(240, 147, 251, 0.4);
+        }
+
+        .results-section {
+            background: linear-gradient(135deg, rgba(15, 12, 41, 0.8) 0%, rgba(48, 43, 99, 0.8) 100%);
+            border-radius: 20px;
+            padding: clamp(20px, 4vw, 30px);
+            margin-top: 24px;
+            min-height: 200px;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .formula-display, .steps-display, .visual-display {
+            background: rgba(102, 126, 234, 0.15);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 16px;
+            border-left: 4px solid #667eea;
+            color: #e2e8f0;
+            backdrop-filter: blur(10px);
+        }
+
+        .element-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            margin: 16px 0;
+        }
+
+        .element {
+            display: inline-block;
+            padding: 10px 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 25px;
+            font-size: 1.1rem;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            font-weight: 600;
+            min-width: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .selected-element-result {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%) !important;
+        }
+
+        .results-scroll-container {
+            max-height: 400px;
+            overflow-y: auto;
+            background: rgba(15, 12, 41, 0.4);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .combination-row {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 12px;
+            border-left: 3px solid #4facfe;
+            transition: all 0.3s ease;
+        }
+
+        .combination-number {
+            color: #4facfe;
+            font-weight: 700;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+
+        .result-highlight {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 800;
+            margin-top: 20px;
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #0f0c29 0%, #302b63 100%);
+            color: #e2e8f0;
+            text-align: center;
+            padding: clamp(20px, 4vw, 35px);
+            margin-top: 32px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer .author {
+            font-weight: 800;
+            color: #4facfe;
+        }
+
+        @media (max-width: 768px) {
+            .controls-section {
+                grid-template-columns: 1fr;
+            }
+            
+            .element-grid {
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+                max-height: 150px;
+            }
+        }
+
+        .animated {
+            animation: pulse 0.6s ease-in-out;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.02); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧮 Combinatoria Interactiva Plus 🎲</h1>
+            <p>Aprende variaciones, permutaciones y combinaciones con elementos personalizables</p>
+        </div>
+
+        <div class="main-content">
+            <div class="controls-section">
+                <div class="control-group">
+                    <label for="calculationType">📊 Tipo de Cálculo:</label>
+                    <select id="calculationType">
+                        <option value="variaciones">Variaciones V(n,r)</option>
+                        <option value="variacionesRep">Variaciones con Repetición VR(n,r)</option>
+                        <option value="permutaciones">Permutaciones P(n)</option>
+                        <option value="permutacionesCirc">Permutaciones Circulares PC(n)</option>
+                        <option value="combinaciones">Combinaciones C(n,r)</option>
+                        <option value="combinacionesRep">Combinaciones con Repetición CR(n,r)</option>
+                    </select>
+                </div>
+
+                <div class="control-group element-type-selector">
+                    <label for="elementType">🎨 Categoría de Elementos:</label>
+                    <select id="elementType">
+                        <option value="">-- Selecciona una categoría --</option>
+                        <option value="numbers">🔢 Números</option>
+                        <option value="letters">🔤 Letras</option>
+                        <option value="faces">😀 Caras y Emociones</option>
+                        <option value="animals">🐶 Animales</option>
+                        <option value="food">🍎 Comida</option>
+                        <option value="sports">⚽ Deportes</option>
+                        <option value="transport">🚗 Transporte</option>
+                        <option value="nature">🌿 Naturaleza</option>
+                        <option value="objects">🎯 Objetos</option>
+                        <option value="cards">🃏 Cartas</option>
+                        <option value="shapes">🔺 Formas</option>
+                        <option value="colors">🎨 Colores</option>
+                        <option value="custom">✨ Personalizado</option>
+                    </select>
+                </div>
+
+                <div class="control-group custom-selector">
+                    <label>🎯 Elementos Disponibles:</label>
+                    <div class="element-grid" id="elementGrid">
+                        <div style="grid-column: 1 / -1; text-align: center; color: #ccc; font-style: italic; padding: 40px;">
+                            Selecciona una categoría arriba para ver los elementos disponibles
+                        </div>
+                    </div>
+                    <div class="action-buttons" id="actionButtons" style="display: none;">
+                        <button class="action-btn select-all-btn" onclick="selectAll()">Seleccionar Todos</button>
+                        <button class="action-btn clear-btn" onclick="clearSelection()">Limpiar</button>
+                        <button class="action-btn random-btn" onclick="selectRandom()">Aleatorio</button>
+                    </div>
+                </div>
+
+                <div class="control-group custom-selector">
+                    <label>✅ Elementos Seleccionados:</label>
+                    <div class="selected-elements-display" id="selectedElements">
+                        <span style="color: #ccc; font-style: italic;">Selecciona elementos de arriba...</span>
+                    </div>
+                </div>
+
+                <div class="control-group" id="rValueGroup">
+                    <label for="rValue">🎯 Elementos a tomar (r):</label>
+                    <input type="number" id="rValue" min="1" max="20" value="3">
+                </div>
+            </div>
+
+            <button class="calculate-btn" onclick="calculate()">🚀 ¡Calcular!</button>
+
+            <div class="results-section" id="results" style="display: none;">
+                <div class="formula-display" id="formula"></div>
+                <div class="steps-display" id="steps"></div>
+                <div class="visual-display" id="visual"></div>
+                <div class="result-highlight" id="finalResult"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>🎓 Matemáticas Aplicadas</p>
+            <p class="author">Mejorado por Claude AI • Basado en MSc Néstor Fabio Montoya Palacios</p>
+            <p>📚 Educación Interactiva • 🌟 Aprendizaje Visual Personalizable</p>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let selectedElements = [];
+        let currentCategory = '';
+
+        // Configuración de elementos por categorías
+        const elementSets = {
+            faces: ['😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🤩'],
+            animals: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', '🦉', '🦇'],
+            food: ['🍎', '🍏', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐', '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🍆', '🥑', '🥦', '🥬', '🥒', '🌶️', '🫑', '🌽', '🥕', '🫒', '🧄', '🧅', '🥔'],
+            sports: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛷', '⛸️'],
+            transport: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🏍️', '🛵', '🚲', '🛴', '🛹', '🚁', '✈️', '🛩️', '🛫', '🛬', '🪂', '💺', '🚀', '🛸', '🚉', '🚊'],
+            nature: ['🌿', '🍀', '🎍', '🎋', '🍃', '🌱', '🌾', '💐', '🌷', '🌹', '🥀', '🌺', '🌸', '🌼', '🌻', '🌞', '🌝', '🌛', '🌜', '🌚', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '🌙', '⭐'],
+            objects: ['🎯', '🎲', '🎮', '🕹️', '🎰', '🎳', '🎪', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎵', '🎶', '🥇', '🥈', '🥉', '🏆', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🔮', '🪄', '🧿', '📿'],
+            numbers: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
+            letters: ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
+            cards: ['🂡', '🂢', '🂣', '🂤', '🂥', '🂦', '🂧', '🂨', '🂩', '🂪', '🂫', '🂭', '🂮', '🂱', '🂲', '🂳', '🂴', '🂵', '🂶', '🂷', '🂸', '🂹', '🂺', '🂻', '🂽', '🂾', '♠️', '♥️', '♦️', '♣️'],
+            shapes: ['🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '⬛', '⬜', '◼️', '◻️', '◾', '◽', '🟥', '🟧', '🟨', '🟩', '🟦'],
+            colors: ['🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '🟤', '⚫', '⚪', '🌈', '🎨', '🖌️', '🖍️', '✏️', '📝', '🖊️', '🖋️', '✒️', '🖇️', '📎', '📌', '📍', '🗂️', '📂', '📁', '🗃️', '🗄️', '📋', '📄', '📃'],
+            custom: []
+        };
+
+        // Función para calcular factorial
+        function factorial(n) {
+            if (n <= 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
+        // Generar combinaciones
+        function getCombinations(arr, r) {
+            const result = [];
+            function backtrack(start, path) {
+                if (path.length === r) {
+                    result.push([...path]);
+                    return;
+                }
+                for (let i = start; i < arr.length; i++) {
+                    path.push(arr[i]);
+                    backtrack(i + 1, path);
+                    path.pop();
+                }
+            }
+            backtrack(0, []);
+            return result;
+        }
+
+        // Generar permutaciones
+        function getPermutations(arr, r) {
+            const result = [];
+            function backtrack(path, used) {
+                if (path.length === r) {
+                    result.push([...path]);
+                    return;
+                }
+                for (let i = 0; i < arr.length; i++) {
+                    if (used[i]) continue;
+                    path.push(arr[i]);
+                    used[i] = true;
+                    backtrack(path, used);
+                    path.pop();
+                    used[i] = false;
+                }
+            }
+            backtrack([], new Array(arr.length).fill(false));
+            return result;
+        }
+
+        // Generar variaciones con repetición
+        function getVariationsWithRepetition(arr, r) {
+            const result = [];
+            const maxResults = 1000;
+            function backtrack(path) {
+                if (path.length === r) {
+                    result.push([...path]);
+                    return;
+                }
+                if (result.length >= maxResults) return;
+                for (let i = 0; i < arr.length; i++) {
+                    path.push(arr[i]);
+                    backtrack(path);
+                    path.pop();
+                }
+            }
+            backtrack([]);
+            return result;
+        }
+
+        // Generar combinaciones con repetición
+        function getCombinationsWithRepetition(arr, r) {
+            const result = [];
+            const maxResults = 1000;
+            function backtrack(start, path) {
+                if (path.length === r) {
+                    result.push([...path]);
+                    return;
+                }
+                if (result.length >= maxResults) return;
+                for (let i = start; i < arr.length; i++) {
+                    path.push(arr[i]);
+                    backtrack(i, path);
+                    path.pop();
+                }
+            }
+            backtrack(0, []);
+            return result;
+        }
+
+        // Crear scroll de resultados
+        function createResultsScroll(combinations, title, total) {
+            if (!combinations || combinations.length === 0) {
+                return `<p><em>No se pueden mostrar ejemplos para estos parámetros</em></p>`;
+            }
+
+            const showing = Math.min(combinations.length, 1000);
+            const hasMore = combinations.length > 1000;
+            
+            let scrollContent = `
+                <h3>${title}</h3>
+                <div style="background: rgba(79, 172, 254, 0.2); padding: 12px; border-radius: 12px; text-align: center; margin-bottom: 15px; color: #4facfe; font-weight: 600;">
+                    📊 Mostrando ${showing.toLocaleString()} de ${total.toLocaleString()} resultados
+                </div>
+                <div class="results-scroll-container">
+            `;
+
+            combinations.slice(0, 1000).forEach((combo, index) => {
+                scrollContent += `
+                    <div class="combination-row">
+                        <span class="combination-number">#${(index + 1).toString().padStart(3, '0')}</span>
+                        <div class="element-container" style="justify-content: flex-start; margin: 5px 0;">
+                            ${combo.map(el => `<span class="element selected-element-result">${el}</span>`).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            scrollContent += `</div>`;
+
+            if (hasMore) {
+                scrollContent += `
+                    <div style="text-align: center; margin-top: 10px; color: #4facfe; font-size: 0.9em;">
+                        ⚡ Se muestran los primeros 1000 resultados para optimizar el rendimiento
+                    </div>
+                `;
+            }
+
+            return scrollContent;
+        }
+
+        // Función principal de cálculo
+        function calculate() {
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
+
+            const type = document.getElementById('calculationType').value;
+            const r = parseInt(document.getElementById('rValue').value);
+            const n = selectedElements.length;
+
+            if (selectedElements.length === 0) {
+                alert('Por favor selecciona al menos un elemento');
+                return;
+            }
+
+            if ((type !== 'permutaciones' && type !== 'permutacionesCirc') && (!r || r < 1 || r > n)) {
+                alert(`Por favor ingresa un valor válido para r (r debe ser entre 1 y ${n})`);
+                return;
+            }
+
+            let formula = '';
+            let steps = '';
+            let result = 0;
+            let visual = '';
+
+            visual = `<h3>🎲 Elementos seleccionados:</h3>
+                      <div class="element-container">
+                          ${selectedElements.map(el => `<span class="element">${el}</span>`).join('')}
+                      </div>`;
+
+            switch (type) {
+                case 'variaciones':
+                    result = factorial(n) / factorial(n - r);
+                    formula = `<h3>📋 Fórmula: V(n,r) = n! / (n-r)!</h3>
+                              <p><strong>V(${n},${r}) = ${n}! / (${n}-${r})!</strong></p>`;
+                    steps = `<h3>🔢 Pasos del cálculo:</h3>
+                            <p>1. Calculamos ${n}! = ${factorial(n).toLocaleString()}</p>
+                            <p>2. Calculamos (${n}-${r})! = ${factorial(n-r).toLocaleString()}</p>
+                            <p>3. V(${n},${r}) = ${result.toLocaleString()}</p>`;
+                    
+                    const varCombinations = getPermutations(selectedElements, r);
+                    visual += createResultsScroll(varCombinations, '🎯 Todas las variaciones posibles (orden importa):', result);
+                    break;
+
+                case 'variacionesRep':
+                    result = Math.pow(n, r);
+                    formula = `<h3>📋 Fórmula: VR(n,r) = n^r</h3>
+                              <p><strong>VR(${n},${r}) = ${n}^${r}</strong></p>`;
+                    steps = `<h3>🔢 Pasos del cálculo:</h3>
+                            <p>1. Tenemos ${n} elementos disponibles</p>
+                            <p>2. Tomamos ${r} elementos con repetición permitida</p>
+                            <p>3. VR(${n},${r}) = ${n}^${r} = ${result.toLocaleString()}</p>`;
+                    
+                    const varRepCombinations = getVariationsWithRepetition(selectedElements, r);
+                    visual += createResultsScroll(varRepCombinations, '🎯 Variaciones con repetición:', result);
+                    break;
+
+                case 'permutaciones':
+                    result = factorial(n);
+                    formula = `<h3>📋 Fórmula: P(n) = n!</h3>
+                              <p><strong>P(${n}) = ${n}!</strong></p>`;
+                    steps = `<h3>🔢 Pasos del cálculo:</h3>
+                            <p>1. Calculamos ${n}! = ${n} × ${n-1} × ... × 2 × 1</p>
+                            <p>2. P(${n}) = ${result.toLocaleString()}</p>`;
+                    
+                    const allPermutations = getPermutations(selectedElements, n);
+                    visual += createResultsScroll(allPermutations, '🔄 Todas las permutaciones posibles:', result);
+                    break;
+
+                case 'permutacionesCirc':
+                    result = factorial(n - 1);
+                    formula = `<h3>📋 Fórmula: PC(n) = (n-1)!</h3>
+                              <p><strong>PC(${n}) = (${n}-1)!</strong></p>`;
+                    steps = `<h3>🔢 Pasos del cálculo:</h3>
+                            <p>1. En permutaciones circulares, fijamos un elemento</p>
+                            <p>2. Calculamos (${n}-1)! = ${result.toLocaleString()}</p>`;
+                    
+                    const fixedElement = selectedElements[0];
+                    const remainingElements = selectedElements.slice(1);
+                    const circPermutations = getPermutations(remainingElements, n-1).map(perm => [fixedElement, ...perm]);
+                    
+                    visual += `<h3>🔄 Elementos disponibles (${fixedElement} fijo):</h3>
+                              <div class="element-container">
+                                  <span class="element selected-element-result">${fixedElement}</span>
+                                  ${remainingElements.map(el => `<span class="element">${el}</span>`).join('')}
+                              </div>`;
+                    visual += createResultsScroll(circPermutations, '🔄 Todas las permutaciones circulares:', result);
+                    break;
+
+                case 'combinaciones':
+                    result = factorial(n) / (factorial(r) * factorial(n - r));
+                    formula = `<h3>📋 Fórmula: C(n,r) = n! / (r!(n-r)!)</h3>
+                              <p><strong>C(${n},${r}) = ${n}! / (${r}!(${n}-${r})!)</strong></p>`;
+                    steps = `<h3>🔢 Pasos del cálculo:</h3>
+                            <p>1. Calculamos ${n}! = ${factorial(n).toLocaleString()}</p>
+                            <p>2. Calculamos ${r}! = ${factorial(r).toLocaleString()}</p>
+                            <p>3. Calculamos (${n}-${r})! = ${factorial(n-r).toLocaleString()}</p>
+                            <p>4. C(${n},${r}) = ${result.toLocaleString()}</p>`;
+                    
+                    const combCombinations = getCombinations(selectedElements, r);
+                    visual += createResultsScroll(combCombinations, '🎯 Todas las combinaciones posibles (orden NO importa):', result);
+                    break;
+
+                case 'combinacionesRep':
+                    result = factorial(n + r - 1) / (factorial(r) * factorial(n - 1));
+                    formula = `<h3>📋 Fórmula: CR(n,r) = C(n+r-1,r)</h3>
+                              <p><strong>CR(${n},${r}) = C(${n+r-1},${r}) = (${n+r-1})! / (${r}!(${n-1})!)</strong></p>`;
+                    steps = `<h3>🔢 Pasos del cálculo:</h3>
+                            <p>1. Calculamos (n+r-1)! = ${factorial(n+r-1).toLocaleString()}</p>
+                            <p>2. Calculamos r! = ${factorial(r).toLocaleString()}</p>
+                            <p>3. Calculamos (n-1)! = ${factorial(n-1).toLocaleString()}</p>
+                            <p>4. CR(${n},${r}) = ${result.toLocaleString()}</p>`;
+                    
+                    const combRepCombinations = getCombinationsWithRepetition(selectedElements, r);
+                    visual += createResultsScroll(combRepCombinations, '🎯 Combinaciones con repetición:', result);
+                    break;
+            }
+
+            // Mostrar resultados
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('formula').innerHTML = formula;
+            document.getElementById('steps').innerHTML = steps;
+            document.getElementById('visual').innerHTML = visual;
+            document.getElementById('finalResult').innerHTML = `🎉 Resultado Final: ${result.toLocaleString()}`;
+
+            // Animación
+            document.getElementById('results').classList.add('animated');
+            setTimeout(() => {
+                document.getElementById('results').classList.remove('animated');
+            }, 600);
+
+            // Scroll hacia resultados
+            setTimeout(() => {
+                document.getElementById('results').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }, 100);
+        }
+
+        // Cargar elementos de una categoría
+        function loadElementCategory() {
+            const elementType = document.getElementById('elementType').value;
+            currentCategory = elementType;
+            
+            // Si no hay categoría seleccionada, mostrar mensaje
+            if (!elementType) {
+                const grid = document.getElementById('elementGrid');
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; text-align: center; color: #ccc; font-style: italic; padding: 40px;">
+                        Selecciona una categoría arriba para ver los elementos disponibles
+                    </div>
+                `;
+                document.getElementById('actionButtons').style.display = 'none';
+                clearSelection();
+                return;
+            }
+            
+            // Mostrar botones de acción
+            document.getElementById('actionButtons').style.display = 'flex';
+            
+            if (elementType === 'custom') {
+                loadCustomElements();
+            } else {
+                loadPredefinedElements(elementType);
+            }
+            
+            clearSelection();
+        }
+
+        // Cargar elementos predefinidos
+        function loadPredefinedElements(category) {
+            const grid = document.getElementById('elementGrid');
+            const elements = elementSets[category] || [];
+            
+            grid.innerHTML = '';
+            
+            elements.forEach((element, index) => {
+                const elementDiv = document.createElement('div');
+                elementDiv.className = 'element-option';
+                elementDiv.textContent = element;
+                elementDiv.onclick = () => toggleElement(element, elementDiv);
+                elementDiv.setAttribute('data-element', element);
+                grid.appendChild(elementDiv);
+            });
+        }
+
+        // Cargar elementos personalizados
+        function loadCustomElements() {
+            const grid = document.getElementById('elementGrid');
+            grid.innerHTML = `
+                <div style="grid-column: 1 / -1; padding: 20px; text-align: center;">
+                    <input type="text" id="customInput" placeholder="Escribe elementos separados por comas..." 
+                           style="width: 100%; padding: 12px; border-radius: 8px; border: none; margin-bottom: 10px;">
+                    <button onclick="addCustomElements()" style="padding: 10px 20px; background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); 
+                            color: white; border: none; border-radius: 20px; cursor: pointer; font-weight: 600;">
+                        Agregar Elementos
+                    </button>
+                    <div id="customElementsDisplay" style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;"></div>
+                </div>
+            `;
+        }
+
+        // Agregar elementos personalizados
+        function addCustomElements() {
+            const input = document.getElementById('customInput');
+            const inputValue = input.value.replace(/[<>\"']/g, '').trim();
+            
+            const elements = inputValue.split(',')
+                .map(e => e.trim())
+                .filter(e => e.length > 0 && e.length <= 10)
+                .slice(0, 50);
+            
+            if (elements.length === 0) {
+                alert('Por favor ingresa al menos un elemento válido (máximo 10 caracteres cada uno)');
+                return;
+            }
+            
+            const uniqueElements = [...new Set(elements)];
+            elementSets.custom = uniqueElements;
+            
+            const display = document.getElementById('customElementsDisplay');
+            display.innerHTML = '';
+            
+            uniqueElements.forEach((element, index) => {
+                const elementDiv = document.createElement('div');
+                elementDiv.className = 'element-option';
+                elementDiv.textContent = element;
+                elementDiv.onclick = () => toggleElement(element, elementDiv);
+                elementDiv.setAttribute('data-element', element);
+                display.appendChild(elementDiv);
+            });
+            
+            input.value = '';
+        }
+
+        // Alternar selección de elemento
+        function toggleElement(element, elementDiv) {
+            const index = selectedElements.indexOf(element);
+            
+            if (index > -1) {
+                selectedElements.splice(index, 1);
+                elementDiv.classList.remove('selected');
+            } else {
+                selectedElements.push(element);
+                elementDiv.classList.add('selected');
+            }
+            
+            updateSelectedDisplay();
+        }
+
+        // Actualizar display de elementos seleccionados
+        function updateSelectedDisplay() {
+            const display = document.getElementById('selectedElements');
+            
+            if (selectedElements.length === 0) {
+                display.innerHTML = '<span style="color: #ccc; font-style: italic;">Selecciona elementos de arriba...</span>';
+            } else {
+                display.innerHTML = selectedElements.map(element => 
+                    `<span class="selected-element" onclick="removeSelectedElement('${element}')">${element}</span>`
+                ).join('');
+            }
+        }
+
+        // Remover elemento seleccionado
+        function removeSelectedElement(element) {
+            const index = selectedElements.indexOf(element);
+            if (index > -1) {
+                selectedElements.splice(index, 1);
+                updateSelectedDisplay();
+                
+                const elementDivs = document.querySelectorAll('.element-option');
+                elementDivs.forEach(div => {
+                    if (div.getAttribute('data-element') === element) {
+                        div.classList.remove('selected');
+                    }
+                });
+            }
+        }
+
+        // Seleccionar todos los elementos
+        function selectAll() {
+            // Verificar que hay una categoría seleccionada
+            if (!currentCategory) {
+                alert('Por favor selecciona una categoría primero');
+                return;
+            }
+            
+            const elementDivs = document.querySelectorAll('.element-option[data-element]');
+            selectedElements = [];
+            
+            elementDivs.forEach(div => {
+                const element = div.getAttribute('data-element');
+                if (element) {
+                    selectedElements.push(element);
+                    div.classList.add('selected');
+                }
+            });
+            
+            updateSelectedDisplay();
+        }
+
+        // Limpiar selección
+        function clearSelection() {
+            selectedElements = [];
+            updateSelectedDisplay();
+            
+            const elementDivs = document.querySelectorAll('.element-option');
+            elementDivs.forEach(div => {
+                div.classList.remove('selected');
+            });
+        }
+
+        // Seleccionar elementos aleatorios
+        function selectRandom() {
+            // Verificar que hay una categoría seleccionada
+            if (!currentCategory) {
+                alert('Por favor selecciona una categoría primero');
+                return;
+            }
+            
+            const elementDivs = document.querySelectorAll('.element-option[data-element]');
+            const availableElements = Array.from(elementDivs).map(div => div.getAttribute('data-element')).filter(e => e);
+            
+            if (availableElements.length === 0) return;
+            
+            clearSelection();
+            
+            const randomCount = Math.min(Math.floor(Math.random() * availableElements.length) + 1, 10);
+            const shuffled = availableElements.sort(() => 0.5 - Math.random());
+            const randomElements = shuffled.slice(0, randomCount);
+            
+            randomElements.forEach(element => {
+                selectedElements.push(element);
+                const elementDiv = document.querySelector(`[data-element="${element}"]`);
+                if (elementDiv) {
+                    elementDiv.classList.add('selected');
+                }
+            });
+            
+            updateSelectedDisplay();
+        }
+
+                    // Event listeners y inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            // Agregar event listener para el cambio de categoría
+            document.getElementById('elementType').addEventListener('change', loadElementCategory);
+            
+            // Event listener para mostrar/ocultar campo r
+            document.getElementById('calculationType').addEventListener('change', function() {
+                const rGroup = document.getElementById('rValueGroup');
+                const type = this.value;
+                
+                if (type === 'permutaciones' || type === 'permutacionesCirc') {
+                    rGroup.style.display = 'none';
+                } else {
+                    rGroup.style.display = 'block';
+                }
+            });
+
+            // No cargar elementos por defecto - esperar a que el usuario seleccione
+            console.log('Aplicación inicializada. Selecciona una categoría para comenzar.');
+        });
+    </script>
+</body>
+</html>

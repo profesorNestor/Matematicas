@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistemas de Ecuaciones Lineales | Ultra Moderno</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Font Awesome para íconos bonitos -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #667eea;
+      --primary-dark: #5a67d8;
+      --secondary: #48bb78;
+      --accent: #ed64a6;
+      --dark: #2d3748;
+      --light: #f7fafc;
+      --glass: rgba(255, 255, 255, 0.07);
+      --glass-hover: rgba(255,255,255,0.15);
+      --shadow: 0 16px 48px rgba(102, 126, 234, 0.20);
+    }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #ddeaff 0%, #e3e5fc 60%, #c7e4f3 100%);
+      color: #2d3748;
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    /* Header glassmorphism + animación */
+    header {
+      background: linear-gradient(120deg, #667eea 75%, #48bb78 100%);
+      color: #fff;
+      padding: 48px 24px 24px 24px;
+      border-radius: 0 0 36px 36px;
+      box-shadow: var(--shadow);
+      text-align: center;
+      margin-bottom: 44px;
+      position: relative;
+      overflow: hidden;
+      animation: slideDown 1s cubic-bezier(0.24,1.34,0.65,1) both;
+    }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-40px);}
+      to   { opacity: 1; transform: translateY(0);}
+    }
+    header:before {
+      content: '';
+      position: absolute;
+      top: -100px; left: -120px; right: -120px;
+      height: 200px;
+      background: radial-gradient(circle,rgba(255,255,255,0.13) 60%,transparent 90%);
+      z-index: 0;
+      animation: pulseBg 4s infinite alternate;
+    }
+    @keyframes pulseBg {
+      0% { opacity: 0.7;}
+      100% { opacity: 1;}
+    }
+    header h1 {
+      margin: 0;
+      font-size: 2.8rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      z-index: 1;
+      position: relative;
+      text-shadow: 0 2px 8px #1a237e55;
+    }
+    header .subtitle {
+      font-size: 1.08rem;
+      font-weight: 400;
+      opacity: 0.90;
+      margin-top: 8px;
+      z-index: 1;
+      position: relative;
+    }
+    /* Contenedor principal (flex en desktop) */
+    .main-flex {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 34px;
+      max-width: 1380px;
+      margin: 0 auto 30px auto;
+      padding: 0 12px 32px 12px;
+    }
+    /* Panel izquierdo */
+    .panel {
+      flex: 1 1 420px;
+      min-width: 330px;
+      max-width: 450px;
+      display: flex;
+      flex-direction: column;
+      gap: 26px;
+    }
+    /* Panel derecho (solución) */
+    .solution-panel {
+      flex: 1 1 380px;
+      min-width: 340px;
+      max-width: 600px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    /* Glass card */
+    .card {
+      background: var(--glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 28px;
+      box-shadow: var(--shadow);
+      padding: 30px 32px 24px 32px;
+      transition: background 0.3s, box-shadow 0.3s, transform 0.25s;
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.85s cubic-bezier(.21,1.08,.46,1.04) both;
+    }
+    .card:hover {
+      background: var(--glass-hover);
+      transform: translateY(-2px) scale(1.013);
+      box-shadow: 0 8px 32px rgba(102,126,234,0.18), 0 2px 12px #48bb7840;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(24px);}
+      to   { opacity: 1; transform: translateY(0);}
+    }
+    /* Títulos de sección */
+    .card h2, .card h3 {
+      margin-top: 0; margin-bottom: 18px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+      letter-spacing: 1px;
+      display: flex; align-items: center; gap: 0.5em;
+    }
+    /* Selector de tamaño */
+    .system-size {
+      display: flex; align-items: center; gap: 20px;
+      margin-bottom: 18px;
+    }
+    .system-size label {
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 1.05rem;
+      color: #27326b;
+      margin-right: 9px;
+    }
+    .system-size input[type="radio"] { margin-right: 4px; }
+    .system-size button {
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      color: #fff;
+      font-weight: 600;
+      padding: 10px 25px;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 1.07rem;
+      box-shadow: 0 3px 14px #48bb7815;
+      margin-left: 14px;
+      transition: background 0.2s, transform 0.2s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .system-size button:hover { background: linear-gradient(90deg, #5a67d8, #38a169); transform: scale(1.04);}
+    /* Matriz de entradas */
+    .coeff-table {
+      width: 100%; border-collapse: separate;
+      margin-bottom: 18px;
+      display: grid;
+      gap: 9px;
+    }
+    .coeff-table input[type="number"] {
+      width: 55px;
+      font-size: 1.13rem;
+      text-align: center;
+      border-radius: 10px;
+      border: 1.2px solid #dde3fd;
+      padding: 8px 4px;
+      background: #f8fafc;
+      margin: 0;
+      transition: border 0.2s;
+    }
+    .coeff-table input[type="number"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #eef3ff;
+      box-shadow: 0 0 0 2px #667eea28;
+    }
+    /* Botones resolver/limpiar */
+    .btns-row {
+      display: flex;
+      gap: 18px;
+      margin-top: 10px;
+    }
+    .btn-main {
+      background: linear-gradient(90deg, var(--primary), var(--accent));
+      color: #fff;
+      font-weight: 700;
+      border: none;
+      padding: 11px 30px;
+      border-radius: 14px;
+      font-size: 1.11rem;
+      box-shadow: 0 2px 16px #667eea16;
+      cursor: pointer;
+      transition: background 0.18s, transform 0.18s;
+      display: flex; align-items: center; gap: 0.7em;
+    }
+    .btn-main:hover { background: linear-gradient(90deg, #5a67d8, #ed64a6);}
+    .btn-cancel {
+      background: linear-gradient(90deg, #ed64a6, #fe8181);
+      color: #fff;
+      font-weight: 700;
+      border: none;
+      padding: 11px 22px;
+      border-radius: 14px;
+      font-size: 1.11rem;
+      cursor: pointer;
+      transition: background 0.16s;
+      box-shadow: 0 2px 12px #ed64a616;
+      display: flex; align-items: center; gap: 0.5em;
+    }
+    .btn-cancel:hover { background: linear-gradient(90deg, #f85959, #d726a0);}
+    /* Solución animada */
+    .solution-box {
+      background: linear-gradient(90deg, #fffefa 60%, #e3fbfa 100%);
+      border-radius: 20px;
+      min-height: 90px;
+      font-size: 1.25rem;
+      color: #223150;
+      font-weight: 600;
+      box-shadow: 0 2px 8px #667eea12;
+      padding: 32px 30px;
+      margin-bottom: 16px;
+      animation: fadeInUp 1s;
+      transition: box-shadow 0.23s;
+      word-break: break-all;
+      overflow-x: auto;
+    }
+    .solution-box span.var { color: var(--primary-dark); }
+    .solution-box span.val { color: var(--accent);}
+    .solution-box.error {
+      background: #fff3f3;
+      color: #c53b3b;
+      font-weight: 700;
+      animation: shake 0.45s both;
+      border-left: 5px solid #ed64a6;
+    }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0);}
+      20%, 60% { transform: translateX(-9px);}
+      40%, 80% { transform: translateX(8px);}
+    }
+    /* Ayuda */
+    .help-box {
+      background: var(--glass);
+      border-radius: 14px;
+      color: #31374c;
+      padding: 14px 17px 14px 30px;
+      font-size: 1rem;
+      box-shadow: 0 2px 10px #667eea10;
+      margin-top: 8px;
+      position: relative;
+      line-height: 1.6;
+      animation: fadeInUp 1.1s;
+    }
+    .help-box:before {
+      content: "\f059";
+      font-family: "Font Awesome 6 Free";
+      font-weight: 900;
+      color: #5a67d8;
+      font-size: 1.13em;
+      position: absolute;
+      left: 9px; top: 15px;
+      opacity: 0.6;
+    }
+    @media (max-width: 1100px) {
+      .main-flex { flex-direction: column;}
+      .solution-panel, .panel { max-width: 100%;}
+    }
+    @media (max-width: 650px) {
+      .card { padding: 15px 8px 11px 8px;}
+      .help-box { padding: 10px 6px 10px 28px;}
+      .solution-box { padding: 14px 9px;}
+      .system-size { flex-wrap: wrap; gap: 10px;}
+      .btns-row { flex-direction: column; gap: 10px;}
+      header { padding: 38px 7px 19px 7px;}
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>
+    <i class="fas fa-calculator"></i>
+    Sistemas de Ecuaciones Lineales
+  </h1>
+  <div class="subtitle">
+    Calculadora interactiva ultra moderna para sistemas de 2x2, 3x3 y 4x4 &mdash; <b>ProfeNestor</b>
+  </div>
+</header>
+<div class="main-flex">
+  <!-- Panel Izquierdo: Configuración y Matriz -->
+  <div class="panel">
+    <div class="card">
+      <h2><i class="fas fa-sliders-h"></i> Tamaño del sistema</h2>
+      <div class="system-size">
+        <label><input type="radio" name="size" value="2" checked>2x2</label>
+        <label><input type="radio" name="size" value="3">3x3</label>
+        <label><input type="radio" name="size" value="4">4x4</label>
+        <button id="generateBtn"><i class="fas fa-cogs"></i> Generar</button>
+      </div>
+      <div id="matrix-container"></div>
+      <div class="btns-row">
+        <button class="btn-main" id="solveBtn"><i class="fas fa-check"></i> Resolver</button>
+        <button class="btn-cancel" id="clearBtn"><i class="fas fa-broom"></i> Limpiar</button>
+      </div>
+    </div>
+    <div class="help-box">
+      <b>¿Cómo funciona?</b>
+      <ul style="margin-left:1em; padding-left:1em; margin-bottom:0;">
+        <li>Selecciona el tamaño y pulsa <b>Generar</b></li>
+        <li>Escribe los coeficientes y términos independientes</li>
+        <li>Pulsa <b>Resolver</b> para ver la solución paso a paso</li>
+        <li>Puedes limpiar todos los campos con <b>Limpiar</b></li>
+      </ul>
+    </div>
+  </div>
+  <!-- Panel Derecho: Solución -->
+  <div class="solution-panel">
+    <div class="card">
+      <h2><i class="fas fa-arrow-circle-right"></i> Solución</h2>
+      <div class="solution-box" id="solutionBox">
+        Esperando datos...
+      </div>
+    </div>
+  </div>
+</div>
+<!-- ============================ -->
+<!--   SCRIPT DE FUNCIONAMIENTO   -->
+<!-- ============================ -->
+<script>
+/**
+ * Genera la matriz de entradas según el tamaño (2, 3, 4)
+ */
+function renderMatrix(n) {
+  const matrixCont = document.getElementById('matrix-container');
+  // Crear grilla tipo tabla n x (n+1) (la última columna es el término independiente)
+  let html = `<div class="coeff-table" 
+    style="display:grid; grid-template-columns:repeat(${n+1},60px); grid-gap:9px;">`;
+  for(let i=0; i<n; i++) {
+    for(let j=0; j<n+1; j++) {
+      if(j<n)
+        html += `<input type="number" step="any" value="1" min="-9999" max="9999"
+        id="a_${i}_${j}" placeholder="a${i+1}${j+1}" title="a${i+1}${j+1}" />`;
+      else
+        html += `<input type="number" step="any" value="1" min="-9999" max="9999"
+        id="b_${i}" placeholder="b${i+1}" title="Término independiente b${i+1}" />`;
+    }
+  }
+  html += "</div>";
+  matrixCont.innerHTML = html;
+}
+
+/**
+ * Resuelve el sistema usando eliminación de Gauss
+ */
+function solveSystem(n) {
+  // Obtener la matriz de coeficientes y vector de términos independientes
+  let A = [], b = [];
+  for(let i=0; i<n; i++) {
+    A[i] = [];
+    for(let j=0; j<n; j++) {
+      let val = parseFloat(document.getElementById(`a_${i}_${j}`).value);
+      if(isNaN(val)) return null;
+      A[i][j] = val;
+    }
+    let bi = parseFloat(document.getElementById(`b_${i}`).value);
+    if(isNaN(bi)) return null;
+    b[i] = bi;
+  }
+  // Algoritmo de Gauss
+  let x = Array(n).fill(0);
+  let M = [];
+  for (let i = 0; i < n; i++) {
+    M[i] = A[i].slice();
+    M[i].push(b[i]);
+  }
+  // Eliminación
+  for(let i=0;i<n;i++){
+    // Pivoteo parcial
+    let maxRow=i;
+    for(let k=i+1;k<n;k++){
+      if(Math.abs(M[k][i]) > Math.abs(M[maxRow][i]))
+        maxRow=k;
+    }
+    [M[i], M[maxRow]] = [M[maxRow], M[i]];
+    // Si pivote es cero => sin solución o infinitas
+    if(Math.abs(M[i][i]) < 1e-12)
+      return {error:"No hay solución única (pivote cero)."};
+    // Elimina
+    for(let k=i+1;k<n;k++){
+      let f=M[k][i]/M[i][i];
+      for(let j=i;j<=n;j++){
+        M[k][j]-=f*M[i][j];
+      }
+    }
+  }
+  // Sustitución regresiva
+  for(let i=n-1;i>=0;i--){
+    x[i]=M[i][n];
+    for(let j=i+1;j<n;j++){
+      x[i]-=M[i][j]*x[j];
+    }
+    x[i]/=M[i][i];
+  }
+  return {sol:x};
+}
+
+/**
+ * Animación para mostrar la solución
+ */
+function displaySolution(res, n) {
+  const box = document.getElementById('solutionBox');
+  if (!res) {
+    box.className = "solution-box error";
+    box.innerHTML = '<i class="fas fa-exclamation-triangle"></i> ¡Por favor, completa todos los datos!';
+    return;
+  }
+  if (res.error) {
+    box.className = "solution-box error";
+    box.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + res.error;
+    return;
+  }
+  // Mostrar resultado bonito, con transición animada
+  box.className = "solution-box";
+  let html = '';
+  for(let i=0; i<n; i++) {
+    html += `<span class="var">x<sub>${i+1}</sub></span> = <span class="val">${res.sol[i].toFixed(6)}</span><br>`;
+  }
+  box.innerHTML = html;
+  box.animate([
+    {opacity: 0, transform: "translateY(24px) scale(0.96)"},
+    {opacity: 1, transform: "translateY(0) scale(1)"}
+  ], {duration: 600, fill:"forwards", easing: "cubic-bezier(0.16,1,0.3,1)"});
+}
+
+// ---- INTERACCIÓN Y EVENTOS ----
+// Estado global tamaño sistema
+let systemSize = 2;
+
+// Evento: Cambiar tamaño
+document.querySelectorAll('input[name="size"]').forEach(radio => {
+  radio.addEventListener('change', e => {
+    systemSize = parseInt(e.target.value);
+  });
+});
+
+// Evento: Generar matriz
+document.getElementById('generateBtn').onclick = () => {
+  renderMatrix(systemSize);
+  document.getElementById('solutionBox').className="solution-box";
+  document.getElementById('solutionBox').innerHTML = "Esperando datos...";
+};
+// Evento: Resolver
+document.getElementById('solveBtn').onclick = () => {
+  let res = solveSystem(systemSize);
+  displaySolution(res, systemSize);
+};
+// Evento: Limpiar
+document.getElementById('clearBtn').onclick = () => {
+  renderMatrix(systemSize);
+  document.getElementById('solutionBox').className="solution-box";
+  document.getElementById('solutionBox').innerHTML = "Esperando datos...";
+};
+// Al cargar, matriz inicial
+window.onload = () => {
+  renderMatrix(systemSize);
+};
+
+/* ---- NOTAS para personalizar ----
+  - Puedes cambiar colores en :root.
+  - Cambia los íconos o textos en los <h2> según lo que prefieras.
+  - Para agregar más animaciones, revisa los keyframes definidos.
+  - Puedes añadir detalles de pasos (eliminación, sustitución) si lo deseas.
+  - Cambia el método de resolución por Jacobi, Gauss-Jordan, etc., si lo prefieres.
+*/
+</script>
+</body>
+</html>

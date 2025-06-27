@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Graficador Matemático ProfeNestor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #e0eafc, #cfdef3 80%);
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .graficas-container {
+            display: flex;
+            gap: 1.5rem;
+            align-items: flex-start;
+            padding: 2rem 1rem;
+            max-width: 1200px;
+            margin: auto;
+        }
+        .graficas-controls {
+            background: #fff;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px #0001;
+            padding: 2rem 1.2rem;
+            min-width: 330px;
+            max-width: 380px;
+            margin-bottom: 2rem;
+        }
+        .graficas-controls h2 {
+            color: #1a237e;
+            letter-spacing: 1px;
+            margin-bottom: 1.2rem;
+        }
+        .form-group { margin-bottom: 1.1rem; }
+        .form-textarea, .form-input {
+            width: 100%;
+            padding: 0.7rem;
+            border-radius: 8px;
+            border: 1.2px solid #b5b5c5;
+            font-size: 1rem;
+            resize: vertical;
+        }
+        .form-textarea { min-height: 60px; }
+        .switch-group label { margin-right: 1.2em; font-size: 0.98em; }
+        .btn {
+            display: block;
+            padding: 0.8em 1.5em;
+            border-radius: 10px;
+            background: linear-gradient(90deg, #0476d9, #25b2ff);
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            box-shadow: 0 2px 8px #04b3ff25;
+            margin-top: 0.7em;
+            transition: background 0.2s;
+        }
+        .btn:hover { background: linear-gradient(90deg, #0361b2, #189ed7);}
+        .plot-container {
+            width: 700px;
+            min-width: 340px;
+            height: 480px;
+            background: #f7fafc;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px #0001;
+            margin-left: auto;
+        }
+        @media (max-width: 1024px) {
+            .graficas-container { flex-direction: column; align-items: stretch; }
+            .plot-container { width: 100%; min-width: 0; height: 350px;}
+        }
+        .tips-box {
+            background: #e3f2fd;
+            border-radius: 10px;
+            padding: 0.7em 1em;
+            margin-bottom: 1em;
+            font-size: 0.95em;
+            color: #0d47a1;
+            border-left: 4px solid #1976d2;
+        }
+        .dark-mode body { background: linear-gradient(120deg,#2b2b35,#23233c 90%);}
+        .dark-mode .graficas-controls {background: #141823;color:#fff;}
+        .dark-mode .plot-container {background: #1c2230;}
+        .dark-mode .tips-box {background:#273242;color:#aee;}
+        .dark-toggle {margin-top:1em;}
+    </style>
+    <!-- Usa la versión local de mathjs y plotly -->
+    <script src="../libs/mathjs/math.min.js"></script>
+    <script src="../libs/plotly/plotly-2.32.0.min.js"></script>
+</head>
+<body>
+    <div class="graficas-container">
+        <aside class="graficas-controls">
+            <h2>📈 Opciones de Gráfico</h2>
+            <div class="tips-box">
+                <b>Tips:</b> Escribe funciones de <b>x</b> (por ejemplo: <code>sin(x)</code>, <code>x^3-4*x</code>, <code>2*cos(x/2)</code>).<br>
+                Puedes graficar varias separadas por coma: <code>x^2, sin(x)</code><br>
+                <b>Funciones soportadas:</b> sen, cos, tan, exp, sqrt, log, abs, etc.
+            </div>
+            <div class="form-group">
+                <label for="plot-funcs"><b>Funciones f(x):</b></label>
+                <textarea id="plot-funcs" class="form-textarea" rows="4" placeholder="Ej: sin(x), x^2, e^x"></textarea>
+            </div>
+            <div class="form-group">
+                <label><b>Rango del eje X:</b></label>
+                <div style="display:flex;gap:10px;">
+                    <input type="number" id="plot-xmin" class="form-input" value="-10" step="0.1" style="max-width:80px;">
+                    <input type="number" id="plot-xmax" class="form-input" value="10" step="0.1" style="max-width:80px;">
+                </div>
+            </div>
+            <div class="form-group switch-group">
+                <label><input type="checkbox" id="show-grid" checked> Cuadrícula</label>
+                <label><input type="checkbox" id="show-legend" checked> Leyenda</label>
+            </div>
+            <button id="plot-calculate" class="btn">🚀 Graficar Funciones</button>
+            <div class="dark-toggle">
+                <label>
+                    <input type="checkbox" id="darkModeToggle">
+                    Modo oscuro
+                </label>
+            </div>
+        </aside>
+        <main class="graficas-plot-area">
+            <div id="plot-container" class="plot-container">
+                <div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:.65;font-size:1.2em;text-align:center;">
+                    Bienvenido al graficador.<br>Ingresa una función y presiona <b>"Graficar Funciones"</b>.
+                </div>
+            </div>
+        </main>
+    </div>
+    <script>
+    // ------------------- Tema Oscuro -------------------
+    const darkModeToggle = document.getElementById('darkModeToggle');
+    darkModeToggle.addEventListener('change', () => {
+        document.documentElement.classList.toggle('dark-mode', darkModeToggle.checked);
+    });
+    // ------------- Graficador matemático Plotly + mathjs --------------
+    document.addEventListener('DOMContentLoaded', function() {
+        const funcsInput = document.getElementById('plot-funcs');
+        const xMinInput = document.getElementById('plot-xmin');
+        const xMaxInput = document.getElementById('plot-xmax');
+        const calculateBtn = document.getElementById('plot-calculate');
+        const plotContainer = document.getElementById('plot-container');
+        const showGridCheck = document.getElementById('show-grid');
+        const showLegendCheck = document.getElementById('show-legend');
+        // Autoejemplo al cargar
+        funcsInput.value = "sin(x), cos(x), x^2";
+
+        function getPlotLayout() {
+            const dark = document.documentElement.classList.contains('dark-mode');
+            return {
+                title: 'Gráfico de Funciones Matemáticas',
+                xaxis: { 
+                    title: 'x', 
+                    gridcolor: dark ? '#334155' : '#cbd5e1',
+                    showgrid: showGridCheck.checked,
+                    zerolinecolor: dark ? '#a7b6c4' : '#475569',
+                    zerolinewidth: 1.5
+                },
+                yaxis: { 
+                    title: 'f(x)', 
+                    gridcolor: dark ? '#334155' : '#cbd5e1',
+                    showgrid: showGridCheck.checked,
+                    zerolinecolor: dark ? '#a7b6c4' : '#475569',
+                    zerolinewidth: 1.5
+                },
+                paper_bgcolor: dark ? '#23233c' : '#f8fafc',
+                plot_bgcolor: dark ? '#23233c' : '#ffffff',
+                font: { color: dark ? '#e2e8f0' : '#182238', family: 'Segoe UI, Arial'},
+                legend: { 
+                    bgcolor: dark ? 'rgba(40,40,60,0.7)' : 'rgba(255,255,255,0.7)', 
+                    bordercolor: '#334155',
+                    x: 1, xanchor: 'right', y: 1
+                },
+                showlegend: showLegendCheck.checked,
+                margin: { l: 55, r: 25, b: 45, t: 45, pad: 6 },
+                hovermode: 'x unified'
+            };
+        }
+
+        function plotFunctions() {
+            const funcStrings = funcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
+            const xmin = parseFloat(xMinInput.value);
+            const xmax = parseFloat(xMaxInput.value);
+            
+            // Validación básica
+            if (funcStrings.length === 0) {
+                Plotly.purge(plotContainer);
+                plotContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:.6">Ingrese una función para comenzar.</div>';
+                return;
+            }
+            if (isNaN(xmin) || isNaN(xmax) || xmin >= xmax) {
+                 Plotly.purge(plotContainer);
+                 plotContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#b91c1c;font-weight:bold;">El rango del eje X no es válido.</div>';
+                 return;
+            }
+            const traces = [];
+            const colors = [
+                '#1976d2', '#43a047', '#e53935', '#8e24aa', '#fb8c00', '#00bcd4',
+                '#cddc39', '#6d4c41', '#d81b60', '#3949ab', '#00897b'
+            ];
+            funcStrings.forEach((funcStr, i) => {
+                const x = [];
+                const y = [];
+                let code;
+                try {
+                    // mathjs parse
+                    code = math.compile(funcStr);
+                } catch(e) {
+                    traces.push({
+                        x: [xmin],
+                        y: [null],
+                        name: `❌ Error: "${funcStr}"`,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: { color: '#b91c1c', width: 2.5, dash:'dot'}
+                    });
+                    return; // Salta esta función si es inválida
+                }
+                for (let val = xmin; val <= xmax; val += (xmax - xmin) / 600) {
+                    x.push(val);
+                    try {
+                        const yVal = code.evaluate({ x: val });
+                        y.push(isFinite(yVal) ? yVal : null);
+                    } catch {
+                        y.push(null);
+                    }
+                }
+                traces.push({ 
+                    x, y,
+                    type: 'scatter',
+                    mode: 'lines',
+                    name: funcStr,
+                    line: { color: colors[i % colors.length], width: 2.7 }
+                });
+            });
+            Plotly.newPlot(plotContainer, traces, getPlotLayout(), {responsive: true});
+        }
+        calculateBtn.addEventListener('click', plotFunctions);
+        showGridCheck.addEventListener('change', plotFunctions);
+        showLegendCheck.addEventListener('change', plotFunctions);
+        // Tema oscuro
+        darkModeToggle.addEventListener('change', plotFunctions);
+        // Graficar ejemplo al cargar
+        plotFunctions();
+    });
+    </script>
+</body>
+</html>

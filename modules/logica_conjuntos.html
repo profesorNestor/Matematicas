@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧩 Calculadora de Lógica y Conjuntos v4</title>
+
+    <!-- Tailwind CSS para el estilo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Fuentes de Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .tab-button {
+            transition: all 0.2s ease-in-out;
+            border-bottom: 4px solid transparent;
+        }
+        .tab-button.active {
+            border-bottom-color: #4f46e5;
+            color: #4f46e5;
+        }
+        .page-content {
+            display: none;
+        }
+        .page-content.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .truth-table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 0.9em;
+        }
+        .truth-table th, .truth-table td {
+            border: 1px solid #4b5563;
+            padding: 8px 12px;
+            text-align: center;
+        }
+        .truth-table th {
+            background-color: #374151;
+        }
+        .truth-table td.T { color: #22c55e; font-weight: bold; }
+        .truth-table td.F { color: #ef4444; font-weight: bold; }
+        .modal-bg {
+            position: fixed;
+            inset: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-bg.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .modal-box {
+            transform: scale(0.95);
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-bg.visible .modal-box {
+            transform: scale(1);
+        }
+    </style>
+</head>
+
+<body class="bg-gray-900 text-gray-200 antialiased">
+
+<div class="max-w-4xl mx-auto bg-gray-800 rounded-2xl shadow-2xl p-4 sm:p-6 md:p-8 my-8">
+    <header class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold text-indigo-400">🧩 Calculadora de Lógica y Conjuntos</h1>
+        <button id="btn-help" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-semibold transition-colors">Ayuda</button>
+    </header>
+
+    <nav class="flex justify-center border-b border-gray-700 mb-6">
+        <button id="tab-sets" class="tab-button px-4 py-3 font-semibold" onclick="showPage('sets')">Operaciones de Conjuntos</button>
+        <button id="tab-logic" class="tab-button px-4 py-3 font-semibold" onclick="showPage('logic')">Lógica Proposicional</button>
+    </nav>
+
+    <main>
+        <!-- PÁGINA DE CONJUNTOS -->
+        <section id="page-sets" class="page-content">
+            <div class="space-y-6">
+                <div>
+                    <h2 class="text-xl font-semibold text-indigo-300 mb-3">1. Define tus Conjuntos</h2>
+                    <label class="block mb-4">
+                        <span class="text-gray-400">Universo (U) - Elementos separados por coma</span>
+                        <input id="set-u" class="w-full p-2 mt-1 bg-gray-700 rounded-lg border border-gray-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g., 1, 2, 3, 4, 5, 6, 7, 8, 9, 10">
+                    </label>
+                    <div id="sets-container" class="space-y-3"></div>
+                    <button id="add-set-btn" class="mt-4 w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold transition-colors flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                        Añadir Conjunto
+                    </button>
+                </div>
+                
+                <div>
+                    <h2 class="text-xl font-semibold text-indigo-300 pt-4">2. Crea la Expresión</h2>
+                    <div class="bg-gray-900 rounded-lg p-2 mt-2">
+                        <input id="set-expression" class="w-full bg-transparent p-2 font-mono text-lg text-gray-200 outline-none" placeholder="(A u B) - C'">
+                    </div>
+                    <div id="set-op-buttons" class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 gap-2 mt-3"></div>
+                    
+                    <button onclick="calcExpr()" class="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 py-3 rounded-lg font-bold text-lg transition-colors flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.831-.12 2.702-.345"/><path d="M22 12c0-5.5-4.5-10-10-10"/><path d="m15.54 9.1-5.08 5.08"/><path d="m10.46 9.1 5.08 5.08"/></svg>
+                        Resolver
+                    </button>
+                </div>
+
+                <div id="set-result-container" class="hidden pt-4">
+                    <h3 class="text-xl font-semibold text-indigo-300">Resultado:</h3>
+                    <div id="set-result" class="mt-2 bg-gray-900 p-4 rounded-lg font-mono text-lg text-green-400"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- PÁGINA DE LÓGICA -->
+        <section id="page-logic" class="page-content">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-xl font-semibold text-indigo-300">Generador de Tablas de Verdad</h2>
+                <div class="bg-gray-900 rounded-lg p-2 mt-3">
+                    <input id="logic-input" class="w-full bg-transparent p-2 font-mono text-lg text-gray-200 outline-none" placeholder="(p -> q) & (q -> r)">
+                </div>
+                <div id="logic-op-buttons" class="grid grid-cols-5 sm:grid-cols-7 gap-2 mt-3"></div>
+                <button class="w-full bg-indigo-600 hover:bg-indigo-700 py-3 rounded-lg font-bold text-lg mt-4 transition-colors flex items-center justify-center gap-2" onclick="generateTruthTable()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20V16"/></svg>
+                    Generar Tabla
+                </button>
+                <div id="truth-table-result" class="mt-4 text-center text-xl font-bold"></div>
+                <div id="truth-table-container" class="mt-4 overflow-x-auto"></div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- Modales -->
+<div id="modal-help" class="modal-bg">
+    <div class="bg-gray-800 p-6 rounded-xl max-w-xl relative shadow-lg modal-box">
+        <button onclick="closeModal('modal-help')" class="absolute top-3 right-4 text-2xl text-gray-500 hover:text-white transition-colors">&times;</button>
+        <h2 class="text-2xl font-semibold text-indigo-400 mb-4">Ayuda Rápida</h2>
+        <div class="space-y-4 text-gray-300">
+            <div>
+                <h3 class="font-bold text-lg">Operaciones de Conjuntos</h3>
+                <p>Añade los conjuntos que necesites. Los elementos deben estar separados por comas. Las letras mayúsculas (A, B, C...) se asignan automáticamente.</p>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><code class="font-mono bg-gray-700 px-2 py-1 rounded">u</code>: Unión (A ∪ B)</li>
+                    <li><code class="font-mono bg-gray-700 px-2 py-1 rounded">n</code>: Intersección (A ∩ B)</li>
+                    <li><code class="font-mono bg-gray-700 px-2 py-1 rounded">-</code>: Diferencia (A - B)</li>
+                    <li><code class="font-mono bg-gray-700 px-2 py-1 rounded">d</code>: Diferencia Simétrica (A ∆ B)</li>
+                    <li><code class="font-mono bg-gray-700 px-2 py-1 rounded">'</code>: Complemento (A')</li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg">Lógica Proposicional</h3>
+                 <p>Usa las variables de <code class="font-mono bg-gray-700 px-1 rounded">p</code> a <code class="font-mono bg-gray-700 px-1 rounded">s</code> para generar una tabla de verdad.</p>
+                 <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li><code class="font-mono bg-gray-700 px-2 py-1 rounded">&, | , ~, ->, <-></code>: Operadores lógicos.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="modal-error" class="modal-bg">
+  <div class="bg-gray-800 p-8 rounded-xl max-w-md relative text-center shadow-lg modal-box">
+    <h2 class="text-2xl font-semibold text-red-400 mb-4 flex items-center justify-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+        Error en la Expresión
+    </h2>
+    <p id="error-message" class="text-gray-300 mb-6"></p>
+    <button onclick="closeModal('modal-error')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-2 rounded-lg font-bold transition-colors">Cerrar</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+/* ============ Utilidades y Estado Global ============ */
+const $ = id => document.getElementById(id);
+let activeSetLetters = [];
+
+/* ============ Navegación y Modales ============ */
+function showPage(pageId) {
+    ['sets', 'logic'].forEach(id => {
+        $('page-' + id).classList.toggle('active', id === pageId);
+        $('tab-' + id).classList.toggle('active', 'tab-' + id === 'tab-' + pageId);
+    });
+}
+function openModal(modalId) { $(modalId).classList.add('visible'); }
+function closeModal(modalId) { $(modalId).classList.remove('visible'); }
+function showError(message) {
+    $('error-message').textContent = message;
+    openModal('modal-error');
+}
+
+/* ============ Gestión Dinámica de Conjuntos ============ */
+function renderSetInputs() {
+    const container = $('sets-container');
+    container.innerHTML = '';
+    activeSetLetters.forEach((letter, index) => {
+        const div = document.createElement('div');
+        div.className = 'flex items-center gap-3';
+        div.innerHTML = `
+            <label for="set-${letter}" class="font-bold text-lg text-indigo-300 w-6">${letter}:</label>
+            <input id="set-${letter}" class="w-full p-2 bg-gray-700 rounded-lg border border-gray-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Elementos de ${letter}">
+            ${activeSetLetters.length > 2 ? `<button class="remove-set-btn bg-red-800 hover:bg-red-700 p-2 rounded-full" data-letter="${letter}">&times;</button>` : ''}
+        `;
+        container.appendChild(div);
+    });
+
+    // Añadir listeners a los botones de eliminar
+    document.querySelectorAll('.remove-set-btn').forEach(btn => {
+        btn.onclick = (e) => {
+            removeSet(e.currentTarget.dataset.letter);
+        };
+    });
+    
+    // Actualizar los botones de operadores
+    createOperatorButtons();
+}
+
+function addSet() {
+    const nextCharCode = 'A'.charCodeAt(0) + activeSetLetters.length;
+    if (nextCharCode > 'Z'.charCodeAt(0)) {
+        showError("Has alcanzado el límite de conjuntos (A-Z).");
+        return;
+    }
+    const nextLetter = String.fromCharCode(nextCharCode);
+    activeSetLetters.push(nextLetter);
+    renderSetInputs();
+}
+
+function removeSet(letterToRemove) {
+    activeSetLetters = activeSetLetters.filter(l => l !== letterToRemove);
+    // Para evitar huecos, renombramos las letras si es necesario
+    activeSetLetters = activeSetLetters.map((l, i) => String.fromCharCode('A'.charCodeAt(0) + i));
+    renderSetInputs();
+}
+
+/* ============ Botones de Operadores ============ */
+function insertAtCursor(inputElement, text) {
+    const start = inputElement.selectionStart;
+    const end = inputElement.selectionEnd;
+    const currentText = inputElement.value;
+    inputElement.value = currentText.substring(0, start) + text + currentText.substring(end);
+    inputElement.focus();
+    inputElement.selectionEnd = start + text.length;
+}
+
+function createOperatorButtons() {
+    // Para la sección de conjuntos
+    const setButtonsContainer = $('set-op-buttons');
+    const setInput = $('set-expression');
+    setButtonsContainer.innerHTML = '';
+
+    const setLettersButtons = activeSetLetters.map(l => ({ display: l, insert: l }));
+    const setOpsButtons = [
+        { display: '(', insert: '(' }, { display: ')', insert: ')' }, { display: "'", insert: "'" },
+        { display: '∪', insert: ' u ' }, { display: '∩', insert: ' n ' }, { display: '-', insert: ' - ' },
+        { display: '∆', insert: ' d ' }, { display: '⌫', action: 'backspace' }
+    ];
+
+    const allSetButtons = [...setLettersButtons, ...setOpsButtons];
+
+    // Para la sección de lógica (no cambia)
+    const logicButtonsContainer = $('logic-op-buttons');
+    if (!logicButtonsContainer.innerHTML) { // Solo crear una vez
+        const logicInput = $('logic-input');
+        const logicButtons = [
+            { display: 'p', insert: 'p' }, { display: 'q', insert: 'q' }, { display: 'r', insert: 'r' }, { display: 's', insert: 's' },
+            { display: '(', insert: '(' }, { display: ')', insert: ')' }, { display: '∧', insert: ' & ' },
+            { display: '∨', insert: ' | ' }, { display: '¬', insert: '~' }, { display: '→', insert: ' -> ' },
+            { display: '↔', insert: ' <-> ' }, { display: '⌫', action: 'backspace' }
+        ];
+        logicButtons.forEach(btn => logicButtonsContainer.appendChild(createButton(btn, logicInput)));
+    }
+    
+    allSetButtons.forEach(btn => setButtonsContainer.appendChild(createButton(btn, setInput)));
+}
+
+function createButton(btn, input) {
+    const button = document.createElement('button');
+    button.textContent = btn.display;
+    button.className = 'bg-gray-700 hover:bg-gray-600 text-gray-200 font-mono font-bold py-2 rounded-lg transition-colors text-center';
+    if (btn.insert) {
+        button.onclick = () => insertAtCursor(input, btn.insert);
+    } else if (btn.action === 'backspace') {
+        button.className += ' bg-red-800 hover:bg-red-700';
+        button.onclick = () => {
+             input.value = input.value.slice(0, -1).trimEnd();
+             input.focus();
+        };
+    }
+    return button;
+}
+
+/* ============ Lógica de Cálculo de Conjuntos ============ */
+const parseSet = s => !s ? new Set() : new Set(s.split(',').map(x => x.trim()).filter(Boolean));
+
+function getSets() {
+    const sets = {
+        U: parseSet($('set-u').value)
+    };
+    activeSetLetters.forEach(letter => {
+        const input = $(`set-${letter}`);
+        if (input) {
+            sets[letter] = parseSet(input.value);
+        }
+    });
+    return sets;
+}
+
+function evalSetExpr(expr, sets) {
+    const cleanExpr = expr.replace(/\s+/g, '').replace(/([A-Z])'/g, "$1c");
+    const tokens = cleanExpr.match(/([A-Z]c?|u|n|-|d|\(|\))/g);
+    if (!tokens) throw new Error('La expresión contiene caracteres inválidos.');
+
+    const precedence = { u: 1, d: 1, n: 2, '-': 2 };
+    const values = [];
+    const ops = [];
+
+    const applyOp = () => {
+        const op = ops.pop();
+        const right = values.pop();
+        const left = values.pop();
+        if(!left || !right) throw new Error('Error de sintaxis. Faltan operandos.');
+        switch (op) {
+            case 'u': values.push(new Set([...left, ...right])); break;
+            case 'n': values.push(new Set([...left].filter(x => right.has(x)))); break;
+            case '-': values.push(new Set([...left].filter(x => !right.has(x)))); break;
+            case 'd': values.push(new Set([...[...left].filter(x => !right.has(x)), ...[...right].filter(x => !left.has(x))])); break;
+        }
+    };
+    
+    for (const token of tokens) {
+        const letter = token[0];
+        if (/[A-Z]/.test(letter)) {
+            const baseSet = sets[letter];
+            if (!baseSet) throw new Error(`El conjunto '${letter}' no está definido.`);
+            if (token.endsWith('c')) {
+                values.push(new Set([...sets.U].filter(x => !baseSet.has(x))));
+            } else {
+                values.push(baseSet);
+            }
+        } else if (token === '(') {
+            ops.push(token);
+        } else if (token === ')') {
+            while (ops.length && ops[ops.length - 1] !== '(') applyOp();
+            if (ops.length === 0) throw new Error('Paréntesis no balanceados.');
+            ops.pop();
+        } else { 
+            while (ops.length && precedence[ops[ops.length - 1]] >= precedence[token]) applyOp();
+            ops.push(token);
+        }
+    }
+
+    while (ops.length) {
+        if (ops[ops.length-1] === '(') throw new Error('Paréntesis no balanceados.');
+        applyOp();
+    }
+    
+    if (values.length !== 1) throw new Error('Expresión mal formada.');
+    return values[0];
+}
+
+function calcExpr() {
+    const expr = $('set-expression').value.trim();
+    if (!expr) return;
+    try {
+        const result = evalSetExpr(expr, getSets());
+        const sortedResult = [...result].sort((a, b) => {
+            const numA = parseFloat(a);
+            const numB = parseFloat(b);
+            if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+            return a.localeCompare(b);
+        });
+        $('set-result').textContent = `{ ${sortedResult.join(', ')} }`;
+        $('set-result-container').classList.remove('hidden');
+    } catch (err) {
+        showError(err.message);
+    }
+}
+
+/* ============ Lógica de Tablas de Verdad (Sin cambios) ============ */
+function jsLogic(s) {
+    return s.replace(/<->/g, '===').replace(/->/g, '<=').replace(/&/g, '&&').replace(/\|/g, '||').replace(/~/g, '!');
+}
+
+function generateTruthTable() {
+    const rawExpr = $('logic-input').value.trim();
+    if (!rawExpr) return;
+    const vars = [...new Set(rawExpr.match(/[p-s]/gi) || [])].sort();
+    if (vars.length === 0 || vars.length > 4) {
+        showError('Se permiten de 1 a 4 variables (p, q, r, s).');
+        return;
+    }
+    const headers = [...vars, rawExpr];
+    const numRows = 1 << vars.length;
+    const tableData = [];
+    for (let i = 0; i < numRows; i++) {
+        const context = {};
+        const row = [];
+        vars.forEach((v, j) => {
+            const value = Boolean(i >> (vars.length - 1 - j) & 1);
+            context[v] = value;
+            row.push(value);
+        });
+        const jsExpr = jsLogic(rawExpr).replace(/([p-s])/gi, m => `context.${m.toLowerCase()}`);
+        let result;
+        try {
+            result = Boolean(eval(jsExpr));
+        } catch (e) {
+            showError('La expresión lógica es inválida.');
+            return;
+        }
+        row.push(result);
+        tableData.push(row);
+    }
+    let html = '<table class="truth-table font-mono"><thead><tr>';
+    headers.forEach(h => html += `<th>${h}</th>`);
+    html += '</tr></thead><tbody>';
+    tableData.forEach(r => {
+        html += '<tr>';
+        r.forEach(c => html += `<td class="${c ? 'T' : 'F'}">${c ? 'V' : 'F'}</td>`);
+        html += '</tr>';
+    });
+    html += '</tbody></table>';
+    $('truth-table-container').innerHTML = html;
+    const finalColumn = tableData.map(r => r[r.length - 1]);
+    const resultText = $('truth-table-result');
+    if (finalColumn.every(Boolean)) {
+        resultText.textContent = 'Resultado: Tautología';
+        resultText.className = 'mt-4 text-center text-xl font-bold text-green-400';
+    } else if (finalColumn.every(x => !x)) {
+        resultText.textContent = 'Resultado: Contradicción';
+        resultText.className = 'mt-4 text-center text-xl font-bold text-red-400';
+    } else {
+        resultText.textContent = 'Resultado: Contingencia';
+        resultText.className = 'mt-4 text-center text-xl font-bold text-yellow-400';
+    }
+}
+
+/* ============ Inicialización ============ */
+document.addEventListener('DOMContentLoaded', () => {
+    showPage('sets');
+    
+    // Iniciar con dos conjuntos por defecto (A y B)
+    activeSetLetters = ['A', 'B'];
+    renderSetInputs();
+    
+    $('add-set-btn').onclick = addSet;
+    
+    $('btn-help').onclick = () => openModal('modal-help');
+    document.querySelectorAll('.modal-bg').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal(modal.id);
+        });
+    });
+});
+</script>
+
+</body>
+</html>
