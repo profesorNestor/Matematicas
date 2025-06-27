@@ -1,0 +1,1528 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platonic Solids Explorer - Ultra 3D Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #000814;
+            --bg-secondary: #001d3d;
+            --accent-1: #ffd60a;
+            --accent-2: #003566;
+            --accent-3: #ffc300;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --neon-glow: 0 0 30px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        .cosmic-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 25% 25%, #1a237e 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, #4a148c 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, var(--bg-primary) 0%, transparent 100%);
+            animation: cosmicRotate 30s linear infinite;
+            z-index: -1;
+        }
+
+        @keyframes cosmicRotate {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+            100% { transform: rotate(360deg) scale(1); }
+        }
+
+        /* Particles */
+        .particle-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #fff;
+            border-radius: 50%;
+            opacity: 0;
+            animation: particleFloat 15s linear infinite;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) scale(0);
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100vh) scale(1);
+            }
+        }
+
+        /* Header */
+        .header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 2rem;
+            z-index: 100;
+            background: linear-gradient(to bottom, rgba(0, 8, 20, 0.9), transparent);
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--accent-1), var(--accent-3));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            text-shadow: 0 0 40px rgba(255, 214, 10, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: brightness(1); }
+            to { filter: brightness(1.2); }
+        }
+
+        /* Main container */
+        .main-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+        }
+
+        /* 3D Canvas */
+        #three-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            position: absolute;
+            left: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 320px;
+            max-height: 80vh;
+            overflow-y: auto;
+            z-index: 10;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.8s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50px) translateY(-50%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) translateY(-50%);
+            }
+        }
+
+        /* Solid selector */
+        .solid-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .solid-btn {
+            aspect-ratio: 1;
+            background: var(--glass-bg);
+            border: 2px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .solid-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, var(--accent-1), transparent);
+            transform: translate(-50%, -50%);
+            transition: all 0.5s;
+            border-radius: 50%;
+        }
+
+        .solid-btn:hover::before {
+            width: 100px;
+            height: 100px;
+        }
+
+        .solid-btn:hover {
+            border-color: var(--accent-1);
+            background: rgba(255, 214, 10, 0.05);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 214, 10, 0.3);
+        }
+
+        .solid-btn.active {
+            border-color: var(--accent-1);
+            background: rgba(255, 214, 10, 0.1);
+            box-shadow: 0 0 20px rgba(255, 214, 10, 0.5);
+        }
+
+        .solid-btn.active i {
+            color: var(--accent-1);
+        }
+
+        .solid-name {
+            font-size: 0.7rem;
+            text-align: center;
+        }
+
+        /* Properties display */
+        .properties {
+            background: rgba(0, 53, 102, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .property-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .property-item:last-child {
+            border-bottom: none;
+        }
+
+        .property-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .property-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-1);
+        }
+
+        /* Euler verification */
+        .euler-section {
+            background: linear-gradient(135deg, rgba(255, 214, 10, 0.1), rgba(255, 195, 0, 0.1));
+            border: 1px solid rgba(255, 214, 10, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .euler-title {
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            color: var(--accent-1);
+        }
+
+        .euler-formula {
+            font-size: 1.5rem;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 1rem;
+            letter-spacing: 2px;
+        }
+
+        .euler-result {
+            font-size: 1.2rem;
+            padding: 0.8rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            color: #4caf50;
+            font-weight: bold;
+        }
+
+        /* Controls */
+        .controls-section {
+            margin-top: 2rem;
+        }
+
+        .control-title {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .toggle-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch input:checked ~ .toggle-slider {
+            transform: translateX(20px);
+            background: var(--accent-1);
+        }
+
+        /* Info panel */
+        .info-panel {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 300px;
+            z-index: 10;
+            animation: slideInRight 0.8s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px) translateY(-50%);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0) translateY(-50%);
+            }
+        }
+
+        .info-title {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--accent-1);
+        }
+
+        .info-content {
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        /* Speed control */
+        .speed-control {
+            margin-top: 1.5rem;
+        }
+
+        .slider {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            margin-top: 0.5rem;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-1);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 214, 10, 0.5);
+        }
+
+        /* Action buttons */
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .action-btn {
+            padding: 0.8rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 214, 10, 0.1);
+            border-color: var(--accent-1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(255, 214, 10, 0.3);
+        }
+
+        /* Loading screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg-primary);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            transition: opacity 0.5s;
+        }
+
+        .loading-spinner {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(255, 214, 10, 0.1);
+            border-top-color: var(--accent-1);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 2rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .control-panel {
+                left: 1rem;
+                width: 280px;
+            }
+            
+            .info-panel {
+                right: 1rem;
+                width: 260px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .control-panel,
+            .info-panel {
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                top: auto;
+                transform: none;
+                width: 100%;
+                max-height: 50vh;
+                border-radius: 24px 24px 0 0;
+            }
+            
+            .info-panel {
+                display: none;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .logo {
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Color Controls */
+        .color-controls {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .color-picker-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .color-picker-item {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .color-picker-item label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .color-input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .color-input-wrapper input[type="color"] {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: transparent;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .color-input-wrapper input[type="color"]:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid var(--glass-border);
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-presets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+
+        .color-preset-btn {
+            padding: 0.6rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.3rem;
+        }
+
+        .color-preset-btn:hover {
+            background: rgba(255, 214, 10, 0.1);
+            border-color: var(--accent-1);
+            transform: translateY(-2px);
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loading-screen">
+        <div class="loading-spinner"></div>
+        <h2>Cargando el Universo Platónico...</h2>
+    </div>
+
+    <!-- Background effects -->
+    <div class="cosmic-bg"></div>
+    <div class="particle-container" id="particle-container"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <h1 class="logo">
+            <i class="fas fa-cube"></i> Platonic Universe
+        </h1>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- 3D Canvas -->
+        <canvas id="three-canvas"></canvas>
+
+        <!-- Control Panel -->
+        <aside class="control-panel">
+            <h2 style="font-size: 1.3rem; margin-bottom: 1.5rem; text-align: center;">
+                Sólidos Platónicos
+            </h2>
+
+            <!-- Solid Selector -->
+            <div class="solid-selector">
+                <button class="solid-btn active" data-solid="tetrahedron">
+                    <i class="fas fa-mountain" style="font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                    <div class="solid-name">Tetraedro</div>
+                </button>
+                <button class="solid-btn" data-solid="cube">
+                    <i class="fas fa-cube" style="font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                    <div class="solid-name">Cubo</div>
+                </button>
+                <button class="solid-btn" data-solid="octahedron">
+                    <i class="fas fa-gem" style="font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                    <div class="solid-name">Octaedro</div>
+                </button>
+                <button class="solid-btn" data-solid="dodecahedron">
+                    <i class="fas fa-volleyball-ball" style="font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                    <div class="solid-name">Dodecaedro</div>
+                </button>
+                <button class="solid-btn" data-solid="icosahedron">
+                    <i class="fas fa-globe" style="font-size: 1.5rem; margin-bottom: 0.3rem;"></i>
+                    <div class="solid-name">Icosaedro</div>
+                </button>
+            </div>
+
+            <!-- Properties -->
+            <div class="properties">
+                <div class="property-item">
+                    <span class="property-label">Vértices (V)</span>
+                    <span class="property-value" id="vertices">4</span>
+                </div>
+                <div class="property-item">
+                    <span class="property-label">Aristas (E)</span>
+                    <span class="property-value" id="edges">6</span>
+                </div>
+                <div class="property-item">
+                    <span class="property-label">Caras (F)</span>
+                    <span class="property-value" id="faces">4</span>
+                </div>
+                <div class="property-item">
+                    <span class="property-label">Tipo de cara</span>
+                    <span class="property-value" id="face-type">Triángulo</span>
+                </div>
+            </div>
+
+            <!-- Euler Verification -->
+            <div class="euler-section">
+                <h3 class="euler-title">Identidad de Euler</h3>
+                <div class="euler-formula">V - E + F = 2</div>
+                <div class="euler-result" id="euler-result">
+                    4 - 6 + 4 = 2 ✓
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls-section">
+                <h3 class="control-title">Controles</h3>
+                <div class="toggle-group">
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="wireframe-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Wireframe</span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="rotation-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Rotación</span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="vertices-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Vértices</span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="edges-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Resaltar</span>
+                    </div>
+                </div>
+
+                <div class="speed-control">
+                    <label>Velocidad de rotación</label>
+                    <input type="range" class="slider" id="speed-slider" min="0" max="5" value="1" step="0.1">
+                </div>
+            </div>
+
+            <!-- Color Controls -->
+            <div class="color-controls">
+                <h3 class="control-title">
+                    <i class="fas fa-palette"></i> Personalizar Colores
+                </h3>
+                <div class="color-picker-group">
+                    <div class="color-picker-item">
+                        <label>Color Principal</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="solid-color" value="#ff6b6b">
+                            <div class="color-preview" id="color-preview-main"></div>
+                        </div>
+                    </div>
+                    <div class="color-picker-item">
+                        <label>Color Emisivo</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="emissive-color" value="#440000">
+                            <div class="color-preview" id="color-preview-emissive"></div>
+                        </div>
+                    </div>
+                    <div class="color-picker-item">
+                        <label>Color Vértices</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="vertex-color" value="#ffd60a">
+                            <div class="color-preview" id="color-preview-vertex"></div>
+                        </div>
+                    </div>
+                    <div class="color-picker-item">
+                        <label>Color Aristas</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" id="edge-color" value="#ffd60a">
+                            <div class="color-preview" id="color-preview-edge"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="color-presets">
+                    <button class="color-preset-btn" data-preset="fire">🔥 Fuego</button>
+                    <button class="color-preset-btn" data-preset="ice">❄️ Hielo</button>
+                    <button class="color-preset-btn" data-preset="nature">🌿 Naturaleza</button>
+                    <button class="color-preset-btn" data-preset="cosmic">🌌 Cósmico</button>
+                    <button class="color-preset-btn" data-preset="gold">⚜️ Dorado</button>
+                    <button class="color-preset-btn" data-preset="rainbow">🌈 Arcoíris</button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button class="action-btn tooltip" data-tooltip="Capturar imagen" id="screenshot-btn">
+                    <i class="fas fa-camera"></i> 📸
+                </button>
+                <button class="action-btn tooltip" data-tooltip="Pantalla completa" id="fullscreen-btn">
+                    <i class="fas fa-expand"></i> 🖥️
+                </button>
+                <button class="action-btn tooltip" data-tooltip="Reiniciar vista" id="reset-btn">
+                    <i class="fas fa-redo"></i> 🔄
+                </button>
+                <button class="action-btn tooltip" data-tooltip="Explotar vista" id="explode-btn">
+                    <i class="fas fa-bomb"></i> 💥
+                </button>
+            </div>
+        </aside>
+
+        <!-- Info Panel -->
+        <aside class="info-panel">
+            <h3 class="info-title" id="info-title">Tetraedro</h3>
+            <div class="info-content" id="info-content">
+                El tetraedro es el más simple de los sólidos platónicos. Representa el elemento fuego en la filosofía griega antigua. Es una pirámide triangular con 4 caras triangulares equiláteras.
+            </div>
+            <div style="margin-top: 1.5rem;">
+                <h4 style="color: var(--accent-1); margin-bottom: 0.5rem;">Propiedades especiales:</h4>
+                <ul style="color: var(--text-secondary); font-size: 0.85rem; padding-left: 1.2rem;">
+                    <li>Autodual</li>
+                    <li>Mínimo número de caras</li>
+                    <li>Todas las caras son triángulos</li>
+                </ul>
+            </div>
+        </aside>
+    </main>
+
+    <script>
+        // Color variables
+        let currentColors = {
+            main: '#ff6b6b',
+            emissive: '#440000',
+            vertex: '#ffd60a',
+            edge: '#ffd60a'
+        };
+
+        // Color presets
+        const colorPresets = {
+            fire: {
+                main: '#ff6b6b',
+                emissive: '#440000',
+                vertex: '#ffd60a',
+                edge: '#ff9800'
+            },
+            ice: {
+                main: '#4ecdc4',
+                emissive: '#004444',
+                vertex: '#ffffff',
+                edge: '#00ffff'
+            },
+            nature: {
+                main: '#81c784',
+                emissive: '#004400',
+                vertex: '#ffeb3b',
+                edge: '#8bc34a'
+            },
+            cosmic: {
+                main: '#7c4dff',
+                emissive: '#220044',
+                vertex: '#ff4081',
+                edge: '#e91e63'
+            },
+            gold: {
+                main: '#ffd700',
+                emissive: '#444400',
+                vertex: '#ffffff',
+                edge: '#ffeb3b'
+            },
+            rainbow: {
+                main: '#ff00ff',
+                emissive: '#440044',
+                vertex: '#00ffff',
+                edge: '#ffff00'
+            }
+        };
+
+        // Three.js setup
+        let scene, camera, renderer;
+        let currentSolid, vertices, edges;
+        let rotationSpeed = 1;
+        let autoRotate = true;
+        let showWireframe = false;
+        let showVertices = true;
+        let showEdges = false;
+        let exploded = false;
+
+        // Solid data
+        const solidsData = {
+            tetrahedron: {
+                name: 'Tetraedro',
+                vertices: 4,
+                edges: 6,
+                faces: 4,
+                faceType: 'Triángulo',
+                info: 'El tetraedro es el más simple de los sólidos platónicos. Representa el elemento fuego en la filosofía griega antigua. Es una pirámide triangular con 4 caras triangulares equiláteras.',
+                color: 0xff6b6b,
+                emissive: 0x440000
+            },
+            cube: {
+                name: 'Cubo',
+                vertices: 8,
+                edges: 12,
+                faces: 6,
+                faceType: 'Cuadrado',
+                info: 'El cubo o hexaedro representa el elemento tierra. Es el único sólido platónico con caras cuadradas. Es uno de los más familiares en nuestra vida cotidiana.',
+                color: 0x4ecdc4,
+                emissive: 0x004444
+            },
+            octahedron: {
+                name: 'Octaedro',
+                vertices: 6,
+                edges: 12,
+                faces: 8,
+                faceType: 'Triángulo',
+                info: 'El octaedro representa el elemento aire. Tiene 8 caras triangulares equiláteras. Es el dual del cubo.',
+                color: 0xa8e6cf,
+                emissive: 0x004400
+            },
+            dodecahedron: {
+                name: 'Dodecaedro',
+                vertices: 20,
+                edges: 30,
+                faces: 12,
+                faceType: 'Pentágono',
+                info: 'El dodecaedro representa el universo en su totalidad. Tiene 12 caras pentagonales regulares. Los antiguos griegos lo consideraban el más místico.',
+                color: 0xffd93d,
+                emissive: 0x444400
+            },
+            icosahedron: {
+                name: 'Icosaedro',
+                vertices: 12,
+                edges: 30,
+                faces: 20,
+                faceType: 'Triángulo',
+                info: 'El icosaedro representa el elemento agua. Tiene 20 caras triangulares equiláteras. Es el dual del dodecaedro.',
+                color: 0x6bcf7f,
+                emissive: 0x004400
+            }
+        };
+
+        // Initialize Three.js
+        function init() {
+            // Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000814, 5, 15);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.z = 5;
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('three-canvas'),
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 5, 5);
+            scene.add(directionalLight);
+
+            const pointLight = new THREE.PointLight(0xffd60a, 1, 100);
+            pointLight.position.set(0, 0, 10);
+            scene.add(pointLight);
+
+            // Create initial solid
+            createSolid('tetrahedron');
+
+            // Create particles
+            createParticles();
+
+            // Mouse controls
+            setupMouseControls();
+
+            // Start animation
+            animate();
+        }
+
+        // Create solid
+        function createSolid(type) {
+            // Remove existing solid
+            if (currentSolid) {
+                scene.remove(currentSolid);
+                if (vertices) scene.remove(vertices);
+                if (edges) scene.remove(edges);
+            }
+
+            const data = solidsData[type];
+            let geometry;
+
+            // Create geometry based on type
+            switch (type) {
+                case 'tetrahedron':
+                    geometry = new THREE.TetrahedronGeometry(2);
+                    break;
+                case 'cube':
+                    geometry = new THREE.BoxGeometry(2.5, 2.5, 2.5);
+                    break;
+                case 'octahedron':
+                    geometry = new THREE.OctahedronGeometry(2);
+                    break;
+                case 'dodecahedron':
+                    geometry = new THREE.DodecahedronGeometry(2);
+                    break;
+                case 'icosahedron':
+                    geometry = new THREE.IcosahedronGeometry(2);
+                    break;
+            }
+
+            // Create material
+            const material = new THREE.MeshPhongMaterial({
+                color: currentColors.main,
+                emissive: currentColors.emissive,
+                shininess: 100,
+                wireframe: showWireframe,
+                transparent: true,
+                opacity: showWireframe ? 0.3 : 0.9
+            });
+
+            // Create mesh
+            currentSolid = new THREE.Mesh(geometry, material);
+            scene.add(currentSolid);
+
+            // Create vertices
+            if (showVertices) {
+                createVertices(geometry);
+            }
+
+            // Create edges
+            if (showEdges) {
+                createEdges(geometry);
+            }
+
+            // Update UI
+            updateUI(type);
+        }
+
+        // Create vertices visualization
+        function createVertices(geometry) {
+            const verticesGeometry = new THREE.BufferGeometry();
+            const positions = geometry.attributes.position;
+            const vertexPositions = [];
+            const uniqueVertices = new Map();
+
+            // Get unique vertices
+            for (let i = 0; i < positions.count; i++) {
+                const x = positions.getX(i);
+                const y = positions.getY(i);
+                const z = positions.getZ(i);
+                const key = `${x.toFixed(3)},${y.toFixed(3)},${z.toFixed(3)}`;
+                
+                if (!uniqueVertices.has(key)) {
+                    uniqueVertices.set(key, [x, y, z]);
+                    vertexPositions.push(x, y, z);
+                }
+            }
+
+            verticesGeometry.setAttribute(
+                'position',
+                new THREE.Float32BufferAttribute(vertexPositions, 3)
+            );
+
+            const verticesMaterial = new THREE.PointsMaterial({
+                color: currentColors.vertex,
+                size: 0.2,
+                transparent: true,
+                opacity: 0.9,
+                sizeAttenuation: true
+            });
+
+            vertices = new THREE.Points(verticesGeometry, verticesMaterial);
+            scene.add(vertices);
+        }
+
+        // Create edges visualization
+        function createEdges(geometry) {
+            const edgesGeometry = new THREE.EdgesGeometry(geometry);
+            const edgesMaterial = new THREE.LineBasicMaterial({
+                color: currentColors.edge,
+                linewidth: 2,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            edges = new THREE.LineSegments(edgesGeometry, edgesMaterial);
+            scene.add(edges);
+        }
+
+        // Create background particles
+        function createParticles() {
+            const particlesGeometry = new THREE.BufferGeometry();
+            const particlesCount = 1000;
+            const posArray = new Float32Array(particlesCount * 3);
+
+            for (let i = 0; i < particlesCount * 3; i++) {
+                posArray[i] = (Math.random() - 0.5) * 20;
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.02,
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particlesMesh);
+        }
+
+        // Update UI
+        function updateUI(type) {
+            const data = solidsData[type];
+            
+            // Update properties
+            document.getElementById('vertices').textContent = data.vertices;
+            document.getElementById('edges').textContent = data.edges;
+            document.getElementById('faces').textContent = data.faces;
+            document.getElementById('face-type').textContent = data.faceType;
+            
+            // Update Euler verification
+            const eulerResult = data.vertices - data.edges + data.faces;
+            document.getElementById('euler-result').textContent = 
+                `${data.vertices} - ${data.edges} + ${data.faces} = ${eulerResult} ✓`;
+            
+            // Update info panel
+            document.getElementById('info-title').textContent = data.name;
+            document.getElementById('info-content').textContent = data.info;
+            
+            // Update active button
+            document.querySelectorAll('.solid-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-solid="${type}"]`).classList.add('active');
+        }
+
+        // Mouse controls
+        function setupMouseControls() {
+            let mouseX = 0;
+            let mouseY = 0;
+            let targetX = 0;
+            let targetY = 0;
+
+            document.addEventListener('mousemove', (event) => {
+                mouseX = (event.clientX - window.innerWidth / 2);
+                mouseY = (event.clientY - window.innerHeight / 2);
+            });
+
+            // Smooth camera movement
+            function updateCamera() {
+                targetX += (mouseX - targetX) * 0.05;
+                targetY += (mouseY - targetY) * 0.05;
+                
+                if (!autoRotate) {
+                    currentSolid.rotation.y = targetX * 0.005;
+                    currentSolid.rotation.x = targetY * 0.005;
+                }
+            }
+
+            // Add to animation loop
+            window.updateCamera = updateCamera;
+        }
+
+        // Animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Auto rotation
+            if (autoRotate && currentSolid) {
+                currentSolid.rotation.x += 0.005 * rotationSpeed;
+                currentSolid.rotation.y += 0.008 * rotationSpeed;
+                
+                if (vertices) {
+                    vertices.rotation.x = currentSolid.rotation.x;
+                    vertices.rotation.y = currentSolid.rotation.y;
+                }
+                
+                if (edges) {
+                    edges.rotation.x = currentSolid.rotation.x;
+                    edges.rotation.y = currentSolid.rotation.y;
+                }
+            }
+
+            // Update camera based on mouse
+            if (window.updateCamera) {
+                window.updateCamera();
+            }
+
+            // Explode effect
+            if (exploded && currentSolid) {
+                const time = Date.now() * 0.001;
+                const scale = 1 + Math.sin(time) * 0.1;
+                currentSolid.scale.set(scale, scale, scale);
+                
+                if (vertices) vertices.scale.set(scale * 1.2, scale * 1.2, scale * 1.2);
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize
+            init();
+            
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loading-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loading-screen').style.display = 'none';
+                }, 500);
+            }, 1500);
+
+            // Create floating particles
+            const particleContainer = document.getElementById('particle-container');
+            for (let i = 0; i < 50; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (Math.random() * 10 + 15) + 's';
+                particleContainer.appendChild(particle);
+            }
+
+            // Color controls
+            const solidColorInput = document.getElementById('solid-color');
+            const emissiveColorInput = document.getElementById('emissive-color');
+            const vertexColorInput = document.getElementById('vertex-color');
+            const edgeColorInput = document.getElementById('edge-color');
+
+            // Update color previews
+            function updateColorPreviews() {
+                document.getElementById('color-preview-main').style.background = currentColors.main;
+                document.getElementById('color-preview-emissive').style.background = currentColors.emissive;
+                document.getElementById('color-preview-vertex').style.background = currentColors.vertex;
+                document.getElementById('color-preview-edge').style.background = currentColors.edge;
+            }
+
+            // Initialize colors
+            solidColorInput.value = currentColors.main;
+            emissiveColorInput.value = currentColors.emissive;
+            vertexColorInput.value = currentColors.vertex;
+            edgeColorInput.value = currentColors.edge;
+            updateColorPreviews();
+
+            // Color input listeners
+            solidColorInput.addEventListener('input', (e) => {
+                currentColors.main = e.target.value;
+                if (currentSolid) {
+                    currentSolid.material.color.set(e.target.value);
+                }
+                updateColorPreviews();
+            });
+
+            emissiveColorInput.addEventListener('input', (e) => {
+                currentColors.emissive = e.target.value;
+                if (currentSolid) {
+                    currentSolid.material.emissive.set(e.target.value);
+                }
+                updateColorPreviews();
+            });
+
+            vertexColorInput.addEventListener('input', (e) => {
+                currentColors.vertex = e.target.value;
+                if (vertices) {
+                    vertices.material.color.set(e.target.value);
+                }
+                updateColorPreviews();
+            });
+
+            edgeColorInput.addEventListener('input', (e) => {
+                currentColors.edge = e.target.value;
+                if (edges) {
+                    edges.material.color.set(e.target.value);
+                }
+                updateColorPreviews();
+            });
+
+            // Color preset buttons
+            document.querySelectorAll('.color-preset-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const preset = colorPresets[btn.dataset.preset];
+                    if (preset) {
+                        currentColors = { ...preset };
+                        
+                        // Update inputs
+                        solidColorInput.value = preset.main;
+                        emissiveColorInput.value = preset.emissive;
+                        vertexColorInput.value = preset.vertex;
+                        edgeColorInput.value = preset.edge;
+                        
+                        // Update 3D objects
+                        if (currentSolid) {
+                            currentSolid.material.color.set(preset.main);
+                            currentSolid.material.emissive.set(preset.emissive);
+                        }
+                        if (vertices) {
+                            vertices.material.color.set(preset.vertex);
+                        }
+                        if (edges) {
+                            edges.material.color.set(preset.edge);
+                        }
+                        
+                        updateColorPreviews();
+                        
+                        // Visual feedback
+                        btn.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            btn.style.transform = 'scale(1)';
+                        }, 200);
+                    }
+                });
+            });
+
+            // Solid selector buttons
+            document.querySelectorAll('.solid-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const type = btn.dataset.solid;
+                    createSolid(type);
+                });
+            });
+
+            // Wireframe toggle
+            document.getElementById('wireframe-toggle').addEventListener('change', (e) => {
+                showWireframe = e.target.checked;
+                if (currentSolid) {
+                    currentSolid.material.wireframe = showWireframe;
+                    currentSolid.material.opacity = showWireframe ? 0.3 : 0.9;
+                }
+            });
+
+            // Rotation toggle
+            document.getElementById('rotation-toggle').addEventListener('change', (e) => {
+                autoRotate = e.target.checked;
+            });
+
+            // Vertices toggle
+            document.getElementById('vertices-toggle').addEventListener('change', (e) => {
+                showVertices = e.target.checked;
+                if (vertices) {
+                    vertices.visible = showVertices;
+                } else if (showVertices && currentSolid) {
+                    createVertices(currentSolid.geometry);
+                }
+            });
+
+            // Edges toggle
+            document.getElementById('edges-toggle').addEventListener('change', (e) => {
+                showEdges = e.target.checked;
+                if (edges) {
+                    edges.visible = showEdges;
+                } else if (showEdges && currentSolid) {
+                    createEdges(currentSolid.geometry);
+                }
+            });
+
+            // Speed slider
+            document.getElementById('speed-slider').addEventListener('input', (e) => {
+                rotationSpeed = parseFloat(e.target.value);
+            });
+
+            // Action buttons
+            document.getElementById('screenshot-btn').addEventListener('click', () => {
+                renderer.render(scene, camera);
+                renderer.domElement.toBlob((blob) => {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'platonic-solid.png';
+                    link.click();
+                });
+            });
+
+            document.getElementById('fullscreen-btn').addEventListener('click', () => {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                } else {
+                    document.exitFullscreen();
+                }
+            });
+
+            document.getElementById('reset-btn').addEventListener('click', () => {
+                camera.position.set(0, 0, 5);
+                if (currentSolid) {
+                    currentSolid.rotation.set(0, 0, 0);
+                    currentSolid.scale.set(1, 1, 1);
+                }
+                exploded = false;
+            });
+
+            document.getElementById('explode-btn').addEventListener('click', () => {
+                exploded = !exploded;
+                if (!exploded && currentSolid) {
+                    currentSolid.scale.set(1, 1, 1);
+                    if (vertices) vertices.scale.set(1, 1, 1);
+                }
+            });
+
+            // Window resize
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                const solidButtons = document.querySelectorAll('.solid-btn');
+                
+                switch(e.key) {
+                    case '1':
+                        solidButtons[0].click();
+                        break;
+                    case '2':
+                        solidButtons[1].click();
+                        break;
+                    case '3':
+                        solidButtons[2].click();
+                        break;
+                    case '4':
+                        solidButtons[3].click();
+                        break;
+                    case '5':
+                        solidButtons[4].click();
+                        break;
+                    case 'w':
+                    case 'W':
+                        document.getElementById('wireframe-toggle').click();
+                        break;
+                    case 'r':
+                    case 'R':
+                        document.getElementById('rotation-toggle').click();
+                        break;
+                    case 'v':
+                    case 'V':
+                        document.getElementById('vertices-toggle').click();
+                        break;
+                    case 'e':
+                    case 'E':
+                        document.getElementById('edges-toggle').click();
+                        break;
+                    case ' ':
+                        e.preventDefault();
+                        document.getElementById('explode-btn').click();
+                        break;
+                }
+            });
+
+            // Touch controls for mobile
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            renderer.domElement.addEventListener('touchstart', (e) => {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+
+            renderer.domElement.addEventListener('touchmove', (e) => {
+                if (!e.touches[0]) return;
+                
+                const deltaX = e.touches[0].clientX - touchStartX;
+                const deltaY = e.touches[0].clientY - touchStartY;
+                
+                if (currentSolid) {
+                    currentSolid.rotation.y += deltaX * 0.01;
+                    currentSolid.rotation.x += deltaY * 0.01;
+                    
+                    if (vertices) {
+                        vertices.rotation.y = currentSolid.rotation.y;
+                        vertices.rotation.x = currentSolid.rotation.x;
+                    }
+                    
+                    if (edges) {
+                        edges.rotation.y = currentSolid.rotation.y;
+                        edges.rotation.x = currentSolid.rotation.x;
+                    }
+                }
+                
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            });
+
+            // Double click to toggle rotation
+            renderer.domElement.addEventListener('dblclick', () => {
+                autoRotate = !autoRotate;
+                document.getElementById('rotation-toggle').checked = autoRotate;
+            });
+
+            // Mouse wheel zoom
+            renderer.domElement.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                camera.position.z += e.deltaY * 0.01;
+                camera.position.z = Math.max(2, Math.min(10, camera.position.z));
+            });
+        });
+
+        // Add some CSS animations for UI elements
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes float {
+                0%, 100% { transform: translateY(0); }
+                50% { transform: translateY(-10px); }
+            }
+            
+            .solid-btn:hover .solid-icon {
+                animation: float 1s ease-in-out infinite;
+            }
+            
+            @keyframes pulse {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.5; }
+            }
+            
+            .euler-result {
+                animation: pulse 2s ease-in-out infinite;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
