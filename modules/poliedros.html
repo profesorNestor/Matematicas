@@ -468,19 +468,52 @@
             to { transform: rotate(360deg); }
         }
 
-        /* Responsive */
-        @media (max-width: 1200px) {
-            .control-panel {
-                left: 1rem;
-                width: 280px;
-            }
-            
-            .info-panel {
-                right: 1rem;
-                width: 260px;
-            }
+        /* Mobile hint */
+        .mobile-hint {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            z-index: 200;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            transition: opacity 0.5s;
+            max-width: 300px;
         }
 
+        .hint-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .hint-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .hint-item i {
+            color: var(--accent-1);
+            font-size: 1.2rem;
+            min-width: 24px;
+        }
+
+        /* Canvas cursor */
+        #three-canvas {
+            cursor: grab;
+        }
+
+        #three-canvas:active {
+            cursor: grabbing;
+        }
+
+        /* Responsive adjustments */
         @media (max-width: 768px) {
             .control-panel,
             .info-panel {
@@ -493,6 +526,8 @@
                 width: 100%;
                 max-height: 50vh;
                 border-radius: 24px 24px 0 0;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
             
             .info-panel {
@@ -505,6 +540,22 @@
             
             .logo {
                 font-size: 1.8rem;
+            }
+
+            /* Larger touch targets for mobile */
+            .solid-btn {
+                padding: 0.8rem;
+                min-height: 60px;
+            }
+
+            .toggle-switch {
+                width: 50px;
+                height: 28px;
+            }
+
+            .action-btn {
+                padding: 1rem;
+                font-size: 1.1rem;
             }
         }
 
@@ -591,12 +642,11 @@
             transform: translateY(-2px);
         }
 
-        /* Zoom Controls */
+        /* Zoom Controls - Desktop only */
         .zoom-controls {
             position: absolute;
             bottom: 2rem;
-            left: 50%;
-            transform: translateX(-50%);
+            right: 2rem;
             display: flex;
             align-items: center;
             gap: 1rem;
@@ -607,6 +657,60 @@
             padding: 0.5rem 1rem;
             z-index: 100;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Hide zoom controls on mobile by default */
+        @media (max-width: 768px) {
+            .zoom-controls {
+                display: none;
+            }
+        }
+
+        /* Mobile-only zoom controls */
+        .mobile-zoom-controls {
+            display: none;
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            gap: 2rem;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-zoom-controls {
+                display: flex;
+            }
+        }
+
+        .mobile-zoom-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: rgba(255, 214, 10, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 214, 10, 0.3);
+            color: var(--accent-1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .mobile-zoom-btn:active {
+            transform: scale(0.9);
+            background: rgba(255, 214, 10, 0.2);
+        }
+
+        .mobile-zoom-level {
+            color: var(--accent-1);
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
 
         .zoom-btn {
@@ -1505,36 +1609,150 @@
             // Touch controls for mobile
             let touchStartX = 0;
             let touchStartY = 0;
+            let initialPinchDistance = 0;
+            let lastTouchTime = 0;
+            let touchCount = 0;
 
+            // Touch start
             renderer.domElement.addEventListener('touchstart', (e) => {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-            });
-
-            renderer.domElement.addEventListener('touchmove', (e) => {
-                if (!e.touches[0]) return;
+                e.preventDefault();
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTouchTime;
                 
-                const deltaX = e.touches[0].clientX - touchStartX;
-                const deltaY = e.touches[0].clientY - touchStartY;
-                
-                if (currentSolid) {
-                    currentSolid.rotation.y += deltaX * 0.01;
-                    currentSolid.rotation.x += deltaY * 0.01;
+                if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
                     
-                    if (vertices) {
-                        vertices.rotation.y = currentSolid.rotation.y;
-                        vertices.rotation.x = currentSolid.rotation.x;
+                    // Detect double tap for zoom
+                    if (tapLength < 300 && tapLength > 0) {
+                        // Double tap zoom
+                        if (camera.position.z > 3.5) {
+                            camera.position.z = 3;
+                        } else {
+                            camera.position.z = 6;
+                        }
+                        updateZoomLevel();
                     }
+                    lastTouchTime = currentTime;
+                } else if (e.touches.length === 2) {
+                    // Initialize pinch zoom
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    initialPinchDistance = Math.sqrt(dx * dx + dy * dy);
                     
-                    if (edges) {
-                        edges.rotation.y = currentSolid.rotation.y;
-                        edges.rotation.x = currentSolid.rotation.x;
-                    }
+                    // Get center point for two finger rotation
+                    touchStartX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    touchStartY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
                 }
                 
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
+                touchCount = e.touches.length;
             });
+
+            // Touch move
+            renderer.domElement.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                
+                if (e.touches.length === 1 && touchCount === 1) {
+                    // Single finger - rotate
+                    const deltaX = e.touches[0].clientX - touchStartX;
+                    const deltaY = e.touches[0].clientY - touchStartY;
+                    
+                    if (currentSolid && !autoRotate) {
+                        currentSolid.rotation.y += deltaX * 0.01;
+                        currentSolid.rotation.x += deltaY * 0.01;
+                        
+                        if (vertices) {
+                            vertices.rotation.y = currentSolid.rotation.y;
+                            vertices.rotation.x = currentSolid.rotation.x;
+                        }
+                        
+                        if (edges) {
+                            edges.rotation.y = currentSolid.rotation.y;
+                            edges.rotation.x = currentSolid.rotation.x;
+                        }
+                    }
+                    
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    
+                } else if (e.touches.length === 2) {
+                    // Two fingers - pinch zoom and rotate
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    const currentPinchDistance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Pinch zoom
+                    if (initialPinchDistance > 0) {
+                        const pinchScale = currentPinchDistance / initialPinchDistance;
+                        camera.position.z /= pinchScale;
+                        camera.position.z = Math.max(2, Math.min(10, camera.position.z));
+                        updateZoomLevel();
+                    }
+                    
+                    initialPinchDistance = currentPinchDistance;
+                    
+                    // Two finger rotation (optional)
+                    const centerX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                    const centerY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                    const rotDeltaX = centerX - touchStartX;
+                    const rotDeltaY = centerY - touchStartY;
+                    
+                    if (currentSolid && Math.abs(rotDeltaX) > 20) {
+                        currentSolid.rotation.z += rotDeltaX * 0.005;
+                        if (vertices) vertices.rotation.z = currentSolid.rotation.z;
+                        if (edges) edges.rotation.z = currentSolid.rotation.z;
+                    }
+                    
+                    touchStartX = centerX;
+                    touchStartY = centerY;
+                }
+            });
+
+            // Touch end
+            renderer.domElement.addEventListener('touchend', (e) => {
+                touchCount = e.touches.length;
+                if (e.touches.length === 0) {
+                    initialPinchDistance = 0;
+                }
+            });
+
+            // Prevent default touch behaviors
+            renderer.domElement.addEventListener('gesturestart', (e) => e.preventDefault());
+            renderer.domElement.addEventListener('gesturechange', (e) => e.preventDefault());
+            renderer.domElement.addEventListener('gestureend', (e) => e.preventDefault());
+
+            // Add visual feedback for touch
+            renderer.domElement.addEventListener('touchstart', () => {
+                renderer.domElement.style.cursor = 'grabbing';
+            });
+
+            renderer.domElement.addEventListener('touchend', () => {
+                renderer.domElement.style.cursor = 'grab';
+            });
+
+            // Add mobile-specific UI hints
+            if ('ontouchstart' in window) {
+                const mobileHint = document.createElement('div');
+                mobileHint.className = 'mobile-hint';
+                mobileHint.innerHTML = `
+                    <div class="hint-item">
+                        <i class="fas fa-hand-pointer"></i> Toca y arrastra para rotar
+                    </div>
+                    <div class="hint-item">
+                        <i class="fas fa-expand-arrows-alt"></i> Pellizca para zoom
+                    </div>
+                    <div class="hint-item">
+                        <i class="fas fa-hand-peace"></i> Doble toque para zoom rápido
+                    </div>
+                `;
+                document.querySelector('.main-container').appendChild(mobileHint);
+                
+                // Hide hint after 5 seconds
+                setTimeout(() => {
+                    mobileHint.style.opacity = '0';
+                    setTimeout(() => mobileHint.remove(), 500);
+                }, 5000);
+            }
 
             // Double click to toggle rotation
             renderer.domElement.addEventListener('dblclick', () => {
@@ -1591,6 +1809,16 @@
             `;
             document.querySelector('.main-container').appendChild(zoomControls);
 
+            // Mobile zoom controls (separate, no background)
+            const mobileZoomControls = document.createElement('div');
+            mobileZoomControls.className = 'mobile-zoom-controls';
+            mobileZoomControls.innerHTML = `
+                <button class="mobile-zoom-btn" id="mobile-zoom-in">➕</button>
+                <div class="mobile-zoom-level" id="mobile-zoom-level">100%</div>
+                <button class="mobile-zoom-btn" id="mobile-zoom-out">➖</button>
+            `;
+            document.querySelector('.main-container').appendChild(mobileZoomControls);
+
             // Zoom button controls
             document.getElementById('zoom-in').addEventListener('click', () => {
                 camera.position.z = Math.max(2, camera.position.z - 0.5);
@@ -1602,10 +1830,22 @@
                 updateZoomLevel();
             });
 
+            // Mobile zoom button controls
+            document.getElementById('mobile-zoom-in').addEventListener('click', () => {
+                camera.position.z = Math.max(2, camera.position.z - 0.5);
+                updateZoomLevel();
+            });
+
+            document.getElementById('mobile-zoom-out').addEventListener('click', () => {
+                camera.position.z = Math.min(10, camera.position.z + 0.5);
+                updateZoomLevel();
+            });
+
             // Update zoom level display
             function updateZoomLevel() {
                 const zoomPercent = Math.round((5 / camera.position.z) * 100);
                 document.getElementById('zoom-level').textContent = `${zoomPercent}%`;
+                document.getElementById('mobile-zoom-level').textContent = `${zoomPercent}%`;
             }
 
             // Keyboard zoom controls
