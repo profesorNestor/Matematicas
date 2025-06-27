@@ -1,0 +1,1240 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Progresiones Matemáticas - Ultra Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #0a0e27;
+            --bg-secondary: #151a3a;
+            --accent-arithmetic: #00d4ff;
+            --accent-geometric: #ff006e;
+            --accent-gradient: linear-gradient(135deg, #00d4ff 0%, #ff006e 100%);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --success: #10b981;
+            --error: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Background animado */
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 212, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 0, 110, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.1) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .floating-shapes {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .shape {
+            position: absolute;
+            background: var(--accent-gradient);
+            opacity: 0.03;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            width: 80px;
+            height: 80px;
+            left: 10%;
+            animation-delay: 0s;
+            border-radius: 50%;
+        }
+
+        .shape:nth-child(2) {
+            width: 120px;
+            height: 120px;
+            right: 20%;
+            animation-delay: 3s;
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+        }
+
+        .shape:nth-child(3) {
+            width: 100px;
+            height: 100px;
+            left: 50%;
+            animation-delay: 7s;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+            }
+            50% {
+                transform: translateY(-100vh) rotate(360deg);
+            }
+        }
+
+        /* Header */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.5rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.5s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Navigation Menu */
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .menu-item {
+            padding: 0.8rem 1.5rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-item::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--accent-gradient);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            opacity: 0.3;
+        }
+
+        .menu-item:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .menu-item.active {
+            background: var(--glass-bg);
+            border-color: var(--accent-arithmetic);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .menu-item.active.geometric {
+            border-color: var(--accent-geometric);
+            box-shadow: 0 0 20px rgba(255, 0, 110, 0.3);
+        }
+
+        /* Main container */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Grid Layout */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            }
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
+            }
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--accent-gradient);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+        }
+
+        /* Input Groups */
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-arithmetic);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.1);
+        }
+
+        .geometric-mode .input-field:focus {
+            border-color: var(--accent-geometric);
+            box-shadow: 0 0 0 3px rgba(255, 0, 110, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(0, 212, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        /* Results Section */
+        .results-card {
+            grid-column: span 2;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            margin-top: 2rem;
+            display: none;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .results-card.show {
+            display: block;
+            animation: slideUp 0.5s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .result-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateX(5px);
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .result-value {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--accent-arithmetic);
+        }
+
+        .geometric-mode .result-value {
+            color: var(--accent-geometric);
+        }
+
+        /* Sequence Display */
+        .sequence-display {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .sequence-items {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem 0;
+        }
+
+        .sequence-item {
+            min-width: 60px;
+            padding: 0.8rem 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 600;
+            position: relative;
+            animation: popIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .sequence-item.highlight {
+            background: var(--accent-gradient);
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 212, 255, 0.4);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-top: 2rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+            padding: 1rem;
+        }
+
+        /* Formula Display */
+        .formula-display {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(255, 0, 110, 0.1));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+            font-size: 1.5rem;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .formula-display::before {
+            content: '∑';
+            position: absolute;
+            top: -20px;
+            right: 20px;
+            font-size: 80px;
+            opacity: 0.1;
+            color: var(--accent-arithmetic);
+        }
+
+        /* Info Cards */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .info-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .info-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        .info-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Animations */
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .results-card {
+                grid-column: span 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-menu {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .container {
+                padding: 2rem 1rem;
+            }
+
+            .btn-group {
+                flex-direction: column;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sequence-items {
+                justify-content: flex-start;
+            }
+        }
+
+        /* Loading Animation */
+        .loader {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-arithmetic);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 2rem auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Tooltips */
+        .tooltip {
+            position: relative;
+            cursor: help;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <div class="bg-animation"></div>
+    <div class="floating-shapes">
+        <div class="shape"></div>
+        <div class="shape"></div>
+        <div class="shape"></div>
+    </div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-infinity"></i>
+                <span>ProgressCalc Pro</span>
+            </div>
+            <nav class="nav-menu">
+                <div class="menu-item active" data-type="arithmetic">
+                    <i class="fas fa-plus"></i> Aritmética
+                </div>
+                <div class="menu-item" data-type="geometric">
+                    <i class="fas fa-times"></i> Geométrica
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="grid-layout">
+            <!-- Input Card -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="card-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <span id="input-title">Progresión Aritmética</span>
+                </div>
+
+                <form id="progression-form">
+                    <div class="input-group">
+                        <label class="input-label">Primer Término (a₁)</label>
+                        <div class="input-wrapper">
+                            <input type="number" class="input-field" id="first-term" value="2" required>
+                            <span class="input-icon">
+                                <i class="fas fa-hashtag"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="input-group" id="difference-group">
+                        <label class="input-label">Diferencia Común (d)</label>
+                        <div class="input-wrapper">
+                            <input type="number" class="input-field" id="common-difference" value="3" required>
+                            <span class="input-icon">
+                                <i class="fas fa-plus-minus"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="input-group" id="ratio-group" style="display: none;">
+                        <label class="input-label">Razón Común (r)</label>
+                        <div class="input-wrapper">
+                            <input type="number" class="input-field" id="common-ratio" value="2" step="any" required>
+                            <span class="input-icon">
+                                <i class="fas fa-percentage"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label class="input-label">Número de Términos (n)</label>
+                        <div class="input-wrapper">
+                            <input type="number" class="input-field" id="num-terms" value="10" min="1" max="100" required>
+                            <span class="input-icon">
+                                <i class="fas fa-list-ol"></i>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-play"></i> Calcular
+                        </button>
+                        <button type="button" class="btn btn-secondary" id="reset-btn">
+                            <i class="fas fa-redo"></i> Reiniciar
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Info Card -->
+            <div class="card">
+                <div class="card-title">
+                    <div class="card-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <span>Información</span>
+                </div>
+
+                <div id="formula-display" class="formula-display">
+                    aₙ = a₁ + (n - 1) × d
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-card tooltip" data-tooltip="Tipo de progresión actual">
+                        <div class="info-icon">📊</div>
+                        <div class="info-title">Tipo</div>
+                        <div class="info-value" id="type-display">Aritmética</div>
+                    </div>
+                    <div class="info-card tooltip" data-tooltip="Fórmula general">
+                        <div class="info-icon">🧮</div>
+                        <div class="info-title">Fórmula</div>
+                        <div class="info-value" id="formula-type">aₙ = a₁ + (n-1)d</div>
+                    </div>
+                    <div class="info-card tooltip" data-tooltip="Ejemplo de aplicación">
+                        <div class="info-icon">💡</div>
+                        <div class="info-title">Ejemplo</div>
+                        <div class="info-value" id="example-display">2, 5, 8, 11...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-card" id="results-section">
+            <div class="card-title">
+                <div class="card-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <span>Resultados</span>
+            </div>
+
+            <div class="loader" id="loader"></div>
+
+            <div id="results-content" style="display: none;">
+                <div class="result-item">
+                    <span class="result-label">Término n-ésimo (aₙ)</span>
+                    <span class="result-value" id="nth-term">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Suma de n términos (Sₙ)</span>
+                    <span class="result-value" id="sum-terms">-</span>
+                </div>
+                <div class="result-item">
+                    <span class="result-label">Media</span>
+                    <span class="result-value" id="mean-value">-</span>
+                </div>
+
+                <div class="sequence-display">
+                    <h3 style="margin-bottom: 1rem;">Primeros términos de la secuencia:</h3>
+                    <div class="sequence-items" id="sequence-items"></div>
+                </div>
+
+                <div class="chart-container">
+                    <canvas id="progression-chart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Variables globales
+        let currentType = 'arithmetic';
+        let chart = null;
+
+        // Referencias DOM
+        const menuItems = document.querySelectorAll('.menu-item');
+        const form = document.getElementById('progression-form');
+        const resultsSection = document.getElementById('results-section');
+        const loader = document.getElementById('loader');
+        const resultsContent = document.getElementById('results-content');
+
+        // Event Listeners
+        menuItems.forEach(item => {
+            item.addEventListener('click', () => switchType(item.dataset.type));
+        });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            calculateProgression();
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', resetForm);
+
+        // Cambiar tipo de progresión
+        function switchType(type) {
+            currentType = type;
+            
+            // Actualizar menú activo
+            menuItems.forEach(item => {
+                item.classList.remove('active', 'geometric');
+                if (item.dataset.type === type) {
+                    item.classList.add('active');
+                    if (type === 'geometric') {
+                        item.classList.add('geometric');
+                    }
+                }
+            });
+
+            // Actualizar el body para cambiar colores
+            document.body.classList.toggle('geometric-mode', type === 'geometric');
+
+            // Actualizar formulario
+            const inputTitle = document.getElementById('input-title');
+            const differenceGroup = document.getElementById('difference-group');
+            const ratioGroup = document.getElementById('ratio-group');
+            const formulaDisplay = document.getElementById('formula-display');
+            const typeDisplay = document.getElementById('type-display');
+            const formulaType = document.getElementById('formula-type');
+            const exampleDisplay = document.getElementById('example-display');
+
+            if (type === 'arithmetic') {
+                inputTitle.textContent = 'Progresión Aritmética';
+                differenceGroup.style.display = 'block';
+                ratioGroup.style.display = 'none';
+                formulaDisplay.innerHTML = 'aₙ = a₁ + (n - 1) × d';
+                formulaDisplay.style.setProperty('--accent-color', 'var(--accent-arithmetic)');
+                typeDisplay.textContent = 'Aritmética';
+                formulaType.textContent = 'aₙ = a₁ + (n-1)d';
+                exampleDisplay.textContent = '2, 5, 8, 11...';
+            } else {
+                inputTitle.textContent = 'Progresión Geométrica';
+                differenceGroup.style.display = 'none';
+                ratioGroup.style.display = 'block';
+                formulaDisplay.innerHTML = 'aₙ = a₁ × r^(n-1)';
+                formulaDisplay.style.setProperty('--accent-color', 'var(--accent-geometric)');
+                typeDisplay.textContent = 'Geométrica';
+                formulaType.textContent = 'aₙ = a₁ × r^(n-1)';
+                exampleDisplay.textContent = '2, 4, 8, 16...';
+            }
+
+            // Limpiar resultados anteriores
+            resultsSection.classList.remove('show');
+        }
+
+        // Calcular progresión
+        function calculateProgression() {
+            const a1 = parseFloat(document.getElementById('first-term').value);
+            const n = parseInt(document.getElementById('num-terms').value);
+            let results;
+
+            // Mostrar loader
+            resultsSection.classList.add('show');
+            loader.style.display = 'block';
+            resultsContent.style.display = 'none';
+
+            setTimeout(() => {
+                if (currentType === 'arithmetic') {
+                    const d = parseFloat(document.getElementById('common-difference').value);
+                    results = calculateArithmetic(a1, d, n);
+                } else {
+                    const r = parseFloat(document.getElementById('common-ratio').value);
+                    results = calculateGeometric(a1, r, n);
+                }
+
+                displayResults(results);
+                loader.style.display = 'none';
+                resultsContent.style.display = 'block';
+            }, 500);
+        }
+
+        // Calcular progresión aritmética
+        function calculateArithmetic(a1, d, n) {
+            const sequence = [];
+            let sum = 0;
+
+            for (let i = 0; i < n; i++) {
+                const term = a1 + i * d;
+                sequence.push(term);
+                sum += term;
+            }
+
+            const an = a1 + (n - 1) * d;
+            const mean = sum / n;
+
+            return {
+                sequence,
+                nthTerm: an,
+                sum,
+                mean,
+                formula: `a${n} = ${a1} + (${n} - 1) × ${d} = ${formatNumber(an)}`
+            };
+        }
+
+        // Calcular progresión geométrica
+        function calculateGeometric(a1, r, n) {
+            const sequence = [];
+            let sum = 0;
+
+            for (let i = 0; i < n; i++) {
+                const term = a1 * Math.pow(r, i);
+                sequence.push(term);
+                sum += term;
+            }
+
+            const an = a1 * Math.pow(r, n - 1);
+            const mean = sum / n; // Media aritmética (más útil para visualización)
+
+            return {
+                sequence,
+                nthTerm: an,
+                sum,
+                mean,
+                formula: `a${n} = ${a1} × ${r}^(${n}-1) = ${formatNumber(an)}`
+            };
+        }
+
+        // Mostrar resultados
+        function displayResults(results) {
+            // Actualizar valores
+            document.getElementById('nth-term').textContent = formatNumber(results.nthTerm);
+            document.getElementById('sum-terms').textContent = formatNumber(results.sum);
+            document.getElementById('mean-value').textContent = formatNumber(results.mean);
+
+            // Mostrar secuencia
+            const sequenceContainer = document.getElementById('sequence-items');
+            sequenceContainer.innerHTML = '';
+            
+            const maxDisplay = Math.min(results.sequence.length, 10);
+            results.sequence.slice(0, maxDisplay).forEach((term, index) => {
+                const item = document.createElement('div');
+                item.className = 'sequence-item';
+                item.style.animationDelay = `${index * 0.1}s`;
+                item.innerHTML = `
+                    <small style="color: var(--text-secondary)">a${index + 1}</small>
+                    <div>${formatNumber(term)}</div>
+                `;
+                if (index === 0 || index === results.sequence.length - 1) {
+                    item.classList.add('highlight');
+                }
+                sequenceContainer.appendChild(item);
+            });
+
+            if (results.sequence.length > maxDisplay) {
+                const moreItem = document.createElement('div');
+                moreItem.className = 'sequence-item';
+                moreItem.style.animationDelay = `${maxDisplay * 0.1}s`;
+                moreItem.innerHTML = '...';
+                sequenceContainer.appendChild(moreItem);
+            }
+
+            // Crear gráfico
+            createChart(results.sequence);
+        }
+
+        // Formatear números
+        function formatNumber(num) {
+            if (typeof num !== 'number' || isNaN(num)) {
+                return '0';
+            }
+            if (Math.abs(num) < 0.01 || Math.abs(num) > 1e6) {
+                return num.toExponential(2);
+            }
+            return num.toFixed(2);
+        }
+
+        // Crear gráfico
+        function createChart(sequence) {
+            const ctx = document.getElementById('progression-chart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+
+            const labels = sequence.map((_, i) => `a${i + 1}`);
+            const color = currentType === 'arithmetic' ? '#00d4ff' : '#ff006e';
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: currentType === 'arithmetic' ? 'Progresión Aritmética' : 'Progresión Geométrica',
+                        data: sequence,
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: color,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: '#fff',
+                                font: {
+                                    size: 14,
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                            titleColor: '#fff',
+                            bodyColor: '#fff',
+                            borderColor: color,
+                            borderWidth: 1,
+                            cornerRadius: 8,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                title: (items) => `Término ${items[0].dataIndex + 1}`,
+                                label: (item) => `Valor: ${formatNumber(item.raw)}`
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                borderColor: 'rgba(255, 255, 255, 0.2)'
+                            },
+                            ticks: {
+                                color: '#fff',
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: 'rgba(255, 255, 255, 0.1)',
+                                borderColor: 'rgba(255, 255, 255, 0.2)'
+                            },
+                            ticks: {
+                                color: '#fff',
+                                font: {
+                                    size: 12
+                                },
+                                callback: function(value) {
+                                    return formatNumber(value);
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeInOutQuart'
+                    }
+                }
+            });
+        }
+
+        // Reiniciar formulario
+        function resetForm() {
+            form.reset();
+            resultsSection.classList.remove('show');
+            if (chart) {
+                chart.destroy();
+                chart = null;
+            }
+        }
+
+        // Animaciones adicionales
+        document.addEventListener('DOMContentLoaded', () => {
+            // Animación de entrada para cards
+            const cards = document.querySelectorAll('.card');
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s ease';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+
+            // Efecto parallax suave en el fondo
+            document.addEventListener('mousemove', (e) => {
+                const x = e.clientX / window.innerWidth;
+                const y = e.clientY / window.innerHeight;
+                
+                document.querySelector('.bg-animation').style.transform = 
+                    `translate(${x * 20}px, ${y * 20}px)`;
+                
+                document.querySelectorAll('.shape').forEach((shape, index) => {
+                    const speed = (index + 1) * 0.5;
+                    shape.style.transform = 
+                        `translate(${x * 20 * speed}px, ${y * 20 * speed}px)`;
+                });
+            });
+
+            // Animación de números al escribir
+            const inputs = document.querySelectorAll('.input-field');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentElement.parentElement.classList.add('pulse');
+                });
+                input.addEventListener('blur', function() {
+                    this.parentElement.parentElement.classList.remove('pulse');
+                });
+            });
+
+            // Easter egg: Konami code
+            let konamiCode = [];
+            const konamiPattern = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 
+                                  'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 
+                                  'b', 'a'];
+            
+            document.addEventListener('keydown', (e) => {
+                konamiCode.push(e.key);
+                konamiCode = konamiCode.slice(-10);
+                
+                if (JSON.stringify(konamiCode) === JSON.stringify(konamiPattern)) {
+                    activateRainbowMode();
+                }
+            });
+        });
+
+        // Modo arcoíris (Easter egg)
+        function activateRainbowMode() {
+            document.body.style.animation = 'rainbow 5s linear infinite';
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes rainbow {
+                    0% { filter: hue-rotate(0deg); }
+                    100% { filter: hue-rotate(360deg); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Mostrar notificación especial
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: linear-gradient(45deg, #ff0000, #ff7700, #ffdd00, #00ff00, #0099ff, #6633ff);
+                color: white;
+                padding: 2rem 3rem;
+                border-radius: 20px;
+                font-size: 1.5rem;
+                font-weight: bold;
+                box-shadow: 0 10px 50px rgba(0,0,0,0.5);
+                z-index: 9999;
+                animation: bounce 1s ease-in-out;
+            `;
+            notification.textContent = '🌈 ¡Modo Arcoíris Activado! 🦄';
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        // Detección de rendimiento
+        let fps = 0;
+        let lastTime = performance.now();
+        function checkPerformance() {
+            const currentTime = performance.now();
+            fps = 1000 / (currentTime - lastTime);
+            lastTime = currentTime;
+            
+            // Si el FPS es bajo, reducir animaciones
+            if (fps < 30) {
+                document.body.classList.add('reduce-motion');
+            }
+            
+            requestAnimationFrame(checkPerformance);
+        }
+        requestAnimationFrame(checkPerformance);
+
+        // Estilo para reducir movimiento
+        const style = document.createElement('style');
+        style.textContent = `
+            .reduce-motion * {
+                animation-duration: 0.01s !important;
+                transition-duration: 0.01s !important;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
