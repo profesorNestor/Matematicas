@@ -2,140 +2,766 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Graficador Matemático ProfeNestor</title>
+    <title>Graficador Matemático ProfeNestor - Ultra Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="../style.css">
-    <!-- Plotly y MathJS locales -->
-    <script src="../libs/mathjs/math.min.js"></script>
-    <script src="../libs/plotly/plotly-2.32.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js"></script>
     <style>
-        /* --------- ESTILO VISUAL AVANZADO --------- */
-        body {
-            background: linear-gradient(135deg, #e0eafc, #cfdef3 80%);
-            font-family: 'Segoe UI', Arial, sans-serif;
-            min-height: 100vh;
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .graficas-container {
-            display: flex; gap: 1.5rem; align-items: flex-start;
-            padding: 2rem 1rem; max-width: 1300px; margin: auto;
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.8);
+            --accent-color: #667eea;
+            --success-color: #4ade80;
+            --error-color: #f87171;
+            --shadow-color: rgba(0, 0, 0, 0.2);
+            --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.5);
         }
-        .graficas-controls {
-            background: #fff; border-radius: 15px; box-shadow: 0 2px 10px #0001;
-            padding: 2rem 1.2rem; min-width: 350px; max-width: 390px;
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            position: relative;
         }
-        .graficas-controls h2 {
-            color: #1a237e; letter-spacing: 1px; margin-bottom: 1.2rem;
+
+        /* Partículas animadas de fondo */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
         }
-        .form-group { margin-bottom: 1.15rem; }
-        .form-textarea, .form-input {
-            width: 100%; padding: 0.8rem;
-            border-radius: 8px; border: 1.2px solid #b5b5c5; font-size: 1.06rem;
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            animation: float 20s infinite;
         }
-        .form-textarea { min-height: 60px; resize: vertical; }
-        .switch-group label { margin-right: 1.3em; font-size: 1em; }
-        .btn {
-            display: block; padding: 0.9em 1.6em; border-radius: 11px;
-            background: linear-gradient(90deg, #0476d9, #25b2ff);
-            color: white; font-weight: bold; border: none; cursor: pointer; font-size: 1.12rem;
-            box-shadow: 0 2px 8px #04b3ff25; margin-top: 0.7em; transition: background 0.2s;
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) rotate(720deg);
+                opacity: 0;
+            }
         }
-        .btn:hover { background: linear-gradient(90deg, #0361b2, #189ed7);}
+
+        /* Contenedor principal con glassmorphism */
+        .main-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            min-height: 100vh;
+            align-items: center;
+        }
+
+        /* Panel de control con efectos glass */
+        .control-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2.5rem;
+            min-width: 400px;
+            box-shadow: 0 8px 32px var(--shadow-color), var(--shadow-glow);
+            animation: slideInLeft 0.6s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .control-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            transform: rotate(45deg);
+            animation: shimmer 3s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%) translateY(-100%) rotate(45deg);
+            }
+            100% {
+                transform: translateX(100%) translateY(100%) rotate(45deg);
+            }
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        /* Título con gradiente animado */
+        .title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
+            background-size: 300% 300%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 3s ease infinite;
+            margin-bottom: 2rem;
+            text-align: center;
+            letter-spacing: -1px;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        /* Tarjeta de tips con efecto hover */
+        .tips-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .tips-card:hover {
+            background: rgba(102, 126, 234, 0.15);
+            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .tips-card::before {
+            content: '💡';
+            position: absolute;
+            top: -20px;
+            right: -20px;
+            font-size: 60px;
+            opacity: 0.1;
+            transform: rotate(-15deg);
+        }
+
+        /* Grupos de formulario mejorados */
+        .form-group {
+            margin-bottom: 1.8rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Inputs y textareas con efectos de neón */
+        .form-input,
+        .form-textarea {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .form-textarea {
+            min-height: 100px;
+            resize: vertical;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+
+        .form-input:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 0 20px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Grupo de inputs para rango */
+        .range-inputs {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .range-inputs .form-input {
+            flex: 1;
+        }
+
+        /* Color pickers estilizados */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .color-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .color-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .color-picker {
+            width: 50px;
+            height: 50px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .color-picker:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .color-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Switches modernos */
+        .switch-group {
+            display: flex;
+            gap: 2rem;
+            margin: 2rem 0;
+        }
+
+        .switch-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .switch {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .switch input {
+            display: none;
+        }
+
+        .switch-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .switch input:checked ~ .switch-slider {
+            transform: translateX(30px);
+            background: var(--accent-color);
+        }
+
+        .switch input:checked ~ .switch {
+            background: rgba(102, 126, 234, 0.3);
+        }
+
+        /* Sliders de tamaño modernos */
+        .size-controls {
+            margin: 2rem 0;
+        }
+
+        .slider-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.8rem;
+        }
+
+        .slider-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .slider-value {
+            font-weight: 600;
+            color: var(--accent-color);
+        }
+
+        .modern-slider {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .modern-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-color);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .modern-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.7);
+        }
+
+        /* Botón principal con efectos */
+        .btn-primary {
+            width: 100%;
+            padding: 1.2rem 2rem;
+            background: var(--primary-gradient);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .btn-primary:active::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        /* Contenedor del gráfico */
+        .plot-wrapper {
+            flex: 1;
+            animation: slideInRight 0.6s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
         .plot-container {
-            width: var(--plot-width, 750px);
-            height: var(--plot-height, 480px);
-            background: #f7fafc; border-radius: 16px;
-            box-shadow: 0 2px 10px #0001; margin-left: auto;
-            transition: width .2s, height .2s;
-            min-width: 340px; min-height: 240px;
+            width: 100%;
+            height: 600px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px var(--shadow-color), var(--shadow-glow);
+            position: relative;
+            overflow: hidden;
         }
-        .tips-box {
-            background: #e3f2fd; border-radius: 10px; padding: 0.7em 1em; margin-bottom: 1em;
-            font-size: 0.98em; color: #0d47a1; border-left: 4px solid #1976d2;
+
+        .plot-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            gap: 2rem;
         }
-        .color-pickers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 0.5em;}
-        .color-picker-group { display: flex; align-items: center; gap: 5px; }
-        .color-picker-group label { font-size: 0.96em; margin-right: 2px;}
-        /* Slider para el tamaño del gráfico */
-        .slider-group { margin-top: 1em; }
-        .slider-label { display: flex; justify-content: space-between; }
-        input[type=range] { width: 90%; }
-        @media (max-width: 1100px) {
-            .graficas-container { flex-direction: column; align-items: stretch;}
-            .plot-container { width: 100% !important; min-width: 0; }
+
+        .placeholder-icon {
+            font-size: 80px;
+            opacity: 0.3;
+            animation: pulse 2s infinite;
         }
-        .dark-mode body { background: linear-gradient(120deg,#2b2b35,#23233c 90%);}
-        .dark-mode .graficas-controls {background: #141823;color:#fff;}
-        .dark-mode .plot-container {background: #1c2230;}
-        .dark-mode .tips-box {background:#273242;color:#aee;}
-        .dark-toggle {margin-top:1em;}
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.5;
+            }
+        }
+
+        .placeholder-text {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Toggle de modo oscuro flotante */
+        .theme-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .theme-toggle:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px var(--shadow-color);
+        }
+
+        .theme-icon {
+            font-size: 24px;
+            transition: all 0.3s ease;
+        }
+
+        /* Efectos de loading */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Responsive design */
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .control-panel {
+                min-width: unset;
+                width: 100%;
+                max-width: 600px;
+                margin: 0 auto;
+            }
+
+            .plot-container {
+                height: 500px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 2rem;
+            }
+
+            .control-panel {
+                padding: 1.5rem;
+            }
+
+            .color-grid {
+                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            }
+
+            .switch-group {
+                flex-direction: column;
+                gap: 1rem;
+            }
+        }
+
+        /* Animación de entrada para elementos */
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Efectos de notificación */
+        .notification {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            padding: 1rem 2rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px var(--shadow-color);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .notification.show {
+            transform: translateX(0);
+        }
+
+        .notification.success {
+            border-color: var(--success-color);
+            box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
+        }
+
+        .notification.error {
+            border-color: var(--error-color);
+            box-shadow: 0 4px 20px rgba(248, 113, 113, 0.3);
+        }
     </style>
 </head>
 <body>
-    <div class="graficas-container">
-        <!-- Panel de controles -->
-        <aside class="graficas-controls">
-            <h2>📈 Opciones de Gráfico</h2>
-            <div class="tips-box">
-                <b>Tips:</b> Escribe funciones de <b>x</b> (<code>sin(x)</code>, <code>x^3-4*x</code>, <code>2*cos(x/2)</code>).
-                <br>Puedes graficar varias separadas por coma: <code>x^2, sin(x)</code>
-                <br><b>Funciones soportadas:</b> sen, cos, tan, exp, sqrt, log, abs, etc.
+    <!-- Partículas de fondo -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Contenedor principal -->
+    <div class="main-container">
+        <!-- Panel de control -->
+        <aside class="control-panel">
+            <h1 class="title">
+                <i class="fas fa-chart-line"></i> MathGraph Pro
+            </h1>
+
+            <div class="tips-card fade-in">
+                <h3 style="margin-bottom: 0.8rem; color: var(--accent-color);">
+                    <i class="fas fa-lightbulb"></i> Consejos Pro
+                </h3>
+                <p style="font-size: 0.9rem; line-height: 1.6;">
+                    • Funciones: <code>sin(x)</code>, <code>x^2</code>, <code>log(x)</code><br>
+                    • Múltiples: separa con comas<br>
+                    • Operadores: +, -, *, /, ^, sqrt(), abs()
+                </p>
             </div>
-            <div class="form-group">
-                <label for="plot-funcs"><b>Funciones f(x):</b></label>
-                <textarea id="plot-funcs" class="form-textarea" rows="4" placeholder="Ej: sin(x), x^2, e^x"></textarea>
-            </div>
-            <div class="form-group">
-                <label><b>Colores de cada función:</b></label>
-                <div id="color-pickers" class="color-pickers"></div>
-            </div>
-            <div class="form-group">
-                <label><b>Rango del eje X:</b></label>
-                <div style="display:flex;gap:10px;">
-                    <input type="number" id="plot-xmin" class="form-input" value="-10" step="0.1" style="max-width:80px;">
-                    <input type="number" id="plot-xmax" class="form-input" value="10" step="0.1" style="max-width:80px;">
-                </div>
-            </div>
-            <div class="form-group switch-group">
-                <label><input type="checkbox" id="show-grid" checked> Cuadrícula</label>
-                <label><input type="checkbox" id="show-legend" checked> Leyenda</label>
-            </div>
-            <!-- Controles para el tamaño del lienzo -->
-            <div class="form-group slider-group">
-                <div class="slider-label">
-                    <span>Ancho: <span id="width-value">750</span>px</span>
-                    <span>Alto: <span id="height-value">480</span>px</span>
-                </div>
-                <input type="range" id="width-slider" min="340" max="1200" value="750">
-                <input type="range" id="height-slider" min="240" max="700" value="480">
-            </div>
-            <button id="plot-calculate" class="btn">🚀 Graficar Funciones</button>
-            <div class="dark-toggle">
-                <label>
-                    <input type="checkbox" id="darkModeToggle">
-                    Modo oscuro
+
+            <div class="form-group fade-in">
+                <label class="form-label">
+                    <i class="fas fa-function"></i> Funciones f(x)
                 </label>
+                <textarea 
+                    id="plot-funcs" 
+                    class="form-textarea" 
+                    placeholder="sin(x), cos(x), x^2 - 4*x + 3"
+                    rows="3"
+                ></textarea>
             </div>
+
+            <div class="form-group fade-in">
+                <label class="form-label">
+                    <i class="fas fa-palette"></i> Colores de las funciones
+                </label>
+                <div id="color-pickers" class="color-grid"></div>
+            </div>
+
+            <div class="form-group fade-in">
+                <label class="form-label">
+                    <i class="fas fa-arrows-alt-h"></i> Rango del eje X
+                </label>
+                <div class="range-inputs">
+                    <input type="number" id="plot-xmin" class="form-input" value="-10" step="0.1">
+                    <input type="number" id="plot-xmax" class="form-input" value="10" step="0.1">
+                </div>
+            </div>
+
+            <div class="switch-group fade-in">
+                <div class="switch-item">
+                    <label class="switch">
+                        <input type="checkbox" id="show-grid" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span>Cuadrícula</span>
+                </div>
+                <div class="switch-item">
+                    <label class="switch">
+                        <input type="checkbox" id="show-legend" checked>
+                        <span class="switch-slider"></span>
+                    </label>
+                    <span>Leyenda</span>
+                </div>
+            </div>
+
+            <div class="size-controls fade-in">
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span class="slider-label">Ancho</span>
+                        <span class="slider-value" id="width-value">900px</span>
+                    </div>
+                    <input type="range" id="width-slider" class="modern-slider" min="400" max="1200" value="900">
+                </div>
+                <div class="slider-container">
+                    <div class="slider-header">
+                        <span class="slider-label">Alto</span>
+                        <span class="slider-value" id="height-value">600px</span>
+                    </div>
+                    <input type="range" id="height-slider" class="modern-slider" min="300" max="800" value="600">
+                </div>
+            </div>
+
+            <button id="plot-calculate" class="btn-primary fade-in">
+                <i class="fas fa-rocket"></i> Graficar Funciones
+            </button>
         </aside>
-        <!-- Área de Gráfico -->
-        <main class="graficas-plot-area">
+
+        <!-- Área del gráfico -->
+        <main class="plot-wrapper">
             <div id="plot-container" class="plot-container">
-                <div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:.65;font-size:1.2em;text-align:center;">
-                    Bienvenido al graficador.<br>Ingresa una función y presiona <b>"Graficar Funciones"</b>.
+                <div class="plot-placeholder">
+                    <div class="placeholder-icon">📊</div>
+                    <div class="placeholder-text">
+                        <strong>¡Bienvenido a MathGraph Pro!</strong><br>
+                        Ingresa tus funciones y presiona "Graficar"
+                    </div>
+                </div>
+                <div class="loading">
+                    <div class="loading-spinner"></div>
                 </div>
             </div>
         </main>
     </div>
+
+    <!-- Toggle de tema -->
+    <div class="theme-toggle" id="theme-toggle">
+        <i class="fas fa-moon theme-icon" id="theme-icon"></i>
+    </div>
+
+    <!-- Notificaciones -->
+    <div class="notification" id="notification"></div>
+
     <script>
-    // =================== LÓGICA DEL GRAFICADOR ==========================
-    // --------- Modo oscuro ---------
-    const darkModeToggle = document.getElementById('darkModeToggle');
-    darkModeToggle.addEventListener('change', () => {
-        document.documentElement.classList.toggle('dark-mode', darkModeToggle.checked);
-    });
-    // ---------- Graficador matemático Plotly + mathjs -----------------
-    document.addEventListener('DOMContentLoaded', function() {
-        // ---- Elementos principales
+        // Generación de partículas
+        const particlesContainer = document.getElementById('particles');
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 20 + 's';
+            particle.style.animationDuration = (Math.random() * 10 + 20) + 's';
+            particlesContainer.appendChild(particle);
+        }
+
+        // Variables globales
         const funcsInput = document.getElementById('plot-funcs');
         const xMinInput = document.getElementById('plot-xmin');
         const xMaxInput = document.getElementById('plot-xmax');
@@ -144,165 +770,313 @@
         const showGridCheck = document.getElementById('show-grid');
         const showLegendCheck = document.getElementById('show-legend');
         const colorPickersDiv = document.getElementById('color-pickers');
-        // --- Sliders de tamaño
         const widthSlider = document.getElementById('width-slider');
         const heightSlider = document.getElementById('height-slider');
         const widthValue = document.getElementById('width-value');
         const heightValue = document.getElementById('height-value');
+        const notification = document.getElementById('notification');
 
-        // Valores iniciales (puedes personalizar aquí)
-        funcsInput.value = "sin(x), cos(x), x^2";
-        let colorList = [
-            "#1976d2", "#43a047", "#e53935", "#8e24aa", "#fb8c00", "#00bcd4",
-            "#cddc39", "#6d4c41", "#d81b60", "#3949ab", "#00897b"
+        // Colores modernos predefinidos
+        const modernColors = [
+            '#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a',
+            '#fee140', '#30cfd0', '#764ba2', '#f5576c', '#4481eb',
+            '#04befe', '#c471f5', '#feada6', '#a8edea', '#13547a'
         ];
 
-        // --------- Función para actualizar los color pickers según funciones escritas
+        // Funciones de ejemplo
+        funcsInput.value = "sin(x), cos(x), x^2/10, sqrt(abs(x))";
+
+        // Actualizar color pickers
         function updateColorPickers() {
-            const funcArr = funcsInput.value.split(',').map(s=>s.trim()).filter(Boolean);
+            const funcArr = funcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
             colorPickersDiv.innerHTML = "";
+            
             funcArr.forEach((f, i) => {
-                let color = colorList[i % colorList.length];
-                let input = document.createElement("input");
-                input.type = "color";
-                input.value = color;
-                input.id = "color-func-" + i;
-                input.style.width = "32px";
-                input.style.height = "28px";
-                // Permitir personalizar colores después
-                input.addEventListener('input', plotFunctions);
-                let label = document.createElement("label");
-                label.innerText = `f${i+1}`;
-                let group = document.createElement("div");
-                group.className = "color-picker-group";
-                group.appendChild(label);
-                group.appendChild(input);
-                colorPickersDiv.appendChild(group);
+                const colorItem = document.createElement('div');
+                colorItem.className = 'color-item';
+                
+                const colorPicker = document.createElement('input');
+                colorPicker.type = 'color';
+                colorPicker.className = 'color-picker';
+                colorPicker.value = modernColors[i % modernColors.length];
+                colorPicker.id = `color-func-${i}`;
+                colorPicker.addEventListener('input', plotFunctions);
+                
+                const label = document.createElement('span');
+                label.className = 'color-label';
+                label.innerText = `f${i + 1}`;
+                
+                colorItem.appendChild(colorPicker);
+                colorItem.appendChild(label);
+                colorPickersDiv.appendChild(colorItem);
             });
         }
-        // Cada vez que el usuario edita las funciones, actualiza los pickers
-        funcsInput.addEventListener('input', updateColorPickers);
 
-        // ----- Slider para cambiar el tamaño del gráfico
-        function updatePlotSize() {
-            let width = widthSlider.value;
-            let height = heightSlider.value;
-            widthValue.innerText = width;
-            heightValue.innerText = height;
-            plotContainer.style.setProperty("--plot-width", width+"px");
-            plotContainer.style.setProperty("--plot-height", height+"px");
-            // Si ya hay gráfico, redibujar con el nuevo tamaño
-            if (plotContainer.data) {
-                Plotly.relayout(plotContainer, {width: +width, height: +height});
-            }
+        // Actualizar valores de los sliders
+        widthSlider.addEventListener('input', () => {
+            widthValue.textContent = widthSlider.value + 'px';
+            plotFunctions();
+        });
+
+        heightSlider.addEventListener('input', () => {
+            heightValue.textContent = heightSlider.value + 'px';
+            plotFunctions();
+        });
+
+        // Mostrar notificación
+        function showNotification(message, type = 'success') {
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
         }
-        widthSlider.addEventListener('input', updatePlotSize);
-        heightSlider.addEventListener('input', updatePlotSize);
 
-        // ============ LAYOUT DEL PLOT ================
+        // Layout del gráfico con tema moderno
         function getPlotLayout() {
-            const dark = document.documentElement.classList.contains('dark-mode');
+            const isDark = document.body.classList.contains('dark-theme');
+            
             return {
-                title: 'Gráfico de Funciones Matemáticas',
-                xaxis: { 
-                    title: 'x', gridcolor: dark ? '#334155' : '#cbd5e1',
-                    showgrid: showGridCheck.checked,
-                    zerolinecolor: dark ? '#a7b6c4' : '#475569', zerolinewidth: 1.5
+                title: {
+                    text: 'Visualización de Funciones Matemáticas',
+                    font: {
+                        family: 'Inter, sans-serif',
+                        size: 24,
+                        color: '#ffffff'
+                    }
                 },
-                yaxis: { 
-                    title: 'f(x)', gridcolor: dark ? '#334155' : '#cbd5e1',
+                xaxis: {
+                    title: {
+                        text: 'x',
+                        font: { size: 16, color: '#ffffff' }
+                    },
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
                     showgrid: showGridCheck.checked,
-                    zerolinecolor: dark ? '#a7b6c4' : '#475569', zerolinewidth: 1.5
+                    zerolinecolor: 'rgba(255, 255, 255, 0.3)',
+                    zerolinewidth: 2,
+                    tickfont: { color: 'rgba(255, 255, 255, 0.8)' }
                 },
-                paper_bgcolor: dark ? '#23233c' : '#f8fafc',
-                plot_bgcolor: dark ? '#23233c' : '#ffffff',
-                font: { color: dark ? '#e2e8f0' : '#182238', family: 'Segoe UI, Arial'},
-                legend: { 
-                    bgcolor: dark ? 'rgba(40,40,60,0.7)' : 'rgba(255,255,255,0.7)', 
-                    bordercolor: '#334155',
-                    x: 1, xanchor: 'right', y: 1
+                yaxis: {
+                    title: {
+                        text: 'f(x)',
+                        font: { size: 16, color: '#ffffff' }
+                    },
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
+                    showgrid: showGridCheck.checked,
+                    zerolinecolor: 'rgba(255, 255, 255, 0.3)',
+                    zerolinewidth: 2,
+                    tickfont: { color: 'rgba(255, 255, 255, 0.8)' }
+                },
+                paper_bgcolor: 'rgba(0, 0, 0, 0)',
+                plot_bgcolor: 'rgba(0, 0, 0, 0.2)',
+                font: {
+                    family: 'Inter, sans-serif',
+                    color: '#ffffff'
+                },
+                legend: {
+                    bgcolor: 'rgba(0, 0, 0, 0.3)',
+                    bordercolor: 'rgba(255, 255, 255, 0.1)',
+                    borderwidth: 1,
+                    font: { color: '#ffffff' },
+                    x: 1,
+                    xanchor: 'right',
+                    y: 1,
+                    yanchor: 'top'
                 },
                 showlegend: showLegendCheck.checked,
-                margin: { l: 60, r: 30, b: 50, t: 50, pad: 8 },
+                margin: { l: 60, r: 30, b: 60, t: 80 },
                 hovermode: 'x unified',
-                width: parseInt(widthSlider.value), height: parseInt(heightSlider.value)
+                hoverlabel: {
+                    bgcolor: 'rgba(0, 0, 0, 0.8)',
+                    bordercolor: 'rgba(255, 255, 255, 0.2)',
+                    font: { color: '#ffffff' }
+                },
+                width: parseInt(widthSlider.value),
+                height: parseInt(heightSlider.value)
             };
         }
 
-        // ============ GRAFICAR FUNCIONES =================
+        // Función principal para graficar
         function plotFunctions() {
             const funcStrings = funcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
             const xmin = parseFloat(xMinInput.value);
             const xmax = parseFloat(xMaxInput.value);
 
-            // Actualiza color pickers (sin bucle infinito)
-            if (colorPickersDiv.childNodes.length !== funcStrings.length) updateColorPickers();
+            // Actualizar color pickers si es necesario
+            if (colorPickersDiv.children.length !== funcStrings.length) {
+                updateColorPickers();
+            }
 
-            // Validación básica
+            // Validaciones
             if (funcStrings.length === 0) {
-                Plotly.purge(plotContainer);
-                plotContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;opacity:.6">Ingrese una función para comenzar.</div>';
+                plotContainer.innerHTML = `
+                    <div class="plot-placeholder">
+                        <div class="placeholder-icon">📊</div>
+                        <div class="placeholder-text">
+                            <strong>¡Ingresa una función para comenzar!</strong><br>
+                            Ejemplo: sin(x), cos(x), x^2
+                        </div>
+                    </div>
+                `;
                 return;
             }
+
             if (isNaN(xmin) || isNaN(xmax) || xmin >= xmax) {
-                 Plotly.purge(plotContainer);
-                 plotContainer.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:#b91c1c;font-weight:bold;">El rango del eje X no es válido.</div>';
-                 return;
+                showNotification('El rango del eje X no es válido', 'error');
+                return;
             }
+
+            // Mostrar loading
+            plotContainer.querySelector('.loading').style.display = 'block';
+            plotContainer.querySelector('.plot-placeholder')?.remove();
+
             const traces = [];
-            // Obtiene el color de cada función desde el color picker
-            const colorPickers = colorPickersDiv.querySelectorAll('input[type=color]');
+            const colorPickers = colorPickersDiv.querySelectorAll('.color-picker');
+
+            // Procesar cada función
             funcStrings.forEach((funcStr, i) => {
                 const x = [];
                 const y = [];
-                let code;
+                let compiledFunc;
+
                 try {
-                    // mathjs parse
-                    code = math.compile(funcStr);
-                } catch(e) {
+                    // Compilar la función con mathjs
+                    compiledFunc = math.compile(funcStr);
+                } catch (e) {
                     traces.push({
-                        x: [xmin],
-                        y: [null],
+                        x: [xmin, xmax],
+                        y: [null, null],
                         name: `❌ Error: "${funcStr}"`,
                         type: 'scatter',
                         mode: 'lines',
-                        line: { color: '#b91c1c', width: 2.5, dash:'dot'}
+                        line: {
+                            color: '#f87171',
+                            width: 3,
+                            dash: 'dot'
+                        },
+                        hoverinfo: 'skip'
                     });
-                    return; // Salta esta función si es inválida
+                    return;
                 }
-                for (let val = xmin; val <= xmax; val += (xmax - xmin) / 600) {
-                    x.push(val);
+
+                // Generar puntos para la función
+                const numPoints = 1000;
+                const step = (xmax - xmin) / numPoints;
+
+                for (let xVal = xmin; xVal <= xmax; xVal += step) {
+                    x.push(xVal);
                     try {
-                        const yVal = code.evaluate({ x: val });
+                        const yVal = compiledFunc.evaluate({ x: xVal });
                         y.push(isFinite(yVal) ? yVal : null);
                     } catch {
                         y.push(null);
                     }
                 }
-                traces.push({ 
-                    x, y,
+
+                // Añadir el trazo
+                traces.push({
+                    x: x,
+                    y: y,
                     type: 'scatter',
                     mode: 'lines',
                     name: funcStr,
-                    line: { color: colorPickers[i] ? colorPickers[i].value : colorList[i % colorList.length], width: 2.8 }
+                    line: {
+                        color: colorPickers[i] ? colorPickers[i].value : modernColors[i % modernColors.length],
+                        width: 3,
+                        shape: 'spline'
+                    },
+                    hovertemplate: '%{y:.3f}<extra></extra>'
                 });
             });
-            Plotly.newPlot(plotContainer, traces, getPlotLayout(), {responsive: true});
+
+            // Configuración de Plotly
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false,
+                modeBarButtonsToAdd: [
+                    {
+                        name: 'Descargar como PNG',
+                        icon: Plotly.Icons.camera,
+                        click: function(gd) {
+                            Plotly.downloadImage(gd, {
+                                format: 'png',
+                                width: 1920,
+                                height: 1080,
+                                filename: 'grafico-matematico'
+                            });
+                        }
+                    }
+                ],
+                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d']
+            };
+
+            // Crear el gráfico
+            Plotly.newPlot(plotContainer, traces, getPlotLayout(), config).then(() => {
+                plotContainer.querySelector('.loading').style.display = 'none';
+                showNotification('Gráfico generado exitosamente', 'success');
+            });
         }
 
-        // --- Eventos para graficar
+        // Event listeners
+        funcsInput.addEventListener('input', updateColorPickers);
         calculateBtn.addEventListener('click', plotFunctions);
         showGridCheck.addEventListener('change', plotFunctions);
         showLegendCheck.addEventListener('change', plotFunctions);
-        darkModeToggle.addEventListener('change', plotFunctions);
-        // Al cambiar sliders
-        widthSlider.addEventListener('input', plotFunctions);
-        heightSlider.addEventListener('input', plotFunctions);
 
-        // Graficar ejemplo al cargar y crear pickers
+        // Animación del botón
+        calculateBtn.addEventListener('click', function() {
+            this.style.transform = 'scale(0.95)';
+            setTimeout(() => {
+                this.style.transform = 'scale(1)';
+            }, 200);
+        });
+
+        // Tema claro/oscuro
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-theme');
+            if (document.body.classList.contains('dark-theme')) {
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+            plotFunctions();
+        });
+
+        // Atajos de teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    calculateBtn.click();
+                }
+            }
+        });
+
+        // Inicialización
         updateColorPickers();
         plotFunctions();
-    });
+
+        // Efecto de parallax en las partículas con el mouse
+        document.addEventListener('mousemove', (e) => {
+            const x = e.clientX / window.innerWidth;
+            const y = e.clientY / window.innerHeight;
+            
+            particlesContainer.style.transform = `translate(${x * 20}px, ${y * 20}px)`;
+        });
+
+        // Animaciones de entrada escalonadas
+        const fadeElements = document.querySelectorAll('.fade-in');
+        fadeElements.forEach((el, index) => {
+            el.style.animationDelay = `${index * 0.1}s`;
+        });
     </script>
 </body>
 </html>
