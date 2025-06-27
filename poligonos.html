@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polygon Explorer - Ultra Edition</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-dark: #0a0a0f;
+            --bg-secondary: #1a1a2e;
+            --accent-primary: #00ffff;
+            --accent-secondary: #ff00ff;
+            --accent-tertiary: #ffff00;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --neon-glow: 0 0 20px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Matrix rain background */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            opacity: 0.1;
+        }
+
+        /* Animated gradient background */
+        .gradient-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 0, 255, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 20%, rgba(255, 255, 0, 0.1) 0%, transparent 50%);
+            z-index: -1;
+            animation: gradientShift 10s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+        }
+
+        /* Header */
+        .header {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            padding: 1.5rem 0;
+            position: relative;
+            z-index: 100;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 900;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+            background-size: 200% 200%;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: gradientMove 3s ease infinite;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            text-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+        }
+
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Main container */
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 3rem 2rem;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 3rem;
+            align-items: start;
+        }
+
+        /* Control Panel */
+        .control-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            position: sticky;
+            top: 2rem;
+            animation: slideInLeft 0.8s ease-out;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), var(--neon-glow) var(--accent-primary);
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .control-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Form controls */
+        .form-group {
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Modern slider */
+        .slider-container {
+            position: relative;
+        }
+
+        .slider-value {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--accent-primary);
+            color: var(--bg-dark);
+            padding: 0.3rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .modern-slider:hover + .slider-value,
+        .modern-slider:focus + .slider-value {
+            opacity: 1;
+        }
+
+        .modern-slider {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modern-slider:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .modern-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--accent-primary);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--accent-primary);
+            transition: all 0.3s ease;
+            border: 2px solid var(--bg-dark);
+        }
+
+        .modern-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 30px var(--accent-primary);
+        }
+
+        /* Color picker group */
+        .color-group {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .color-item {
+            text-align: center;
+        }
+
+        .color-picker-wrapper {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 0.5rem;
+            border-radius: 50%;
+            overflow: hidden;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s;
+        }
+
+        .color-picker-wrapper:hover {
+            transform: scale(1.1) rotate(5deg);
+            box-shadow: 0 6px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .color-picker {
+            width: 100%;
+            height: 100%;
+            border: none;
+            cursor: pointer;
+            transform: scale(1.5);
+        }
+
+        .color-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Preset buttons */
+        .preset-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .preset-btn {
+            padding: 1rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .preset-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: radial-gradient(circle, var(--accent-primary) 0%, transparent 70%);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .preset-btn:hover::before {
+            width: 200px;
+            height: 200px;
+        }
+
+        .preset-btn:hover {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Canvas container */
+        .canvas-container {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            animation: slideInRight 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .canvas-wrapper {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        #polygon-canvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            background: #000;
+            cursor: move;
+        }
+
+        /* Info panels */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .info-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .info-card::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary), var(--accent-tertiary));
+            border-radius: 16px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: -1;
+        }
+
+        .info-card:hover::before {
+            opacity: 1;
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .info-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .info-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 0.5rem;
+        }
+
+        /* Animation controls */
+        .animation-controls {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--glass-border);
+        }
+
+        .toggle-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .toggle-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 26px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s;
+        }
+
+        .toggle-switch input:checked ~ .toggle-slider {
+            transform: translateX(24px);
+            background: var(--accent-primary);
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        .toggle-switch input:checked ~ .toggle-switch {
+            background: rgba(0, 255, 255, 0.3);
+        }
+
+        /* Speed control */
+        .speed-control {
+            margin-top: 1rem;
+        }
+
+        /* Tools */
+        .tools-bar {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .tool-btn {
+            padding: 0.8rem 1.2rem;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.2rem;
+            position: relative;
+        }
+
+        .tool-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .tool-btn.active {
+            background: var(--accent-primary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 20px var(--accent-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+
+            .control-panel {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .main-container {
+                padding: 2rem 1rem;
+            }
+
+            .info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .preset-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Loading animation */
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        /* Particle effects */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            opacity: 0;
+            animation: particle-float 2s ease-out forwards;
+        }
+
+        @keyframes particle-float {
+            0% {
+                opacity: 1;
+                transform: translate(0, 0) scale(0);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(var(--x), var(--y)) scale(1);
+            }
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            margin-bottom: 0.5rem;
+        }
+
+        .tooltip:hover::after {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background effects -->
+    <canvas class="matrix-bg" id="matrix-canvas"></canvas>
+    <div class="gradient-bg"></div>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-shapes"></i>
+                <span>PolyVerse Explorer</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main class="main-container">
+        <!-- Control Panel -->
+        <aside class="control-panel">
+            <h2 class="control-title">
+                <i class="fas fa-sliders-h"></i> Control Center
+            </h2>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-shapes"></i> Número de Lados
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="sides-slider" class="modern-slider" min="3" max="24" value="6">
+                    <div class="slider-value" id="sides-value">6</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-expand"></i> Tamaño
+                </label>
+                <div class="slider-container">
+                    <input type="range" id="size-slider" class="modern-slider" min="50" max="250" value="150">
+                    <div class="slider-value" id="size-value">150</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-palette"></i> Colores
+                </label>
+                <div class="color-group">
+                    <div class="color-item">
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="fill-color" class="color-picker" value="#00ffff">
+                        </div>
+                        <span class="color-label">Relleno</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="stroke-color" class="color-picker" value="#ff00ff">
+                        </div>
+                        <span class="color-label">Borde</span>
+                    </div>
+                    <div class="color-item">
+                        <div class="color-picker-wrapper">
+                            <input type="color" id="vertex-color" class="color-picker" value="#ffff00">
+                        </div>
+                        <span class="color-label">Vértices</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-star"></i> Presets Especiales
+                </label>
+                <div class="preset-group">
+                    <button class="preset-btn" data-preset="triangle">
+                        <i class="fas fa-play"></i> Triángulo
+                    </button>
+                    <button class="preset-btn" data-preset="square">
+                        <i class="fas fa-square"></i> Cuadrado
+                    </button>
+                    <button class="preset-btn" data-preset="pentagon">
+                        <i class="fas fa-star"></i> Pentágono
+                    </button>
+                    <button class="preset-btn" data-preset="hexagon">
+                        <i class="fas fa-hexagon"></i> Hexágono
+                    </button>
+                    <button class="preset-btn" data-preset="octagon">
+                        <i class="fas fa-stop"></i> Octágono
+                    </button>
+                    <button class="preset-btn" data-preset="star">
+                        <i class="fas fa-star"></i> Estrella
+                    </button>
+                </div>
+            </div>
+
+            <div class="animation-controls">
+                <label class="form-label">
+                    <i class="fas fa-magic"></i> Animaciones
+                </label>
+                <div class="toggle-group">
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="rotate-toggle" checked>
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Rotación</span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="pulse-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Pulso</span>
+                    </div>
+                    <div class="toggle-item">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="morph-toggle">
+                            <span class="toggle-slider"></span>
+                        </label>
+                        <span>Morphing</span>
+                    </div>
+                </div>
+                <div class="speed-control">
+                    <label class="form-label">Velocidad</label>
+                    <input type="range" id="speed-slider" class="modern-slider" min="0.1" max="5" value="1" step="0.1">
+                </div>
+            </div>
+        </aside>
+
+        <!-- Canvas Section -->
+        <section class="canvas-container">
+            <div class="tools-bar">
+                <button class="tool-btn tooltip active" data-tool="draw" data-tooltip="Dibujar">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+                <button class="tool-btn tooltip" data-tool="move" data-tooltip="Mover">
+                    <i class="fas fa-hand-paper"></i>
+                </button>
+                <button class="tool-btn tooltip" data-tool="zoom" data-tooltip="Zoom">
+                    <i class="fas fa-search-plus"></i>
+                </button>
+                <button class="tool-btn tooltip" data-tool="reset" data-tooltip="Reiniciar">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button class="tool-btn tooltip" data-tool="download" data-tooltip="Descargar">
+                    <i class="fas fa-download"></i>
+                </button>
+            </div>
+
+            <div class="canvas-wrapper">
+                <canvas id="polygon-canvas" width="600" height="600"></canvas>
+                <div class="loader" id="loader" style="display: none;"></div>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <div class="info-icon">📐</div>
+                    <div class="info-label">Lados</div>
+                    <div class="info-value" id="info-sides">6</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">📏</div>
+                    <div class="info-label">Perímetro</div>
+                    <div class="info-value" id="info-perimeter">0</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">📊</div>
+                    <div class="info-label">Área</div>
+                    <div class="info-value" id="info-area">0</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">⭕</div>
+                    <div class="info-label">Radio</div>
+                    <div class="info-value" id="info-radius">0</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">🎯</div>
+                    <div class="info-label">Apotema</div>
+                    <div class="info-value" id="info-apothem">0</div>
+                </div>
+                <div class="info-card">
+                    <div class="info-icon">∠</div>
+                    <div class="info-label">Ángulo Int.</div>
+                    <div class="info-value" id="info-angle">0°</div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Canvas setup
+        const canvas = document.getElementById('polygon-canvas');
+        const ctx = canvas.getContext('2d');
+        const matrixCanvas = document.getElementById('matrix-canvas');
+        const matrixCtx = matrixCanvas.getContext('2d');
+
+        // Controls
+        const sidesSlider = document.getElementById('sides-slider');
+        const sizeSlider = document.getElementById('size-slider');
+        const fillColor = document.getElementById('fill-color');
+        const strokeColor = document.getElementById('stroke-color');
+        const vertexColor = document.getElementById('vertex-color');
+        const rotateToggle = document.getElementById('rotate-toggle');
+        const pulseToggle = document.getElementById('pulse-toggle');
+        const morphToggle = document.getElementById('morph-toggle');
+        const speedSlider = document.getElementById('speed-slider');
+
+        // State
+        let sides = 6;
+        let size = 150;
+        let rotation = 0;
+        let scale = 1;
+        let morphProgress = 0;
+        let targetSides = 6;
+        let animationId;
+        let particles = [];
+        let mouseX = 0;
+        let mouseY = 0;
+        let isDragging = false;
+        let offsetX = 0;
+        let offsetY = 0;
+        let zoom = 1;
+
+        // Matrix rain setup
+        function setupMatrix() {
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
+
+            const chars = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const fontSize = 14;
+            const columns = matrixCanvas.width / fontSize;
+            const drops = [];
+
+            for (let i = 0; i < columns; i++) {
+                drops[i] = 1;
+            }
+
+            function drawMatrix() {
+                matrixCtx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                matrixCtx.fillRect(0, 0, matrixCanvas.width, matrixCanvas.height);
+
+                matrixCtx.fillStyle = '#00ff00';
+                matrixCtx.font = fontSize + 'px monospace';
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = chars[Math.floor(Math.random() * chars.length)];
+                    matrixCtx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                    if (drops[i] * fontSize > matrixCanvas.height && Math.random() > 0.975) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+            }
+
+            setInterval(drawMatrix, 35);
+        }
+
+        // Update slider values
+        function updateSliderValues() {
+            document.getElementById('sides-value').textContent = sidesSlider.value;
+            document.getElementById('size-value').textContent = sizeSlider.value;
+            sides = parseInt(sidesSlider.value);
+            size = parseInt(sizeSlider.value);
+        }
+
+        // Calculate polygon properties
+        function calculateProperties(n, s) {
+            const perimeter = n * s;
+            const apothem = s / (2 * Math.tan(Math.PI / n));
+            const area = (perimeter * apothem) / 2;
+            const radius = s / (2 * Math.sin(Math.PI / n));
+            const interiorAngle = ((n - 2) * 180) / n;
+
+            return { perimeter, apothem, area, radius, interiorAngle };
+        }
+
+        // Update info display
+        function updateInfo() {
+            const props = calculateProperties(sides, size);
+            document.getElementById('info-sides').textContent = sides;
+            document.getElementById('info-perimeter').textContent = props.perimeter.toFixed(1);
+            document.getElementById('info-area').textContent = props.area.toFixed(1);
+            document.getElementById('info-radius').textContent = props.radius.toFixed(1);
+            document.getElementById('info-apothem').textContent = props.apothem.toFixed(1);
+            document.getElementById('info-angle').textContent = props.interiorAngle.toFixed(1) + '°';
+        }
+
+        // Create particle effect
+        function createParticle(x, y) {
+            const particle = {
+                x: x,
+                y: y,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                life: 1,
+                color: `hsl(${Math.random() * 360}, 100%, 50%)`
+            };
+            particles.push(particle);
+        }
+
+        // Update particles
+        function updateParticles() {
+            particles = particles.filter(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                return p.life > 0;
+            });
+        }
+
+        // Draw particles
+        function drawParticles(ctx) {
+            particles.forEach(p => {
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            });
+        }
+
+        // Draw polygon with effects
+        function drawPolygon() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Save context
+            ctx.save();
+            
+            // Apply transformations
+            ctx.translate(canvas.width / 2 + offsetX, canvas.height / 2 + offsetY);
+            ctx.scale(zoom, zoom);
+            ctx.rotate(rotation);
+            
+            // Calculate morphed sides
+            let currentSides = sides;
+            if (morphToggle.checked && targetSides !== sides) {
+                currentSides = sides + (targetSides - sides) * morphProgress;
+            }
+            
+            // Apply pulse effect
+            let currentScale = scale;
+            if (pulseToggle.checked) {
+                currentScale = 1 + Math.sin(Date.now() * 0.003 * speedSlider.value) * 0.1;
+            }
+            
+            // Draw shadow
+            ctx.save();
+            ctx.shadowBlur = 30;
+            ctx.shadowColor = fillColor.value + '80';
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Draw filled polygon
+            ctx.beginPath();
+            for (let i = 0; i <= currentSides; i++) {
+                const angle = (i / currentSides) * Math.PI * 2 - Math.PI / 2;
+                const x = Math.cos(angle) * size * currentScale;
+                const y = Math.sin(angle) * size * currentScale;
+                
+                if (i === 0) {
+                    ctx.moveTo(x, y);
+                } else {
+                    ctx.lineTo(x, y);
+                }
+            }
+            ctx.closePath();
+            
+            // Create gradient fill
+            const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+            gradient.addColorStop(0, fillColor.value + 'ff');
+            gradient.addColorStop(1, fillColor.value + '40');
+            ctx.fillStyle = gradient;
+            ctx.fill();
+            
+            // Draw stroke with glow
+            ctx.strokeStyle = strokeColor.value;
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = 20;
+            ctx.shadowColor = strokeColor.value;
+            ctx.stroke();
+            ctx.restore();
+            
+            // Draw vertices
+            for (let i = 0; i < Math.floor(currentSides); i++) {
+                const angle = (i / currentSides) * Math.PI * 2 - Math.PI / 2;
+                const x = Math.cos(angle) * size * currentScale;
+                const y = Math.sin(angle) * size * currentScale;
+                
+                // Outer glow
+                ctx.beginPath();
+                ctx.arc(x, y, 12, 0, Math.PI * 2);
+                const glowGradient = ctx.createRadialGradient(x, y, 0, x, y, 12);
+                glowGradient.addColorStop(0, vertexColor.value + 'ff');
+                glowGradient.addColorStop(1, vertexColor.value + '00');
+                ctx.fillStyle = glowGradient;
+                ctx.fill();
+                
+                // Inner vertex
+                ctx.beginPath();
+                ctx.arc(x, y, 6, 0, Math.PI * 2);
+                ctx.fillStyle = vertexColor.value;
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+            
+            // Draw center point
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI * 2);
+            ctx.fillStyle = '#fff';
+            ctx.fill();
+            
+            // Restore context
+            ctx.restore();
+            
+            // Draw particles
+            drawParticles(ctx);
+            updateParticles();
+        }
+
+        // Animation loop
+        function animate() {
+            // Update rotation
+            if (rotateToggle.checked) {
+                rotation += 0.01 * speedSlider.value;
+            }
+            
+            // Update morph
+            if (morphToggle.checked) {
+                morphProgress += 0.02 * speedSlider.value;
+                if (morphProgress >= 1) {
+                    morphProgress = 0;
+                    sides = targetSides;
+                    targetSides = Math.floor(Math.random() * 10) + 3;
+                    updateInfo();
+                }
+            }
+            
+            drawPolygon();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        // Event listeners
+        sidesSlider.addEventListener('input', () => {
+            updateSliderValues();
+            updateInfo();
+            if (!morphToggle.checked) {
+                sides = parseInt(sidesSlider.value);
+            }
+        });
+
+        sizeSlider.addEventListener('input', () => {
+            updateSliderValues();
+            updateInfo();
+        });
+
+        [fillColor, strokeColor, vertexColor].forEach(input => {
+            input.addEventListener('input', drawPolygon);
+        });
+
+        // Preset buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const preset = btn.dataset.preset;
+                const presets = {
+                    triangle: { sides: 3, fill: '#ff6b6b', stroke: '#c92a2a', vertex: '#fff' },
+                    square: { sides: 4, fill: '#4ecdc4', stroke: '#087f5b', vertex: '#fff' },
+                    pentagon: { sides: 5, fill: '#ffe66d', stroke: '#fab005', vertex: '#000' },
+                    hexagon: { sides: 6, fill: '#a8e6cf', stroke: '#37b24d', vertex: '#000' },
+                    octagon: { sides: 8, fill: '#c7ceea', stroke: '#5f3dc4', vertex: '#fff' },
+                    star: { sides: 5, fill: '#ffd93d', stroke: '#f59f00', vertex: '#fff' }
+                };
+                
+                const config = presets[preset];
+                if (config) {
+                    sidesSlider.value = config.sides;
+                    fillColor.value = config.fill;
+                    strokeColor.value = config.stroke;
+                    vertexColor.value = config.vertex;
+                    updateSliderValues();
+                    updateInfo();
+                    
+                    // Create burst effect
+                    for (let i = 0; i < 20; i++) {
+                        createParticle(canvas.width / 2, canvas.height / 2);
+                    }
+                }
+            });
+        });
+
+        // Tool buttons
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tool = btn.dataset.tool;
+                
+                if (tool === 'reset') {
+                    offsetX = 0;
+                    offsetY = 0;
+                    zoom = 1;
+                    rotation = 0;
+                    drawPolygon();
+                } else if (tool === 'download') {
+                    const link = document.createElement('a');
+                    link.download = 'polygon-art.png';
+                    link.href = canvas.toDataURL();
+                    link.click();
+                } else {
+                    document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                }
+            });
+        });
+
+        // Mouse interactions
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            isDragging = true;
+            mouseX = x;
+            mouseY = y;
+            
+            // Create particles on click
+            for (let i = 0; i < 5; i++) {
+                createParticle(x, y);
+            }
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (isDragging) {
+                const activeTool = document.querySelector('.tool-btn.active').dataset.tool;
+                
+                if (activeTool === 'move') {
+                    offsetX += x - mouseX;
+                    offsetY += y - mouseY;
+                } else if (activeTool === 'zoom') {
+                    zoom += (y - mouseY) * 0.01;
+                    zoom = Math.max(0.5, Math.min(3, zoom));
+                }
+                
+                mouseX = x;
+                mouseY = y;
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isDragging = false;
+        });
+
+        // Touch support
+        canvas.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            isDragging = true;
+            mouseX = x;
+            mouseY = y;
+            e.preventDefault();
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (isDragging) {
+                const touch = e.touches[0];
+                const rect = canvas.getBoundingClientRect();
+                const x = touch.clientX - rect.left;
+                const y = touch.clientY - rect.top;
+                
+                offsetX += x - mouseX;
+                offsetY += y - mouseY;
+                
+                mouseX = x;
+                mouseY = y;
+                e.preventDefault();
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                rotateToggle.checked = !rotateToggle.checked;
+            } else if (e.key === 'p' || e.key === 'P') {
+                pulseToggle.checked = !pulseToggle.checked;
+            } else if (e.key === 'm' || e.key === 'M') {
+                morphToggle.checked = !morphToggle.checked;
+            } else if (e.key === '+' || e.key === '=') {
+                zoom = Math.min(3, zoom + 0.1);
+            } else if (e.key === '-' || e.key === '_') {
+                zoom = Math.max(0.5, zoom - 0.1);
+            } else if (e.key === 'ArrowUp') {
+                sidesSlider.value = Math.min(24, parseInt(sidesSlider.value) + 1);
+                updateSliderValues();
+                updateInfo();
+            } else if (e.key === 'ArrowDown') {
+                sidesSlider.value = Math.max(3, parseInt(sidesSlider.value) - 1);
+                updateSliderValues();
+                updateInfo();
+            }
+        });
+
+        // Window resize
+        window.addEventListener('resize', () => {
+            matrixCanvas.width = window.innerWidth;
+            matrixCanvas.height = window.innerHeight;
+        });
+
+        // Initialize
+        setupMatrix();
+        updateSliderValues();
+        updateInfo();
+        animate();
+
+        // Welcome animation
+        setTimeout(() => {
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    createParticle(
+                        Math.random() * canvas.width,
+                        Math.random() * canvas.height
+                    );
+                }, i * 20);
+            }
+        }, 500);
+    </script>
+</body>
+</html>
