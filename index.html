@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Calculadora Modular Web</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Carga local de FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Menú Lateral (Sidebar) -->
+        <aside id="sidebar" class="sidebar">
+            <header class="sidebar-header">
+                <i class="fas fa-calculator fa-2x text-sky-400"></i>
+                <span class="text-xl font-bold">ProfeNestor</span>
+            </header>
+            <nav class="sidebar-nav">
+                <a href="#" class="sidebar-link" data-module="inicio"><i class="fas fa-home fa-fw"></i><span>Inicio</span></a>
+                <a href="#" class="sidebar-link" data-module="algebra"><i class="fas fa-square-root-alt fa-fw"></i><span>Álgebra</span></a>
+                <a href="#" class="sidebar-link" data-module="matrices"><i class="fas fa-th fa-fw"></i><span>Matrices</span></a>
+                <!-- NUEVO: Módulo de Sistemas de Ecuaciones -->
+                <a href="#" class="sidebar-link" data-module="sistemas"><i class="fas fa-equals fa-fw"></i><span>Sistemas Ecuaciones</span></a>
+                <a href="#" class="sidebar-link" data-module="logica_conjuntos"><i class="fas fa-project-diagram fa-fw"></i><span>Lógica y Conjuntos</span></a>
+                <a href="#" class="sidebar-link" data-module="combinatoria"><i class="fas fa-dice fa-fw"></i><span>Combinatoria</span></a>
+                 <!-- NUEVO: Módulo de Polígonos -->
+                <a href="#" class="sidebar-link" data-module="poligonos"><i class="fas fa-draw-polygon fa-fw"></i><span>Polígonos</span></a>
+                <a href="#" class="sidebar-link" data-module="triangulos"><i class="fas fa-triangle-exclamation fa-fw"></i><span>Triángulos</span></a>
+                <a href="#" class="sidebar-link" data-module="estadistica"><i class="fas fa-chart-bar fa-fw"></i><span>Estadística</span></a>
+                <a href="#" class="sidebar-link" data-module="probabilidad"><i class="fas fa-percent fa-fw"></i><span>Probabilidad</span></a>
+                <a href="#" class="sidebar-link" data-module="calculo"><i class="fas fa-infinity fa-fw"></i><span>Cálculo</span></a>
+                <a href="#" class="sidebar-link" data-module="graficas"><i class="fas fa-chart-line fa-fw"></i><span>Gráficas</span></a>
+            </nav>
+            <footer class="sidebar-footer">
+                <button id="theme-toggle" class="theme-toggle-btn">
+                    <i class="fas fa-sun"></i>
+                    <span id="theme-text">Modo Claro</span>
+                </button>
+            </footer>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <div class="main-content-wrapper">
+             <header class="main-header">
+                <button id="mobile-menu-button" class="mobile-menu-btn">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <h1 id="main-header-title" class="main-title">Inicio</h1>
+            </header>
+            <main class="content-area">
+                <iframe id="content-frame" src="modules/inicio.html" frameborder="0" class="content-frame"></iframe>
+            </main>
+        </div>
+    </div>
+    <!-- Overlay para menú móvil -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <script src="script.js"></script>
+</body>
+</html>
