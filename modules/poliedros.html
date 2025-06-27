@@ -135,7 +135,39 @@
             height: 100%;
         }
 
-        /* Control Panel */
+        /* Panel Toggle Button */
+        .panel-toggle {
+            position: absolute;
+            left: 2rem;
+            top: 6rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--accent-1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 101;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            font-size: 1.5rem;
+        }
+
+        .panel-toggle:hover {
+            background: rgba(255, 214, 10, 0.1);
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 6px 30px rgba(255, 214, 10, 0.4);
+        }
+
+        .panel-toggle.active {
+            left: 340px;
+        }
+
+        /* Control Panel with hide animation */
         .control-panel {
             position: absolute;
             left: 2rem;
@@ -151,7 +183,100 @@
             overflow-y: auto;
             z-index: 10;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-            animation: slideIn 0.8s ease-out;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .control-panel.hidden {
+            transform: translateX(-400px) translateY(-50%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Info panel toggle */
+        .info-toggle {
+            position: absolute;
+            right: 2rem;
+            top: 6rem;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--accent-1);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 101;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            font-size: 1.5rem;
+        }
+
+        .info-toggle:hover {
+            background: rgba(255, 214, 10, 0.1);
+            transform: scale(1.1) rotate(180deg);
+            box-shadow: 0 6px 30px rgba(255, 214, 10, 0.4);
+        }
+
+        .info-toggle.active {
+            right: 320px;
+        }
+
+        .info-panel {
+            position: absolute;
+            right: 2rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 2rem;
+            width: 300px;
+            z-index: 10;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .info-panel.hidden {
+            transform: translateX(400px) translateY(-50%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        /* Full screen mode */
+        .main-container.fullscreen-mode .control-panel:not(.hidden),
+        .main-container.fullscreen-mode .info-panel:not(.hidden) {
+            opacity: 0.3;
+            transition: opacity 0.3s;
+        }
+
+        .main-container.fullscreen-mode .control-panel:hover,
+        .main-container.fullscreen-mode .info-panel:hover {
+            opacity: 1;
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 768px) {
+            .panel-toggle {
+                left: 1rem;
+                top: 5rem;
+                width: 45px;
+                height: 45px;
+            }
+
+            .panel-toggle.active {
+                left: 1rem;
+            }
+
+            .info-toggle {
+                display: none;
+            }
+
+            .control-panel.hidden {
+                transform: translateY(100%);
+            }
         }
 
         @keyframes slideIn {
@@ -1360,6 +1485,85 @@
 
         // Event Listeners
         document.addEventListener('DOMContentLoaded', () => {
+            // Panel toggle functionality
+            const panelToggle = document.createElement('button');
+            panelToggle.className = 'panel-toggle active';
+            panelToggle.innerHTML = '<i class="fas fa-bars"></i>';
+            document.querySelector('.main-container').appendChild(panelToggle);
+
+            const infoToggle = document.createElement('button');
+            infoToggle.className = 'info-toggle active';
+            infoToggle.innerHTML = '<i class="fas fa-info-circle"></i>';
+            document.querySelector('.main-container').appendChild(infoToggle);
+
+            const controlPanel = document.querySelector('.control-panel');
+            const infoPanel = document.querySelector('.info-panel');
+
+            // Toggle control panel
+            panelToggle.addEventListener('click', () => {
+                controlPanel.classList.toggle('hidden');
+                panelToggle.classList.toggle('active');
+                
+                // Animate icon
+                const icon = panelToggle.querySelector('i');
+                if (controlPanel.classList.contains('hidden')) {
+                    icon.className = 'fas fa-chevron-right';
+                } else {
+                    icon.className = 'fas fa-bars';
+                }
+            });
+
+            // Toggle info panel
+            infoToggle.addEventListener('click', () => {
+                infoPanel.classList.toggle('hidden');
+                infoToggle.classList.toggle('active');
+                
+                // Animate icon
+                const icon = infoToggle.querySelector('i');
+                if (infoPanel.classList.contains('hidden')) {
+                    icon.className = 'fas fa-chevron-left';
+                } else {
+                    icon.className = 'fas fa-info-circle';
+                }
+            });
+
+            // Keyboard shortcut for panels
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'h' || e.key === 'H') {
+                    // Hide/show both panels
+                    controlPanel.classList.toggle('hidden');
+                    infoPanel.classList.toggle('hidden');
+                    panelToggle.classList.toggle('active');
+                    infoToggle.classList.toggle('active');
+                    
+                    // Update icons
+                    const panelIcon = panelToggle.querySelector('i');
+                    const infoIcon = infoToggle.querySelector('i');
+                    
+                    if (controlPanel.classList.contains('hidden')) {
+                        panelIcon.className = 'fas fa-chevron-right';
+                        infoIcon.className = 'fas fa-chevron-left';
+                    } else {
+                        panelIcon.className = 'fas fa-bars';
+                        infoIcon.className = 'fas fa-info-circle';
+                    }
+                }
+                
+                // F key for focus mode (hide UI temporarily)
+                if (e.key === 'f' || e.key === 'F') {
+                    document.querySelector('.main-container').classList.toggle('fullscreen-mode');
+                }
+            });
+
+            // Auto-hide panels on small screens initially
+            if (window.innerWidth < 768) {
+                setTimeout(() => {
+                    controlPanel.classList.add('hidden');
+                    panelToggle.classList.remove('active');
+                    panelToggle.querySelector('i').className = 'fas fa-chevron-up';
+                }, 3000);
+            }
+
             // Initialize
             init();
             
