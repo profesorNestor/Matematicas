@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angulus v3 - Suite Angular con Plotly.js</title>
+    <!-- Librería Plotly.js actualizada a una versión reciente -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap');
+
+        :root {
+            --bg-color: #0d0c10;
+            --card-bg-color: rgba(25, 26, 31, 0.5);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-color: #e0e0e0;
+            --accent-color: #9f78ff;
+            --accent-color-darker: #7c4dff;
+            --subtle-text: #888;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(159, 120, 255, 0.1) 0%, rgba(124, 77, 255, 0) 50%),
+                        linear-gradient(225deg, rgba(80, 255, 170, 0.1) 0%, rgba(80, 255, 170, 0) 50%),
+                        var(--bg-color);
+            animation: pulse-background 20s infinite alternate;
+        }
+
+        @keyframes pulse-background {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
+
+        .super-menu {
+            width: 70px;
+            height: 100vh;
+            background: rgba(13, 12, 16, 0.8);
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+            transition: width 0.3s ease;
+            z-index: 10;
+        }
+
+        .menu-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 15px 0;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.2s;
+        }
+
+        .menu-item svg {
+            stroke: var(--subtle-text);
+            transition: stroke 0.2s;
+            width: 24px;
+            height: 24px;
+        }
+
+        .menu-item:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .menu-item:hover svg, .menu-item.active svg {
+            stroke: var(--accent-color);
+        }
+        
+        .menu-item.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 60%;
+            background-color: var(--accent-color);
+            border-radius: 0 4px 4px 0;
+        }
+
+        main {
+            flex-grow: 1;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .view {
+            width: 100%;
+            height: 100%;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .view.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card-bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 25px 35px;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        
+        .converter-container {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .inputs-column {
+            width: 320px;
+        }
+
+        h1, h2 {
+            text-align: center;
+            font-weight: 500;
+            margin-top: 0;
+        }
+        
+        h2 {
+           color: var(--subtle-text);
+           font-weight: 400;
+           font-size: 1rem;
+           margin-bottom: 20px;
+        }
+
+        .input-group {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .input-field {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid var(--subtle-text);
+            color: var(--text-color);
+            font-size: 1.5rem;
+            padding: 10px 0;
+            outline: none;
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        
+        .input-field:focus {
+            border-bottom-color: var(--accent-color);
+        }
+
+        .input-label {
+            position: absolute;
+            top: 15px;
+            left: 0;
+            color: #aaa;
+            font-size: 1rem;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus ~ .input-label,
+        .input-field:not(:placeholder-shown) ~ .input-label {
+            top: -10px;
+            font-size: 0.8rem;
+            color: var(--accent-color);
+        }
+        
+        .dms-group {
+            display: flex;
+            gap: 10px;
+        }
+        .dms-group .input-group { width: 30%; }
+
+        .calculator-container, .coords-container {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+        }
+        
+        .calculator-ops {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 15px;
+            height: 100%;
+            padding-top: 30px;
+        }
+        
+        .op-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg-color);
+            color: var(--text-color);
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .op-button:hover {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            transform: scale(1.1);
+        }
+        
+        #result-card {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .plotly-container {
+            width: 350px;
+            height: 350px;
+        }
+        
+        @media (max-width: 900px) {
+            .converter-container, .calculator-container, .coords-container {
+                flex-direction: column;
+                width: 100%;
+            }
+            .plotly-container {
+                width: 100%;
+                max-width: 350px;
+                height: 300px;
+                margin-top: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body { flex-direction: column; }
+            .super-menu {
+                width: 100%;
+                height: 60px;
+                flex-direction: row;
+                padding-top: 0;
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .menu-item { height: 100%; }
+            .menu-item.active::before {
+                width: 60%;
+                height: 3px;
+                bottom: 0;
+                left: 50%;
+                top: auto;
+                transform: translateX(-50%);
+                border-radius: 4px 4px 0 0;
+            }
+            main { padding: 15px; }
+            .inputs-column { width: 100%; }
+            .card { width: 95%; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav class="super-menu">
+        <div class="menu-item active" onclick="showView('converter-view', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.17 8.83l-1.42-1.42-2.12-2.12-1.42-1.42a2 2 0 0 0-2.82 0L3 15.17a2 2 0 0 0 0 2.82l5.66 5.66a2 2 0 0 0 2.82 0l11.09-11.09a2 2 0 0 0 0-2.82zM12 7l5 5"></path></svg>
+        </div>
+        <div class="menu-item" onclick="showView('dms-view', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        </div>
+        <div class="menu-item" onclick="showView('calculator-view', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="8" y2="14"></line><line x1="12" y1="10" x2="12" y2="18"></line></svg>
+        </div>
+        <div class="menu-item" onclick="showView('coords-view', this)">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line><circle cx="12" cy="12" r="7"></circle></svg>
+        </div>
+    </nav>
+
+    <main>
+        <div id="converter-view" class="view active">
+            <div class="converter-container">
+                <div class="card inputs-column">
+                    <h1>Conversor Angular</h1>
+                    <div class="input-group">
+                        <input type="number" id="degrees" class="input-field" placeholder=" " oninput="convert('degrees')">
+                        <label for="degrees" class="input-label">Grados (°)</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="radians" class="input-field" placeholder=" " oninput="convert('radians')">
+                        <label for="radians" class="input-label">Radianes (rad)</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="gradians" class="input-field" placeholder=" " oninput="convert('gradians')">
+                        <label for="gradians" class="input-label">Gradianes (grad)</label>
+                    </div>
+                </div>
+                <div id="angle-visualizer-plotly" class="plotly-container"></div>
+            </div>
+        </div>
+
+        <div id="dms-view" class="view">
+             <div class="card" style="width: 90%; max-width: 450px;">
+                <h1>Grados ↔ DMS</h1>
+                <div class="input-group">
+                    <input type="number" id="dec-degrees" class="input-field" placeholder=" " oninput="decimalToDms()">
+                    <label for="dec-degrees" class="input-label">Grados Decimales</label>
+                </div>
+                <h2>Equivale a:</h2>
+                <div class="dms-group">
+                    <div class="input-group">
+                        <input type="number" id="dms-d" class="input-field" placeholder=" " oninput="dmsToDecimal()">
+                        <label for="dms-d" class="input-label">Grados (°)</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="dms-m" class="input-field" placeholder=" " oninput="dmsToDecimal()">
+                        <label for="dms-m" class="input-label">Minutos (')</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="dms-s" class="input-field" placeholder=" " oninput="dmsToDecimal()">
+                        <label for="dms-s" class="input-label">Segundos (")</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="calculator-view" class="view">
+              <div class="calculator-container">
+                <div class="card">
+                    <h1>Ángulo A</h1>
+                    <div class="dms-group">
+                        <div class="input-group"><input type="number" id="calc-d1" class="input-field" placeholder="°"><label class="input-label">°</label></div>
+                        <div class="input-group"><input type="number" id="calc-m1" class="input-field" placeholder="'"><label class="input-label">'</label></div>
+                        <div class="input-group"><input type="number" id="calc-s1" class="input-field" placeholder="&quot;"><label class="input-label">"</label></div>
+                    </div>
+                </div>
+                <div class="calculator-ops">
+                    <button class="op-button" onclick="calculateAngles('+')">+</button>
+                    <button class="op-button" onclick="calculateAngles('-')">-</button>
+                </div>
+                <div class="card">
+                    <h1>Ángulo B</h1>
+                     <div class="dms-group">
+                        <div class="input-group"><input type="number" id="calc-d2" class="input-field" placeholder="°"><label class="input-label">°</label></div>
+                        <div class="input-group"><input type="number" id="calc-m2" class="input-field" placeholder="'"><label class="input-label">'</label></div>
+                        <div class="input-group"><input type="number" id="calc-s2" class="input-field" placeholder="&quot;"><label class="input-label">"</label></div>
+                    </div>
+                </div>
+             </div>
+             <div id="result-card" class="card" style="width: 80%; max-width: 600px; margin-top: 20px; min-height: 80px; display:none;">
+                <h2 style="margin-bottom: 5px;">Resultado</h2>
+                <p id="calc-result" style="font-size: 1.5rem; margin: 0;"></p>
+             </div>
+        </div>
+
+        <div id="coords-view" class="view">
+            <div class="coords-container">
+                <div class="card">
+                    <h1>Coordenadas</h1>
+                    <h2>Rectangulares</h2>
+                    <div class="input-group">
+                        <input type="number" id="coord-x" class="input-field" placeholder=" " oninput="updateCoords('rect')">
+                        <label for="coord-x" class="input-label">Valor X</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="coord-y" class="input-field" placeholder=" " oninput="updateCoords('rect')">
+                        <label for="coord-y" class="input-label">Valor Y</label>
+                    </div>
+                     <h2 style="margin-top: 30px;">Polares</h2>
+                    <div class="input-group">
+                        <input type="number" id="coord-r" class="input-field" placeholder=" " oninput="updateCoords('polar')">
+                        <label for="coord-r" class="input-label">Radio (r)</label>
+                    </div>
+                    <div class="input-group">
+                        <input type="number" id="coord-theta" class="input-field" placeholder=" " oninput="updateCoords('polar')">
+                        <label for="coord-theta" class="input-label">Ángulo θ (°)</label>
+                    </div>
+                </div>
+                <div id="coords-canvas-plotly" class="plotly-container"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- ESTADO Y VARIABLES GLOBALES ---
+        let anglePlotInitialized = false;
+        let coordsPlotInitialized = false;
+        const textColor = getComputedStyle(document.body).getPropertyValue('--text-color');
+        const subtleTextColor = getComputedStyle(document.body).getPropertyValue('--subtle-text');
+        const accentColor = getComputedStyle(document.body).getPropertyValue('--accent-color');
+
+        // --- NAVEGACIÓN SPA ---
+        const views = document.querySelectorAll('.view');
+        const menuItems = document.querySelectorAll('.menu-item');
+
+        function showView(viewId, clickedItem) {
+            views.forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+
+            menuItems.forEach(item => item.classList.remove('active'));
+            clickedItem.classList.add('active');
+            
+            if (viewId === 'converter-view' && !anglePlotInitialized) {
+                initAngleVisualizerPlotly();
+            }
+            if (viewId === 'coords-view' && !coordsPlotInitialized) {
+                initCoordsPlotly();
+            }
+        }
+
+        // --- VISTA 1: CONVERSOR UNIVERSAL (PLOTLY) ---
+        const degInput = document.getElementById('degrees');
+        const radInput = document.getElementById('radians');
+        const gradInput = document.getElementById('gradians');
+
+        function initAngleVisualizerPlotly() {
+            const data = [{
+                type: 'scatterpolar',
+                r: [0, 1],
+                theta: [0, 0],
+                mode: 'lines',
+                line: { color: accentColor, width: 4 },
+            }];
+
+            const layout = {
+                font: { color: textColor, family: 'Inter' },
+                polar: {
+                    radialaxis: { visible: false, range: [0, 1] },
+                    angularaxis: {
+                        tickfont: { size: 10, color: subtleTextColor },
+                        showline: false,
+                    }
+                },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                margin: { l: 40, r: 40, b: 40, t: 40 },
+                showlegend: false
+            };
+            
+            // Habilitar la barra de modo y el zoom de desplazamiento
+            const config = { 
+                responsive: true, 
+                displayModeBar: true, 
+                scrollZoom: true, 
+                displaylogo: false 
+            };
+            Plotly.newPlot('angle-visualizer-plotly', data, layout, config);
+            anglePlotInitialized = true;
+            updateVisualizerPlotly(parseFloat(degInput.value) || 0);
+        }
+
+        function updateVisualizerPlotly(degrees) {
+            const angle = isNaN(degrees) ? 0 : degrees;
+            const annotationText = `${angle.toFixed(1)}°`;
+            Plotly.animate('angle-visualizer-plotly', {
+                data: [{ theta: [0, angle] }],
+                traces: [0],
+                layout: {
+                    annotations: [{
+                        showarrow: false,
+                        text: annotationText,
+                        x: 0.5, y: 0.5,
+                        font: { color: textColor, size: 24, family: 'Inter' }
+                    }]
+                }
+            }, {
+                transition: { duration: 500, easing: 'cubic-in-out' },
+                frame: { duration: 500 }
+            });
+        }
+        
+        function convert(source) {
+            const pi = Math.PI;
+            let degValue = 0;
+
+            if (source === 'degrees') {
+                const deg = parseFloat(degInput.value);
+                if (isNaN(deg)) { clearInputs(['radians', 'gradians']); return; }
+                degValue = deg;
+                radInput.value = (deg * pi / 180).toFixed(5);
+                gradInput.value = (deg * 200 / 180).toFixed(5);
+            } else if (source === 'radians') {
+                const rad = parseFloat(radInput.value);
+                if (isNaN(rad)) { clearInputs(['degrees', 'gradians']); return; }
+                degValue = rad * 180 / pi;
+                degInput.value = degValue.toFixed(5);
+                gradInput.value = (rad * 200 / pi).toFixed(5);
+            } else if (source === 'gradians') {
+                const grad = parseFloat(gradInput.value);
+                if (isNaN(grad)) { clearInputs(['degrees', 'radians']); return; }
+                degValue = grad * 180 / 200;
+                degInput.value = degValue.toFixed(5);
+                radInput.value = (grad * pi / 200).toFixed(5);
+            }
+            if (anglePlotInitialized) {
+                updateVisualizerPlotly(degValue);
+            }
+        }
+        
+        function clearInputs(inputsToClear) {
+            inputsToClear.forEach(id => document.getElementById(id).value = '');
+            if (anglePlotInitialized) {
+                updateVisualizerPlotly(0);
+            }
+        }
+
+        // --- VISTA 2: CONVERSOR DMS (sin cambios) ---
+        const decDegInput = document.getElementById('dec-degrees');
+        const dmsD = document.getElementById('dms-d');
+        const dmsM = document.getElementById('dms-m');
+        const dmsS = document.getElementById('dms-s');
+        
+        // --- VISTA 3: CALCULADORA (sin cambios) ---
+        
+        // --- VISTA 4: COORDENADAS INTERACTIVAS (PLOTLY) ---
+        const xInput = document.getElementById('coord-x');
+        const yInput = document.getElementById('coord-y');
+        const rInput = document.getElementById('coord-r');
+        const thetaInput = document.getElementById('coord-theta');
+        
+        function initCoordsPlotly() {
+            const data = [{
+                x: [0], y: [0],
+                mode: 'markers+lines',
+                type: 'scatter',
+                marker: { color: accentColor, size: 12 },
+                line: { color: 'rgba(159, 120, 255, 0.5)', width: 2 }
+            }];
+
+            const layout = {
+                font: { color: textColor, family: 'Inter' },
+                xaxis: { color: subtleTextColor, gridcolor: 'rgba(255,255,255,0.1)', zerolinecolor: subtleTextColor, range: [-100, 100] },
+                yaxis: { color: subtleTextColor, gridcolor: 'rgba(255,255,255,0.1)', zerolinecolor: subtleTextColor, range: [-100, 100] },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                margin: { l: 40, r: 20, b: 40, t: 20 },
+                showlegend: false,
+            };
+
+            // Habilitar la barra de modo, el zoom de desplazamiento y la edición
+            const config = { 
+                responsive: true, 
+                editable: true, 
+                displaylogo: false, 
+                displayModeBar: true, 
+                scrollZoom: true 
+            };
+            
+            Plotly.newPlot('coords-canvas-plotly', data, layout, config);
+            coordsPlotInitialized = true;
+
+            // Evento para cuando se arrastra el punto
+            document.getElementById('coords-canvas-plotly').on('plotly_restyle', (updateData) => {
+                // The updateData from plotly_restyle for this scatter plot gives the x and y data
+                // in a nested array format, e.g., { x: [[0, newXValue]] }. We need to extract the actual value.
+                if(updateData && updateData[0].x && updateData[0].x[0] && updateData[0].y && updateData[0].y[0]) {
+                    const newX = updateData[0].x[0][1];
+                    const newY = updateData[0].y[0][1];
+                    
+                    // Ensure newX and newY are numbers before proceeding
+                    if (typeof newX !== 'number' || typeof newY !== 'number') {
+                        return;
+                    }
+
+                    // Evitar bucle infinito
+                    if (parseFloat(xInput.value).toFixed(2) !== newX.toFixed(2) || parseFloat(yInput.value).toFixed(2) !== newY.toFixed(2)) {
+                        xInput.value = newX.toFixed(2);
+                        yInput.value = newY.toFixed(2);
+                        updateCoords('rect', false);
+                    }
+                }
+            });
+            updateCoordsPlotly(0, 0); // Dibuja el estado inicial
+        }
+        
+        function updateCoordsPlotly(x, y) {
+            Plotly.restyle('coords-canvas-plotly', { x: [[0, x]], y: [[0, y]] });
+        }
+        
+        function updateCoords(source, shouldUpdatePlot = true) {
+            let x, y;
+            if (source === 'rect') {
+                x = parseFloat(xInput.value) || 0;
+                y = parseFloat(yInput.value) || 0;
+                const r = Math.sqrt(x*x + y*y);
+                let theta = Math.atan2(y, x) * (180 / Math.PI);
+                rInput.value = r.toFixed(2);
+                thetaInput.value = theta.toFixed(2);
+            } else { // polar
+                const r = parseFloat(rInput.value) || 0;
+                const theta = parseFloat(thetaInput.value) || 0;
+                const thetaRad = theta * (Math.PI / 180);
+                x = r * Math.cos(thetaRad);
+                y = r * Math.sin(thetaRad);
+                xInput.value = x.toFixed(2);
+                yInput.value = y.toFixed(2);
+            }
+            if (shouldUpdatePlot && coordsPlotInitialized) {
+                 updateCoordsPlotly(x, y);
+            }
+        }
+        
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            showView('converter-view', document.querySelector('.menu-item'));
+            degInput.value = 45;
+            convert('degrees');
+
+            // Re-enlazar funciones sin cambios que se rompieron al mover el script
+            window.decimalToDms = function() {
+                const decimal = parseFloat(decDegInput.value);
+                if(isNaN(decimal)) { dmsD.value = dmsM.value = dmsS.value = ''; return; }
+                dmsD.value = Math.trunc(decimal);
+                const minutesDecimal = (decimal - dmsD.value) * 60;
+                dmsM.value = Math.trunc(minutesDecimal);
+                const secondsDecimal = (minutesDecimal - dmsM.value) * 60;
+                dmsS.value = secondsDecimal.toFixed(3);
+            }
+            window.dmsToDecimal = function() {
+                const d = parseFloat(dmsD.value) || 0;
+                const m = parseFloat(dmsM.value) || 0;
+                const s = parseFloat(dmsS.value) || 0;
+                decDegInput.value = (d + (m/60) + (s/3600)).toFixed(6);
+            }
+            window.calculateAngles = function(operator) {
+                const getAngle = (dId, mId, sId) => (parseFloat(document.getElementById(dId).value) || 0) + (parseFloat(document.getElementById(mId).value) || 0)/60 + (parseFloat(document.getElementById(sId).value) || 0)/3600;
+                const angle1 = getAngle('calc-d1', 'calc-m1', 'calc-s1');
+                const angle2 = getAngle('calc-d2', 'calc-m2', 'calc-s2');
+                const result = operator === '+' ? angle1 + angle2 : angle1 - angle2;
+                const toDmsStr = dec => {
+                    let sign = dec < 0 ? '-' : '';
+                    dec = Math.abs(dec);
+                    let d = Math.floor(dec);
+                    let m_rem = (dec - d) * 60;
+                    let m = Math.floor(m_rem);
+                    let s = ((m_rem - m) * 60).toFixed(2);
+                    return `${sign}${d}° ${m}' ${s}"`;
+                }
+                document.getElementById('result-card').style.display = 'block';
+                document.getElementById('calc-result').textContent = `${toDmsStr(result)} ≈ ${result.toFixed(4)}°`;
+            }
+        });
+    </script>
+</body>
+</html>
