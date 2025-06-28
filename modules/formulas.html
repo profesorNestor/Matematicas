@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario Matemático Completo</title>
+    
+    <!-- KaTeX for LaTeX rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMeaKzdwkXqfN9TE1WeJ+seGmr2enIMYTbeG7GDTEjpP973Gm" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCcm2ZGMOKubJUF-KPlpFS/UT2N0Eu8F" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0d1117;
+            --bg-light: #161b22;
+            --border-color: #30363d;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --accent-color: #58a6ff;
+            --accent-hover: #1f6feb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 2rem;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 2rem;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 1rem;
+        }
+
+        details {
+            background-color: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+        
+        details[open] {
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        summary {
+            font-size: 1.4rem;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            outline: none;
+            position: relative;
+            transition: background-color 0.2s ease;
+        }
+
+        summary:hover {
+            background-color: rgba(88, 166, 255, 0.1);
+        }
+        
+        summary::after {
+            content: '+';
+            font-size: 2rem;
+            position: absolute;
+            right: 1.5rem;
+            top: 50%;
+            transform: translateY(-50%) rotate(0deg);
+            transition: transform 0.3s ease-in-out;
+            color: var(--accent-color);
+        }
+
+        details[open] > summary::after {
+            transform: translateY(-50%) rotate(45deg);
+        }
+
+        .content {
+            padding: 0 1.5rem 1.5rem 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        h3 {
+            color: var(--accent-color);
+            font-size: 1.2rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .formula-block {
+            background-color: var(--bg-dark);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+        }
+        
+        .formula-block ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+
+        .formula-block li {
+            margin-bottom: 1rem;
+        }
+
+        strong {
+            color: var(--accent-color);
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        th, td {
+            border: 1px solid var(--border-color);
+            padding: 0.8rem;
+            text-align: center;
+        }
+        
+        th {
+            background-color: rgba(88, 166, 255, 0.1);
+        }
+
+        .katex-display {
+            margin: 1em 0;
+            overflow: auto;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Formulario Matemático Extendido</h1>
+        
+        <!-- Sección de Constantes -->
+        <details>
+            <summary>Constantes Físicas y Matemáticas</summary>
+            <div class="content">
+                <h3>Constantes Matemáticas</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li>$\pi \approx 3.1415926535$</li>
+                        <li>$e \approx 2.7182818284$</li>
+                        <li>$\gamma \approx 0.5772156649$ (Constante de Euler-Mascheroni)</li>
+                        <li>$\phi = \frac{1+\sqrt{5}}{2} \approx 1.6180339887$ (Número áureo)</li>
+                        <li>$\sqrt{2} \approx 1.4142135623$</li>
+                    </ul>
+                </div>
+                 <h3>Constantes Físicas</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li><strong>Velocidad de la luz en el vacío (c):</strong> $2.99792458 \times 10^8 \, \text{m/s}$</li>
+                        <li><strong>Constante de Planck (h):</strong> $6.62607015 \times 10^{-34} \, \text{J}\cdot\text{s}$</li>
+                        <li><strong>Constante de gravitación universal (G):</strong> $6.67430 \times 10^{-11} \, \text{N}\cdot\text{m}^2/\text{kg}^2$</li>
+                        <li><strong>Carga elemental (e):</strong> $1.602176634 \times 10^{-19} \, \text{C}$</li>
+                        <li><strong>Masa del electrón ($m_e$):</strong> $9.1093837015 \times 10^{-31} \, \text{kg}$</li>
+                        <li><strong>Masa del protón ($m_p$):</strong> $1.67262192369 \times 10^{-27} \, \text{kg}$</li>
+                        <li><strong>Constante de Boltzmann (k):</strong> $1.380649 \times 10^{-23} \, \text{J/K}$</li>
+                        <li><strong>Número de Avogadro ($N_A$):</strong> $6.02214076 \times 10^{23} \, \text{mol}^{-1}$</li>
+                    </ul>
+                </div>
+            </div>
+        </details>
+
+        <!-- Sección de Álgebra -->
+        <details>
+            <summary>Álgebra</summary>
+            <div class="content">
+                <h3>Productos Notables y Factorización</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li>$(a \pm b)^2 = a^2 \pm 2ab + b^2$</li>
+                        <li>$(a+b)(a-b) = a^2 - b^2$</li>
+                        <li>$(a \pm b)^3 = a^3 \pm 3a^2b + 3ab^2 \pm b^3$</li>
+                        <li>$a^3 \pm b^3 = (a \pm b)(a^2 \mp ab + b^2)$</li>
+                        <li>$(a+b+c)^2 = a^2+b^2+c^2+2ab+2ac+2bc$</li>
+                        <li>$x^n - y^n = (x-y)(x^{n-1} + x^{n-2}y + \dots + y^{n-1})$</li>
+                        <li>$x^n + y^n = (x+y)(x^{n-1} - x^{n-2}y + \dots + y^{n-1})$ (si n es impar)</li>
+                    </ul>
+                </div>
+                <h3>Logaritmos</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li><strong>Definición:</strong> $y = \log_b(x) \iff b^y = x$</li>
+                        <li><strong>Producto:</strong> $\log_b(xy) = \log_b(x) + \log_b(y)$</li>
+                        <li><strong>Cociente:</strong> $\log_b(x/y) = \log_b(x) - \log_b(y)$</li>
+                        <li><strong>Potencia:</strong> $\log_b(x^n) = n \log_b(x)$</li>
+                        <li><strong>Cambio de base:</strong> $\log_b(x) = \frac{\log_c(x)}{\log_c(b)}$</li>
+                    </ul>
+                </div>
+                <h3>Binomio de Newton</h3>
+                <div class="formula-block">
+                    $$(a+b)^n = \sum_{k=0}^{n} \binom{n}{k} a^{n-k} b^k$$
+                    Donde el coeficiente binomial es: $\binom{n}{k} = \frac{n!}{k!(n-k)!}$
+                </div>
+            </div>
+        </details>
+        
+        <!-- Sección de Lógica y Conjuntos -->
+        <details>
+            <summary>Lógica y Conjuntos</summary>
+            <div class="content">
+                <h3>Leyes de la Lógica Proposicional</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li><strong>Idempotencia:</strong> $p \lor p \equiv p$ ; $p \land p \equiv p$</li>
+                        <li><strong>Asociativa:</strong> $(p \lor q) \lor r \equiv p \lor (q \lor r)$</li>
+                        <li><strong>Conmutativa:</strong> $p \lor q \equiv q \lor p$</li>
+                        <li><strong>Distributiva:</strong> $p \lor (q \land r) \equiv (p \lor q) \land (p \lor r)$</li>
+                        <li><strong>Leyes de De Morgan:</strong> $\neg(p \land q) \equiv \neg p \lor \neg q$</li>
+                        <li><strong>Implicación:</strong> $p \rightarrow q \equiv \neg p \lor q$</li>
+                    </ul>
+                </div>
+                <h3>Leyes de los Conjuntos</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li><strong>Unión:</strong> $A \cup B = \{x \mid x \in A \text{ o } x \in B\}$</li>
+                        <li><strong>Intersección:</strong> $A \cap B = \{x \mid x \in A \text{ y } x \in B\}$</li>
+                        <li><strong>Leyes de De Morgan:</strong> $(A \cup B)^c = A^c \cap B^c$</li>
+                    </ul>
+                </div>
+            </div>
+        </details>
+
+        <!-- Sección de Geometría y Trigonometría -->
+        <details>
+            <summary>Geometría y Trigonometría</summary>
+            <div class="content">
+                <h3>Geometría Plana</h3>
+                 <div class="formula-block">
+                    <ul>
+                       <li><strong>Teorema de Pitágoras:</strong> $a^2 + b^2 = c^2$.</li>
+                       <li><strong>Ángulo central:</strong> $\alpha = \text{arco } AB$</li>
+                       <li><strong>Ángulo inscrito:</strong> $\alpha = \frac{1}{2}\text{arco } BC$</li>
+                       <li><strong>Ángulo interior:</strong> $\alpha = \frac{1}{2}(\text{arco } AB + \text{arco } CD)$</li>
+                       <li><strong>Ángulo exterior:</strong> $\alpha = \frac{1}{2}(\text{arco } AB - \text{arco } CD)$</li>
+                    </ul>
+                </div>
+                <h3>Identidades Trigonométricas</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li>$\sin^2(\theta) + \cos^2(\theta) = 1$</li>
+                        <li>$1 + \tan^2(\theta) = \sec^2(\theta)$</li>
+                        <li><strong>Suma/Resta:</strong> $\sin(A \pm B) = \sin(A)\cos(B) \pm \cos(A)\sin(B)$</li>
+                       <li>$\cos(A \pm B) = \cos(A)\cos(B) \mp \sin(A)\sin(B)$</li>
+                       <li><strong>Ángulo Doble:</strong> $\sin(2\theta) = 2\sin(\theta)\cos(\theta)$</li>
+                       <li>$\cos(2\theta) = \cos^2(\theta) - \sin^2(\theta)$</li>
+                       <li><strong>Ángulo Mitad:</strong> $\sin^2\left(\frac{\theta}{2}\right) = \frac{1 - \cos(\theta)}{2}$</li>
+                    </ul>
+                </div>
+                <h3>Leyes para Triángulos</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li><strong>Ley de Senos:</strong> $\frac{a}{\sin(A)} = \frac{b}{\sin(B)} = \frac{c}{\sin(C)}$</li>
+                        <li><strong>Ley de Cosenos:</strong> $c^2 = a^2 + b^2 - 2ab\cos(C)$</li>
+                    </ul>
+                </div>
+            </div>
+        </details>
+        
+        <!-- Sección de Funciones Hiperbólicas -->
+        <details>
+            <summary>Funciones Hiperbólicas</summary>
+            <div class="content">
+                <h3>Definiciones Exponenciales</h3>
+                <div class="formula-block">
+                   <ul>
+                        <li>$\sinh(x) = \frac{e^x - e^{-x}}{2}$</li>
+                        <li>$\cosh(x) = \frac{e^x + e^{-x}}{2}$</li>
+                        <li>$\tanh(x) = \frac{\sinh(x)}{\cosh(x)} = \frac{e^x - e^{-x}}{e^x + e^{-x}}$</li>
+                   </ul>
+                </div>
+                <h3>Identidades Hiperbólicas</h3>
+                <div class="formula-block">
+                   <ul>
+                        <li>$\cosh^2(x) - \sinh^2(x) = 1$</li>
+                        <li>$1 - \tanh^2(x) = \text{sech}^2(x)$</li>
+                        <li>$\coth^2(x) - 1 = \text{csch}^2(x)$</li>
+                        <li>$\sinh(x \pm y) = \sinh(x)\cosh(y) \pm \cosh(x)\sinh(y)$</li>
+                        <li>$\cosh(x \pm y) = \cosh(x)\cosh(y) \pm \sinh(x)\sinh(y)$</li>
+                   </ul>
+                </div>
+                <h3>Funciones Hiperbólicas Inversas (como logaritmos)</h3>
+                <div class="formula-block">
+                   <ul>
+                        <li>$\text{arsinh}(x) = \ln(x + \sqrt{x^2+1})$</li>
+                        <li>$\text{arcosh}(x) = \ln(x + \sqrt{x^2-1})$ para $x \ge 1$</li>
+                        <li>$\text{artanh}(x) = \frac{1}{2}\ln\left(\frac{1+x}{1-x}\right)$ para $|x| < 1$</li>
+                   </ul>
+                </div>
+            </div>
+        </details>
+        
+        <!-- Sección de Cálculo -->
+        <details>
+            <summary>Cálculo Diferencial e Integral</summary>
+            <div class="content">
+                 <h3>Reglas de Derivación</h3>
+                <div class="formula-block">
+                    <ul>
+                        <li><strong>Regla de la potencia:</strong> $\frac{d}{dx}(x^n) = nx^{n-1}$</li>
+                        <li><strong>Regla del producto:</strong> $(f \cdot g)' = f'g + fg'$</li>
+                        <li><strong>Regla del cociente:</strong> $\left(\frac{f}{g}\right)' = \frac{f'g - fg'}{g^2}$</li>
+                        <li><strong>Regla de la cadena:</strong> $(f(g(x)))' = f'(g(x)) \cdot g'(x)$</li>
+                    </ul>
+                </div>
+                <h3>Tabla Extendida de Derivadas</h3>
+                <table>
+                    <thead><tr><th>Función $f(x)$</th><th>Derivada $f'(x)$</th></tr></thead>
+                    <tbody>
+                        <tr><td>$a^x$</td><td>$a^x \ln(a)$</td></tr>
+                        <tr><td>$\log_a(x)$</td><td>$1/(x \ln(a))$</td></tr>
+                        <tr><td>$\cot(x)$</td><td>$-\csc^2(x)$</td></tr>
+                        <tr><td>$\sec(x)$</td><td>$\sec(x)\tan(x)$</td></tr>
+                        <tr><td>$\csc(x)$</td><td>$-\csc(x)\cot(x)$</td></tr>
+                        <tr><td>$\sinh(x)$</td><td>$\cosh(x)$</td></tr>
+                        <tr><td>$\cosh(x)$</td><td>$\sinh(x)$</td></tr>
+                        <tr><td>$\tanh(x)$</td><td>$\text{sech}^2(x)$</td></tr>
+                        <tr><td>$\text{arsinh}(x)$</td><td>$1/\sqrt{x^2+1}$</td></tr>
+                        <tr><td>$\text{arcosh}(x)$</td><td>$1/\sqrt{x^2-1}$</td></tr>
+                    </tbody>
+                </table>
+                <h3>Tabla Extendida de Integrales</h3>
+                 <div class="formula-block">
+                    <ul>
+                        <li>$\int \ln(x) \,dx = x\ln(x) - x + C$</li>
+                        <li>$\int \tan(x) \,dx = \ln|\sec(x)| + C$</li>
+                        <li>$\int \sec(x) \,dx = \ln|\sec(x) + \tan(x)| + C$</li>
+                        <li>$\int \frac{1}{\sqrt{a^2-x^2}} \,dx = \arcsin\left(\frac{x}{a}\right) + C$</li>
+                        <li>$\int \frac{1}{x^2+a^2} \,dx = \frac{1}{a} \arctan\left(\frac{x}{a}\right) + C$</li>
+                        <li>$\int \frac{1}{\sqrt{x^2+a^2}} \,dx = \ln(x + \sqrt{x^2+a^2}) + C = \text{arsinh}(\frac{x}{a}) + C$</li>
+                        <li>$\int \frac{1}{\sqrt{x^2-a^2}} \,dx = \ln|x + \sqrt{x^2-a^2}| + C = \text{arcosh}(\frac{x}{a}) + C$</li>
+                        <li>$\int \sec^2(x) \,dx = \tan(x) + C$</li>
+                        <li>$\int \csc^2(x) \,dx = -\cot(x) + C$</li>
+                    </ul>
+                </div>
+            </div>
+        </details>
+        
+        <!-- Sección de Series y Transformadas -->
+        <details open>
+            <summary>Series y Transformadas</summary>
+            <div class="content">
+                <h3>Series de Taylor y Maclaurin</h3>
+                <div class="formula-block">
+                    $$f(x) = \sum_{n=0}^{\infty} \frac{f^{(n)}(a)}{n!}(x-a)^n$$
+                    <ul>
+                        <li>$e^x = \sum_{n=0}^{\infty} \frac{x^n}{n!} = 1 + x + \frac{x^2}{2!} + \dots$</li>
+                        <li>$\sin(x) = \sum_{n=0}^{\infty} (-1)^n \frac{x^{2n+1}}{(2n+1)!} = x - \frac{x^3}{3!} + \dots$</li>
+                        <li>$\cos(x) = \sum_{n=0}^{\infty} (-1)^n \frac{x^{2n}}{(2n)!} = 1 - \frac{x^2}{2!} + \dots$</li>
+                        <li>$\ln(1+x) = \sum_{n=1}^{\infty} (-1)^{n+1} \frac{x^n}{n} = x - \frac{x^2}{2} + \frac{x^3}{3} - \dots$</li>
+                    </ul>
+                </div>
+                <h3>Transformada de Laplace</h3>
+                <table>
+                    <thead><tr><th>Función $f(t)$</th><th>Transformada $F(s) = \mathcal{L}\{f(t)\}$</th></tr></thead>
+                    <tbody>
+                        <tr><td>$1$</td><td>$\frac{1}{s}$</td></tr>
+                        <tr><td>$t^n$ ($n \ge 0$)</td><td>$\frac{n!}{s^{n+1}}$</td></tr>
+                        <tr><td>$e^{at}$</td><td>$\frac{1}{s-a}$</td></tr>
+                        <tr><td>$\sin(at)$</td><td>$\frac{a}{s^2+a^2}$</td></tr>
+                        <tr><td>$\cos(at)$</td><td>$\frac{s}{s^2+a^2}$</td></tr>
+                        <tr><td>$\sinh(at)$</td><td>$\frac{a}{s^2-a^2}$</td></tr>
+                        <tr><td>$\cosh(at)$</td><td>$\frac{s}{s^2-a^2}$</td></tr>
+                        <tr><td>$f'(t)$</td><td>$sF(s) - f(0)$</td></tr>
+                        <tr><td>$f''(t)$</td><td>$s^2F(s) - sf(0) - f'(0)$</td></tr>
+                        <tr><td>$e^{at}f(t)$</td><td>$F(s-a)$</td></tr>
+                        <tr><td>$t f(t)$</td><td>$-F'(s)$</td></tr>
+                    </tbody>
+                </table>
+                 <h3>Transformada Inversa de Laplace</h3>
+                <table>
+                    <thead><tr><th>Transformada $F(s)$</th><th>Función $f(t) = \mathcal{L}^{-1}\{F(s)\}$</th></tr></thead>
+                    <tbody>
+                        <tr><td>$\frac{1}{s-a}$</td><td>$e^{at}$</td></tr>
+                        <tr><td>$\frac{1}{(s-a)^n}$</td><td>$\frac{t^{n-1}e^{at}}{(n-1)!}$</td></tr>
+                        <tr><td>$\frac{1}{s^2+a^2}$</td><td>$\frac{1}{a}\sin(at)$</td></tr>
+                        <tr><td>$\frac{s}{s^2+a^2}$</td><td>$\cos(at)$</td></tr>
+                        <tr><td>$\frac{1}{s^2-a^2}$</td><td>$\frac{1}{a}\sinh(at)$</td></tr>
+                        <tr><td>$\frac{s}{s^2-a^2}$</td><td>$\cosh(at)$</td></tr>
+                        <tr><td>$\frac{\omega}{(s-a)^2+\omega^2}$</td><td>$e^{at}\sin(\omega t)$</td></tr>
+                        <tr><td>$\frac{s-a}{(s-a)^2+\omega^2}$</td><td>$e^{at}\cos(\omega t)$</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </details>
+
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });
+        });
+    </script>
+
+</body>
+</html>

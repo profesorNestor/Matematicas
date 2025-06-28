@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Futurista MCD & MCM</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .title {
+            font-size: 3rem;
+            background: linear-gradient(45deg, #00f5ff, #0080ff, #8000ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 245, 255, 0.5);
+            animation: glow 2s ease-in-out infinite alternate;
+            margin-bottom: 10px;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(0, 245, 255, 0.5), 0 0 30px rgba(0, 245, 255, 0.3); }
+            to { text-shadow: 0 0 30px rgba(0, 245, 255, 0.8), 0 0 40px rgba(0, 245, 255, 0.5); }
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #8892b0;
+            margin-bottom: 30px;
+        }
+
+        .menu-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .menu-title {
+            text-align: center;
+            font-size: 1.5rem;
+            color: #00f5ff;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .menu-card {
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.3));
+            border: 2px solid rgba(0, 245, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .menu-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 245, 255, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .menu-card:hover::before {
+            left: 100%;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: #00f5ff;
+            box-shadow: 0 15px 40px rgba(0, 245, 255, 0.3);
+        }
+
+        .menu-card.active {
+            border-color: #00f5ff;
+            background: linear-gradient(135deg, rgba(0, 245, 255, 0.1), rgba(0, 128, 255, 0.05));
+            box-shadow: 0 10px 30px rgba(0, 245, 255, 0.4);
+        }
+
+        .menu-icon {
+            font-size: 2.5rem;
+            text-align: center;
+            margin-bottom: 15px;
+            background: linear-gradient(45deg, #00f5ff, #0080ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .menu-card-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .menu-card-description {
+            font-size: 0.9rem;
+            color: #8892b0;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #00f5ff;
+            font-size: 1.1rem;
+        }
+
+        .number-input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid rgba(0, 245, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+
+        .number-input:focus {
+            outline: none;
+            border-color: #00f5ff;
+            box-shadow: 0 0 20px rgba(0, 245, 255, 0.3);
+        }
+
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #00f5ff, #0080ff);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(0, 245, 255, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(45deg, #8000ff, #ff0080);
+            color: #fff;
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(128, 0, 255, 0.4);
+        }
+
+        .btn-clear {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn-clear:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .results-section {
+            display: none;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(0, 245, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .result-card {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 1.3rem;
+            color: #00f5ff;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .result-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0, 245, 255, 0.5);
+        }
+
+        .procedure-section {
+            margin-top: 30px;
+        }
+
+        .procedure-title {
+            font-size: 1.5rem;
+            color: #00f5ff;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .decomposition-table {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 245, 255, 0.3);
+        }
+
+        .table-header {
+            background: rgba(0, 245, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid rgba(0, 245, 255, 0.3);
+        }
+
+        .table-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+        }
+
+        .vertical-line {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, #00f5ff, #0080ff);
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(0, 245, 255, 0.6);
+            z-index: 1;
+        }
+
+        .table-row {
+            display: flex;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.1);
+            transition: all 0.3s ease;
+            min-height: 45px;
+            position: relative;
+        }
+
+        .table-row:hover {
+            background: rgba(0, 245, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .table-row:last-child {
+            border-bottom: none;
+        }
+
+        .numbers {
+            display: flex;
+            gap: 20px;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-right: 15px;
+            flex: 1;
+        }
+
+        .number {
+            min-width: 60px;
+            text-align: center;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .divisor {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #00f5ff;
+            min-width: 40px;
+            text-align: center;
+            background: rgba(0, 245, 255, 0.1);
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid rgba(0, 245, 255, 0.3);
+            position: absolute;
+            z-index: 2;
+        }
+
+        .explanation {
+            background: rgba(128, 0, 255, 0.1);
+            border: 1px solid rgba(128, 0, 255, 0.3);
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .explanation-title {
+            color: #8000ff;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .formula {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            color: #00f5ff;
+            margin: 10px 0;
+            border-left: 3px solid #00f5ff;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 245, 255, 0.3);
+            border-top: 4px solid #00f5ff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        @media (max-width: 768px) {
+            .title { font-size: 2rem; }
+            .buttons { flex-direction: column; }
+            .btn { width: 100%; }
+            .numbers { 
+                flex-wrap: wrap; 
+                gap: 10px;
+                margin-right: 15px;
+                width: calc(100% - 80px); /* Adjust width to prevent overflow */
+            }
+            .number {
+                min-width: 45px;
+                font-size: 1.2rem;
+            }
+            .divisor {
+                font-size: 1.2rem;
+                min-width: 35px;
+                padding: 6px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">MCD & MCM Calculator</h1>
+            <p class="subtitle">Calculadora Futurista con Procedimiento Completo</p>
+        </div>
+
+        <div class="menu-section">
+            <h2 class="menu-title">🧮 Selecciona la Operación Matemática</h2>
+            <div class="menu-grid">
+                <div class="menu-card" onclick="selectOperation('mcm')" id="card-mcm">
+                    <div class="menu-icon">🔢</div>
+                    <div class="menu-card-title">Mínimo Común Múltiplo</div>
+                    <div class="menu-card-description">Encuentra el MCM de dos o más números usando factorización prima</div>
+                </div>
+                
+                <div class="menu-card" onclick="selectOperation('mcd')" id="card-mcd">
+                    <div class="menu-icon">⚡</div>
+                    <div class="menu-card-title">Máximo Común Divisor</div>
+                    <div class="menu-card-description">Calcula el MCD de números usando el algoritmo de factorización</div>
+                </div>
+                
+                <div class="menu-card" onclick="selectOperation('divisores')" id="card-divisores">
+                    <div class="menu-icon">🎯</div>
+                    <div class="menu-card-title">Encontrar Divisores</div>
+                    <div class="menu-card-description">Lista todos los divisores de un número de forma eficiente</div>
+                </div>
+                
+                <div class="menu-card" onclick="selectOperation('factorizacion')" id="card-factorizacion">
+                    <div class="menu-icon">🔬</div>
+                    <div class="menu-card-title">Factorización Prima</div>
+                    <div class="menu-card-description">Descompone números en sus factores primos fundamentales</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-section" id="inputSection">
+        </div>
+
+        <div class="results-section" id="results">
+        </div>
+    </div>
+
+    <script>
+        let currentOperation = '';
+
+        function isPrime(n) {
+            if (n < 2) return false;
+            for (let i = 2; i <= Math.sqrt(n); i++) {
+                if (n % i === 0) return false;
+            }
+            return true;
+        }
+
+        function getNextPrime(n) {
+            let next = n;
+            while (true) {
+                next++;
+                if (isPrime(next)) return next;
+            }
+        }
+
+        function gcd(a, b) {
+            while (b !== 0) {
+                let temp = b;
+                b = a % b;
+                a = temp;
+            }
+            return a;
+        }
+
+        function gcdMultiple(numbers) {
+            return numbers.reduce((acc, num) => gcd(acc, num));
+        }
+
+        function lcm(a, b) {
+            if (a === 0 || b === 0) return 0;
+            return Math.abs(a * b) / gcd(a, b);
+        }
+
+        function lcmMultiple(numbers) {
+            return numbers.reduce((acc, num) => lcm(acc, num));
+        }
+
+        function getDivisors(n) {
+            let divisors = [];
+            for (let i = 1; i <= Math.sqrt(n); i++) {
+                if (n % i === 0) {
+                    divisors.push(i);
+                    if (i !== n / i) {
+                        divisors.push(n / i);
+                    }
+                }
+            }
+            return divisors.sort((a, b) => a - b);
+        }
+
+        function primeFactorizationForMCD(numbers) {
+            let steps = [];
+            let currentNumbers = [...numbers];
+            let prime = 2;
+            let mcdFactors = [];
+            
+            while (prime <= Math.max(...currentNumbers.map(n => Math.abs(n)))) {
+                 if (currentNumbers.every(num => num === 1)) break;
+                let allDivisible = currentNumbers.every(num => num % prime === 0);
+                
+                if (allDivisible) {
+                    let newNumbers = currentNumbers.map(num => num / prime);
+                    steps.push({
+                        numbers: [...currentNumbers],
+                        divisor: prime,
+                        newNumbers: [...newNumbers]
+                    });
+                    mcdFactors.push(prime);
+                    currentNumbers = newNumbers;
+                } else {
+                    prime = getNextPrime(prime);
+                }
+            }
+            
+            return { steps, mcdFactors };
+        }
+
+        function primeFactorization(numbers) {
+            let steps = [];
+            let currentNumbers = [...numbers];
+            let prime = 2;
+            
+            while (currentNumbers.some(n => n > 1)) {
+                let divisible = false;
+                let newNumbers = [];
+                
+                for (let num of currentNumbers) {
+                    if (num % prime === 0) {
+                        newNumbers.push(num / prime);
+                        divisible = true;
+                    } else {
+                        newNumbers.push(num);
+                    }
+                }
+                
+                if (divisible) {
+                    steps.push({
+                        numbers: [...currentNumbers],
+                        divisor: prime,
+                        newNumbers: [...newNumbers]
+                    });
+                    currentNumbers = newNumbers;
+                } else {
+                    prime = getNextPrime(prime);
+                }
+            }
+            
+            return steps;
+        }
+
+        function singlePrimeFactorization(n) {
+            let factors = [];
+            let temp = n;
+            let factor = 2;
+            
+            while (temp > 1) {
+                while (temp % factor === 0) {
+                    factors.push(factor);
+                    temp /= factor;
+                }
+                factor = getNextPrime(factor);
+            }
+            
+            return factors;
+        }
+
+        function selectOperation(operation) {
+            currentOperation = operation;
+            
+            document.querySelectorAll('.menu-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            
+            document.getElementById(`card-${operation}`).classList.add('active');
+            document.getElementById('inputSection').style.display = 'block';
+            generateInputSection(operation);
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function generateInputSection(operation) {
+            const inputSection = document.getElementById('inputSection');
+            let html = '';
+            
+            switch(operation) {
+                case 'mcm':
+                    html = `
+                        <div class="input-group">
+                            <label class="input-label">🔢 Ingresa los números para calcular el MCM (separados por comas):</label>
+                            <input type="text" class="number-input" id="numbersInput" placeholder="Ej: 12, 18, 24" />
+                        </div>
+                        <div class="buttons">
+                            <button class="btn btn-primary" onclick="calculateMCM()">🚀 Calcular MCM</button>
+                            <button class="btn btn-secondary" onclick="showExampleMCM()">💡 Ejemplo</button>
+                            <button class="btn btn-clear" onclick="clearAll()">🗑️ Limpiar</button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'mcd':
+                    html = `
+                        <div class="input-group">
+                            <label class="input-label">⚡ Ingresa los números para calcular el MCD (separados por comas):</label>
+                            <input type="text" class="number-input" id="numbersInput" placeholder="Ej: 48, 18, 24" />
+                        </div>
+                        <div class="buttons">
+                            <button class="btn btn-primary" onclick="calculateMCD()">🚀 Calcular MCD</button>
+                            <button class="btn btn-secondary" onclick="showExampleMCD()">💡 Ejemplo</button>
+                            <button class="btn btn-clear" onclick="clearAll()">🗑️ Limpiar</button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'divisores':
+                    html = `
+                        <div class="input-group">
+                            <label class="input-label">🎯 Ingresa un número para encontrar todos sus divisores:</label>
+                            <input type="text" class="number-input" id="numbersInput" placeholder="Ej: 60" />
+                        </div>
+                        <div class="buttons">
+                            <button class="btn btn-primary" onclick="calculateDivisores()">🚀 Encontrar Divisores</button>
+                            <button class="btn btn-secondary" onclick="showExampleDivisores()">💡 Ejemplo</button>
+                            <button class="btn btn-clear" onclick="clearAll()">🗑️ Limpiar</button>
+                        </div>
+                    `;
+                    break;
+                    
+                case 'factorizacion':
+                    html = `
+                        <div class="input-group">
+                            <label class="input-label">🔬 Ingresa un número para su factorización en factores primos:</label>
+                            <input type="text" class="number-input" id="numbersInput" placeholder="Ej: 120" />
+                        </div>
+                        <div class="buttons">
+                            <button class="btn btn-primary" onclick="calculateFactorizacion()">🚀 Factorizar</button>
+                            <button class="btn btn-secondary" onclick="showExampleFactorizacion()">💡 Ejemplo</button>
+                            <button class="btn btn-clear" onclick="clearAll()">🗑️ Limpiar</button>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            html += `
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Procesando cálculos...</p>
+                </div>
+            `;
+            
+            inputSection.innerHTML = html;
+            
+            document.getElementById('numbersInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    switch(currentOperation) {
+                        case 'mcm': calculateMCM(); break;
+                        case 'mcd': calculateMCD(); break;
+                        case 'divisores': calculateDivisores(); break;
+                        case 'factorizacion': calculateFactorizacion(); break;
+                    }
+                }
+            });
+        }
+
+        function getNumbersFromInput() {
+            const input = document.getElementById('numbersInput').value.trim();
+            if (!input) {
+                throw new Error('Por favor ingresa al menos un número.');
+            }
+            const numbers = input.split(',').map(n => {
+                const num = parseInt(n.trim());
+                if (isNaN(num) || num <= 0) {
+                    throw new Error(`"${n.trim()}" no es un número válido positivo.`);
+                }
+                return num;
+            });
+            return numbers;
+        }
+
+        function calculateMCM() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            setTimeout(() => {
+                try {
+                    const numbers = getNumbersFromInput();
+                    if (numbers.length < 2) {
+                        throw new Error('Necesitas al menos dos números para calcular el MCM.');
+                    }
+                    const mcmValue = lcmMultiple(numbers);
+                    showMCMResults(numbers, mcmValue);
+                } catch (error) {
+                    showError(error.message);
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 500);
+        }
+
+        function calculateMCD() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            setTimeout(() => {
+                try {
+                    const numbers = getNumbersFromInput();
+                    if (numbers.length < 2) {
+                        throw new Error('Necesitas al menos dos números para calcular el MCD.');
+                    }
+                    const mcdValue = gcdMultiple(numbers);
+                    showMCDResults(numbers, mcdValue);
+                } catch (error) {
+                    showError(error.message);
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 500);
+        }
+
+        function calculateDivisores() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            setTimeout(() => {
+                try {
+                    const numbers = getNumbersFromInput();
+                    const divisors = getDivisors(numbers[0]);
+                    showDivisoresResults(numbers[0], divisors);
+                } catch (error) {
+                    showError(error.message);
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 500);
+        }
+
+        function calculateFactorizacion() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+
+            setTimeout(() => {
+                try {
+                    const numbers = getNumbersFromInput();
+                    const factors = singlePrimeFactorization(numbers[0]);
+                    showFactorizacionResults(numbers[0], factors);
+                } catch (error) {
+                    showError(error.message);
+                } finally {
+                    document.getElementById('loading').style.display = 'none';
+                }
+            }, 500);
+        }
+
+        function showMCMResults(numbers, mcmValue) {
+            document.getElementById('results').innerHTML = `
+                <div class="result-card">
+                    <div class="result-title">🔢 Mínimo Común Múltiplo (MCM)</div>
+                    <div class="result-value">${mcmValue}</div>
+                </div>
+                <div class="procedure-section">
+                    <h3 class="procedure-title">📊 Procedimiento: Descomposición en Factores Primos</h3>
+                    <div class="decomposition-table" id="decompositionTable"></div>
+                    <div class="explanation">
+                        <div class="explanation-title">🧮 Explicación del Cálculo MCM:</div>
+                        <div id="explanation"></div>
+                    </div>
+                </div>
+            `;
+            
+            generateDecompositionTable(numbers);
+            generateMCMExplanation(numbers, mcmValue);
+            
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showMCDResults(numbers, mcdValue) {
+            document.getElementById('results').innerHTML = `
+                <div class="result-card">
+                    <div class="result-title">⚡ Máximo Común Divisor (MCD)</div>
+                    <div class="result-value">${mcdValue}</div>
+                </div>
+                <div class="procedure-section">
+                    <h3 class="procedure-title">📊 Procedimiento: Factores Comunes para MCD</h3>
+                    <div class="decomposition-table" id="decompositionTable"></div>
+                    <div class="explanation">
+                        <div class="explanation-title">🧮 Explicación del Cálculo MCD:</div>
+                        <div id="explanation"></div>
+                    </div>
+                </div>
+            `;
+            
+            generateMCDTable(numbers);
+            generateMCDExplanation(numbers, mcdValue);
+            
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showDivisoresResults(number, divisors) {
+            document.getElementById('results').innerHTML = `
+                <div class="result-card">
+                    <div class="result-title">🎯 Divisores de ${number}</div>
+                    <div class="result-value">${divisors.length} divisores</div>
+                </div>
+                <div class="procedure-section">
+                    <h3 class="procedure-title">📊 Lista de Divisores</h3>
+                    <div class="decomposition-table">
+                        <div class="table-header">
+                            <div style="color: #00f5ff; font-weight: 600; text-align: center; font-size: 1.2rem;">
+                                Todos los divisores de ${number}
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; padding: 20px;">
+                            ${divisors.map(div => `<div class="number" style="min-width: 50px;">${div}</div>`).join('')}
+                        </div>
+                    </div>
+                    <div class="explanation">
+                        <div class="explanation-title">🧮 Explicación:</div>
+                        <div>
+                            <p><strong>¿Qué son los divisores?</strong> Los divisores de un número son todos los números enteros que lo dividen exactamente (sin residuo).</p>
+                            <div class="formula">Divisores de ${number}: {${divisors.join(', ')}}</div>
+                            <p><strong>Total de divisores:</strong> ${divisors.length}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function showFactorizacionResults(number, factors) {
+            const factorCount = {};
+            factors.forEach(factor => {
+                factorCount[factor] = (factorCount[factor] || 0) + 1;
+            });
+            
+            const factorRepresentation = Object.keys(factorCount).map(factor => {
+                const count = factorCount[factor];
+                return count === 1 ? factor : `${factor}<sup>${count}</sup>`;
+            }).join(' × ');
+            
+            document.getElementById('results').innerHTML = `
+                <div class="result-card">
+                    <div class="result-title">🔬 Factorización Prima de ${number}</div>
+                    <div class="result-value" style="font-size: 1.5rem;">${factorRepresentation}</div>
+                </div>
+                <div class="procedure-section">
+                    <h3 class="procedure-title">📊 Procedimiento de Factorización</h3>
+                    <div class="decomposition-table" id="decompositionTable"></div>
+                    <div class="explanation">
+                        <div class="explanation-title">🧮 Explicación de la Factorización:</div>
+                        <div>
+                            <p><strong>Factorización prima:</strong> Descomposición de un número en sus factores primos.</p>
+                            <div class="formula">${number} = ${factorRepresentation}</div>
+                            <p><strong>Factores primos encontrados:</strong> ${Object.keys(factorCount).join(', ')}</p>
+                            <p><strong>Verificación:</strong> ${factors.join(' × ')} = ${factors.reduce((a, b) => a * b, 1)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            generateSingleFactorizationTable(number);
+            
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function generateTable(title, steps, initialNumbers) {
+            const tableDiv = document.getElementById('decompositionTable');
+            
+            let headerHtml = `<div class="table-header"><div style="color: #00f5ff; font-weight: 600; text-align: center; font-size: 1.2rem;">${title}</div></div>`;
+            
+            const allNumberStrings = [initialNumbers.join(' '), ...steps.map(s => s.newNumbers.join(' '))];
+            const maxLength = Math.max(...allNumberStrings.map(s => s.length));
+            
+            // Adjusted calculation for more space ("holgura")
+            const linePosition = (window.innerWidth <= 768) ? (window.innerWidth - 110) : 110 + maxLength * 17;
+
+            let rowsHtml = '';
+            rowsHtml += '<div class="table-row">';
+            rowsHtml += '<div class="numbers">';
+            initialNumbers.forEach(num => { rowsHtml += `<div class="number">${num}</div>`; });
+            rowsHtml += '</div>';
+            // Adjusted divisor position for more space
+            rowsHtml += `<div class="divisor" style="left: ${linePosition + 25}px;">-</div>`;
+            rowsHtml += '</div>';
+            
+            steps.forEach((step) => {
+                rowsHtml += '<div class="table-row">';
+                rowsHtml += '<div class="numbers">';
+                step.newNumbers.forEach(num => { rowsHtml += `<div class="number">${num}</div>`; });
+                rowsHtml += '</div>';
+                // Adjusted divisor position for more space
+                rowsHtml += `<div class="divisor" style="left: ${linePosition + 25}px;">${step.divisor}</div>`;
+                rowsHtml += '</div>';
+            });
+            
+            tableDiv.innerHTML = `
+                ${headerHtml}
+                <div class="table-container">
+                    <div class="vertical-line" style="left: ${linePosition}px;"></div>
+                    ${rowsHtml}
+                </div>
+            `;
+        }
+        
+        function generateMCDTable(numbers) {
+            const { steps, mcdFactors } = primeFactorizationForMCD(numbers);
+            generateTable('Factorización para MCD (Solo Factores Comunes)', steps, numbers);
+            
+            let footerHtml = '';
+             if (mcdFactors.length > 0) {
+                footerHtml += '<div style="margin-top: 20px; padding: 15px; background: rgba(0, 245, 255, 0.1); border-radius: 10px; border: 1px solid rgba(0, 245, 255, 0.3);">';
+                footerHtml += '<div style="color: #00f5ff; font-weight: 600; text-align: center; margin-bottom: 10px;">Cálculo del MCD:</div>';
+                footerHtml += `<div style="color: #fff; text-align: center; font-size: 1.2rem;">MCD = ${mcdFactors.join(' × ')} = ${mcdFactors.reduce((a, b) => a * b, 1)}</div>`;
+                footerHtml += '</div>';
+            } else {
+                footerHtml += '<div style="margin-top: 20px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px;">';
+                footerHtml += '<div style="color: #fff; text-align: center;">No hay factores primos comunes. MCD = 1</div>';
+                footerHtml += '</div>';
+            }
+            document.getElementById('decompositionTable').innerHTML += footerHtml;
+        }
+        
+        function generateDecompositionTable(numbers) {
+            const steps = primeFactorization(numbers);
+            generateTable('Descomposición en Factores Primos', steps, numbers);
+        }
+
+        function generateSingleFactorizationTable(number) {
+            let steps = [];
+            let temp = number;
+            let factor = 2;
+            
+            while (temp > 1) {
+                if (temp % factor === 0) {
+                    let newTemp = temp / factor;
+                    steps.push({ newNumbers: [newTemp], divisor: factor });
+                    temp = newTemp;
+                } else {
+                    factor = getNextPrime(factor);
+                }
+            }
+            generateTable('Proceso de Factorización', steps, [number]);
+        }
+
+        function generateMCMExplanation(numbers, mcmValue) {
+            let html = '';
+            html += '<p>1. Descomponemos todos los números simultáneamente por factores primos.</p>';
+            html += '<p>2. El MCM es el producto de todos los divisores primos utilizados en la descomposición.</p>';
+            html += `<div class="formula">MCM(${numbers.join(', ')}) = ${mcmValue}</div>`;
+            document.getElementById('explanation').innerHTML = html;
+        }
+
+        function generateMCDExplanation(numbers, mcdValue) {
+            const { mcdFactors } = primeFactorizationForMCD(numbers);
+            let html = '';
+            html += '<p>1. Se dividen los números solo por factores primos que sean comunes a todos.</p>';
+            html += '<p>2. El MCD es el producto de estos factores primos comunes.</p>';
+
+            if (mcdFactors.length > 0) {
+                html += `<div class="formula">Factores comunes: ${mcdFactors.join(', ')}</div>`;
+                html += `<div class="formula">MCD(${numbers.join(', ')}) = ${mcdFactors.join(' × ')} = ${mcdValue}</div>`;
+            } else {
+                html += `<div class="formula">No hay factores primos comunes. El MCD es 1.</div>`;
+            }
+            document.getElementById('explanation').innerHTML = html;
+        }
+
+        function showExampleMCM() {
+            document.getElementById('numbersInput').value = '12, 18, 24';
+            calculateMCM();
+        }
+
+        function showExampleMCD() {
+            document.getElementById('numbersInput').value = '48, 18, 24';
+            calculateMCD();
+        }
+
+        function showExampleDivisores() {
+            document.getElementById('numbersInput').value = '60';
+            calculateDivisores();
+        }
+
+        function showExampleFactorizacion() {
+            document.getElementById('numbersInput').value = '120';
+            calculateFactorizacion();
+        }
+
+        function clearAll() {
+            if (document.getElementById('numbersInput')) {
+                document.getElementById('numbersInput').value = '';
+            }
+            document.getElementById('results').style.display = 'none';
+            const errorElements = document.querySelectorAll('.error');
+            errorElements.forEach(el => el.remove());
+            
+            document.querySelectorAll('.menu-card').forEach(card => {
+                card.classList.remove('active');
+            });
+            document.getElementById('inputSection').style.display = 'none';
+            currentOperation = '';
+        }
+
+        function showError(message) {
+            const existingErrors = document.querySelectorAll('.error');
+            existingErrors.forEach(el => el.remove());
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = '⚠️ ' + message;
+            document.getElementById('inputSection').appendChild(errorDiv);
+        }
+
+        window.addEventListener('load', function() {
+            document.querySelector('.container').style.opacity = '0';
+            document.querySelector('.container').style.transform = 'translateY(30px)';
+            
+            setTimeout(() => {
+                document.querySelector('.container').style.transition = 'all 0.8s ease';
+                document.querySelector('.container').style.opacity = '1';
+                document.querySelector('.container').style.transform = 'translateY(0)';
+            }, 100);
+        });
+    </script>
+</body>
+</html>
