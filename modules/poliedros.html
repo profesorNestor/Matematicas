@@ -65,26 +65,24 @@
         }
         @keyframes glow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
 
-        /* --- Paneles Generales --- */
+        /* --- Paneles Generales (Desktop First) --- */
         .panel {
             position: absolute; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--glass-border); border-radius: 24px; padding: 1.5rem; z-index: 10;
             box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s, width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .panel.is-hidden { opacity: 0; pointer-events: none; }
-        
-        /* --- Panel de Información (Derecha) --- */
         .info-panel {
             right: 2rem; top: 50%; transform: translateY(-50%); width: 320px;
         }
-        .info-panel.is-hidden { transform: translateX(120%) translateY(-50%); }
-        
-        /* --- Panel de Control (Izquierda) --- */
         .control-panel {
             left: 2rem; top: 50%; transform: translateY(-50%);
             width: 330px; max-height: 90vh; overflow-y: auto; overflow-x: hidden;
         }
+        .panel.is-hidden { opacity: 0; pointer-events: none; transform: translateX(120%) translateY(-50%); }
+        .control-panel.is-hidden { transform: translateX(-120%) translateY(-50%); }
+        
+        /* --- Panel Colapsable (Desktop) --- */
         .panel-expander {
             position: absolute; top: 50%; right: -16px; transform: translateY(-50%); width: 32px; height: 70px; background: var(--glass-bg);
             border: 1px solid var(--glass-border); border-left: none; border-radius: 0 16px 16px 0; color: var(--text-primary); cursor: pointer;
@@ -96,7 +94,7 @@
         .control-panel.is-collapsed .solid-selector { grid-template-columns: repeat(2, 1fr); padding: 0.5rem; gap: 0.5rem; }
         .control-panel.is-collapsed .solid-name { display: none; }
 
-        /* Botón de toggle para panel de info (solo escritorio) */
+        /* Botón de toggle para panel de info (Desktop) */
         #info-panel-toggle {
             position: absolute; right: 2rem; top: 10rem; width: 50px; height: 50px;
             border-radius: 50%; background: var(--glass-bg); backdrop-filter: blur(10px);
@@ -105,9 +103,15 @@
         }
         #info-panel-toggle:hover { background: rgba(255, 214, 10, 0.1); transform: scale(1.1) rotate(90deg); }
 
-        /* --- Estilos para Móvil --- */
+        /* --- Estilos para Móvil (Overrides) --- */
         @media (max-width: 768px) {
-            .panel-expander, #info-panel-toggle { display: none; } /* Ocultar en móvil */
+            .panel-expander, #info-panel-toggle { display: none; }
+            .panel {
+                position: fixed; bottom: 0; left: 0; right: 0; top: auto; width: 100%; max-height: 80vh;
+                border-radius: 24px 24px 0 0; transform: translateY(100%); padding-top: 2.5rem; z-index: 150;
+            }
+            .panel.is-visible-mobile { transform: translateY(0); }
+            .control-panel.is-collapsed { width: 100%; }
             .mobile-toggle {
                 position: fixed; bottom: 1.5rem; z-index: 200; width: 50px; height: 50px; border-radius: 50%;
                 background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
@@ -115,19 +119,6 @@
             }
             #mobile-control-panel-toggle { left: 1.5rem; }
             #mobile-info-panel-toggle { right: 1.5rem; }
-            .panel {
-                position: fixed; bottom: 0; left: 0; right: 0; top: auto; width: 100%; max-height: 80vh;
-                border-radius: 24px 24px 0 0; transform: translateY(100%); padding-top: 2.5rem; z-index: 150;
-            }
-            .panel.is-visible-mobile { transform: translateY(0); }
-            .control-panel, .info-panel { display: none; }
-            .panel.is-mobile-panel { display: block; }
-            .mobile-only { display: flex; }
-            .panel-close-btn {
-                position: absolute; top: 0.75rem; right: 1rem; width: 35px; height: 35px; border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1); border: none; color: var(--text-secondary); cursor: pointer;
-                font-size: 1.2rem; z-index: 160; align-items: center; justify-content: center;
-            }
             .mobile-overlay {
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
                 z-index: 140; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
@@ -146,14 +137,11 @@
         .solid-btn.active { border-image: linear-gradient(45deg, var(--accent-blue), var(--accent-purple)) 1; }
         .solid-btn.active i { background: linear-gradient(45deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .solid-name { font-size: 0.7rem; text-align: center; margin-top: 0.4rem; font-weight: 500;}
-
-        /* --- Secciones Colapsables --- */
         .section-toggle { background: none; border: none; color: var(--accent-1); font-size: 1.2rem; cursor: pointer; padding: 0.25rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
         .section-toggle:hover { transform: scale(1.2) rotate(15deg); }
         .section-toggle.is-active { transform: rotate(180deg); }
         .collapsible-container { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out, margin-top 0.4s ease-in-out; }
         .collapsible-container.is-visible { max-height: 150px; margin-top: 1rem; }
-        
         .color-themes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; }
         .theme-btn { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         .theme-btn:hover { transform: scale(1.1); }
@@ -164,7 +152,6 @@
         .theme-btn[data-theme="amethyst"] { background: linear-gradient(45deg, #9d4edd, #e0aaff); }
         .theme-btn[data-theme="cosmic"] { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
         .theme-btn[data-theme="synthwave"] { background: linear-gradient(45deg, #ff00c1, #00fff2); }
-
         .properties { margin-top: 1.5rem; }
         .property-item { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 0.5rem; border-bottom: 1px solid var(--glass-border); }
         .property-item:last-child { border-bottom: none; }
@@ -172,15 +159,20 @@
         .property-value { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
         .info-title { font-size: 1.4rem; margin-bottom: 1rem; color: var(--accent-1); }
         .info-content { color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; }
-        
-        /* --- Otros Controles --- */
         .controls-section, .actions-section { margin-top: 1.5rem; }
-        .toggle-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .toggle-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem; }
         .toggle-item { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; }
         .toggle-switch { position: relative; width: 44px; height: 24px; background: rgba(0, 0, 0, 0.2); border-radius: 24px; cursor: pointer; transition: all 0.3s; border: 1px solid var(--glass-border); }
         .toggle-switch input { display: none; }
         .toggle-slider { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: all 0.3s; }
         .toggle-switch input:checked ~ .toggle-slider { transform: translateX(20px); background: var(--accent-1); }
+        
+        /* --- Nuevo Control de Zoom --- */
+        .zoom-control { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); border-radius: 2rem; padding: 0.25rem; }
+        .zoom-btn { background: none; border: none; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; transition: background-color 0.2s; }
+        .zoom-btn:hover { background-color: rgba(255,255,255,0.1); }
+        #zoom-level-text { font-size: 1rem; font-weight: 600; color: var(--accent-1); }
+
         .action-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
         .action-btn { padding: 0.8rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); cursor: pointer; transition: all 0.3s; font-weight: 600; text-align: center; }
         .action-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-1); transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); }
@@ -202,11 +194,11 @@
 
     <main class="main-container">
         <canvas id="three-canvas"></canvas>
-
+        
         <button id="info-panel-toggle" aria-label="Abrir Panel de Información"><i class="fas fa-info-circle"></i></button>
 
         <aside id="control-panel" class="panel control-panel">
-            <button id="panel-expander" class="panel-expander" aria-label="Contraer panel"><i class="fas fa-chevron-left"></i></button>
+            <button id="panel-expander" aria-label="Contraer panel"><i class="fas fa-chevron-left"></i></button>
             <div class="panel-content">
                 <h2 class="panel-title">Selector de Sólidos</h2>
                 <div class="solid-selector">
@@ -242,6 +234,11 @@
                             <div class="toggle-item"><label class="toggle-switch"><input type="checkbox" id="wireframe-toggle"><span class="toggle-slider"></span></label><span>Malla</span></div>
                             <div class="toggle-item"><label class="toggle-switch"><input type="checkbox" id="rotation-toggle" checked><span class="toggle-slider"></span></label><span>Rotación</span></div>
                         </div>
+                        <div class="zoom-control">
+                            <button id="zoom-out-btn" class="zoom-btn" aria-label="Alejar"><i class="fas fa-search-minus"></i></button>
+                            <span id="zoom-level-text">100%</span>
+                            <button id="zoom-in-btn" class="zoom-btn" aria-label="Acercar"><i class="fas fa-search-plus"></i></button>
+                        </div>
                     </div>
                 </div>
                 <div class="actions-section">
@@ -268,8 +265,6 @@
                 <div class="property-item"><span class="property-label">Caras (C)</span><span class="property-value" id="faces"></span></div>
             </div>
         </aside>
-
-        <div id="mobile-overlay" class="mobile-overlay"></div>
     </main>
 
     <script>
@@ -277,6 +272,9 @@
         const isMobile = window.matchMedia("(max-width: 768px)").matches;
         let scene, camera, renderer, currentSolid;
         let autoRotate = true;
+
+        const MIN_ZOOM = 3;
+        const MAX_ZOOM = 15;
 
         const solidsData = {
             tetrahedron: { name: 'Tetraedro (Fuego)', vertices: 4, edges: 6, faces: 4, info: 'Simboliza el fuego y la sabiduría. Es el más simple de los sólidos, una pirámide de base triangular. En la alquimia, representa la ascensión y la conexión entre el cielo y la tierra. Es la única figura que es su propia dual.' },
@@ -311,6 +309,7 @@
             createSolid('tetrahedron');
             setupPanelLogic();
             setupControls();
+            updateZoomUI();
             animate();
 
             const loadingScreen = document.getElementById('loading-screen');
@@ -353,65 +352,81 @@
         
         function updateUI(type) {
             const data = solidsData[type];
-            document.querySelectorAll('#info-title, #mobile-info-panel #info-title').forEach(el => el.textContent = data.name);
-            document.querySelectorAll('#info-content, #mobile-info-panel #info-content').forEach(el => el.textContent = data.info);
-            document.querySelectorAll('#vertices, #mobile-info-panel #vertices').forEach(el => el.textContent = data.vertices);
-            document.querySelectorAll('#edges, #mobile-info-panel #edges').forEach(el => el.textContent = data.edges);
-            document.querySelectorAll('#faces, #mobile-info-panel #faces').forEach(el => el.textContent = data.faces);
+            document.querySelectorAll('#info-panel #info-title').forEach(el => el.textContent = data.name);
+            document.querySelectorAll('#info-panel #info-content').forEach(el => el.textContent = data.info);
+            document.querySelectorAll('#info-panel #vertices').forEach(el => el.textContent = data.vertices);
+            document.querySelectorAll('#info-panel #edges').forEach(el => el.textContent = data.edges);
+            document.querySelectorAll('#info-panel #faces').forEach(el => el.textContent = data.faces);
             document.querySelectorAll('.solid-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.solid === type);
             });
         }
         
         function setupPanelLogic() {
+            const controlPanel = document.getElementById('control-panel');
+            const infoPanel = document.getElementById('info-panel');
+
             if (isMobile) {
                 const mainContainer = document.querySelector('.main-container');
-                const mobileOverlay = document.getElementById('mobile-overlay');
                 const controlToggle = document.createElement('button');
-                controlToggle.id = 'mobile-control-panel-toggle';
                 controlToggle.className = 'mobile-toggle';
+                controlToggle.id = 'mobile-control-panel-toggle';
                 controlToggle.innerHTML = '<i class="fas fa-palette"></i>';
-                mainContainer.appendChild(controlToggle);
+                
                 const infoToggle = document.createElement('button');
-                infoToggle.id = 'mobile-info-panel-toggle';
                 infoToggle.className = 'mobile-toggle';
+                infoToggle.id = 'mobile-info-panel-toggle';
                 infoToggle.innerHTML = '<i class="fas fa-info-circle"></i>';
-                mainContainer.appendChild(infoToggle);
-
-                const controlPanelDesktop = document.getElementById('control-panel');
-                const infoPanelDesktop = document.getElementById('info-panel');
-                const mobileControlPanel = controlPanelDesktop.cloneNode(true);
-                mobileControlPanel.id = 'mobile-control-panel';
-                mobileControlPanel.classList.add('is-mobile-panel');
-                const mobileInfoPanel = infoPanelDesktop.cloneNode(true);
-                mobileInfoPanel.id = 'mobile-info-panel';
-                mobileInfoPanel.classList.add('is-mobile-panel');
                 
-                const closeBtnHTML = '<button class="mobile-only panel-close-btn" aria-label="Cerrar">✕</button>';
-                mobileControlPanel.insertAdjacentHTML('afterbegin', closeBtnHTML);
-                mobileInfoPanel.insertAdjacentHTML('afterbegin', closeBtnHTML);
-                mainContainer.append(mobileControlPanel, mobileInfoPanel);
-                
-                const showPanel = (panel) => { panel.classList.add('is-visible-mobile'); mobileOverlay.classList.add('is-active'); };
-                const hidePanel = (panel) => { panel.classList.remove('is-visible-mobile'); if (!document.querySelector('.is-visible-mobile')) mobileOverlay.classList.remove('is-active'); };
+                const mobileOverlay = document.createElement('div');
+                mobileOverlay.className = 'mobile-overlay';
 
-                controlToggle.addEventListener('click', () => showPanel(mobileControlPanel));
-                infoToggle.addEventListener('click', () => showPanel(mobileInfoPanel));
-                mobileControlPanel.querySelector('.panel-close-btn').addEventListener('click', () => hidePanel(mobileControlPanel));
-                mobileInfoPanel.querySelector('.panel-close-btn').addEventListener('click', () => hidePanel(mobileInfoPanel));
-                mobileOverlay.addEventListener('click', () => { hidePanel(mobileControlPanel); hidePanel(mobileInfoPanel); });
-            } else { // Escritorio
-                const controlPanel = document.getElementById('control-panel');
-                const infoPanel = document.getElementById('info-panel');
+                mainContainer.append(controlToggle, infoToggle, mobileOverlay);
+                
+                const showPanel = (panel) => {
+                    panel.classList.add('is-visible-mobile');
+                    mobileOverlay.classList.add('is-active');
+                };
+                const hidePanel = (panel) => {
+                    panel.classList.remove('is-visible-mobile');
+                    if (!document.querySelector('.is-visible-mobile')) {
+                         mobileOverlay.classList.remove('is-active');
+                    }
+                };
+
+                controlToggle.addEventListener('click', () => showPanel(controlPanel));
+                infoToggle.addEventListener('click', () => showPanel(infoPanel));
+                mobileOverlay.addEventListener('click', () => {
+                    hidePanel(controlPanel);
+                    hidePanel(infoPanel);
+                });
+            } else { // Desktop
                 const expanderBtn = document.getElementById('panel-expander');
                 const infoToggleBtn = document.getElementById('info-panel-toggle');
+                
                 expanderBtn.addEventListener('click', () => {
                     controlPanel.classList.toggle('is-collapsed');
                     const icon = expanderBtn.querySelector('i');
                     icon.className = controlPanel.classList.contains('is-collapsed') ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
                 });
-                infoToggleBtn.addEventListener('click', () => { infoPanel.classList.toggle('is-hidden'); });
+                infoToggleBtn.addEventListener('click', () => {
+                    infoPanel.classList.toggle('is-hidden');
+                });
             }
+        }
+
+        function updateZoomUI() {
+            if (!camera) return;
+            const percentage = 100 * (MAX_ZOOM - camera.position.z) / (MAX_ZOOM - MIN_ZOOM);
+            const zoomText = document.getElementById('zoom-level-text');
+            if(zoomText) {
+                zoomText.textContent = `${Math.round(percentage)}%`;
+            }
+        }
+
+        function setZoom(newZ) {
+            camera.position.z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZ));
+            updateZoomUI();
         }
 
         function setupControls() {
@@ -426,12 +441,18 @@
                 const sectionToggle = target.closest('.section-toggle');
                 if (sectionToggle) {
                     sectionToggle.classList.toggle('is-active');
-                    const container = sectionToggle.parentElement.nextElementSibling;
+                    const container = sectionToggle.closest('.section-title').nextElementSibling;
                     if (container && container.classList.contains('collapsible-container')) {
                         container.classList.toggle('is-visible');
                     }
                     return;
                 }
+                
+                const zoomInBtn = target.closest('#zoom-in-btn');
+                if (zoomInBtn) { setZoom(camera.position.z - 0.5); return; }
+
+                const zoomOutBtn = target.closest('#zoom-out-btn');
+                if (zoomOutBtn) { setZoom(camera.position.z + 0.5); return; }
 
                 const screenshotBtn = target.closest('#screenshot-btn');
                 if (screenshotBtn) {
@@ -481,7 +502,7 @@
                         const dx = e.touches[0].clientX - e.touches[1].clientX;
                         const dy = e.touches[0].clientY - e.touches[1].clientY;
                         const distance = Math.sqrt(dx*dx + dy*dy);
-                        camera.position.z = Math.max(3, Math.min(15, camera.position.z / (distance / startDistance)));
+                        setZoom(camera.position.z / (distance / startDistance));
                         startDistance = distance;
                     }
                 } else if (!isMobile) {
@@ -492,7 +513,7 @@
             };
             const onWheel = (e) => {
                 e.preventDefault();
-                camera.position.z = Math.max(3, Math.min(15, camera.position.z + e.deltaY * 0.01));
+                setZoom(camera.position.z + e.deltaY * 0.01);
             };
             canvas.addEventListener(isMobile ? 'touchstart' : 'mousedown', onPointerDown, { passive: true });
             canvas.addEventListener(isMobile ? 'touchend' : 'mouseup', onPointerUp);
