@@ -16,7 +16,7 @@
             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
             min-height: 100vh;
             color: #fff;
-            overflow-x: hidden;
+            /* REMOVED: overflow-x: hidden; This was the source of the conflict. */
         }
 
         .container {
@@ -286,7 +286,7 @@
             border-radius: 15px;
             padding: 15px;
             margin-bottom: 20px;
-            overflow-x: auto; /* Permite el scroll horizontal si el contenido es muy ancho */
+            overflow-x: auto; 
             border: 1px solid rgba(0, 245, 255, 0.3);
         }
 
@@ -299,10 +299,9 @@
             text-align: center;
         }
         
-        /* --- ESTILOS DEFINITIVOS PARA LA TABLA --- */
         .table-body {
-            display: inline-flex; /* Hace que el contenedor se ajuste al ancho de su contenido */
-            align-items: stretch; /* Asegura que todos los elementos hijos tengan la misma altura */
+            display: inline-flex; 
+            align-items: stretch;
             gap: 15px;
             font-family: 'Courier New', monospace;
         }
@@ -315,7 +314,7 @@
         
         .number-row {
             display: flex;
-            flex-wrap: nowrap; /* Impide que los números de una fila se partan en varias líneas */
+            flex-wrap: nowrap;
             gap: 15px;
             min-height: 48px;
             align-items: center;
@@ -374,7 +373,6 @@
             border-radius: 8px;
             border: 1px solid rgba(0, 245, 255, 0.3);
         }
-        /* --- FIN DE ESTILOS DEFINITIVOS --- */
 
         .explanation {
             background: rgba(128, 0, 255, 0.1);
