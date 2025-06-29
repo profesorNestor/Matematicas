@@ -11,10 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* * MEJORA: Paleta de colores renovada y variables CSS para fácil personalización.
-         * He elegido un violeta vibrante como color primario para un look más moderno.
-         * Las variables permiten cambiar el tema (claro/oscuro) de forma sencilla.
-        */
+        /* MEJORA: Paleta de colores renovada y variables CSS para fácil personalización */
         :root {
             --bg-light: #f4f7fa;
             --card-light: rgba(255, 255, 255, 0.6);
@@ -27,8 +24,8 @@
             --primary: #8b5cf6; 
             --primary-hover: #7c3aed;
             
-            /* **NUEVO**: Variable para el fondo de los inputs para mayor contraste */
-            --input-bg: rgba(248, 250, 252, 0.6); /* Color sutil para modo claro */
+            /* Variable para el fondo de los inputs para mayor contraste */
+            --input-bg: rgba(248, 250, 252, 0.6);
         }
         .dark {
             --bg-light: #0f172a;
@@ -37,22 +34,20 @@
             --text-secondary-light: #94a3b8;
             --border-light: rgba(51, 65, 85, 0.8);
             --shadow-light: rgba(0, 0, 0, 0.2);
-
-            /* **NUEVO**: Variable para el fondo de los inputs en modo oscuro */
-            --input-bg: rgba(51, 65, 85, 0.5); /* Color sutil para modo oscuro */
+            --input-bg: rgba(51, 65, 85, 0.5);
         }
         html, body {
             height: 100%;
         }
         body { 
-            font-family: 'Poppins', sans-serif; /* MEJORA: Fuente más moderna */
+            font-family: 'Poppins', sans-serif;
             background-color: var(--bg-light); 
             color: var(--text-secondary-light); 
             transition: background-color 0.5s ease, color 0.5s ease;
             display: flex;
             flex-direction: column;
         }
-        /* MEJORA: Gradiente de fondo más sutil y profesional */
+        /* MEJORA SUTIL: Gradiente de fondo más elegante */
         .animated-gradient { 
             background: linear-gradient(-45deg, #4f46e5, #7c3aed, #0ea5e9, #14b8a6);
             background-size: 400% 400%; 
@@ -68,7 +63,7 @@
             50% { background-position: 100% 50%; } 
             100% { background-position: 0% 50%; } 
         }
-        /* MEJORA: Efecto "glassmorphism" refinado con un borde sutil */
+        /* MEJORA SUTIL: Efecto "glassmorphism" un poco más refinado */
         .glass-card { 
             background-color: var(--card-light); 
             backdrop-filter: blur(28px) saturate(180%); 
@@ -79,24 +74,48 @@
         }
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { 
+            background-color: rgba(156, 163, 175, 0.5); 
+            border-radius: 10px; 
+            border: 2px solid transparent; 
+            background-clip: content-box; 
+        }
         
-        /* MEJORA: Estilo de los selectores personalizados */
+        /* Estilo de los selectores personalizados */
         .custom-select-wrapper { position: relative; }
-        .custom-options { z-index: 10; max-height: 250px; overflow-y: auto; border: 1px solid var(--border-light); background-color: var(--card-light); backdrop-filter: blur(10px); }
-        .custom-option:hover { background-color: var(--primary); color: white !important; }
-        .custom-option.selected { background-color: var(--primary); color: white !important; font-weight: 600; }
+        .custom-options { 
+            z-index: 10; 
+            max-height: 250px; 
+            overflow-y: auto; 
+            border: 1px solid var(--border-light); 
+            background-color: var(--card-light); 
+            backdrop-filter: blur(10px); 
+        }
+        .custom-option:hover { 
+            background-color: var(--primary); 
+            color: white !important; 
+        }
+        .custom-option.selected { 
+            background-color: var(--primary); 
+            color: white !important; 
+            font-weight: 600; 
+        }
         
-        /* MEJORA: Estilo de las pestañas */
+        /* Estilo de las pestañas */
         .tab-active { 
             background-color: var(--primary) !important; 
             color: white !important; 
             box-shadow: 0 4px 14px -4px var(--primary); 
         }
-        .primary-text { color: var(--text-primary-light); text-shadow: 0 1px 2px var(--shadow-light); }
-        .secondary-text { color: var(--text-secondary-light); }
+        .primary-text { 
+            color: var(--text-primary-light); 
+            text-shadow: 0 1px 2px var(--shadow-light); 
+        }
+        .secondary-text { 
+            color: var(--text-secondary-light); 
+        }
 
-        /* MEJORA: Botones de acción en el input con mejor feedback visual */
+        /* MEJORA SUTIL: Botones de acción en el input con mejor feedback visual */
         .input-action-btn {
             padding: 0.35rem;
             border-radius: 9999px;
@@ -110,102 +129,458 @@
             transform: scale(0.95);
         }
         
-        /* **NUEVO**: Clase de utilidad para aplicar el fondo con contraste a los inputs */
+        /* Clase de utilidad para aplicar el fondo con contraste a los inputs */
         .input-contrast-bg {
             background-color: var(--input-bg);
+        }
+
+        /* MEJORA RESPONSIVE: Breakpoints específicos y adaptaciones por dispositivo */
+        
+        /* Mobile First - Smartphone (320px - 768px) */
+        @media (max-width: 767px) {
+            .glass-card {
+                margin: 8px;
+                border-radius: 20px;
+            }
+            
+            .mobile-stack {
+                flex-direction: column !important;
+                gap: 1rem !important;
+            }
+            
+            .mobile-full-width {
+                width: 100% !important;
+            }
+            
+            .mobile-compact {
+                padding: 0.75rem !important;
+                font-size: 0.875rem !important;
+            }
+            
+            .mobile-result-text {
+                font-size: 2.5rem !important;
+            }
+            
+            .mobile-hide {
+                display: none !important;
+            }
+            
+            .mobile-center {
+                text-align: center !important;
+            }
+        }
+        
+        /* Tablet - (768px - 1024px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .tablet-grid {
+                grid-template-columns: 1fr 1fr !important;
+            }
+            
+            .tablet-compact {
+                padding: 1rem !important;
+            }
+            
+            .tablet-result-text {
+                font-size: 4rem !important;
+            }
+        }
+        
+        /* Desktop - (1024px+) */
+        @media (min-width: 1024px) {
+            .desktop-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+            }
+            
+            .desktop-hover-effects:hover {
+                transform: translateY(-2px) scale(1.02);
+            }
+        }
+        
+        /* Detección de dispositivos táctiles */
+        @media (hover: none) and (pointer: coarse) {
+            .touch-device .action-btn-magical:hover {
+                transform: scale(1.1) !important;
+            }
+            
+            .touch-device .btn-magical:hover {
+                transform: translateY(-1px) scale(1.01) !important;
+            }
+        }
+        
+        /* Orientación landscape en móviles */
+        @media (max-width: 767px) and (orientation: landscape) {
+            .landscape-row {
+                flex-direction: row !important;
+                justify-content: space-between !important;
+            }
+            
+            .landscape-compact {
+                padding: 0.5rem !important;
+            }
+        }
+        
+        /* Variables responsive para tamaños dinámicos */
+        :root {
+            --mobile-padding: 0.75rem;
+            --tablet-padding: 1rem;
+            --desktop-padding: 1.5rem;
+            
+            --mobile-gap: 0.75rem;
+            --tablet-gap: 1rem;
+            --desktop-gap: 1.5rem;
+            
+            --mobile-text: 0.875rem;
+            --tablet-text: 1rem;
+            --desktop-text: 1.125rem;
+        }
+        
+        /* Container responsive específico */
+        .responsive-container {
+            width: 100%;
+            max-width: 95vw;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 640px) {
+            .responsive-container {
+                max-width: 90vw;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .responsive-container {
+                max-width: 85vw;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .responsive-container {
+                max-width: 80vw;
+            }
+        }
+        
+        @media (min-width: 1280px) {
+            .responsive-container {
+                max-width: 1200px;
+            }
+        }
+        
+        /* Animación de entrada para botones */
+        @keyframes slideInFromLeft {
+            from {
+                transform: translateX(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideInFromRight {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        /* Efectos hover espectaculares para pestañas */
+        .tab-hover-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .tab-hover-effect::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+        
+        .tab-hover-effect:hover::before {
+            left: 100%;
+        }
+        
+        /* Efectos para botones principales */
+        .btn-magical {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-magical::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transition: width 0.4s, height 0.4s, top 0.4s, left 0.4s;
+        }
+        
+        .btn-magical:hover::after {
+            width: 300px;
+            height: 300px;
+            top: -150px;
+            left: -150px;
+        }
+        
+        .btn-magical:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(139, 92, 246, 0.4);
+        }
+        
+        /* Efectos para el área de resultado */
+        .result-glow {
+            animation: pulse-glow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes pulse-glow {
+            from {
+                box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+            }
+            to {
+                box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
+            }
+        }
+        
+        /* Efectos para inputs */
+        .input-magical {
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .input-magical:focus {
+            transform: scale(1.02);
+            box-shadow: 
+                0 0 0 3px rgba(139, 92, 246, 0.3),
+                0 10px 25px rgba(139, 92, 246, 0.2);
+        }
+        
+        /* Efectos para selectores */
+        .selector-magical {
+            transition: all 0.3s ease;
+        }
+        
+        .selector-magical:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.2);
+        }
+        
+        /* Efectos para botones de acción */
+        .action-btn-magical {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .action-btn-magical:hover {
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: white;
+            transform: scale(1.3) rotate(10deg);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+        
+        /* Animaciones de entrada para elementos */
+        .animate-slide-in-left {
+            animation: slideInFromLeft 0.6s ease-out;
+        }
+        
+        .animate-slide-in-right {
+            animation: slideInFromRight 0.6s ease-out;
+        }
+        
+        .animate-scale-in {
+            animation: scaleIn 0.5s ease-out;
+        }
+        
+        /* Efecto de escritura para títulos */
+        .typing-effect {
+            border-right: 2px solid var(--primary);
+            animation: blink 1s infinite;
+        }
+        
+        @keyframes blink {
+            0%, 50% { border-color: var(--primary); }
+            51%, 100% { border-color: transparent; }
         }
     </style>
 </head>
 <body class="dark:bg-gray-900">
     <div class="animated-gradient"></div>
 
-    <div class="w-full flex-grow flex items-center justify-center p-4 sm:p-6 md:p-8">
-        <main class="w-full max-w-4xl glass-card rounded-3xl shadow-2xl"> <!-- MEJORA: Bordes más redondeados -->
-            <header class="p-6 border-b border-[var(--border-light)] flex justify-between items-center">
-                <div>
-                    <!-- MEJORA: Tipografía más grande y con más peso -->
-                    <h1 class="text-3xl font-bold primary-text">Conversor PRO</h1>
-                    <p class="text-base secondary-text mt-1">Tu herramienta de conversión definitiva</p>
+    <div class="w-full flex-grow flex items-center justify-center p-2 sm:p-4 md:p-6 lg:p-8">
+        <main class="responsive-container glass-card rounded-2xl sm:rounded-3xl shadow-2xl">
+            <header class="p-4 sm:p-6 border-b border-[var(--border-light)] flex flex-col sm:flex-row justify-between items-center gap-4 sm:gap-0">
+                <div class="animate-slide-in-left text-center sm:text-left">
+                    <h1 class="text-2xl sm:text-3xl lg:text-4xl font-bold primary-text typing-effect">🌟 Conversor PRO ⚡</h1>
+                    <p class="text-sm sm:text-base lg:text-lg secondary-text mt-1">🚀 Tu herramienta de conversión definitiva 🎯</p>
                 </div>
-                <button id="themeToggle" class="w-12 h-6 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center transition-colors duration-300 focus:outline-none shadow-inner">
-                    <span id="themeToggleDot" class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300"></span>
+                <button id="themeToggle" class="w-12 h-6 sm:w-14 sm:h-7 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center transition-all duration-300 focus:outline-none shadow-lg hover:scale-110 hover:shadow-xl relative animate-slide-in-right">
+                    <span id="themeToggleDot" class="w-5 h-5 sm:w-6 sm:h-6 bg-white rounded-full shadow-md transition-transform duration-300 absolute left-0.5"></span>
                 </button>
             </header>
 
-            <div class="p-6">
-                <div id="mainTabs" class="flex flex-wrap items-center gap-3 mb-6"></div>
+            <div class="p-4 sm:p-6 lg:p-8">
+                <div id="mainTabs" class="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-3 mb-4 sm:mb-6"></div>
                 
                 <div id="converter-view">
-                    <div id="subTabsContainer" class="flex flex-wrap items-center gap-2 mb-6 border-t border-[var(--border-light)] pt-5"></div>
-                    <div class="flex flex-col gap-8"> <!-- MEJORA: Mayor espaciado entre elementos -->
-                        <div id="magnitudeDescription" class="p-4 rounded-xl bg-slate-500/10 text-center primary-text h-16 flex items-center justify-center font-mono text-xl"></div>
-                        <div>
-                            <label for="inputValue" class="block text-base font-medium mb-2 primary-text">Valor a Convertir</label>
+                    <div id="subTabsContainer" class="flex flex-wrap justify-center sm:justify-start items-center gap-2 sm:gap-3 mb-4 sm:mb-6 border-t border-[var(--border-light)] pt-4 sm:pt-5"></div>
+                    <div class="flex flex-col gap-6 sm:gap-8 lg:gap-10">
+                        <div id="magnitudeDescription" class="p-3 sm:p-4 lg:p-6 rounded-xl bg-slate-500/10 text-center primary-text h-12 sm:h-16 lg:h-20 flex items-center justify-center font-mono text-lg sm:text-xl lg:text-2xl"></div>
+                        
+                        <div class="animate-scale-in">
+                            <label for="inputValue" class="block text-sm sm:text-base lg:text-lg font-medium mb-2 primary-text mobile-center">💯 Valor a Convertir 📊</label>
                             <div class="relative">
-                                <!-- MEJORA: Se cambió `bg-transparent` por la nueva clase `input-contrast-bg` para mayor contraste -->
-                                <input type="number" id="inputValue" value="1" class="w-full pl-5 pr-28 py-4 rounded-xl border input-contrast-bg border-[var(--border-light)] focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all primary-text text-xl">
-                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 gap-1">
-                                    <button id="clearInput" class="input-action-btn" title="Limpiar">
-                                         <svg class="w-6 h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                <input type="number" id="inputValue" value="1" class="input-magical w-full pl-4 sm:pl-5 pr-24 sm:pr-28 py-3 sm:py-4 text-lg sm:text-xl lg:text-2xl rounded-xl border input-contrast-bg border-[var(--border-light)] focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all primary-text">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-2 sm:pr-3 gap-1">
+                                    <button id="clearInput" class="action-btn-magical input-action-btn p-1.5 sm:p-2" title="🗑️ Limpiar">
+                                         <svg class="w-5 h-5 sm:w-6 sm:h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
                                     </button>
-                                    <button id="decrementInput" class="input-action-btn" title="Decrementar">
-                                         <svg class="w-6 h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
+                                    <button id="decrementInput" class="action-btn-magical input-action-btn p-1.5 sm:p-2" title="➖ Decrementar">
+                                         <svg class="w-5 h-5 sm:w-6 sm:h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
                                     </button>
-                                    <button id="incrementInput" class="input-action-btn" title="Incrementar">
-                                        <svg class="w-6 h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                    <button id="incrementInput" class="action-btn-magical input-action-btn p-1.5 sm:p-2" title="➕ Incrementar">
+                                        <svg class="w-5 h-5 sm:w-6 sm:h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        <div class="flex flex-col sm:flex-row items-center gap-4">
-                            <div class="w-full" id="fromUnitContainer"></div>
-                            <!-- MEJORA: Botón de intercambio más prominente -->
-                            <button id="swapBtn" class="mt-2 sm:mt-7 flex-shrink-0 p-4 rounded-full border border-[var(--border-light)] bg-slate-500/10 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] hover:rotate-180 transition-all duration-300 secondary-text">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                        <div class="flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
+                            <div class="w-full animate-slide-in-left" id="fromUnitContainer"></div>
+                            <button id="swapBtn" class="btn-magical mt-2 lg:mt-7 flex-shrink-0 p-3 sm:p-4 rounded-full border border-[var(--border-light)] bg-slate-500/10 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] hover:rotate-180 transition-all duration-300 secondary-text order-3 lg:order-2" title="🔄 Intercambiar unidades">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
                             </button>
-                            <div class="w-full" id="toUnitContainer"></div>
+                            <div class="w-full animate-slide-in-right order-2 lg:order-3" id="toUnitContainer"></div>
                         </div>
                         
-                        <!-- MEJORA: Área de resultado más destacada -->
-                        <div class="h-full flex flex-col justify-center bg-slate-500/10 rounded-xl p-6 relative">
-                             <div class="flex justify-between items-start">
-                                <div>
-                                    <label class="block text-base font-medium mb-1">Resultado</label>
-                                    <p id="resultText" class="text-6xl font-bold text-[var(--primary)] break-words">1.00</p>
-                                    <div id="resultUnit" class="text-xl h-8 secondary-text mt-1"></div>
+                        <div class="result-glow h-full flex flex-col justify-center bg-slate-500/10 rounded-xl p-4 sm:p-6 lg:p-8 relative animate-scale-in">
+                             <div class="flex flex-col sm:flex-row justify-between items-start gap-4 sm:gap-0">
+                                <div class="w-full sm:w-auto text-center sm:text-left">
+                                    <label class="block text-sm sm:text-base lg:text-lg font-medium mb-1">🎯 Resultado Mágico ✨</label>
+                                    <p id="resultText" class="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-[var(--primary)] break-words mobile-result-text tablet-result-text">1.00</p>
+                                    <div id="resultUnit" class="text-lg sm:text-xl lg:text-2xl h-6 sm:h-8 lg:h-10 secondary-text mt-1"></div>
                                 </div>
-                                <button id="copyBtn" class="p-2.5 rounded-lg hover:bg-slate-500/20 transition-colors" title="Copiar resultado">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                    <span id="copyFeedback" class="absolute top-0 right-0 -mr-4 -mt-4 bg-green-500 text-white text-xs rounded-full px-2 py-1 opacity-0 transition-all pointer-events-none">¡Copiado!</span>
+                                <button id="copyBtn" class="btn-magical p-2 sm:p-2.5 lg:p-3 rounded-lg hover:bg-slate-500/20 transition-all self-center sm:self-start" title="📋 Copiar resultado">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 sm:h-7 sm:w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                    <span id="copyFeedback" class="absolute top-0 right-0 -mr-4 -mt-4 bg-green-500 text-white text-xs rounded-full px-2 py-1 opacity-0 transition-all pointer-events-none">📋 ¡Copiado! ✅</span>
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="constants-view" class="hidden custom-scrollbar max-h-96 overflow-y-auto">
+                <div id="constants-view" class="hidden custom-scrollbar max-h-80 sm:max-h-96 lg:max-h-[500px] overflow-y-auto">
                     <!-- Las constantes físicas se inyectarán aquí por JavaScript -->
                 </div>
             </div>
         </main>
     </div>
     <footer class="text-center text-white/70 text-sm py-4 flex-shrink-0">
-        <p>Interfaz rediseñada por Gemini AI. Funcionalidad original de Néstor Fabio Montoya Palacios.</p>
+        <p>✨ Interfaz mejorada por Claude AI 🤖 | Funcionalidad original de Néstor Fabio Montoya Palacios 👨‍💻</p>
     </footer>
 
 <script>
-    // =================================================================================================
-    // IMPORTANTE: TODA LA LÓGICA DE CONVERSIÓN DE JAVASCRIPT SE HA MANTENIDO 100% IDÉNTICA.
-    // Los únicos cambios en el script son para ajustar las clases CSS y asegurar que la nueva 
-    // interfaz funcione correctamente, sin alterar el núcleo funcional del programa.
-    // =================================================================================================
     document.addEventListener('DOMContentLoaded', () => {
+        // DETECCIÓN DE DISPOSITIVO Y CONFIGURACIÓN RESPONSIVE
+        const detectDeviceAndSetup = () => {
+            const isMobile = window.innerWidth <= 767;
+            const isTablet = window.innerWidth >= 768 && window.innerWidth <= 1023;
+            const isDesktop = window.innerWidth >= 1024;
+            const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+            
+            // Agregar clases al body según el dispositivo
+            document.body.classList.remove('mobile-device', 'tablet-device', 'desktop-device', 'touch-device');
+            
+            if (isMobile) {
+                document.body.classList.add('mobile-device');
+                console.log('📱 Dispositivo móvil detectado');
+            } else if (isTablet) {
+                document.body.classList.add('tablet-device');
+                console.log('📟 Tablet detectado');
+            } else if (isDesktop) {
+                document.body.classList.add('desktop-device');
+                console.log('🖥️ Desktop detectado');
+            }
+            
+            if (isTouchDevice) {
+                document.body.classList.add('touch-device');
+                console.log('👆 Dispositivo táctil detectado');
+            }
+            
+            // Configurar variables CSS dinámicas
+            const root = document.documentElement;
+            if (isMobile) {
+                root.style.setProperty('--dynamic-padding', '0.75rem');
+                root.style.setProperty('--dynamic-gap', '0.75rem');
+                root.style.setProperty('--dynamic-text', '0.875rem');
+            } else if (isTablet) {
+                root.style.setProperty('--dynamic-padding', '1rem');
+                root.style.setProperty('--dynamic-gap', '1rem');
+                root.style.setProperty('--dynamic-text', '1rem');
+            } else {
+                root.style.setProperty('--dynamic-padding', '1.5rem');
+                root.style.setProperty('--dynamic-gap', '1.5rem');
+                root.style.setProperty('--dynamic-text', '1.125rem');
+            }
+            
+            return { isMobile, isTablet, isDesktop, isTouchDevice };
+        };
+        
+        // Detectar orientación en móviles
+        const handleOrientationChange = () => {
+            if (window.innerWidth <= 767) {
+                const isLandscape = window.innerWidth > window.innerHeight;
+                document.body.classList.toggle('landscape-mode', isLandscape);
+                
+                if (isLandscape) {
+                    console.log('📱 Modo horizontal detectado');
+                } else {
+                    console.log('📱 Modo vertical detectado');
+                }
+            }
+        };
+        
+        // Event listeners para cambios de pantalla
+        window.addEventListener('resize', () => {
+            detectDeviceAndSetup();
+            handleOrientationChange();
+        });
+        
+        window.addEventListener('orientationchange', () => {
+            setTimeout(handleOrientationChange, 100);
+        });
+        
+        // Inicializar detección
+        const deviceInfo = detectDeviceAndSetup();
+        handleOrientationChange();
+
         const initializeApp = () => {
             const unitData = {
                 basics: {
                     name: "Fundamentales",
-                    icon: '�',
+                    icon: '📏',
                     magnitudes: {
                         length: { name: "Longitud", description: "L", units: { m: {factor: 1, label:"Metro (m)"}, km: {factor: 1000, label:"Kilómetro (km)"}, cm: {factor: 0.01, label:"Centímetro (cm)"}, mm: {factor: 0.001, label:"Milímetro (mm)"}, um: {factor: 1e-6, label:"Micrómetro (µm)"}, nm: {factor: 1e-9, label:"Nanómetro (nm)"}, in: {factor: 0.0254, label:"Pulgada (in)"}, ft: {factor: 0.3048, label:"Pie (ft)"}, yd: {factor: 0.9144, label:"Yarda (yd)"}, mi: {factor: 1609.34, label:"Milla (mi)"}, nmi: {factor: 1852, label:"Milla náutica (nmi)"}, ly: {factor: 9.461e15, label:"Año luz (ly)"}, parsec: {factor: 3.086e16, label:"Parsec (pc)"}, angstrom: {factor: 1e-10, label:"Angstrom (Å)"}, furlong: {factor: 201.168, label:"Furlong"}, chain: {factor: 20.1168, label:"Chain"}, rod: {factor: 5.0292, label:"Rod"} } },
                         mass: { name: "Masa", description: "M", units: { kg: {factor: 1, label:"Kilogramo (kg)"}, g: {factor: 0.001, label:"Gramo (g)"}, mg: {factor: 1e-6, label:"Miligramo (mg)"}, ug: {factor: 1e-9, label:"Microgramo (µg)"}, t: {factor: 1000, label:"Tonelada métrica (t)"}, ton_us: {factor: 907.185, label:"Tonelada (US)"}, ton_uk: {factor: 1016.05, label:"Tonelada (UK)"}, lb: {factor: 0.453592, label:"Libra (lb)"}, oz: {factor: 0.0283495, label:"Onza (oz)"}, stone: {factor: 6.35029, label:"Stone (st)"}, carat: {factor: 0.0002, label:"Quilate (ct)"}, grain: {factor: 6.47989e-5, label:"Grano"} } },
@@ -217,7 +592,7 @@
                 },
                 mechanics: {
                     name: "Mecánica",
-                    icon: '⚙️',
+                    icon: '⚙',
                     magnitudes: {
                         velocity: { name: "Velocidad", description: "v = d/t", units: { "m/s": {factor: 1, label:"Metro/seg (m/s)"}, "km/h": {factor: 1/3.6, label:"Kilómetro/hora (km/h)"}, mph: {factor: 0.44704, label:"Milla/hora (mph)"}, "ft/s": {factor: 0.3048, label:"Pie/seg (ft/s)"}, knot: {factor: 0.514444, label:"Nudo (knot)"}, c: {factor: 299792458, label:"Velocidad de la luz (c)"} } },
                         acceleration: { name: "Aceleración", description: "a = Δv/t", units: { "m/s2": {factor: 1, label:"Metro/seg² (m/s²)"}, gal: {factor: 0.01, label:"Gal"}, g_force: {factor: 9.80665, label:"Fuerza G (g)"} } },
@@ -326,17 +701,16 @@
                 const wrapper = document.createElement('div');
                 wrapper.className = 'custom-select-wrapper w-full';
                 const selectedLabel = magnitudeData.units[selectedValue].label;
-                // **CAMBIO**: Se reemplazó `bg-transparent` con `input-contrast-bg` en el div del selector.
                 wrapper.innerHTML = `
-                    <label class="block text-base font-medium mb-2 primary-text">${label}</label>
+                    <label class="block text-sm sm:text-base lg:text-lg font-medium mb-2 primary-text">${label}</label>
                     <div class="relative">
-                        <div class="w-full p-4 rounded-xl cursor-pointer flex justify-between items-center border border-[var(--border-light)] input-contrast-bg" data-trigger>
-                            <span class="primary-text text-lg">${selectedLabel}</span>
-                            <svg class="h-5 w-5 secondary-text" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        <div class="selector-magical w-full p-3 sm:p-4 rounded-xl cursor-pointer flex justify-between items-center border border-[var(--border-light)] input-contrast-bg" data-trigger>
+                            <span class="primary-text text-base sm:text-lg truncate mr-2">${selectedLabel}</span>
+                            <svg class="h-4 w-4 sm:h-5 sm:w-5 secondary-text flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
                         </div>
-                        <div class="custom-options absolute top-full left-0 right-0 mt-1 rounded-lg shadow-lg hidden custom-scrollbar">
-                            <input type="text" placeholder="Buscar unidad..." class="sticky top-0 w-full p-3 border-b border-[var(--border-light)] bg-inherit focus:outline-none primary-text" data-search>
-                            <div data-list></div>
+                        <div class="custom-options absolute top-full left-0 right-0 mt-1 rounded-lg shadow-lg hidden custom-scrollbar z-50">
+                            <input type="text" placeholder="🔍 Buscar..." class="sticky top-0 w-full p-2 sm:p-3 border-b border-[var(--border-light)] bg-inherit focus:outline-none primary-text text-sm sm:text-base" data-search>
+                            <div data-list class="max-h-40 sm:max-h-60 overflow-y-auto"></div>
                         </div>
                     </div>`;
 
@@ -384,9 +758,9 @@
                 el.magnitudeDescription.textContent = magData.description || magData.name;
 
                 el.fromUnitContainer.innerHTML = '';
-                el.fromUnitContainer.appendChild(createCustomSelect('fromUnit', 'Desde', magData, state.from));
+                el.fromUnitContainer.appendChild(createCustomSelect('fromUnit', '⬅️ Desde', magData, state.from));
                 el.toUnitContainer.innerHTML = '';
-                el.toUnitContainer.appendChild(createCustomSelect('toUnit', 'Hacia', magData, state.to));
+                el.toUnitContainer.appendChild(createCustomSelect('toUnit', '➡️ Hacia', magData, state.to));
                 
                 convert();
             };
@@ -427,33 +801,48 @@
 
             const renderMainTabs = () => {
                 el.mainTabs.innerHTML = '';
+                const isMobile = document.body.classList.contains('mobile-device');
+                
                 const converterTab = document.createElement('button');
-                converterTab.className = `px-5 py-2.5 rounded-xl text-base font-semibold transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.activeView === 'converter' ? 'tab-active' : ''}`;
-                converterTab.innerHTML = `<span class="mr-2">🔢</span> Conversor`;
+                converterTab.className = `tab-hover-effect btn-magical px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.activeView === 'converter' ? 'tab-active' : ''}`;
+                converterTab.innerHTML = isMobile ? `🔢 Conv ⚡` : `<span class="mr-2">🔢</span> Conversor <span class="ml-1">⚡</span>`;
                 converterTab.dataset.view = 'converter';
                 el.mainTabs.appendChild(converterTab);
                 
                 const constantsTab = document.createElement('button');
-                constantsTab.className = `px-5 py-2.5 rounded-xl text-base font-semibold transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.activeView === 'constants' ? 'tab-active' : ''}`;
-                constantsTab.innerHTML = `<span class="mr-2">🌌</span> Constantes`;
+                constantsTab.className = `tab-hover-effect btn-magical px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg sm:rounded-xl text-sm sm:text-base font-semibold transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.activeView === 'constants' ? 'tab-active' : ''}`;
+                constantsTab.innerHTML = isMobile ? `🌌 Const 🔬` : `<span class="mr-2">🌌</span> Constantes <span class="ml-1">🔬</span>`;
                 constantsTab.dataset.view = 'constants';
                 el.mainTabs.appendChild(constantsTab);
             };
 
             const renderConverterTabs = () => {
                 el.subTabsContainer.innerHTML = '';
+                const isMobile = document.body.classList.contains('mobile-device');
+                const isTablet = document.body.classList.contains('tablet-device');
+                
                 Object.keys(unitData).forEach(catKey => {
                     const category = unitData[catKey];
                     const tab = document.createElement('button');
-                    tab.className = `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.category === catKey ? 'tab-active' : ''}`;
-                    tab.innerHTML = `<span class="hidden sm:inline-block mr-2">${category.icon}</span> ${category.name}`;
+                    tab.className = `tab-hover-effect btn-magical px-2 sm:px-4 py-1.5 sm:py-2 rounded-md sm:rounded-lg text-xs sm:text-sm font-medium transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.category === catKey ? 'tab-active' : ''}`;
+                    
+                    // Texto adaptativo según dispositivo
+                    if (isMobile) {
+                        tab.innerHTML = `${category.icon}`;
+                        tab.title = category.name; // Tooltip para móviles
+                    } else if (isTablet) {
+                        tab.innerHTML = `${category.icon} ${category.name.substring(0, 8)}`;
+                    } else {
+                        tab.innerHTML = `<span class="hidden sm:inline-block mr-2">${category.icon}</span> ${category.name}`;
+                    }
+                    
                     tab.dataset.category = catKey;
                     el.subTabsContainer.appendChild(tab);
                 });
 
                 const subTabsContainer = document.createElement('div');
                 subTabsContainer.id = "magnitude-sub-tabs";
-                subTabsContainer.className = "w-full flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-dashed border-[var(--border-light)]";
+                subTabsContainer.className = "w-full flex flex-wrap justify-center sm:justify-start items-center gap-1 sm:gap-2 mt-3 sm:mt-4 pt-3 sm:pt-4 border-t border-dashed border-[var(--border-light)]";
                 
                 const oldSubTabs = document.getElementById('magnitude-sub-tabs');
                 if(oldSubTabs) oldSubTabs.remove();
@@ -461,8 +850,19 @@
                 const magnitudes = unitData[state.category].magnitudes;
                 Object.keys(magnitudes).forEach(magKey => {
                     const subTab = document.createElement('button');
-                    subTab.className = `px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${state.magnitude === magKey ? 'bg-violet-100 dark:bg-violet-800/40 text-[var(--primary)] font-semibold' : 'hover:bg-slate-500/10 secondary-text'}`;
-                    subTab.textContent = magnitudes[magKey].name;
+                    subTab.className = `selector-magical px-2 sm:px-3 py-1 sm:py-1.5 rounded text-xs sm:text-sm font-medium transition-all ${state.magnitude === magKey ? 'bg-violet-100 dark:bg-violet-800/40 text-[var(--primary)] font-semibold' : 'hover:bg-slate-500/10 secondary-text'}`;
+                    
+                    // Texto compacto para móviles
+                    if (isMobile) {
+                        const shortName = magnitudes[magKey].name.length > 8 ? 
+                            magnitudes[magKey].name.substring(0, 6) + '...' : 
+                            magnitudes[magKey].name;
+                        subTab.textContent = shortName;
+                        subTab.title = magnitudes[magKey].name;
+                    } else {
+                        subTab.textContent = magnitudes[magKey].name;
+                    }
+                    
                     subTab.dataset.magnitude = magKey;
                     subTabsContainer.appendChild(subTab);
                 });
@@ -523,19 +923,20 @@
                 const applyTheme = (isDark) => {
                     if (isDark) {
                         document.documentElement.classList.add('dark');
-                        el.themeToggleDot.classList.add('translate-x-5');
+                        el.themeToggleDot.style.transform = 'translateX(20px)';
                     } else {
                         document.documentElement.classList.remove('dark');
-                        el.themeToggleDot.classList.remove('translate-x-5');
+                        el.themeToggleDot.style.transform = 'translateX(0px)';
                     }
                 }
 
                 const currentTheme = localStorage.getItem('theme_v7_pro');
                 const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                applyTheme(currentTheme === 'dark' || (currentTheme === null && prefersDark));
+                const isDarkMode = currentTheme === 'dark' || (currentTheme === null && prefersDark);
+                applyTheme(isDarkMode);
 
                 el.themeToggle.addEventListener('click', () => {
-                    const isDark = document.documentElement.classList.toggle('dark');
+                    const isDark = !document.documentElement.classList.contains('dark');
                     applyTheme(isDark);
                     localStorage.setItem('theme_v7_pro', isDark ? 'dark' : 'light');
                 });

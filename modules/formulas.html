@@ -3,363 +3,2551 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario Matemático Completo</title>
+    <title>📚 Banco de Fórmulas Matemáticas</title>
     
-    <!-- KaTeX for LaTeX rendering -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0KOVEMeaKzdwkXqfN9TE1WeJ+seGmr2enIMYTbeG7GDTEjpP973Gm" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzYCcm2ZGMOKubJUF-KPlpFS/UT2N0Eu8F" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <!-- KaTeX para renderizar fórmulas matemáticas -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+      onload="renderMathInElement(document.body);"></script>
+    
+    <!-- Íconos y emojis modernos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
+    <!-- Estilos CSS ultramodernos y efectos glassmorphism -->
     <style>
         :root {
-            --bg-dark: #0d1117;
-            --bg-light: #161b22;
-            --border-color: #30363d;
-            --text-primary: #c9d1d9;
-            --text-secondary: #8b949e;
-            --accent-color: #58a6ff;
-            --accent-hover: #1f6feb;
+            --color-bg-main: linear-gradient(135deg, #232526 0%, #2c3e50 100%);
+            --color-glass: rgba(40, 54, 75, 0.90);
+            --color-accent: #58a6ff;
+            --color-glass-blur: blur(8px);
+            --shadow-main: 0 8px 32px 0 rgba(31, 38, 135, 0.2);
+            --radius-main: 22px;
+            --color-title: #ffffff;
+            --color-text: #e0e6ef;
+            --color-subtle: #bdc3c7;
+            --color-block: rgba(44, 62, 80, 0.8);
         }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", Helvetica, Arial, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-primary);
+        html, body {
+            min-height: 100%;
             margin: 0;
-            padding: 2rem;
-            line-height: 1.7;
+            padding: 0;
         }
-
+        body {
+            font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+            background: var(--color-bg-main);
+            color: var(--color-text);
+            min-height: 100vh;
+            box-sizing: border-box;
+            padding: 0;
+        }
         .container {
-            max-width: 900px;
-            margin: 0 auto;
+            max-width: 850px;
+            margin: auto;
+            padding: 2.5rem 1.3rem 1.5rem 1.3rem;
         }
-
-        h1 {
-            text-align: center;
-            font-size: 2.5rem;
-            color: var(--accent-color);
-            margin-bottom: 2rem;
-            border-bottom: 2px solid var(--border-color);
-            padding-bottom: 1rem;
+        .glass-card {
+            background: var(--color-glass);
+            box-shadow: var(--shadow-main);
+            border-radius: var(--radius-main);
+            padding: 2.5rem 1.5rem 2rem 1.5rem;
+            margin-bottom: 2.5rem;
+            backdrop-filter: var(--color-glass-blur);
+            border: 2px solid rgba(88, 166, 255, 0.18);
+            transition: transform 0.2s;
         }
-
-        details {
-            background-color: var(--bg-light);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            margin-bottom: 1rem;
-            overflow: hidden;
-            transition: all 0.3s ease-in-out;
+        .glass-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 16px 40px 0 rgba(88, 166, 255, 0.17);
         }
-        
-        details[open] {
-            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
-        }
-
-        summary {
-            font-size: 1.4rem;
-            font-weight: 600;
-            padding: 1rem 1.5rem;
-            cursor: pointer;
-            outline: none;
-            position: relative;
-            transition: background-color 0.2s ease;
-        }
-
-        summary:hover {
-            background-color: rgba(88, 166, 255, 0.1);
-        }
-        
-        summary::after {
-            content: '+';
-            font-size: 2rem;
-            position: absolute;
-            right: 1.5rem;
-            top: 50%;
-            transform: translateY(-50%) rotate(0deg);
-            transition: transform 0.3s ease-in-out;
-            color: var(--accent-color);
-        }
-
-        details[open] > summary::after {
-            transform: translateY(-50%) rotate(45deg);
-        }
-
-        .content {
-            padding: 0 1.5rem 1.5rem 1.5rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        h3 {
-            color: var(--accent-color);
-            font-size: 1.2rem;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 0.5rem;
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-        }
-        
-        h4 {
-            color: var(--text-primary);
-            font-size: 1.1rem;
-            margin-top: 1.5rem;
+        h1, .main-title {
+            color: var(--color-title);
+            font-size: 2.8rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-top: 0;
             margin-bottom: 0.5rem;
+            text-shadow: 0 2px 16px rgba(88, 166, 255, 0.13);
         }
-
-        .formula-block {
-            background-color: var(--bg-dark);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            padding: 1.5rem;
-            margin: 1rem 0;
-            overflow-x: auto;
+        .subtitle {
+            font-size: 1.3rem;
+            color: var(--color-accent);
+            margin-bottom: 1.5rem;
+            margin-top: 0;
         }
-        
-        .formula-block ul {
-            list-style-type: none;
-            padding-left: 0;
-        }
-
-        .formula-block li {
+        .hero-emoji {
+            font-size: 3.2rem;
             margin-bottom: 1rem;
+            animation: bounce 2.8s infinite cubic-bezier(.33,1.02,.78,1.03);
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0);}
+            50% { transform: translateY(-12px);}
+        }
+        .hero-btn {
+            display: inline-block;
+            margin-top: 1.4rem;
+            background: var(--color-accent);
+            color: #232526;
+            padding: 0.9rem 2.2rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 1px;
+            box-shadow: 0 2px 16px 0 rgba(88,166,255,0.13);
+            cursor: pointer;
+            transition: background 0.2s, transform 0.13s;
+        }
+        .hero-btn:hover {
+            background: #1f6feb;
+            color: #fff;
+            transform: scale(1.04);
         }
 
-        strong {
-            color: var(--accent-color);
-            font-weight: 600;
+        /* --- BLOQUES COLAPSABLES --- */
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            cursor: pointer;
+            gap: 1rem;
+            user-select: none;
+        }
+        .collapsible-arrow {
+            margin-left: auto;
+            font-size: 2.2rem;
+            color: var(--color-accent);
+            transition: transform 0.3s;
+        }
+        .glass-card.collapsed .collapsible-arrow {
+            transform: rotate(0deg);
+        }
+        .glass-card:not(.collapsed) .collapsible-arrow {
+            transform: rotate(180deg);
+        }
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.38s cubic-bezier(0.77,0,0.18,1);
+        }
+        .glass-card:not(.collapsed) .collapsible-content {
+            max-height: 5000px;
+            transition: max-height 0.6s cubic-bezier(0.77,0,0.18,1);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container { padding: 1.1rem 0.2rem 0.8rem 0.2rem; }
+            h1, .main-title { font-size: 2rem;}
+            .glass-card { padding: 1.2rem 0.8rem; }
         }
-        
-        th, td {
-            border: 1px solid var(--border-color);
-            padding: 0.8rem;
-            text-align: center;
-        }
-        
-        th {
-            background-color: rgba(88, 166, 255, 0.1);
-        }
-
-        .katex-display {
-            margin: 1em 0;
-            overflow: auto;
-        }
-        
-        .text-center {
-            text-align: center;
-        }
-
     </style>
 </head>
 <body>
-
     <div class="container">
-        <h1>Formulario Matemático Definitivo</h1>
-        
-        <!-- Sección de Álgebra y Álgebra Lineal -->
-        <details>
-            <summary>Álgebra y Álgebra Lineal</summary>
-            <div class="content">
-                <h3>Productos Notables y Ecuaciones</h3>
-                <div class="formula-block">
-                    <ul>
-                        <li><strong>Binomio al cuadrado:</strong> $(a \pm b)^2 = a^2 \pm 2ab + b^2$</li>
-                        <li><strong>Diferencia de cuadrados:</strong> $(a+b)(a-b) = a^2 - b^2$</li>
-                        <li><strong>Binomio al cubo:</strong> $(a \pm b)^3 = a^3 \pm 3a^2b + 3ab^2 \pm b^3$</li>
-                        <li><strong>Ecuación Cuadrática:</strong> Para $ax^2+bx+c=0$, $x = \frac{-b \pm \sqrt{b^2-4ac}}{2a}$</li>
-                    </ul>
-                </div>
-                <h3>Álgebra Lineal</h3>
-                 <div class="formula-block">
-                    <ul>
-                        <li><strong>Determinante 3x3:</strong> $\det\begin{pmatrix} a & b & c \\ d & e & f \\ g & h & i \end{pmatrix} = a(ei-fh) - b(di-fg) + c(dh-eg)$</li>
-                        <li><strong>Inversa de una Matriz:</strong> $A^{-1} = \frac{1}{\det(A)} (\text{adj}(A))^T$</li>
-                        <li><strong>Regla de Cramer (3x3):</strong> $x = \frac{\det(A_x)}{\det(A)}, y = \frac{\det(A_y)}{\det(A)}, z = \frac{\det(A_z)}{\det(A)}$</li>
-                        <li><strong>Valores Propios (Eigenvalores):</strong> Se obtienen de la ecuación característica $\det(A - \lambda I) = 0$.</li>
-                    </ul>
-                </div>
-            </div>
-        </details>
+        <!-- Portada ultramoderna con glassmorphism y emojis -->
+        <section class="glass-card" id="portada">
+            <div class="hero-emoji" title="Matemáticas 💡">📚✨</div>
+            <h1 class="main-title">Banco de Fórmulas Matemáticas</h1>
+            <div class="subtitle"><i class="fas fa-graduation-cap"></i> La mayor colección didáctica, estética y actualizada para secundaria, universidad y autodidactas <i class="fas fa-chalkboard-teacher"></i></div>
+            <p>
+                <i class="fas fa-info-circle"></i>
+                <strong>¡Explora, aprende y comparte!</strong> Este formulario es interactivo, ultramoderno, fácil de navegar y optimizado para todos los dispositivos.<br>
+                <span style="color:#ffd700;">Incluye fórmulas de <b>álgebra, geometría, trigonometría, estadística, probabilidad, cálculo, ecuaciones diferenciales y más.</b> <i class="fas fa-lightbulb"></i></span>
+            </p>
+            <button class="hero-btn" onclick="window.scrollTo({ top: 800, behavior: 'smooth' });">
+                <i class="fas fa-angle-double-down"></i> ¡Ver las fórmulas!
+            </button>
+        </section>
 
-        <!-- Sección de Números Complejos -->
-        <details>
-            <summary>Números Complejos</summary>
-            <div class="content">
-                <h3>Operaciones y Fórmulas Fundamentales</h3>
-                <div class="formula-block">
-                    <ul>
-                        <li><strong>Forma Rectangular:</strong> $z = a + bi$</li>
-                        <li><strong>Forma Polar:</strong> $z = r(\cos\theta + i\sin\theta) = r\text{cis}(\theta)$</li>
-                        <li><strong>Módulo:</strong> $|z| = r = \sqrt{a^2+b^2}$</li>
-                        <li><strong>Conjugado:</strong> $\bar{z} = a - bi$</li>
-                        <li><strong>Fórmula de Euler:</strong> $e^{i\theta} = \cos\theta + i\sin\theta$</li>
-                        <li><strong>Fórmula de De Moivre:</strong> $z^n = r^n(\cos(n\theta) + i\sin(n\theta))$</li>
-                    </ul>
-                </div>
-            </div>
-        </details>
+<!------------------------------------------------------>
 
-        <!-- Sección de Geometría y Trigonometría -->
-        <details>
-            <summary>Geometría y Trigonometría</summary>
-            <div class="content">
-                <h3>Áreas, Perímetros y Volúmenes</h3>
-                <div class="formula-block">
-                    <h4>Figuras Planas</h4>
-                    <ul>
-                        <li><strong>Triángulo:</strong> Área = $\frac{1}{2}bh$. Perímetro = $a+b+c$.</li>
-                        <li><strong>Rectángulo:</strong> Área = $lw$. Perímetro = $2l+2w$.</li>
-                        <li><strong>Círculo:</strong> Área = $\pi r^2$. Perímetro (Circunferencia) = $2\pi r$.</li>
-                        <li><strong>Polígono Regular (n lados, lado s):</strong> Área = $\frac{1}{4}ns^2\cot(\frac{\pi}{n})$. Perímetro = $ns$.</li>
-                    </ul>
-                    <h4>Sólidos</h4>
-                     <ul>
-                        <li><strong>Esfera:</strong> Volumen = $\frac{4}{3}\pi r^3$. Área superficial = $4\pi r^2$.</li>
-                        <li><strong>Cilindro:</strong> Volumen = $\pi r^2 h$. Área superficial = $2\pi rh + 2\pi r^2$.</li>
-                        <li><strong>Cono:</strong> Volumen = $\frac{1}{3}\pi r^2 h$. Área superficial = $\pi r(r + \sqrt{h^2+r^2})$.</li>
-                        <li><strong>Cubo:</strong> Volumen = $a^3$. Área superficial = $6a^2$.</li>
-                    </ul>
-                </div>
-                <h3>Geometría Analítica Plana</h3>
-                <div class="formula-block">
-                    <ul>
-                        <li><strong>Distancia $P_1(x_1, y_1)$ a $P_2(x_2, y_2)$:</strong> $d = \sqrt{(x_2-x_1)^2 + (y_2-y_1)^2}$</li>
-                        <li><strong>Ecuación punto-pendiente:</strong> $y - y_1 = m(x - x_1)$</li>
-                        <li><strong>Distancia de $P(x_0, y_0)$ a recta $Ax+By+C=0$:</strong> $d = \frac{|Ax_0+By_0+C|}{\sqrt{A^2+B^2}}$</li>
-                    </ul>
-                </div>
-            </div>
-        </details>
-        
-        <!-- Sección de Combinatoria, Progresiones, Estadística y Probabilidad -->
-        <details>
-            <summary>Combinatoria, Estadística y Probabilidad</summary>
-            <div class="content">
-                <h3>Combinatoria y Progresiones</h3>
-                <div class="formula-block">
-                    <ul>
-                        <li><strong>Permutaciones lineales:</strong> $P_n = n!$</li>
-                        <li><strong>Permutaciones circulares:</strong> $PC_n = (n-1)!$</li>
-                        <li><strong>Combinaciones sin repetición:</strong> $C_{n,k} = \binom{n}{k} = \frac{n!}{k!(n-k)!}$</li>
-                        <li><strong>Progresión Aritmética (suma):</strong> $S_n = \frac{n}{2}(a_1 + a_n)$</li>
-                        <li><strong>Progresión Geométrica (suma infinita):</strong> $S = \frac{a_1}{1-r}$ para $|r|<1$</li>
-                    </ul>
-                </div>
-                <h3>Estadística Descriptiva</h3>
-                <div class="formula-block">
-                    <ul>
-                        <li><strong>Regla de Sturges:</strong> $k = 1 + 3.322 \log(N)$</li>
-                        <li><strong>Media (agrupados):</strong> $\bar{x} = \frac{\sum f_i \cdot x_i}{N}$</li>
-                        <li><strong>Varianza (muestral):</strong> $s^2 = \frac{\sum (x_i - \bar{x})^2}{n-1}$</li>
-                        <li><strong>Regresión Lineal:</strong> $y = a + bx$, con $b = r \frac{s_y}{s_x}$, $a = \bar{y} - b\bar{x}$</li>
-                    </ul>
-                </div>
-                 <h3>Probabilidad</h3>
-                <div class="formula-block">
-                    <ul>
-                        <li><strong>Probabilidad Condicional:</strong> $P(A|B) = \frac{P(A \cap B)}{P(B)}$</li>
-                        <li><strong>Probabilidad Total:</strong> $P(B) = \sum_{i=1}^{n} P(B|A_i)P(A_i)$</li>
-                        <li><strong>Teorema de Bayes:</strong> $P(A_i|B) = \frac{P(B|A_i)P(A_i)}{P(B)}$</li>
-                    </ul>
-                </div>
-            </div>
-        </details>
-        
-        <!-- Sección de Cálculo -->
-        <details>
-            <summary>Cálculo Diferencial e Integral</summary>
-            <div class="content">
-                <h3>Tabla Extendida de Derivadas</h3>
-                 <table>
-                    <thead><tr><th>$f(x)$</th><th>$f'(x)$</th></tr></thead>
-                    <tbody>
-                        <tr><td>$u^n$</td><td>$nu^{n-1}u'$</td></tr>
-                        <tr><td>$\sin(u)$</td><td>$\cos(u) u'$</td></tr>
-                        <tr><td>$\tan(u)$</td><td>$\sec^2(u) u'$</td></tr>
-                        <tr><td>$\sec(u)$</td><td>$\sec(u)\tan(u) u'$</td></tr>
-                        <tr><td>$\arcsin(u)$</td><td>$u'/\sqrt{1-u^2}$</td></tr>
-                        <tr><td>$\arctan(u)$</td><td>$u'/(1+u^2)$</td></tr>
-                    </tbody>
-                </table>
-                <h3>Tabla Extendida de Integrales</h3>
-                 <div class="formula-block">
-                    <ul>
-                        <li>$\int \tan(u) \,du = -\ln|\cos(u)| + C$</li>
-                        <li>$\int \sec(u) \,du = \ln|\sec(u) + \tan(u)| + C$</li>
-                        <li>$\int \frac{du}{\sqrt{a^2-u^2}} = \arcsin\left(\frac{u}{a}\right) + C$</li>
-                        <li>$\int \frac{du}{u^2+a^2} = \frac{1}{a} \arctan\left(\frac{u}{a}\right) + C$</li>
-                        <li>$\int \sqrt{a^2-u^2} \,du = \frac{u}{2}\sqrt{a^2-u^2} + \frac{a^2}{2}\arcsin\left(\frac{u}{a}\right) + C$</li>
-                        <li>$\int e^{au}\sin(bu) \,du = \frac{e^{au}}{a^2+b^2}(a\sin(bu)-b\cos(bu)) + C$</li>
-                    </ul>
-                </div>
-            </div>
-        </details>
-        
-        <!-- Sección de Ecuaciones Diferenciales -->
-        <details>
-            <summary>Ecuaciones Diferenciales</summary>
-            <div class="content">
-                <h3>Ecuaciones de Primer Orden</h3>
-                <div class="formula-block">
-                    <ul>
-                        <li><strong>Lineales ($y' + P(x)y = Q(x)$):</strong> Factor integrante $\mu(x) = e^{\int P(x)dx}$. Solución: $y\mu(x) = \int \mu(x)Q(x)dx + C$.</li>
-                        <li><strong>Homogéneas ($y' = f(y/x)$):</strong> Sustitución $v = y/x$.</li>
-                        <li><strong>Exactas ($M(x,y)dx + N(x,y)dy = 0$):</strong> Si $\frac{\partial M}{\partial y} = \frac{\partial N}{\partial x}$.</li>
-                    </ul>
-                </div>
-                <h3>Ecuaciones Lineales de 2º Orden</h3>
-                <div class="formula-block">
-                    Para $ay'' + by' + cy = 0$, se resuelve la ecuación característica $ar^2+br+c=0$.
-                    <ul>
-                        <li><strong>Raíces reales distintas $r_1, r_2$:</strong> $y_h = c_1e^{r_1x} + c_2e^{r_2x}$</li>
-                        <li><strong>Raíces reales iguales $r_1=r_2=r$:</strong> $y_h = (c_1 + c_2x)e^{rx}$</li>
-                        <li><strong>Raíces complejas $\alpha \pm i\beta$:</strong> $y_h = e^{\alpha x}(c_1\cos(\beta x) + c_2\sin(\beta x))$</li>
-                    </ul>
-                </div>
-            </div>
-        </details>
-        
-        <!-- Sección de Series y Transformadas -->
-        <details>
-            <summary>Series y Transformadas</summary>
-            <div class="content">
-                 <h3>Transformada de Laplace</h3>
-                <table>
-                    <thead><tr><th>$f(t)$</th><th>$F(s) = \mathcal{L}\{f(t)\}$</th></tr></thead>
-                    <tbody>
-                        <tr><td>$t^n e^{at}$</td><td>$\frac{n!}{(s-a)^{n+1}}$</td></tr>
-                        <tr><td>$t\sin(at)$</td><td>$\frac{2as}{(s^2+a^2)^2}$</td></tr>
-                    </tbody>
-                </table>
-                 <h3>Transformada Inversa de Laplace</h3>
-                <table>
-                    <thead><tr><th>$F(s)$</th><th>$f(t) = \mathcal{L}^{-1}\{F(s)\}$</th></tr></thead>
-                    <tbody>
-                        <tr><td>$\frac{1}{(s-a)(s-b)}$</td><td>$\frac{e^{at}-e^{bt}}{a-b}$</td></tr>
-                        <tr><td>$\frac{s}{(s^2+a^2)^2}$</td><td>$\frac{t}{2a}\sin(at)$</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </details>
-
+<!--
+======================================================
+BLOQUE: CONJUNTOS Y LÓGICA DE PROPOSICIONES 🌐🔢🔗
+======================================================
+-->
+<section class="glass-card collapsed" id="conjuntos-logica">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Conjuntos y Lógica">🌐</div>
+        <h2 class="main-title" style="font-size:2.1rem;">Conjuntos y Lógica de Proposiciones</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
     </div>
+    <div class="collapsible-content">
+        <!-- Definiciones de Conjuntos -->
+        <div class="subtitle"><i class="fas fa-layer-group"></i> Definiciones y Notación de Conjuntos</div>
+        <ul style="font-size:1.12rem;line-height:2;">
+            <li><b>Conjunto:</b> Colección bien definida de objetos llamados elementos.</li>
+            <li><b>Pertenencia:</b> \( a \in A \) &nbsp; &nbsp; <b>No pertenencia:</b> \( b \notin A \)</li>
+            <li><b>Igualdad:</b> \( A = B \Leftrightarrow \forall x (x \in A \iff x \in B) \)</li>
+            <li><b>Subconjunto:</b> \( A \subseteq B \Leftrightarrow \forall x (x \in A \implies x \in B) \)</li>
+            <li><b>Conjunto vacío:</b> \( \varnothing \) &nbsp; <span style="color:#ffd700;">(sin elementos)</span></li>
+            <li><b>Conjunto universal:</b> \( U \) &nbsp; <span style="color:#ffd700;">(todos los elementos posibles)</span></li>
+        </ul>
+        <!-- Operaciones -->
+        <div class="subtitle"><i class="fas fa-exchange-alt"></i> Operaciones entre Conjuntos</div>
+        <ul style="font-size:1.12rem;line-height:2;">
+            <li><b>Unión:</b> \( A \cup B = \{x: x \in A \vee x \in B\} \)</li>
+            <li><b>Intersección:</b> \( A \cap B = \{x: x \in A \wedge x \in B\} \)</li>
+            <li><b>Diferencia:</b> \( A - B = \{x: x \in A \wedge x \notin B\} \)</li>
+            <li><b>Complemento:</b> \( A^c = U - A \)</li>
+            <li><b>Diferencia simétrica:</b> \( A \triangle B = (A - B) \cup (B - A) \)</li>
+            <li><b>Producto cartesiano:</b> \( A \times B = \{(a, b): a \in A, b \in B\} \)</li>
+        </ul>
+        <!-- Leyes -->
+        <div class="subtitle"><i class="fas fa-balance-scale"></i> Leyes de los Conjuntos</div>
+        <ul style="font-size:1.12rem;line-height:2;">
+            <li><b>Leyes de identidad:</b> \( A \cup \varnothing = A \), \( A \cap U = A \)</li>
+            <li><b>Leyes de anulación:</b> \( A \cup U = U \), \( A \cap \varnothing = \varnothing \)</li>
+            <li><b>Leyes idempotentes:</b> \( A \cup A = A \), \( A \cap A = A \)</li>
+            <li><b>Leyes conmutativas:</b> \( A \cup B = B \cup A \), \( A \cap B = B \cap A \)</li>
+            <li><b>Leyes asociativas:</b> \( (A \cup B) \cup C = A \cup (B \cup C) \)</li>
+            <li><b>Leyes distributivas:</b> \( A \cap (B \cup C) = (A \cap B) \cup (A \cap C) \)</li>
+            <li><b>Leyes de De Morgan:</b> \( (A \cup B)^c = A^c \cap B^c \), \( (A \cap B)^c = A^c \cup B^c \)</li>
+        </ul>
+        <!-- Lógica proposicional básica -->
+        <div class="subtitle"><i class="fas fa-brain"></i> Operaciones Lógicas y Tablas de Verdad</div>
+        <div style="overflow-x:auto;">
+            <table style="width:100%;background:rgba(255,255,255,0.03);color:#fff;border-radius:10px;font-size:1.05rem;text-align:center;">
+                <tr>
+                    <th>\( p \)</th>
+                    <th>\( q \)</th>
+                    <th>\( \neg p \)</th>
+                    <th>\( p \wedge q \)</th>
+                    <th>\( p \vee q \)</th>
+                    <th>\( p \to q \)</th>
+                    <th>\( p \leftrightarrow q \)</th>
+                </tr>
+                <tr>
+                    <td>V</td><td>V</td><td>F</td><td>V</td><td>V</td><td>V</td><td>V</td>
+                </tr>
+                <tr>
+                    <td>V</td><td>F</td><td>F</td><td>F</td><td>V</td><td>F</td><td>F</td>
+                </tr>
+                <tr>
+                    <td>F</td><td>V</td><td>V</td><td>F</td><td>V</td><td>V</td><td>F</td>
+                </tr>
+                <tr>
+                    <td>F</td><td>F</td><td>V</td><td>F</td><td>F</td><td>V</td><td>V</td>
+                </tr>
+            </table>
+        </div>
+        <ul style="font-size:1.09rem;line-height:1.95;">
+            <li><b>Conjunción:</b> \( p \wedge q \): Verdadera solo si ambas son verdaderas.</li>
+            <li><b>Disyunción:</b> \( p \vee q \): Verdadera si al menos una es verdadera.</li>
+            <li><b>Negación:</b> \( \neg p \): Verdadera si \( p \) es falsa.</li>
+            <li><b>Implicación:</b> \( p \to q \): Falsa solo si \( p \) es verdadera y \( q \) es falsa.</li>
+            <li><b>Bicondicional:</b> \( p \leftrightarrow q \): Verdadera solo si ambos tienen el mismo valor.</li>
+        </ul>
+        <!-- Leyes lógicas -->
+        <div class="subtitle"><i class="fas fa-atom"></i> Leyes de la Lógica Proposicional</div>
+        <ul style="font-size:1.12rem;line-height:2;">
+            <li><b>Leyes de identidad:</b> \( p \vee F = p \), \( p \wedge V = p \)</li>
+            <li><b>Leyes de contradicción:</b> \( p \wedge \neg p = F \), \( p \vee \neg p = V \)</li>
+            <li><b>Leyes conmutativas:</b> \( p \wedge q = q \wedge p \), \( p \vee q = q \vee p \)</li>
+            <li><b>Leyes distributivas:</b> \( p \wedge (q \vee r) = (p \wedge q) \vee (p \wedge r) \)</li>
+            <li><b>Leyes de De Morgan:</b> \( \neg(p \wedge q) = \neg p \vee \neg q \), \( \neg(p \vee q) = \neg p \wedge \neg q \)</li>
+            <li><b>Dobles negaciones:</b> \( \neg (\neg p) = p \)</li>
+            <li><b>Implicación por contraposición:</b> \( (p \to q) \equiv (\neg q \to \neg p) \)</li>
+        </ul>
 
+        <!-- Inferencia lógica y leyes clásicas -->
+        <div class="subtitle"><i class="fas fa-gavel"></i> Leyes de Inferencia Lógica (Reglas Clásicas)</div>
+        <ul style="font-size:1.13rem;line-height:2;">
+            <li>
+                <b>Modus Ponendo Ponens (Modus Ponens):</b><br>
+                Si \( p \to q \) y \( p \) son verdaderas, entonces \( q \) es verdadera.<br>
+                <span style="color:#aaf;">Ejemplo: Si llueve, la calle se moja. Llueve. ⇒ La calle se moja.</span>
+            </li>
+            <li>
+                <b>Modus Tollendo Tollens (Modus Tollens):</b><br>
+                Si \( p \to q \) y \( \neg q \) son verdaderas, entonces \( \neg p \) es verdadera.<br>
+                <span style="color:#aaf;">Ejemplo: Si estudio, apruebo. No aprobé. ⇒ No estudié.</span>
+            </li>
+            <li>
+                <b>Silogismo Disyuntivo:</b><br>
+                Si \( p \vee q \) y \( \neg p \), entonces \( q \).<br>
+                <span style="color:#aaf;">Ejemplo: Soy docente o soy médico. No soy docente. ⇒ Soy médico.</span>
+            </li>
+            <li>
+                <b>Silogismo Hipotético:</b><br>
+                Si \( p \to q \) y \( q \to r \), entonces \( p \to r \).<br>
+                <span style="color:#aaf;">Ejemplo: Si estudio, apruebo. Si apruebo, me gradúo. ⇒ Si estudio, me gradúo.</span>
+            </li>
+            <li>
+                <b>Modus Tollendo Ponens:</b><br>
+                Si \( p \vee q \) y \( \neg p \), entonces \( q \).
+            </li>
+            <li>
+                <b>Modus Ponendo Tollens:</b><br>
+                Si \( p \vee q \) y \( \neg q \), entonces \( p \).
+            </li>
+            <li>
+                <b>Regla de Absorción:</b><br>
+                \( p \to q \) implica \( p \to (p \wedge q) \).
+            </li>
+            <li>
+                <b>Regla de Simplificación:</b><br>
+                De \( p \wedge q \) se deduce \( p \) (y también \( q \)).
+            </li>
+            <li>
+                <b>Regla de Conjunción:</b><br>
+                De \( p \), \( q \) se deduce \( p \wedge q \).
+            </li>
+            <li>
+                <b>Regla de Adición:</b><br>
+                De \( p \), se deduce \( p \vee q \).
+            </li>
+        </ul>
+
+        <!-- Técnicas de conteo -->
+        <div class="subtitle"><i class="fas fa-sigma"></i> Técnicas de Conteo y Principios Fundamentales</div>
+        <ul style="font-size:1.12rem;line-height:2;">
+            <li><b>Conteo para dos conjuntos:</b> \( |A \cup B| = |A| + |B| - |A \cap B| \)</li>
+            <li><b>Conteo para tres conjuntos:</b> \( |A \cup B \cup C| = |A| + |B| + |C| - |A \cap B| - |A \cap C| - |B \cap C| + |A \cap B \cap C| \)</li>
+            <li><b>Generalización para \( n \) conjuntos (Principio de Inclusión-Exclusión):</b></li>
+            <li style="margin-left:2em;">
+                \[
+                |A_1 \cup \cdots \cup A_n| = \sum |A_i| - \sum |A_i \cap A_j| + \sum |A_i \cap A_j \cap A_k| - \cdots + (-1)^{n+1}|A_1 \cap \cdots \cap A_n|
+                \]
+            </li>
+        </ul>
+        <!-- Ejemplos clásicos -->
+        <div class="subtitle"><i class="fas fa-lightbulb"></i> Ejemplo clásico (2 conjuntos):</div>
+        <ul style="font-size:1.08rem;line-height:1.9;">
+            <li>
+                En un grupo de 50 estudiantes, 15 juegan fútbol, 18 baloncesto y 26 no practican ningún deporte.<br>
+                ¿Cuántos practican ambos deportes? <br>
+                <b>Solución:</b> Sea \( F \) fútbol, \( B \) baloncesto.<br>
+                <span style="color:#ffd700;">\( x = 15 + 18 - (50-26) = 15 + 18 - 24 = 9 \)</span> practican ambos deportes.
+            </li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-lightbulb"></i> Ejemplo clásico (3 conjuntos):</div>
+        <ul style="font-size:1.08rem;line-height:1.9;">
+            <li>
+                De 100 estudiantes, 32 estudian matemáticas, 20 física, 45 biología,<br>
+                15 matemáticas y biología, 7 matemáticas y física, 10 física y biología,<br>
+                30 no estudian ninguna.<br>
+                ¿Cuántos estudian las tres asignaturas?<br>
+                <b>Solución:</b> Sea \( x \) los que estudian las tres:<br>
+                <span style="color:#ffd700;">\( x = 32 + 20 + 45 - 15 - 7 - 10 - (100-30) = 97 - 32 - 70 = 5 \)</span>
+            </li>
+        </ul>
+    </div>
+</section>
+
+
+
+
+       <!--
+======================================================
+BLOQUE 1: ÁLGEBRA 🧮✨
+======================================================
+-->
+<section class="glass-card collapsed" id="algebra">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Álgebra Básica">🧮</div>
+        <h2 class="main-title" style="font-size:2.2rem;">Álgebra Básica y Operaciones Fundamentales</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+    </div>
+    <div class="collapsible-content">
+        <div class="subtitle"><i class="fas fa-plus"></i> Sumas y Restas de Números Reales</div>
+        <ul style="font-size:1.1rem;line-height:2;">
+            <li>\( a + b = b + a \) &nbsp; <span style="color:#ffd700;">(Conmutativa)</span></li>
+            <li>\( (a + b) + c = a + (b + c) \) &nbsp; <span style="color:#ffd700;">(Asociativa)</span></li>
+            <li>\( a + 0 = a \)</li>
+            <li>\( a - b = a + (-b) \)</li>
+            <li>\( (a - b) - c = a - (b + c) \)</li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-divide"></i> Fracciones: Suma, Resta, Multiplicación y División</div>
+        <ul style="font-size:1.1rem;line-height:2;">
+            <li>
+                <b>Suma de fracciones con igual denominador:</b><br>
+                \( \displaystyle \frac{a}{c} + \frac{b}{c} = \frac{a+b}{c} \)
+            </li>
+            <li>
+                <b>Suma de fracciones con distinto denominador:</b><br>
+                \( \displaystyle \frac{a}{b} + \frac{c}{d} = \frac{ad + bc}{bd} \)
+            </li>
+            <li>
+                <b>Resta de fracciones:</b><br>
+                \( \displaystyle \frac{a}{b} - \frac{c}{d} = \frac{ad - bc}{bd} \)
+            </li>
+            <li>
+                <b>Multiplicación de fracciones:</b><br>
+                \( \displaystyle \frac{a}{b} \cdot \frac{c}{d} = \frac{ac}{bd} \)
+            </li>
+            <li>
+                <b>División de fracciones:</b><br>
+                \( \displaystyle \frac{a}{b} \div \frac{c}{d} = \frac{a}{b} \cdot \frac{d}{c} = \frac{ad}{bc} \)
+            </li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-superscript"></i> Potencias y Raíces de Números Reales</div>
+        <ul style="font-size:1.1rem;line-height:2;">
+            <li>\( a^m \cdot a^n = a^{m+n} \)</li>
+            <li>\( \frac{a^m}{a^n} = a^{m-n} \)</li>
+            <li>\( (a^m)^n = a^{mn} \)</li>
+            <li>\( (ab)^n = a^n b^n \)</li>
+            <li>\( \left(\frac{a}{b}\right)^n = \frac{a^n}{b^n} \)</li>
+            <li>\( a^0 = 1 \), &nbsp; \( a^{-n} = \frac{1}{a^n} \)</li>
+            <li>\( a^{1/n} = \sqrt[n]{a} \)</li>
+            <li>\( a^{m/n} = \sqrt[n]{a^m} \)</li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-square-root-alt"></i> Propiedades de las Raíces</div>
+        <ul style="font-size:1.1rem;line-height:2;">
+            <li>\( \sqrt{a} \cdot \sqrt{b} = \sqrt{ab} \)</li>
+            <li>\( \frac{\sqrt{a}}{\sqrt{b}} = \sqrt{\frac{a}{b}} \)</li>
+            <li>\( \sqrt[n]{a^m} = a^{m/n} \)</li>
+            <li>\( \sqrt{a^2} = |a| \)</li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-book"></i> Propiedades y Formulas de Logaritmos</div>
+        <ul style="font-size:1.1rem;line-height:2;">
+            <li>\( \log_a 1 = 0 \)</li>
+            <li>\( \log_a a = 1 \)</li>
+            <li>\( \log_a (bc) = \log_a b + \log_a c \)</li>
+            <li>\( \log_a \left(\frac{b}{c}\right) = \log_a b - \log_a c \)</li>
+            <li>\( \log_a (b^k) = k \log_a b \)</li>
+            <li>\( \log_a b = \frac{\log_c b}{\log_c a} \)</li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-exclamation"></i> Factorial y Números Combinatorios</div>
+        <ul style="font-size:1.1rem;line-height:2;">
+            <li>
+                <b>Factorial:</b> \( n! = n \cdot (n-1) \cdot (n-2) \cdots 2 \cdot 1 \) &nbsp; para \( n \geq 1 \), &nbsp; \( 0! = 1 \)
+            </li>
+            <li>
+                <b>Números combinatorios:</b> \( \displaystyle \binom{n}{k} = \frac{n!}{k!(n-k)!} \)
+            </li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-atom"></i> Fórmula del Binomio de Newton</div>
+        <p style="font-size:1.1rem;line-height:2;">
+            \( (a+b)^n = \sum_{k=0}^{n} \binom{n}{k} a^{n-k} b^k \)
+        </p>
+        <hr style="border:1px solid var(--color-block);margin:1.2rem 0;">
+        <div class="subtitle"><i class="fas fa-asterisk"></i> Propiedades Extra y Observaciones</div>
+        <ul style="font-size:1.1rem;line-height:2;">
+            <li><b>Valor absoluto:</b> \( |a| = \begin{cases} a, & \text{si } a \geq 0 \\ -a, & \text{si } a < 0 \end{cases} \)</li>
+            <li><b>Propiedad distributiva de la potencia:</b> \( (ab)^n = a^n b^n \)</li>
+            <li><b>Propiedad del exponente cero:</b> \( 0^0 \) es una indeterminación (no definida)</li>
+        </ul>
+    </div>
+</section>
+
+
+
+
+<!--
+======================================================
+BLOQUE 2: GEOMETRÍA PLANA Y SÓLIDOS 📏🔺🟦🧊
+======================================================
+-->
+<section class="glass-card collapsed" id="geometria-plana">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Geometría Plana y Sólidos">📐</div>
+        <h2 class="main-title" style="font-size:2.1rem;">Geometría Plana y Sólidos</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+    </div>
+    <div class="collapsible-content">
+        <div class="subtitle"><i class="fas fa-ruler"></i> Áreas y Perímetros de Figuras Planas</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li><b>Cuadrado:</b> Área: \( A = a^2 \), Perímetro: \( P = 4a \)</li>
+            <li><b>Rectángulo:</b> Área: \( A = ab \), Perímetro: \( P = 2(a+b) \)</li>
+            <li><b>Triángulo:</b> Área: \( A = \frac{bh}{2} \) <br>
+                Área (Herón): \( A = \sqrt{s(s-a)(s-b)(s-c)} \), donde \( s = \frac{a+b+c}{2} \)<br>
+                Perímetro: \( P = a + b + c \)
+            </li>
+            <li><b>Paralelogramo:</b> Área: \( A = bh \), Perímetro: \( P = 2(a+b) \)</li>
+            <li><b>Rombo:</b> Área: \( A = \frac{D \cdot d}{2} \), Perímetro: \( P = 4a \)</li>
+            <li><b>Trapecio:</b> Área: \( A = \frac{(B+b)h}{2} \), Perímetro: \( P = B + b + l_1 + l_2 \)</li>
+            <li><b>Círculo:</b> Área: \( A = \pi r^2 \), Circunferencia: \( C = 2\pi r \)</li>
+            <li><b>Sector circular:</b> Área: \( A = \frac{\alpha}{360^\circ}\pi r^2 \), Longitud del arco: \( L = \frac{\alpha}{360^\circ}2\pi r \)</li>
+            <li><b>Polígono regular (n lados):</b> <br>
+                Perímetro: \( P = n a \) <br>
+                Apotema: \( ap = \frac{a}{2 \tan\left(\frac{180^\circ}{n}\right)} \) <br>
+                Área: \( A = \frac{P \cdot ap}{2} = \frac{n a^2}{4} \cot\left(\frac{\pi}{n}\right) \)
+            </li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-cube"></i> Volúmenes y Áreas de Sólidos</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li><b>Cubo:</b> Volumen: \( V = a^3 \), Área total: \( A = 6a^2 \)</li>
+            <li><b>Prisma rectangular:</b> Volumen: \( V = a b h \), Área total: \( A = 2(ab + ah + bh) \)</li>
+            <li><b>Cilindro:</b> Volumen: \( V = \pi r^2 h \), Área total: \( A = 2\pi r(h + r) \)</li>
+            <li><b>Pirámide:</b> Volumen: \( V = \frac{1}{3}A_b h \)</li>
+            <li><b>Cono:</b> Volumen: \( V = \frac{1}{3} \pi r^2 h \), Área total: \( A = \pi r (r + g) \), donde \( g \) es la generatriz</li>
+            <li><b>Esfera:</b> Volumen: \( V = \frac{4}{3}\pi r^3 \), Área: \( A = 4\pi r^2 \)</li>
+            <li><b>Tronco de cono:</b> Volumen: \( V = \frac{1}{3} \pi h (R^2 + r^2 + Rr) \)</li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-shapes"></i> Semejanza y Congruencia de Triángulos</div>
+        <ul style="font-size:1.1rem; line-height:2;">
+            <li>
+                <b>Semejanza (🔺~🔺):</b> <br>
+                - LAL (Lado-Ángulo-Lado): Dos lados proporcionales y el ángulo comprendido igual.<br>
+                - AAA (Ángulo-Ángulo-Ángulo): Tres ángulos iguales.<br>
+                - LLL (Lado-Lado-Lado): Tres lados proporcionales.
+            </li>
+            <li>
+                <b>Congruencia (🔺≅🔺):</b> <br>
+                - LAL (Lado-Ángulo-Lado): Dos lados y el ángulo comprendido igual.<br>
+                - ALA (Ángulo-Lado-Ángulo): Dos ángulos y el lado comprendido igual.<br>
+                - LLL (Lado-Lado-Lado): Tres lados iguales.<br>
+                - ALA y ALL también son criterios válidos.
+            </li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-dot-circle"></i> Ángulos en la Circunferencia</div>
+        <ul style="font-size:1.08rem; line-height:2;">
+            <li><b>Ángulo central:</b> Igual a su arco \( (\theta = \text{arco}) \)</li>
+            <li><b>Ángulo inscrito:</b> Mide la mitad del arco que abarca.<br> \( \alpha = \frac{1}{2}\text{arco} \)</li>
+            <li><b>Ángulo semi-inscrito o tangencial:</b> Mide la mitad del arco comprendido.<br> \( \alpha = \frac{1}{2}\text{arco} \)</li>
+            <li><b>Ángulos opuestos por el vértice:</b> Son iguales.</li>
+            <li><b>Ángulo formado por dos cuerdas que se cruzan:</b><br>
+                \( \alpha = \frac{1}{2}( \text{arco AB} + \text{arco CD} ) \)
+            </li>
+            <li><b>Ángulo exterior formado por dos secantes o tangentes:</b><br>
+                \( \alpha = \frac{1}{2}( \text{arco mayor} - \text{arco menor} ) \)
+            </li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-angle-double-up"></i> Otras Fórmulas Notables de Geometría Plana</div>
+        <ul style="font-size:1.08rem; line-height:2;">
+            <li><b>Diagonal del cuadrado:</b> \( d = a\sqrt{2} \)</li>
+            <li><b>Diagonales de un rectángulo:</b> \( d = \sqrt{a^2 + b^2} \)</li>
+            <li><b>Ángulo interior de un polígono regular de \( n \) lados:</b> \( \alpha = \frac{(n-2)180^\circ}{n} \)</li>
+            <li><b>Ángulo exterior de un polígono regular:</b> \( \beta = \frac{360^\circ}{n} \)</li>
+            <li><b>Suma de ángulos interiores de un polígono:</b> \( S = (n-2)180^\circ \)</li>
+            <li><b>Suma de ángulos exteriores:</b> \( S = 360^\circ \)</li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-asterisk"></i> Observaciones y Consejos</div>
+        <ul style="font-size:1.08rem; line-height:2;">
+            <li>
+                <b>🔎 Consejo:</b> Cuando trabajes con polígonos, usa el apotema para calcular áreas rápidamente.
+            </li>
+            <li>
+                <b>🧠 Dato útil:</b> Los criterios de semejanza y congruencia son fundamentales en la resolución de problemas de geometría y en pruebas tipo Saber/ICFES.
+            </li>
+        </ul>
+    </div>
+</section>
+
+
+
+<!--
+======================================================
+BLOQUE 3: GEOMETRÍA ANALÍTICA 📈📏✍️
+======================================================
+-->
+<section class="glass-card collapsed" id="geometria-analitica">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Geometría Analítica">📈</div>
+        <h2 class="main-title" style="font-size:2.1rem;">Geometría Analítica</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+    </div>
+    <div class="collapsible-content">
+        <!-- Pendiente de la recta -->
+        <div class="subtitle"><i class="fas fa-arrow-right"></i> Pendiente y Ecuaciones de la Recta</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li><b>Pendiente entre dos puntos:</b> <br>
+                \( m = \frac{y_2 - y_1}{x_2 - x_1} \)
+            </li>
+            <li><b>Ecuación punto-pendiente:</b> <br>
+                \( y - y_1 = m(x - x_1) \)
+            </li>
+            <li><b>Ecuación general:</b> <br>
+                \( Ax + By + C = 0 \)
+            </li>
+            <li><b>Ecuación explícita:</b> <br>
+                \( y = mx + b \)
+            </li>
+            <li><b>Ecuación segmentaria (interceptos):</b> <br>
+                \( \frac{x}{a} + \frac{y}{b} = 1 \)
+            </li>
+            <li><b>Ecuación simétrica:</b> <br>
+                \( \frac{x - x_1}{a} = \frac{y - y_1}{b} \)
+            </li>
+            <li><b>Recta que pasa por dos puntos:</b> <br>
+                \( \frac{y - y_1}{y_2 - y_1} = \frac{x - x_1}{x_2 - x_1} \)
+            </li>
+            <li><b>Ecuación paramétrica de la recta:</b> <br>
+                \( x = x_1 + t(x_2 - x_1) \), &nbsp; \( y = y_1 + t(y_2 - y_1) \), &nbsp; \( 0 \leq t \leq 1 \)
+            </li>
+            <li><b>Ángulo entre dos rectas:</b> <br>
+                \( \tan \theta = \left| \frac{m_2 - m_1}{1 + m_1 m_2} \right| \)
+            </li>
+            <li><b>Condición de paralelismo:</b> <br>
+                Rectas paralelas si \( m_1 = m_2 \)
+            </li>
+            <li><b>Condición de perpendicularidad:</b> <br>
+                Rectas perpendiculares si \( m_1 \cdot m_2 = -1 \)
+            </li>
+        </ul>
+
+        <!-- Distancias -->
+        <div class="subtitle"><i class="fas fa-ruler-horizontal"></i> Distancias Importantes</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Entre dos puntos:</b> <br>
+                \( d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2} \)
+            </li>
+            <li>
+                <b>De un punto \( (x_0, y_0) \) a una recta \( Ax + By + C = 0 \):</b> <br>
+                \( d = \frac{|Ax_0 + By_0 + C|}{\sqrt{A^2 + B^2}} \)
+            </li>
+            <li>
+                <b>Entre dos rectas paralelas \( Ax + By + C_1 = 0 \) y \( Ax + By + C_2 = 0 \):</b> <br>
+                \( d = \frac{|C_1 - C_2|}{\sqrt{A^2 + B^2}} \)
+            </li>
+            <li>
+                <b>De un punto \( (x_0, y_0, z_0) \) a un plano \( Ax + By + Cz + D = 0 \):</b> <br>
+                \( d = \frac{|A x_0 + B y_0 + C z_0 + D|}{\sqrt{A^2 + B^2 + C^2}} \)
+            </li>
+        </ul>
+
+        <!-- Ecuación del plano -->
+        <div class="subtitle"><i class="fas fa-cube"></i> Ecuaciones del Plano</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Ecuación general:</b> <br>
+                \( Ax + By + Cz + D = 0 \)
+            </li>
+            <li>
+                <b>Ecuación punto-normal:</b> <br>
+                Si el plano pasa por \( (x_0, y_0, z_0) \) y el vector normal es \( \vec{n} = (A, B, C) \):<br>
+                \( A(x - x_0) + B(y - y_0) + C(z - z_0) = 0 \)
+            </li>
+            <li>
+                <b>Ecuación paramétrica:</b> <br>
+                \( \vec{r} = \vec{r}_0 + s\vec{v}_1 + t\vec{v}_2 \)
+            </li>
+        </ul>
+
+        <!-- Cónicas -->
+        <div class="subtitle"><i class="fas fa-circle"></i> Cónicas: Circunferencia, Elipse, Parábola, Hipérbola</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <!-- Circunferencia -->
+            <li>
+                <b>Circunferencia (centro \((h, k)\), radio \(r\)):</b> <br>
+                \( (x - h)^2 + (y - k)^2 = r^2 \)
+            </li>
+            <li>
+                <b>Forma general:</b> <br>
+                \( x^2 + y^2 + Dx + Ey + F = 0 \)
+            </li>
+            <!-- Elipse -->
+            <li>
+                <b>Elipse (centro \((h, k)\), semiejes \(a, b\)):</b> <br>
+                \( \frac{(x-h)^2}{a^2} + \frac{(y-k)^2}{b^2} = 1 \)
+            </li>
+            <li>
+                <b>Excentricidad:</b> \( e = \sqrt{1 - \frac{b^2}{a^2}} \), &nbsp; para \( a > b \)</li>
+            <li>
+                <b>Focos:</b> \( (h \pm c, k) \), &nbsp; donde \( c = a e \)</li>
+            <li>
+                <b>Vértices:</b> \( (h \pm a, k) \) y \( (h, k \pm b) \)</li>
+            <!-- Parábola -->
+            <li>
+                <b>Parábola (vértice \((h, k)\), eje paralelo a x):</b> <br>
+                \( (y - k)^2 = 4p(x - h) \)
+            </li>
+            <li>
+                <b>Foco:</b> \( (h + p, k) \), &nbsp; <b>Directriz:</b> \( x = h - p \)
+            </li>
+            <li>
+                <b>Parábola (eje paralelo a y):</b> <br>
+                \( (x - h)^2 = 4p(y - k) \)
+            </li>
+            <li>
+                <b>Foco:</b> \( (h, k + p) \), &nbsp; <b>Directriz:</b> \( y = k - p \)
+            </li>
+            <!-- Hipérbola -->
+            <li>
+                <b>Hipérbola (centro \((h, k)\), eje x):</b> <br>
+                \( \frac{(x-h)^2}{a^2} - \frac{(y-k)^2}{b^2} = 1 \)
+            </li>
+            <li>
+                <b>Excentricidad:</b> \( e = \sqrt{1 + \frac{b^2}{a^2}} \)</li>
+            <li>
+                <b>Focos:</b> \( (h \pm c, k) \), &nbsp; donde \( c = a e \)</li>
+            <li>
+                <b>Asíntotas:</b> \( y - k = \pm \frac{b}{a}(x - h) \)
+            </li>
+        </ul>
+
+        <!-- Cónica en forma polar -->
+        <div class="subtitle"><i class="fas fa-atom"></i> Ecuación Polar General de una Cónica</div>
+        <p style="font-size:1.13rem;">
+            \( r = \frac{ep}{1 \pm e \cos\theta} \) <br>
+            Donde \( e \) es la excentricidad, \( p \) el parámetro (distancia foco-directriz).
+        </p>
+
+        <!-- Áreas por Herón y Gauss -->
+        <div class="subtitle"><i class="fas fa-draw-polygon"></i> Fórmulas de Área Notables</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Fórmula de Herón para triángulo:</b> <br>
+                \( s = \frac{a+b+c}{2} \) &nbsp; <br>
+                \( \text{Área} = \sqrt{ s(s-a)(s-b)(s-c) } \)
+            </li>
+            <li>
+                <b>Fórmula de Gauss para área de un polígono:</b> <br>
+                Dados los vértices \( (x_1, y_1), (x_2, y_2), ..., (x_n, y_n) \):<br>
+                \( \text{Área} = \frac{1}{2} \left| \sum_{i=1}^{n} (x_i y_{i+1} - x_{i+1} y_i) \right| \) <br>
+                donde \( (x_{n+1}, y_{n+1}) = (x_1, y_1) \)
+            </li>
+        </ul>
+
+        <div class="subtitle"><i class="fas fa-lightbulb"></i> Observaciones útiles</div>
+        <ul style="font-size:1.05rem; line-height:1.8;">
+            <li>📝 <b>La forma general de la recta</b> permite deducir cualquier otra forma mediante despejes y sustituciones.</li>
+            <li>🔎 <b>La fórmula de Gauss</b> sirve para áreas de polígonos convexos y cóncavos conocidos sus vértices.</li>
+            <li>📏 <b>El ángulo entre rectas y distancias</b> es fundamental en problemas de optimización y geometría vectorial.</li>
+            <li>🌟 <b>Las ecuaciones cónicas y sus elementos</b> aparecen en óptica, astronomía, diseño y física.</li>
+        </ul>
+    </div>
+</section>
+
+<!--
+======================================================
+BLOQUE 4: TRIGONOMETRÍA 🔺📐🎯
+======================================================
+-->
+<section class="glass-card collapsed" id="trigonometria">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Trigonometría">🎯</div>
+        <h2 class="main-title" style="font-size:2.1rem;">Trigonometría Completa</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+    </div>
+    <div class="collapsible-content">
+        <!-- TABLA TRIGONOMÉTRICA -->
+        <div class="subtitle"><i class="fas fa-table"></i> Valores Notables de Funciones Trigonométricas</div>
+        <div style="overflow-x:auto;">
+            <table style="width:100%;background:rgba(255,255,255,0.03);color:#fff;border-radius:12px;font-size:1.07rem;text-align:center;">
+                <tr>
+                    <th>Ángulo</th>
+                    <th>0°</th><th>30°</th><th>45°</th><th>60°</th><th>90°</th>
+                    <th>120°</th><th>135°</th><th>150°</th><th>180°</th>
+                </tr>
+                <tr>
+                    <th>\( \theta \) (rad)</th>
+                    <td>0</td><td>\( \frac{\pi}{6} \)</td><td>\( \frac{\pi}{4} \)</td><td>\( \frac{\pi}{3} \)</td><td>\( \frac{\pi}{2} \)</td>
+                    <td>\( \frac{2\pi}{3} \)</td><td>\( \frac{3\pi}{4} \)</td><td>\( \frac{5\pi}{6} \)</td><td>\( \pi \)</td>
+                </tr>
+                <tr>
+                    <th>sen</th>
+                    <td>0</td><td>\( \frac{1}{2} \)</td><td>\( \frac{\sqrt{2}}{2} \)</td><td>\( \frac{\sqrt{3}}{2} \)</td><td>1</td>
+                    <td>\( \frac{\sqrt{3}}{2} \)</td><td>\( \frac{\sqrt{2}}{2} \)</td><td>\( \frac{1}{2} \)</td><td>0</td>
+                </tr>
+                <tr>
+                    <th>cos</th>
+                    <td>1</td><td>\( \frac{\sqrt{3}}{2} \)</td><td>\( \frac{\sqrt{2}}{2} \)</td><td>\( \frac{1}{2} \)</td><td>0</td>
+                    <td>\( -\frac{1}{2} \)</td><td>\( -\frac{\sqrt{2}}{2} \)</td><td>\( -\frac{\sqrt{3}}{2} \)</td><td>-1</td>
+                </tr>
+                <tr>
+                    <th>tan</th>
+                    <td>0</td><td>\( \frac{\sqrt{3}}{3} \)</td><td>1</td><td>\( \sqrt{3} \)</td><td>—</td>
+                    <td>\( -\sqrt{3} \)</td><td>-1</td><td>\( -\frac{\sqrt{3}}{3} \)</td><td>0</td>
+                </tr>
+                <tr>
+                    <th>cot</th>
+                    <td>—</td><td>\( \sqrt{3} \)</td><td>1</td><td>\( \frac{\sqrt{3}}{3} \)</td><td>0</td>
+                    <td>\( -\frac{\sqrt{3}}{3} \)</td><td>-1</td><td>\( -\sqrt{3} \)</td><td>—</td>
+                </tr>
+                <tr>
+                    <th>sec</th>
+                    <td>1</td><td>\( \frac{2}{\sqrt{3}} \)</td><td>\( \sqrt{2} \)</td><td>2</td><td>—</td>
+                    <td>\( -2 \)</td><td>\( -\sqrt{2} \)</td><td>\( -\frac{2}{\sqrt{3}} \)</td><td>-1</td>
+                </tr>
+                <tr>
+                    <th>csc</th>
+                    <td>—</td><td>2</td><td>\( \sqrt{2} \)</td><td>\( \frac{2}{\sqrt{3}} \)</td><td>1</td>
+                    <td>\( \frac{2}{\sqrt{3}} \)</td><td>\( \sqrt{2} \)</td><td>2</td><td>—</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Identidades trigonométricas -->
+        <div class="subtitle"><i class="fas fa-infinity"></i> Identidades Fundamentales y Notables</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>\( \sin^2 x + \cos^2 x = 1 \)</li>
+            <li>\( 1 + \tan^2 x = \sec^2 x \)</li>
+            <li>\( 1 + \cot^2 x = \csc^2 x \)</li>
+            <li>\( \tan x = \frac{\sin x}{\cos x} \), &nbsp; \( \cot x = \frac{\cos x}{\sin x} \)</li>
+            <li>\( \sec x = \frac{1}{\cos x} \), &nbsp; \( \csc x = \frac{1}{\sin x} \)</li>
+            <li>\( \sin(-x) = -\sin x \), &nbsp; \( \cos(-x) = \cos x \), &nbsp; \( \tan(-x) = -\tan x \)</li>
+            <li>\( \sin(x \pm y) = \sin x \cos y \pm \cos x \sin y \)</li>
+            <li>\( \cos(x \pm y) = \cos x \cos y \mp \sin x \sin y \)</li>
+            <li>\( \tan(x \pm y) = \frac{\tan x \pm \tan y}{1 \mp \tan x \tan y} \)</li>
+            <li>\( \sin 2x = 2\sin x \cos x \)</li>
+            <li>\( \cos 2x = \cos^2 x - \sin^2 x = 2\cos^2 x - 1 = 1 - 2\sin^2 x \)</li>
+            <li>\( \tan 2x = \frac{2\tan x}{1 - \tan^2 x} \)</li>
+            <li>\( \sin^2 x = \frac{1 - \cos 2x}{2} \)</li>
+            <li>\( \cos^2 x = \frac{1 + \cos 2x}{2} \)</li>
+            <li>\( \sin^3 x = \frac{3\sin x - \sin 3x}{4} \)</li>
+            <li>\( \cos^3 x = \frac{3\cos x + \cos 3x}{4} \)</li>
+            <li>\( \sin 3x = 3\sin x - 4\sin^3 x \)</li>
+            <li>\( \cos 3x = 4\cos^3 x - 3\cos x \)</li>
+            <li>\( \tan 3x = \frac{3\tan x - \tan^3 x}{1 - 3\tan^2 x} \)</li>
+            <li>\( \sin^4 x = \frac{3}{8} - \frac{1}{2}\cos 2x + \frac{1}{8}\cos 4x \)</li>
+            <li>\( \cos^4 x = \frac{3}{8} + \frac{1}{2}\cos 2x + \frac{1}{8}\cos 4x \)</li>
+            <li>\( \sin x \sin y = \frac{1}{2}[\cos(x-y) - \cos(x+y)] \)</li>
+            <li>\( \cos x \cos y = \frac{1}{2}[\cos(x-y) + \cos(x+y)] \)</li>
+            <li>\( \sin x \cos y = \frac{1}{2}[\sin(x+y) + \sin(x-y)] \)</li>
+            <li>\( \sin x + \sin y = 2 \sin\left(\frac{x+y}{2}\right)\cos\left(\frac{x-y}{2}\right) \)</li>
+            <li>\( \sin x - \sin y = 2 \cos\left(\frac{x+y}{2}\right)\sin\left(\frac{x-y}{2}\right) \)</li>
+            <li>\( \cos x + \cos y = 2 \cos\left(\frac{x+y}{2}\right)\cos\left(\frac{x-y}{2}\right) \)</li>
+            <li>\( \cos x - \cos y = -2 \sin\left(\frac{x+y}{2}\right)\sin\left(\frac{x-y}{2}\right) \)</li>
+        </ul>
+
+        <!-- Teoremas y leyes clásicas -->
+        <div class="subtitle"><i class="fas fa-balance-scale"></i> Teorema de Pitágoras y Leyes Trigonométricas</div>
+        <ul style="font-size:1.13rem;line-height:2;">
+            <li>
+                <b>Teorema de Pitágoras:</b><br>
+                \( a^2 + b^2 = c^2 \) (en triángulo rectángulo)
+            </li>
+            <li>
+                <b>Ley de Senos:</b><br>
+                \( \frac{a}{\sin \alpha} = \frac{b}{\sin \beta} = \frac{c}{\sin \gamma} \)
+            </li>
+            <li>
+                <b>Ley de Cosenos:</b><br>
+                \( a^2 = b^2 + c^2 - 2bc\cos\alpha \)<br>
+                \( b^2 = a^2 + c^2 - 2ac\cos\beta \)<br>
+                \( c^2 = a^2 + b^2 - 2ab\cos\gamma \)
+            </li>
+            <li>
+                <b>Ley de Tangentes:</b><br>
+                \( \frac{a - b}{a + b} = \frac{\tan\left(\frac{\alpha - \beta}{2}\right)}{\tan\left(\frac{\alpha + \beta}{2}\right)} \)
+            </li>
+            <li>
+                <b>Área de triángulo (cualquier caso):</b><br>
+                \( \text{Área} = \frac{1}{2} ab \sin \gamma \)
+            </li>
+            <li>
+                <b>Altura respecto a un lado:</b><br>
+                \( h_a = b \sin \gamma = c \sin \beta \)
+            </li>
+        </ul>
+
+        <!-- Observaciones y tips -->
+        <div class="subtitle"><i class="fas fa-lightbulb"></i> Observaciones y Consejos</div>
+        <ul style="font-size:1.07rem;line-height:1.9;">
+            <li>📊 Usa la tabla para recordar valores y facilitar cálculos mentales y con calculadora.</li>
+            <li>🔗 Las identidades son clave para simplificar y transformar expresiones.</li>
+            <li>🎓 Las leyes del seno y coseno funcionan para cualquier triángulo, no solo los rectángulos.</li>
+            <li>🧠 Las fórmulas de reducción y suma/diferencia de ángulos permiten resolver problemas avanzados y demostrar igualdades.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!--
+======================================================
+BLOQUE 5: PROGRESIONES Y SUMATORIAS 🔢➕🧮
+======================================================
+-->
+<section class="glass-card collapsed" id="progresiones">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Progresiones y Sumatorias">🔢</div>
+        <h2 class="main-title" style="font-size:2.1rem;">Progresiones y Sumatorias</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+    </div>
+    <div class="collapsible-content">
+        <!-- Progresión aritmética -->
+        <div class="subtitle"><i class="fas fa-ellipsis-h"></i> Progresión Aritmética (PA)</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Fórmula del término general:</b><br>
+                \( a_n = a_1 + (n-1)d \)
+            </li>
+            <li>
+                <b>Suma de los primeros \( n \) términos:</b><br>
+                \( S_n = \frac{n}{2} (a_1 + a_n) = \frac{n}{2}[2a_1 + (n-1)d] \)
+            </li>
+            <li>
+                <b>Diferencia común (razón):</b> \( d = a_{n+1} - a_n \)
+            </li>
+        </ul>
+        <!-- Progresión geométrica -->
+        <div class="subtitle"><i class="fas fa-ellipsis-v"></i> Progresión Geométrica (PG)</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Fórmula del término general:</b><br>
+                \( a_n = a_1 \cdot r^{n-1} \)
+            </li>
+            <li>
+                <b>Suma de los primeros \( n \) términos (\( r \neq 1 \)):</b><br>
+                \( S_n = a_1 \frac{1 - r^n}{1 - r} \)
+            </li>
+            <li>
+                <b>Razón:</b> \( r = \frac{a_{n}}{a_{n-1}} \)
+            </li>
+            <li>
+                <b>Suma infinita (\( |r|<1 \)):</b><br>
+                \( S_{\infty} = \frac{a_1}{1 - r} \)
+            </li>
+        </ul>
+        <!-- Fórmulas de sumatorias clásicas -->
+        <div class="subtitle"><i class="fas fa-sigma"></i> Sumatorias Clásicas y Fórmulas</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Suma de los primeros \( n \) números naturales:</b><br>
+                \( \displaystyle \sum_{k=1}^{n} k = \frac{n(n+1)}{2} \)
+            </li>
+            <li>
+                <b>Suma de los primeros \( n \) cuadrados:</b><br>
+                \( \displaystyle \sum_{k=1}^{n} k^2 = \frac{n(n+1)(2n+1)}{6} \)
+            </li>
+            <li>
+                <b>Suma de los primeros \( n \) cubos:</b><br>
+                \( \displaystyle \sum_{k=1}^{n} k^3 = \left[\frac{n(n+1)}{2}\right]^2 \)
+            </li>
+            <li>
+                <b>Propiedades de la sumatoria:</b><br>
+                \( \displaystyle \sum_{k=1}^{n} (a_k + b_k) = \sum_{k=1}^{n} a_k + \sum_{k=1}^{n} b_k \) <br>
+                \( \displaystyle \sum_{k=1}^{n} c \cdot a_k = c \sum_{k=1}^{n} a_k \)
+            </li>
+            <li>
+                <b>Sumatoria de una constante:</b><br>
+                \( \displaystyle \sum_{k=1}^{n} c = c \cdot n \)
+            </li>
+        </ul>
+        <!-- Observaciones -->
+        <div class="subtitle"><i class="fas fa-lightbulb"></i> Observaciones y Consejos</div>
+        <ul style="font-size:1.08rem;line-height:1.8;">
+            <li>🔎 Si necesitas la suma de cualquier secuencia regular, primero verifica si es aritmética o geométrica.</li>
+            <li>📚 Las fórmulas de sumatorias facilitan cálculos en análisis, combinatoria y teoría de números.</li>
+            <li>🧠 Para PG infinitas, recuerda: la fórmula solo aplica si \( |r|<1 \).</li>
+            <li>✨ Puedes combinar progresiones y sumatorias para analizar patrones en series y problemas de conteo.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!--
+======================================================
+BLOQUE 5 (continuación): PROGRESIONES AVANZADAS Y MEDIAS 🔁📊
+======================================================
+-->
+<section class="glass-card collapsed" id="progresiones-avanzadas">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Progresiones Avanzadas y Medias">🔁</div>
+        <h2 class="main-title" style="font-size:2.1rem;">Progresión Armónica y Medias</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+    </div>
+    <div class="collapsible-content">
+        <!-- Progresión armónica -->
+        <div class="subtitle"><i class="fas fa-divide"></i> Progresión Armónica (PH)</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Definición:</b> Una sucesión es armónica si el inverso de sus términos forma una progresión aritmética.<br>
+                Es decir, \( a_1, a_2, ..., a_n \) es PH si \( \frac{1}{a_1}, \frac{1}{a_2}, ..., \frac{1}{a_n} \) es PA.
+            </li>
+            <li>
+                <b>Término general de la PH:</b><br>
+                Si la PA asociada es \( b_k = b_1 + (k-1)d \), entonces \( a_k = \frac{1}{b_k} \)
+            </li>
+        </ul>
+        <!-- Medias -->
+        <div class="subtitle"><i class="fas fa-equals"></i> Medias Aritmética, Geométrica y Armónica</div>
+        <ul style="font-size:1.13rem; line-height:2;">
+            <li>
+                <b>Media aritmética (de \( n \) números):</b><br>
+                \( \displaystyle M_A = \frac{a_1 + a_2 + \cdots + a_n}{n} \)
+            </li>
+            <li>
+                <b>Media geométrica (de \( n \) números):</b><br>
+                \( \displaystyle M_G = \sqrt[n]{a_1 \cdot a_2 \cdots a_n} \)
+            </li>
+            <li>
+                <b>Media armónica (de \( n \) números):</b><br>
+                \( \displaystyle M_H = \frac{n}{\frac{1}{a_1} + \frac{1}{a_2} + \cdots + \frac{1}{a_n}} \)
+            </li>
+            <li>
+                <b>Relación importante:</b><br>
+                Para \( a, b > 0 \): \( M_H \leq M_G \leq M_A \)
+            </li>
+        </ul>
+        <!-- Observaciones -->
+        <div class="subtitle"><i class="fas fa-lightbulb"></i> Observaciones Didácticas</div>
+        <ul style="font-size:1.09rem;line-height:1.8;">
+            <li>🔁 La progresión armónica aparece en problemas de promedios de velocidades y tasas.</li>
+            <li>📏 Las medias son fundamentales en estadística, física y matemáticas aplicadas.</li>
+            <li>📚 Siempre: \( \text{Media armónica} \leq \text{Media geométrica} \leq \text{Media aritmética} \) (igualdad solo si todos los términos son iguales).</li>
+            <li>🧠 Usa la media geométrica para promediar razones y crecimientos, la armónica para promedios de “tasas inversas”.</li>
+        </ul>
+    </div>
+</section>
+
+<!--
+======================================================
+BLOQUE: SUMATORIAS CLÁSICAS, AVANZADAS Y ESPECIALES
+======================================================
+-->
+<section class="glass-card collapsed" id="sumatorias-avanzadas">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Sumatorias Clásicas y Avanzadas">🧩✨</div>
+        <h2 class="main-title" style="font-size:2.1rem;">Sumatorias Clásicas y Avanzadas</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+    </div>
+    <div class="collapsible-content">
+        <div class="subtitle"><i class="fas fa-infinity"></i> Fórmulas fundamentales de sumatorias</div>
+        <ul style="font-size:1.17rem; line-height:2.1;">
+            <li>
+                <b>Suma de los primeros \( n \) números naturales:</b><br>
+                \( \displaystyle \sum_{i=1}^n i = \frac{n(n+1)}{2} \)
+            </li>
+            <li>
+                <b>Suma de los primeros \( n \) cuadrados:</b><br>
+                \( \displaystyle \sum_{i=1}^n i^2 = \frac{n(n+1)(2n+1)}{6} \)
+            </li>
+            <li>
+                <b>Suma de los primeros \( n \) cubos:</b><br>
+                \( \displaystyle \sum_{i=1}^n i^3 = \left[ \frac{n(n+1)}{2} \right]^2 \)
+            </li>
+            <li>
+                <b>Suma de las cuartas potencias:</b><br>
+                \( \displaystyle \sum_{i=1}^n i^4 = \frac{n(n+1)(2n+1)(3n^2 + 3n - 1)}{30} \)
+            </li>
+            <li>
+                <b>Suma de las quintas potencias:</b><br>
+                \( \displaystyle \sum_{i=1}^n i^5 = \frac{n^2(n+1)^2(2n^2+2n-1)}{12} \)
+            </li>
+            <li>
+                <b>Suma alternante:</b><br>
+                \( \displaystyle \sum_{i=1}^n (-1)^{i+1} = 
+                \begin{cases}
+                    0 & \text{si } n \text{ es par}\\
+                    1 & \text{si } n \text{ es impar}
+                \end{cases}
+                \)
+            </li>
+            <li>
+                <b>Suma telescópica:</b><br>
+                \( \displaystyle \sum_{k=1}^n \left(\frac{1}{k(k+1)}\right) = 1 - \frac{1}{n+1} \)
+            </li>
+            <li>
+                <b>Suma de progresión aritmética:</b><br>
+                \( \displaystyle \sum_{k=0}^{n-1} (a + kd) = n a + \frac{n(n-1)}{2} d \)
+            </li>
+            <li>
+                <b>Suma de progresión geométrica:</b><br>
+                \( \displaystyle \sum_{k=0}^{n-1} ar^k = a \frac{1 - r^n}{1 - r}, \quad r \neq 1 \)
+            </li>
+            <li>
+                <b>Suma de una constante:</b><br>
+                \( \displaystyle \sum_{i=1}^n c = n \cdot c \)
+            </li>
+            <li>
+                <b>Suma de binomios (identidad combinatoria):</b><br>
+                \( \displaystyle \sum_{k=0}^n \binom{n}{k} = 2^n \)
+            </li>
+            <li>
+                <b>Suma ponderada de binomios:</b><br>
+                \( \displaystyle \sum_{k=0}^n k \binom{n}{k} = n 2^{n-1} \)
+            </li>
+            <li>
+                <b>Suma del inverso de los naturales (números armónicos):</b><br>
+                \( \displaystyle H_n = \sum_{k=1}^n \frac{1}{k} \)
+            </li>
+            <li>
+                <b>Fórmula general para sumas de potencias (polinomios de Faulhaber):</b><br>
+                \( \displaystyle \sum_{i=1}^n i^m \) (expresable mediante polinomios de grado \( m+1 \), ver <a href="https://es.wikipedia.org/wiki/Polinomio_de_Faulhaber" target="_blank" style="color:var(--color-accent);">Polinomios de Faulhaber</a>)
+            </li>
+        </ul>
+        <div class="subtitle"><i class="fas fa-lightbulb"></i> Notas didácticas</div>
+        <ul style="font-size:1.06rem; line-height:1.8;">
+            <li>Estas sumatorias son clave en álgebra, combinatoria, análisis y teoría de números.</li>
+            <li>Las identidades combinatorias vinculan álgebra y probabilidad.</li>
+            <li>Las sumas telescópicas simplifican expresiones complicadas y aparecen frecuentemente en inducción y series infinitas.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!--
+======================================================
+BLOQUE 6: ESTADÍSTICA DESCRIPTIVA 📊📈📉
+======================================================
+-->
+<section class="glass-card collapsed" id="estadistica">
+    <div class="collapsible-header" onclick="toggleCollapse(this)">
+        <div class="hero-emoji" title="Estadística Descriptiva">📊</div>
+        <h2 class="main-title" style="font-size:2.1rem;">Estadística Descriptiva</h2>
+        <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+    </div>
+    <div class="collapsible-content">
+        <!-- Tendencia central -->
+        <div class="subtitle"><i class="fas fa-chart-bar"></i> Medidas de Tendencia Central</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Media aritmética (no agrupados):</b><br>
+                \( \displaystyle \overline{x} = \frac{1}{n}\sum_{i=1}^n x_i \)
+            </li>
+            <li>
+                <b>Media aritmética (agrupados):</b><br>
+                \( \displaystyle \overline{x} = \frac{ \sum_{i=1}^{k} f_i x_i }{n} \)
+            </li>
+            <li>
+                <b>Mediana (no agrupados):</b><br>
+                - Si \( n \) impar: \( \text{Me} = x_{ \frac{n+1}{2} } \)<br>
+                - Si \( n \) par: \( \text{Me} = \frac{x_{ \frac{n}{2} } + x_{ \frac{n}{2} + 1 }}{2} \)
+            </li>
+            <li>
+                <b>Mediana (agrupados):</b><br>
+                \( \displaystyle \text{Me} = L_i + \left( \frac{ \frac{n}{2} - F_{i-1} }{f_i} \right) \cdot A \)<br>
+                Donde \( L_i \) = límite inferior de la clase mediana,<br>
+                \( F_{i-1} \) = frecuencia acumulada anterior,<br>
+                \( f_i \) = frecuencia de la clase mediana,<br>
+                \( A \) = amplitud de clase.
+            </li>
+            <li>
+                <b>Moda (no agrupados):</b><br>
+                El valor que más se repite.
+            </li>
+            <li>
+                <b>Moda (agrupados):</b><br>
+                \( \displaystyle \text{Mo} = L_m + \left( \frac{f_m - f_{m-1}}{ (f_m - f_{m-1}) + (f_m - f_{m+1}) } \right) \cdot A \)<br>
+                Donde \( L_m \) = límite inferior de la clase modal,<br>
+                \( f_m \) = frecuencia de la clase modal,<br>
+                \( f_{m-1} \) = frecuencia anterior,<br>
+                \( f_{m+1} \) = frecuencia posterior,<br>
+                \( A \) = amplitud.
+            </li>
+        </ul>
+        
+        <!-- Medidas de posición -->
+        <div class="subtitle"><i class="fas fa-sort-amount-up-alt"></i> Medidas de Posición: Cuartiles, Deciles, Percentiles</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Cuartil \( k \) (agrupados):</b><br>
+                \( \displaystyle Q_k = L_i + \left( \frac{ \frac{k \cdot n}{4} - F_{i-1} }{f_i} \right) \cdot A \)
+            </li>
+            <li>
+                <b>Decil \( k \) (agrupados):</b><br>
+                \( \displaystyle D_k = L_i + \left( \frac{ \frac{k \cdot n}{10} - F_{i-1} }{f_i} \right) \cdot A \)
+            </li>
+            <li>
+                <b>Percentil \( k \) (agrupados):</b><br>
+                \( \displaystyle P_k = L_i + \left( \frac{ \frac{k \cdot n}{100} - F_{i-1} }{f_i} \right) \cdot A \)
+            </li>
+        </ul>
+        
+        <!-- Medidas de dispersión -->
+        <div class="subtitle"><i class="fas fa-tachometer-alt"></i> Medidas de Dispersión</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Rango:</b> \( R = x_{max} - x_{min} \)
+            </li>
+            <li>
+                <b>Rango intercuartílico:</b> \( RI = Q_3 - Q_1 \)
+            </li>
+            <li>
+                <b>Varianza (no agrupados):</b><br>
+                \( \displaystyle \sigma^2 = \frac{1}{n}\sum_{i=1}^n (x_i - \overline{x})^2 \)
+            </li>
+            <li>
+                <b>Varianza muestral:</b><br>
+                \( \displaystyle s^2 = \frac{1}{n-1}\sum_{i=1}^n (x_i - \overline{x})^2 \)
+            </li>
+            <li>
+                <b>Varianza (agrupados):</b><br>
+                \( \displaystyle \sigma^2 = \frac{ \sum_{i=1}^{k} f_i (x_i - \overline{x})^2 }{n} \)
+            </li>
+            <li>
+                <b>Desviación estándar:</b> \( \sigma = \sqrt{\sigma^2} \)
+            </li>
+            <li>
+                <b>Coeficiente de variación:</b> \( CV = \frac{\sigma}{\overline{x}} \cdot 100\% \)
+            </li>
+        </ul>
+        
+        <!-- Regresión y correlación -->
+        <div class="subtitle"><i class="fas fa-chart-line"></i> Regresión Lineal y Parabólica</div>
+        <ul style="font-size:1.12rem; line-height:2;">
+            <li>
+                <b>Recta de regresión lineal:</b><br>
+                \( y = a + bx \)
+            </li>
+            <li>
+                <b>Pendiente:</b><br>
+                \( \displaystyle b = \frac{ n\sum xy - (\sum x)(\sum y) }{ n\sum x^2 - (\sum x)^2 } \)
+            </li>
+            <li>
+                <b>Intercepto:</b><br>
+                \( \displaystyle a = \overline{y} - b \overline{x} \)
+            </li>
+            <li>
+                <b>Coeficiente de correlación:</b><br>
+                \( \displaystyle r = \frac{ n\sum xy - (\sum x)(\sum y) }{ \sqrt{ [n\sum x^2 - (\sum x)^2][n\sum y^2 - (\sum y)^2] } } \)
+            </li>
+            <li>
+                <b>Regresión parabólica (modelo \( y = a + bx + cx^2 \)):</b><br>
+                Se resuelve por el método de mínimos cuadrados, resolviendo el sistema:<br>
+                \( \sum y = n a + b \sum x + c \sum x^2 \) <br>
+                \( \sum x y = a \sum x + b \sum x^2 + c \sum x^3 \) <br>
+                \( \sum x^2 y = a \sum x^2 + b \sum x^3 + c \sum x^4 \)
+            </li>
+        </ul>
+
+        <!-- Observaciones -->
+        <div class="subtitle"><i class="fas fa-lightbulb"></i> Observaciones y Consejos</div>
+        <ul style="font-size:1.08rem;line-height:1.8;">
+            <li>🟦 Usa la fórmula adecuada para datos agrupados o no agrupados, según el problema.</li>
+            <li>📊 Los percentiles, deciles y cuartiles permiten interpretar la posición relativa de un valor en un conjunto de datos.</li>
+            <li>📈 El coeficiente de correlación mide la fuerza y dirección de la relación lineal entre dos variables.</li>
+            <li>🧮 La regresión parabólica es útil para ajustar datos cuando la relación no es lineal.</li>
+        </ul>
+    </div>
+</section>
+
+
+<!--
+======================================================
+BLOQUE: COMBINATORIA 🔢✨ (COLAPSABLE HOMOGÉNEO)
+======================================================
+-->
+<section class="glass-card collapsed" id="combinatoria">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Combinatoria">🔢</div>
+    <h2 class="main-title" style="font-size:2.1rem; color: #fff;">Combinatoria <span style="font-size:1.6rem;color:#ffd700;">✨</span></h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+    <div class="subtitle"><i class="fas fa-random"></i> Principios Fundamentales de Conteo</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>
+        <b>Principio aditivo:</b> Si un evento A puede ocurrir de \(m\) formas y un evento B de \(n\) formas (excluyentes), total: \(m + n\).
+      </li>
+      <li>
+        <b>Principio multiplicativo:</b> Si A puede ocurrir de \(m\) formas y B de \(n\) formas para cada A, total: \(m \times n\).
+      </li>
+    </ul>
+    <div class="subtitle"><i class="fas fa-sync-alt"></i> Permutaciones</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Simples:</b> \(P(n) = n!\)</li>
+      <li><b>De \(n\) tomados de \(r\):</b> \(P(n, r) = \frac{n!}{(n - r)!}\)</li>
+      <li><b>Con repetición:</b> \(P(n; n_1, ..., n_k) = \frac{n!}{n_1!n_2!\cdots n_k!}\)</li>
+      <li><b>Circular:</b> \(P_c(n) = (n-1)!\)</li>
+    </ul>
+    <div class="subtitle"><i class="fas fa-layer-group"></i> Variaciones</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Sin repetición:</b> \(V(n, r) = \frac{n!}{(n - r)!}\)</li>
+      <li><b>Con repetición:</b> \(V'(n, r) = n^r\)</li>
+    </ul>
+    <div class="subtitle"><i class="fas fa-th-list"></i> Combinaciones</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Sin repetición:</b> \(C(n, r) = \binom{n}{r} = \frac{n!}{r!(n - r)!}\)</li>
+      <li><b>Con repetición:</b> \(C'(n, r) = \binom{n + r - 1}{r} = \frac{(n+r-1)!}{r!(n-1)!}\)</li>
+    </ul>
+    <div class="subtitle"><i class="fas fa-infinity"></i> Números Combinatorios y Ejemplos</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Triángulo de Pascal:</b> \( \binom{n}{r} = \binom{n-1}{r-1} + \binom{n-1}{r} \)</li>
+      <li><b>Suma:</b> \( \sum_{k=0}^n \binom{n}{k} = 2^n \)</li>
+      <li><b>Binomio de Newton:</b> \( (a+b)^n = \sum_{k=0}^n \binom{n}{k} a^{n-k}b^k \)</li>
+    </ul>
+
+    <hr style="border:1px solid var(--color-block);margin:1.1rem 0;">
+
+    <!-- CALCULADORA DE COMBINATORIA -->
+    <div class="subtitle" style="margin-bottom:0.6em;"><i class="fas fa-calculator"></i> Calculadora Combinatoria Interactiva</div>
+    <div style="display:flex;gap:1.1em;align-items:center;flex-wrap:wrap;">
+      <label for="tipo-combi"><b style="color:#58a6ff;">Tipo:</b></label>
+      <select id="tipo-combi" onchange="showFields()" style="padding:0.3em 0.7em;border-radius:8px;">
+        <option value="combinacion">Combinaciones</option>
+        <option value="variacion">Variaciones</option>
+        <option value="permutacion">Permutaciones</option>
+        <option value="permutacionRepetida">Perm. con repetición</option>
+      </select>
+      <label for="nval" style="margin-left:0.5em;">\( n = \)</label>
+      <input type="number" id="nval" value="5" min="0" style="width:3.5em;">
+      <span id="r-label"><label for="kval">\( r = \)</label>
+      <input type="number" id="kval" value="3" min="0" style="width:3.5em;"></span>
+      <button onclick="calcCombi()" style="padding:0.3em 1em;background:var(--color-accent);border:none;border-radius:8px;color:#232526;font-weight:bold;cursor:pointer;">
+        <i class="fas fa-equals"></i> Calcular
+      </button>
+      <span id="combResult" style="margin-left:1.1em;color:#ffd700;font-size:1.2em;"></span>
+    </div>
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            renderMathInElement(document.body, {
-                delimiters: [
-                    {left: '$$', right: '$$', display: true},
-                    {left: '$', right: '$', display: false}
-                ]
-            });
-        });
+      function fact(n){ return n<=1?1:n*fact(n-1);}
+      function showFields() {
+        let tipo = document.getElementById('tipo-combi').value;
+        let rLabel = document.getElementById('r-label');
+        if (tipo == 'permutacion') rLabel.style.display = 'none';
+        else rLabel.style.display = 'inline';
+      }
+      function calcCombi(){
+        let n = parseInt(document.getElementById('nval').value);
+        let tipo = document.getElementById('tipo-combi').value;
+        let k = parseInt(document.getElementById('kval').value);
+        let res, formula = "";
+        if(isNaN(n)||n<0||(tipo!='permutacion'&&(isNaN(k)||k<0||k>n&&tipo!=='variacion'))) {
+          document.getElementById('combResult').innerHTML = "Valor inválido"; return;
+        }
+        if(tipo==="combinacion"){
+          res = fact(n)/(fact(k)*fact(n-k));
+          formula = `\\(\\displaystyle \\binom{${n}}{${k}} = ${res}\\)`;
+        }
+        else if(tipo==="variacion"){
+          res = fact(n)/fact(n-k);
+          formula = `\\(V(${n},${k}) = ${res}\\)`;
+        }
+        else if(tipo==="permutacion"){
+          res = fact(n);
+          formula = `\\(P(${n}) = ${n}! = ${res}\\)`;
+        }
+        else if(tipo==="permutacionRepetida"){
+          res = fact(n)/(fact(k)*fact(n-k));
+          formula = `\\(\\text{Perm. rep:} \\frac{${n}!}{${k}!(${n}-${k})!} = ${res}\\)`;
+        }
+        document.getElementById('combResult').innerHTML = formula;
+        if(window.renderMathInElement) window.renderMathInElement(document.getElementById('combResult'));
+      }
+      showFields();
     </script>
 
+    <hr style="border:1px solid var(--color-block);margin:1.1rem 0;">
+
+    <div class="subtitle"><i class="fas fa-lightbulb"></i> Ejemplo didáctico</div>
+    <ul style="font-size:1.10rem;line-height:1.85;">
+      <li>¿Cuántos subconjuntos de 3 elementos de un conjunto de 10?<br>
+      <span style="color:#ffd700;">\(C(10, 3) = \binom{10}{3} = 120\)</span></li>
+      <li>¿De cuántas formas pueden sentarse 7 personas en una mesa circular?<br>
+      <span style="color:#ffd700;">\(P_c(7) = 6! = 720\)</span></li>
+      <li>¿Cuántas palabras distintas se forman con las letras de <b>COMBINATORIA</b>?<br>
+      <span style="color:#ffd700;">\(P = \frac{12!}{2!2!2!} = 2\,495\,200\)</span></li>
+    </ul>
+  </div>
+</section>
+
+
+
+ <!---------------------------------------------------->
+
+
+    <!-- SCRIPT PARA EFECTO COLAPSABLE -->
+    <script>
+    function toggleCollapse(header) {
+      const card = header.closest('.glass-card');
+      card.classList.toggle('collapsed');
+      // Vuelve a renderizar KaTeX en ese bloque si es necesario
+      if (typeof renderMathInElement === "function") {
+        setTimeout(() => renderMathInElement(card), 320);
+      }
+    }
+    </script>
+
+
+<!--
+======================================================
+BLOQUE: PROBABILIDAD Y DISTRIBUCIONES DE PROBABILIDAD 🎲🧮
+======================================================
+-->
+<section class="glass-card collapsed" id="probabilidad">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Probabilidad">🎲</div>
+    <h2 class="main-title" style="font-size:2.1rem;">Probabilidad y Distribuciones de Probabilidad</h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+    <!-- Fundamentos -->
+    <div class="subtitle"><i class="fas fa-dice"></i> Fundamentos de la Probabilidad</div>
+    <ul style="font-size:1.15rem;line-height:2;">
+      <li><b>Espacio muestral:</b> \( S \) es el conjunto de todos los posibles resultados.</li>
+      <li><b>Probabilidad clásica:</b> \( P(A) = \frac{\text{Casos favorables}}{\text{Casos posibles}} \)</li>
+      <li><b>Propiedades:</b> \( 0 \leq P(A) \leq 1 \), \( P(\varnothing) = 0 \), \( P(S) = 1 \)</li>
+      <li><b>Probabilidad complementaria:</b> \( P(\overline{A}) = 1 - P(A) \)</li>
+      <li><b>Probabilidad unión:</b> \( P(A \cup B) = P(A) + P(B) - P(A \cap B) \)</li>
+      <li><b>Probabilidad intersección (independientes):</b> \( P(A \cap B) = P(A)P(B) \)</li>
+      <li><b>Probabilidad intersección (dependientes):</b> \( P(A \cap B) = P(A)P(B|A) \)</li>
+      <li><b>Probabilidad condicional:</b> \( P(A|B) = \frac{P(A \cap B)}{P(B)} \)</li>
+      <li><b>Probabilidad total:</b> \( P(B) = \sum_{i=1}^n P(A_i)P(B|A_i) \), siendo los \(A_i\) una partición de S.</li>
+      <li><b>Teorema de Bayes:</b> \( P(A_i|B) = \frac{P(A_i)P(B|A_i)}{\sum_{j=1}^n P(A_j)P(B|A_j)} \)</li>
+    </ul>
+
+    <hr style="border:1px solid var(--color-block);margin:1.1rem 0;">
+
+    <!-- Conteo -->
+    <div class="subtitle"><i class="fas fa-sort-numeric-up"></i> Formulación de Conteo y Esperanza</div>
+    <ul style="font-size:1.15rem;line-height:2;">
+      <li><b>Permutaciones:</b> \( n! \)</li>
+      <li><b>Combinaciones:</b> \( \dbinom{n}{r} = \frac{n!}{r!(n-r)!} \)</li>
+      <li><b>Esperanza matemática:</b> Discreta: \( E[X] = \sum x_i P(x_i) \); Continua: \( E[X] = \int_{-\infty}^\infty x f(x) dx \)</li>
+      <li><b>Varianza:</b> Discreta: \( \mathrm{Var}(X) = \sum (x_i - \mu)^2 P(x_i) \); Continua: \( \int (x-\mu)^2 f(x) dx \)</li>
+    </ul>
+
+    <hr style="border:1px solid var(--color-block);margin:1.1rem 0;">
+
+    <!-- Distribuciones discretas -->
+    <div class="subtitle"><i class="fas fa-chart-bar"></i> Distribuciones Discretas</div>
+    <ul style="font-size:1.12rem;line-height:2;">
+      <li><b>Bernoulli:</b> \( P(X=x) = p^x (1-p)^{1-x} \), &nbsp; \( x=0,1 \)</li>
+      <li><b>Binomial:</b> \( P(X=k) = \dbinom{n}{k} p^k (1-p)^{n-k} \), \( k=0,\ldots,n \)</li>
+      <li><b>Geométrica:</b> \( P(X=k) = (1-p)^{k-1}p \), \( k=1,2,\ldots \)</li>
+      <li><b>Poisson:</b> \( P(X=k) = \frac{\lambda^k e^{-\lambda}}{k!} \), \( k=0,1,2,\ldots \)</li>
+      <li><b>Hipergeométrica:</b> \( P(X=k) = \frac{\dbinom{K}{k}\dbinom{N-K}{n-k}}{\dbinom{N}{n}} \)</li>
+    </ul>
+
+    <!-- Distribuciones continuas -->
+    <div class="subtitle"><i class="fas fa-chart-line"></i> Distribuciones Continuas</div>
+    <ul style="font-size:1.12rem;line-height:2;">
+      <li><b>Uniforme:</b> \( f(x) = \frac{1}{b-a} \), \( a \leq x \leq b \)</li>
+      <li><b>Exponencial:</b> \( f(x) = \lambda e^{-\lambda x} \), \( x \geq 0 \)</li>
+      <li><b>Normal:</b> \( f(x) = \frac{1}{\sigma\sqrt{2\pi}} e^{-\frac{(x-\mu)^2}{2\sigma^2}} \)</li>
+      <li><b>Distribución \( t \) de Student:</b> <br>
+        \( f(x) = \frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu\pi}\,\Gamma\left(\frac{\nu}{2}\right)}\left(1+\frac{x^2}{\nu}\right)^{-\frac{\nu+1}{2}} \)
+      </li>
+      <li><b>Chi-cuadrado (\( \chi^2 \)):</b> \( f(x) = \frac{1}{2^{k/2}\Gamma(k/2)} x^{k/2-1} e^{-x/2} \)</li>
+    </ul>
+
+    <!-- Resumen visual -->
+    <div class="subtitle"><i class="fas fa-table"></i> Resumen visual: Distribuciones principales</div>
+    <div style="overflow-x:auto;">
+      <table style="background:rgba(255,255,255,0.03);color:#fff;border-radius:12px;font-size:1em;text-align:center;width:100%;">
+        <tr>
+          <th>Distribución</th>
+          <th>Tipo</th>
+          <th>Media</th>
+          <th>Varianza</th>
+        </tr>
+        <tr>
+          <td>Bernoulli</td>
+          <td>Discreta</td>
+          <td>\( p \)</td>
+          <td>\( p(1-p) \)</td>
+        </tr>
+        <tr>
+          <td>Binomial</td>
+          <td>Discreta</td>
+          <td>\( np \)</td>
+          <td>\( np(1-p) \)</td>
+        </tr>
+        <tr>
+          <td>Poisson</td>
+          <td>Discreta</td>
+          <td>\( \lambda \)</td>
+          <td>\( \lambda \)</td>
+        </tr>
+        <tr>
+          <td>Normal</td>
+          <td>Continua</td>
+          <td>\( \mu \)</td>
+          <td>\( \sigma^2 \)</td>
+        </tr>
+        <tr>
+          <td>Uniforme</td>
+          <td>Continua</td>
+          <td>\( \frac{a+b}{2} \)</td>
+          <td>\( \frac{(b-a)^2}{12} \)</td>
+        </tr>
+      </table>
+    </div>
+
+    <hr style="border:1px solid var(--color-block);margin:1.1rem 0;">
+
+    <div class="subtitle"><i class="fas fa-lightbulb"></i> Notas clave y consejos</div>
+    <ul style="font-size:1.07rem; line-height:1.9;">
+      <li>✨ Las fórmulas de probabilidad te permiten modelar desde juegos hasta fenómenos naturales.</li>
+      <li>🧠 El <b>Teorema Central del Límite</b> dice que la suma de muchas variables aleatorias tiende a una normal, independientemente de su distribución.</li>
+      <li>📝 <b>Distribuciones discretas</b> se usan para conteos y eventos; <b>continuas</b> para medidas y fenómenos físicos.</li>
+      <li>🔍 ¡Siempre revisa si tus eventos son independientes o dependientes!</li>
+    </ul>
+
+    <!-- Ejemplo didáctico rápido -->
+    <div class="subtitle"><i class="fas fa-question-circle"></i> Ejemplo didáctico</div>
+    <div style="font-size:1.08rem; margin-bottom:0.7em;">
+      <b>Ejemplo:</b> ¿Cuál es la probabilidad de obtener al menos un "6" al lanzar un dado tres veces?<br>
+      Solución: Complemento: no obtener ningún "6": \( (5/6)^3 = 125/216 \).<br>
+      Por tanto: \( 1 - 125/216 \approx 0.421 \) (o 42.1%).
+    </div>
+  </div>
+</section>
+
+<!--
+======================================================
+BLOQUE: NÚMEROS COMPLEJOS 🌀
+======================================================
+-->
+<section class="glass-card collapsed" id="complejos">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Números Complejos">🌀</div>
+    <h2 class="main-title" style="font-size:2.1rem; color:#fff;">Números Complejos</h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+    <!-- Definiciones -->
+    <div class="subtitle"><i class="fas fa-infinity"></i> Definición y Formas de Representación</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Forma binómica o cartesiana:</b> \( z = a + bi \), donde \( a, b \in \mathbb{R} \), \( i^2 = -1 \)</li>
+      <li><b>Forma polar:</b> \( z = r(\cos\theta + i\sin\theta) \), donde \( r = |z| = \sqrt{a^2 + b^2} \), \( \theta = \arg(z) \)</li>
+      <li><b>Forma exponencial (Euler):</b> \( z = r e^{i\theta} \)</li>
+    </ul>
+
+    <!-- Operaciones -->
+    <div class="subtitle"><i class="fas fa-sliders-h"></i> Operaciones Básicas</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Suma y resta:</b> \( (a+bi) \pm (c+di) = (a \pm c) + (b \pm d)i \)</li>
+      <li><b>Multiplicación:</b> \( (a+bi)(c+di) = (ac-bd) + (ad+bc)i \)</li>
+      <li><b>Conjugado:</b> \( \overline{z} = a - bi \)</li>
+      <li><b>Módulo:</b> \( |z| = \sqrt{a^2 + b^2} \)</li>
+      <li><b>División:</b> \( \frac{a+bi}{c+di} = \frac{(a+bi)(c-di)}{(c+di)(c-di)} = \frac{ac+bd}{c^2+d^2} + \frac{bc-ad}{c^2+d^2}i \)</li>
+      <li><b>Forma recíproca:</b> \( \frac{1}{a+bi} = \frac{a-bi}{a^2+b^2} \)</li>
+    </ul>
+
+    <!-- Forma polar y trigonométrica -->
+    <div class="subtitle"><i class="fas fa-compass"></i> Forma Polar y Relaciones Trigonométricas</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>\( r = \sqrt{a^2 + b^2} \), &nbsp; \( \theta = \arctan\left(\frac{b}{a}\right) \) (considera el cuadrante)</li>
+      <li>\( a = r\cos\theta \), &nbsp; \( b = r\sin\theta \)</li>
+    </ul>
+
+    <!-- Producto, cociente, potencias y raíces -->
+    <div class="subtitle"><i class="fas fa-project-diagram"></i> Producto, Cociente, Potencias y Raíces</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Producto en forma polar/exponencial:</b> \( z_1 z_2 = r_1 r_2 e^{i(\theta_1+\theta_2)} \)</li>
+      <li><b>Cociente en forma polar/exponencial:</b> \( \frac{z_1}{z_2} = \frac{r_1}{r_2} e^{i(\theta_1-\theta_2)} \)</li>
+      <li><b>Teorema de De Moivre (potencias):</b> \( [r(\cos\theta + i\sin\theta)]^n = r^n [\cos(n\theta) + i\sin(n\theta)] \)</li>
+      <li><b>Raíces \(n\)-ésimas:</b> \( \sqrt[n]{z} = \sqrt[n]{r}\left[\cos\left(\frac{\theta+2k\pi}{n}\right) + i\sin\left(\frac{\theta+2k\pi}{n}\right)\right] \), \( k=0,1,...,n-1 \)</li>
+      <li><b>Raíces de la unidad:</b> \( z_k = e^{i\frac{2\pi k}{n}},\; k=0,1,...,n-1 \)</li>
+    </ul>
+
+    <!-- Euler y exponencial -->
+    <div class="subtitle"><i class="fas fa-link"></i> Fórmula de Euler y Funciones Trigonométricas</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>\( e^{i\theta} = \cos\theta + i\sin\theta \), &nbsp; \( e^{-i\theta} = \cos\theta - i\sin\theta \)</li>
+      <li><b>Identidades:</b> \( \cos\theta = \frac{e^{i\theta} + e^{-i\theta}}{2} \), &nbsp; \( \sin\theta = \frac{e^{i\theta} - e^{-i\theta}}{2i} \)</li>
+      <li><b>Función exponencial compleja:</b> \( e^{a+bi} = e^a (\cos b + i\sin b) \)</li>
+    </ul>
+
+    <!-- Propiedades notables -->
+    <div class="subtitle"><i class="fas fa-asterisk"></i> Propiedades Notables</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Conjugado de producto:</b> \( \overline{z_1 z_2} = \overline{z_1} \, \overline{z_2} \)</li>
+      <li><b>Conjugado de suma:</b> \( \overline{z_1+z_2} = \overline{z_1} + \overline{z_2} \)</li>
+      <li><b>Módulo de producto:</b> \( |z_1 z_2| = |z_1||z_2| \)</li>
+      <li><b>Módulo de cociente:</b> \( \left|\frac{z_1}{z_2}\right| = \frac{|z_1|}{|z_2|} \)</li>
+      <li><b>Argumento de producto:</b> \( \arg(z_1 z_2) = \arg(z_1) + \arg(z_2) \)</li>
+      <li><b>Argumento de cociente:</b> \( \arg\left(\frac{z_1}{z_2}\right) = \arg(z_1) - \arg(z_2) \)</li>
+      <li><b>Logaritmo complejo:</b> \( \ln(re^{i\theta}) = \ln r + i\theta + 2k\pi i \), \( k \in \mathbb{Z} \)</li>
+    </ul>
+
+    <!-- Representación gráfica -->
+    <div class="subtitle"><i class="fas fa-draw-polygon"></i> Plano de Argand-Gauss (Representación Gráfica)</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>El número \( z = a + bi \) se representa por el punto \( (a, b) \) en el plano.</li>
+      <li><b>Módulo:</b> distancia al origen; <b>argumento:</b> ángulo con el eje real positivo.</li>
+      <li><b>Forma vectorial:</b> \( \vec{z} = a\,\vec{i} + b\,\vec{j} \)</li>
+    </ul>
+    <div style="overflow-x:auto; margin:0.7em 0;">
+      <table style="background:rgba(255,255,255,0.04);color:#fff;border-radius:10px;font-size:1em;text-align:center;width:100%;">
+        <tr>
+          <th>Forma</th><th>Ejemplo</th><th>Notas</th>
+        </tr>
+        <tr>
+          <td>Binómica</td>
+          <td>\( 2 + 3i \)</td>
+          <td>Suma/resta directa</td>
+        </tr>
+        <tr>
+          <td>Polar</td>
+          <td>\( 5(\cos 0.7 + i\sin 0.7) \)</td>
+          <td>Fácil multiplicación/división</td>
+        </tr>
+        <tr>
+          <td>Exponencial</td>
+          <td>\( 4 e^{i\pi/3} \)</td>
+          <td>Potencias y raíces</td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Igualdad de complejos -->
+    <div class="subtitle"><i class="fas fa-equals"></i> Igualdad de Números Complejos</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>Dos números complejos son iguales si coinciden sus partes real e imaginaria:<br>
+        \( a+bi = c+di \iff a = c \) y \( b = d \)
+      </li>
+    </ul>
+
+    <!-- Aplicaciones -->
+    <div class="subtitle"><i class="fas fa-lightbulb"></i> Aplicaciones</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>Resolución de ecuaciones cuadráticas con discriminante negativo</li>
+      <li>Oscilaciones y señales en ingeniería eléctrica y física</li>
+      <li>Transformaciones y rotaciones en el plano</li>
+      <li>Cálculo de raíces de la unidad, potencias complejas y aplicaciones en fractales</li>
+    </ul>
+
+    <div class="subtitle"><i class="fas fa-star"></i> Consejos y Observaciones</div>
+    <ul style="font-size:1.1rem;line-height:1.8;">
+      <li>💡 La forma polar y exponencial simplifica cálculos de potencias y raíces.</li>
+      <li>🌀 El plano complejo permite visualizar operaciones como rotaciones y simetrías.</li>
+      <li>✏️ Todo número real es un caso particular de complejo: \( a + 0i \).</li>
+      <li>🔑 Fundamental para ingeniería, física, matemáticas avanzadas y señales.</li>
+    </ul>
+  </div>
+</section>
+
+
+<!--
+======================================================
+BLOQUE: CÁLCULO DIFERENCIAL E INTEGRAL ULTRA AMPLIADO 🚀
+======================================================
+-->
+<section class="glass-card collapsed" id="calculo-ampliado">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Cálculo Diferencial e Integral">🚀</div>
+    <h2 class="main-title" style="font-size:2.2rem;color:#fff;">Cálculo Diferencial e Integral </h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+
+    <!-- =================== LÍMITES =================== -->
+    <div class="subtitle"><i class="fas fa-infinity"></i> Límites: propiedades, técnicas y ejemplos</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Propiedades:</b>
+        <ul>
+          <li>\( \lim_{x\to a} [cf(x)] = c\lim_{x\to a} f(x) \)</li>
+          <li>\( \lim_{x\to a} [f(x)\pm g(x)] = \lim_{x\to a} f(x) \pm \lim_{x\to a} g(x) \)</li>
+          <li>\( \lim_{x\to a} [f(x)g(x)] = \lim_{x\to a} f(x) \cdot \lim_{x\to a} g(x) \)</li>
+          <li>\( \lim_{x\to a} \frac{f(x)}{g(x)} = \frac{\lim_{x\to a} f(x)}{\lim_{x\to a} g(x)} \), \(g(a)\neq0\)</li>
+        </ul>
+      </li>
+      <li><b>Indeterminaciones:</b> \( \frac{0}{0} \), \( \frac{\infty}{\infty} \), \( 0\cdot\infty \), \( \infty-\infty \), \( 0^0 \), \( 1^\infty \), \( \infty^0 \)</li>
+      <li><b>Límites notables y técnicas:</b>
+        <ul>
+          <li>\( \lim_{x\to 0} \frac{\sin x}{x} = 1 \)</li>
+          <li>\( \lim_{x\to 0} \frac{1-\cos x}{x^2} = \frac{1}{2} \)</li>
+          <li>\( \lim_{x\to 0} (1+x)^{1/x} = e \)</li>
+          <li>\( \lim_{x\to 0} \frac{\ln(1+x)}{x} = 1 \)</li>
+          <li>\( \lim_{x\to a} \frac{\sqrt{x}-\sqrt{a}}{x-a} = \frac{1}{2\sqrt{a}} \)</li>
+          <li>\( \lim_{x\to\infty} \frac{P(x)}{Q(x)} \) según los grados de \(P, Q\).</li>
+          <li><b>Regla de L'Hôpital:</b> \( \lim_{x\to a} \frac{f(x)}{g(x)} = \lim_{x\to a} \frac{f'(x)}{g'(x)} \)</li>
+          <li><b>Otras técnicas:</b> racionalización, factorización, fracciones parciales, cambio de variable.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- =================== DERIVADAS =================== -->
+    <div class="subtitle"><i class="fas fa-pen-fancy"></i> Derivadas: reglas, técnicas y aplicaciones</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Definición:</b> \( f'(x) = \lim_{h\to 0} \frac{f(x+h)-f(x)}{h} \)</li>
+      <li><b>Reglas generales:</b>
+        <ul>
+          <li>Suma, producto, cociente, cadena, potencias, compuestas, implícitas y paramétricas.</li>
+        </ul>
+      </li>
+      <li><b>Derivadas comunes y trigonométricas:</b>
+        <ul>
+          <li>\( (e^x)' = e^x \), \( (a^x)' = a^x\ln a \)</li>
+          <li>\( (\ln x)' = \frac{1}{x} \), \( (\sin x)' = \cos x \), \( (\cos x)' = -\sin x \)</li>
+          <li>\( (\arcsin x)' = \frac{1}{\sqrt{1-x^2}} \), \( (\arctan x)' = \frac{1}{1+x^2} \)</li>
+        </ul>
+      </li>
+      <li><b>Hiperbólicas y avanzadas:</b> 
+        <ul>
+          <li>\( (\sinh x)' = \cosh x \), \( (\cosh x)' = \sinh x \)</li>
+        </ul>
+      </li>
+      <li><b>Aplicaciones:</b>
+        <ul>
+          <li>Tasa de cambio, velocidad, aceleración</li>
+          <li>Rectas tangente y normal</li>
+          <li>Extremos, concavidad, inflexión</li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- =================== INTEGRALES =================== -->
+    <div class="subtitle"><i class="fas fa-integral"></i> Integrales inmediatas, técnicas y avanzadas</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li><b>Integrales inmediatas:</b>
+        <ul>
+          <li>\( \int x^n dx = \frac{x^{n+1}}{n+1} + C \), \( n \neq -1 \)</li>
+          <li>\( \int \frac{1}{x} dx = \ln|x| + C \)</li>
+          <li>\( \int e^{ax} dx = \frac{1}{a}e^{ax} + C \)</li>
+          <li>\( \int \sin(ax) dx = -\frac{1}{a}\cos(ax) + C \)</li>
+        </ul>
+      </li>
+      <li><b>Integrales con radicales y racionales:</b>
+        <ul>
+          <li>\( \int \frac{dx}{\sqrt{a^2-x^2}} = \arcsin\left(\frac{x}{a}\right)+C \)</li>
+          <li>\( \int \frac{dx}{x^2+a^2} = \frac{1}{a}\arctan\left(\frac{x}{a}\right)+C \)</li>
+          <li>\( \int \frac{dx}{\sqrt{x^2\pm a^2}} = \ln\left|x+\sqrt{x^2\pm a^2}\right|+C \)</li>
+          <li>\( \int \frac{x\,dx}{\sqrt{a^2-x^2}} = -\sqrt{a^2-x^2}+C \)</li>
+          <li>\( \int \sqrt{a^2-x^2}\,dx = \frac{x}{2}\sqrt{a^2-x^2}+\frac{a^2}{2}\arcsin\left(\frac{x}{a}\right)+C \)</li>
+        </ul>
+      </li>
+      <li><b>Integración por sustitución:</b> Si \(u=g(x)\), entonces \( \int f(g(x))g'(x) dx = \int f(u) du \)</li>
+      <li><b>Integración por partes y recursiva:</b> \( \int u dv = uv - \int v du \) <br>
+        Recursiva para potencias y logaritmos:<br>
+        \( \int x^n e^{ax} dx \), \( \int x^n \sin(ax) dx \), \( \int x^n \ln(x) dx \), etc.
+      </li>
+      <li><b>Integrales trigonométricas y sus productos:</b>
+        <ul>
+          <li>\( \int \sin^n x dx \), \( \int \cos^n x dx \), \( \int \sin(ax)\cos(bx)dx \)</li>
+          <li>Usar identidades de reducción y fórmulas de productos a sumas</li>
+        </ul>
+      </li>
+      <li><b>Fracciones parciales:</b> 
+        <ul>
+          <li>\( \int \frac{P(x)}{Q(x)}dx \), descomposición si \(\deg P < \deg Q\)</li>
+          <li>Ejemplo: \( \int \frac{1}{(x-1)(x+2)}dx = \frac{1}{3}\ln|x-1| - \frac{1}{3}\ln|x+2| + C \)</li>
+        </ul>
+      </li>
+      <li><b>Integrales hiperbólicas:</b>
+        <ul>
+          <li>\( \int \sinh(ax) dx = \frac{1}{a}\cosh(ax) + C \)</li>
+          <li>\( \int \cosh(ax) dx = \frac{1}{a}\sinh(ax) + C \)</li>
+          <li>\( \int \tanh(ax) dx = \frac{1}{a}\ln|\cosh(ax)|+C \)</li>
+        </ul>
+      </li>
+      <li><b>Integrales impropias:</b>
+        <ul>
+          <li>\( \int_1^{\infty} \frac{1}{x^p}dx = \frac{1}{p-1} \), \( p>1 \) (convergencia)</li>
+        </ul>
+      </li>
+      <li><b>Integración numérica:</b>
+        <ul>
+          <li><b>Regla del Trapecio:</b> \( \int_a^b f(x)\,dx \approx \frac{b-a}{2}[f(a)+f(b)] \)</li>
+          <li><b>Trapecios compuestos:</b> \( \int_a^b f(x)\,dx \approx \frac{h}{2}[f(x_0)+2f(x_1)+2f(x_2)+...+2f(x_{n-1})+f(x_n)] \) <br> donde \( h = \frac{b-a}{n} \)</li>
+          <li><b>Regla de Simpson 1/3:</b> \( \int_a^b f(x)\,dx \approx \frac{h}{3}[f(x_0)+4f(x_1)+2f(x_2)+...+4f(x_{n-1})+f(x_n)] \) (n par)</li>
+        </ul>
+      </li>
+      <li><b>Aplicaciones:</b>
+        <ul>
+          <li>Área, longitud de arco, volumen de sólidos de revolución, centroide, trabajo físico, presión, probabilidades continuas, etc.</li>
+        </ul>
+      </li>
+    </ul>
+    <!-- ======== TABLA EXTENDIDA DE INTEGRALES ======== -->
+    <div class="subtitle"><i class="fas fa-table"></i> Tabla ultra extendida de integrales</div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;color:var(--color-title);background:rgba(44,62,80,0.93);font-size:1.07rem;border-radius:16px;overflow:hidden;border-collapse:collapse;box-shadow:0 4px 24px 0 rgba(31,38,135,0.13);margin-bottom:1rem;">
+        <thead>
+          <tr style="background:var(--color-accent);color:#232526;">
+            <th style="padding:0.7em;">\(\int f(x)dx\)</th>
+            <th style="padding:0.7em;">Fórmula</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>\(\int \sqrt{ax+b}\,dx\)</td><td>\(\frac{2}{3a}(ax+b)^{3/2} + C\)</td></tr>
+          <tr><td>\(\int \frac{dx}{x^2+a^2}\)</td><td>\(\frac{1}{a}\arctan\left(\frac{x}{a}\right) + C\)</td></tr>
+          <tr><td>\(\int \frac{dx}{\sqrt{a^2-x^2}}\)</td><td>\(\arcsin\left(\frac{x}{a}\right)+C\)</td></tr>
+          <tr><td>\(\int \frac{dx}{x^2-a^2}\)</td><td>\(\frac{1}{2a}\ln\left|\frac{x-a}{x+a}\right|+C\)</td></tr>
+          <tr><td>\(\int \frac{x\,dx}{x^2+a^2}\)</td><td>\(\frac{1}{2}\ln|x^2+a^2|+C\)</td></tr>
+          <tr><td>\(\int x\sqrt{a^2-x^2}dx\)</td><td>\(-\frac{1}{3}(a^2-x^2)^{3/2}+C\)</td></tr>
+          <tr><td>\(\int e^{ax}\sin(bx)dx\)</td><td>\(\frac{e^{ax}}{a^2+b^2}[a\sin(bx)-b\cos(bx)]+C\)</td></tr>
+          <tr><td>\(\int e^{ax}\cos(bx)dx\)</td><td>\(\frac{e^{ax}}{a^2+b^2}[a\cos(bx)+b\sin(bx)]+C\)</td></tr>
+          <tr><td>\(\int \ln x dx\)</td><td>\(x\ln x - x + C\)</td></tr>
+          <tr><td>\(\int \arctan x dx\)</td><td>\(x\arctan x - \frac{1}{2}\ln(1+x^2) + C\)</td></tr>
+          <tr><td>\(\int \arcsin x dx\)</td><td>\(x\arcsin x + \sqrt{1-x^2}+C\)</td></tr>
+          <tr><td>\(\int x^m(x^n+a^n)^p dx\)</td><td>Usar sustitución \(x^n = a^n\tan^2\theta\) o \(x^n = a^n\sinh^2\theta\) según el caso</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="subtitle"><i class="fas fa-calculator"></i> Consejos prácticos y observaciones</div>
+    <ul style="font-size:1.09rem;line-height:1.75;">
+      <li>✨ Identifica el tipo de integral antes de aplicar la técnica adecuada.</li>
+      <li>🔢 Para integrales complicadas, intenta sustituciones trigonométricas o racionalizaciones.</li>
+      <li>🟢 La integración numérica es útil cuando no existe primitiva elemental.</li>
+      <li>💡 Las fórmulas y tablas pueden combinarse y extenderse a funciones compuestas.</li>
+      <li>📏 Usa tecnología: Python, Wolfram Alpha, GeoGebra, Symbolab para validar resultados.</li>
+      <li>🧠 La práctica y la visualización ayudan a consolidar la comprensión.</li>
+    </ul>
+    <hr style="border:1px solid var(--color-block);margin:1.3rem 0;">
+    <div style="font-size:1.09rem;color:#00dfa2;font-weight:bold;">
+      🌟 <i class="fas fa-bolt"></i> ¡El cálculo diferencial e integral es esencial para la ciencia, la ingeniería y la vida moderna!
+    </div>
+  </div>
+</section>
+
+
+
+<!--
+======================================================
+BLOQUE: SERIES DE TAYLOR Y MACLAURIN, MÉTODOS NUMÉRICOS 📈📉🔍
+======================================================
+-->
+<section class="glass-card collapsed" id="series-taylor-maclaurin-numerico">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Series, Métodos Numéricos">📈🔍</div>
+    <h2 class="main-title" style="font-size:2.15rem;color:#fff;">
+      Series de Taylor y Maclaurin, Métodos Numéricos
+    </h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+
+    <!-- SERIES DE TAYLOR Y MACLAURIN -->
+    <div class="subtitle"><i class="fas fa-infinity"></i> Series de Taylor y Maclaurin</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>
+        <b>Serie de Taylor de una función \(f(x)\) alrededor de \(x=a\):</b><br>
+        \( \displaystyle
+        f(x) = \sum_{n=0}^\infty \frac{f^{(n)}(a)}{n!}(x - a)^n
+        = f(a) + f'(a)(x-a) + \frac{f''(a)}{2!}(x-a)^2 + \cdots
+        \)
+      </li>
+      <li>
+        <b>Serie de Maclaurin (caso especial \(a=0\)):</b><br>
+        \( \displaystyle
+        f(x) = \sum_{n=0}^\infty \frac{f^{(n)}(0)}{n!} x^n
+        = f(0) + f'(0)x + \frac{f''(0)}{2!}x^2 + \frac{f'''(0)}{3!}x^3 + \cdots
+        \)
+      </li>
+      <li>
+        <b>Resto de Taylor (forma Lagrange):</b><br>
+        \( R_n(x) = \frac{f^{(n+1)}(c)}{(n+1)!} (x - a)^{n+1} \) para algún \(c\) entre \(a\) y \(x\).
+      </li>
+      <li>
+        <b>Series comunes de Maclaurin:</b>
+        <ul>
+          <li>\( e^x = \sum_{n=0}^\infty \frac{x^n}{n!} = 1 + x + \frac{x^2}{2!} + \frac{x^3}{3!} + \cdots \)</li>
+          <li>\( \sin x = \sum_{n=0}^\infty (-1)^n \frac{x^{2n+1}}{(2n+1)!} = x - \frac{x^3}{3!} + \frac{x^5}{5!} - \cdots \)</li>
+          <li>\( \cos x = \sum_{n=0}^\infty (-1)^n \frac{x^{2n}}{(2n)!} = 1 - \frac{x^2}{2!} + \frac{x^4}{4!} - \cdots \)</li>
+          <li>\( \ln(1+x) = \sum_{n=1}^\infty (-1)^{n+1} \frac{x^n}{n} = x - \frac{x^2}{2} + \frac{x^3}{3} - \cdots, \quad |x|<1 \)</li>
+          <li>\( (1+x)^\alpha = \sum_{n=0}^\infty \binom{\alpha}{n} x^n = 1 + \alpha x + \frac{\alpha(\alpha-1)}{2!} x^2 + \cdots \)</li>
+          <li>\( \arctan x = \sum_{n=0}^\infty (-1)^n \frac{x^{2n+1}}{2n+1} = x - \frac{x^3}{3} + \frac{x^5}{5} - \cdots, \quad |x| \leq 1 \)</li>
+          <li>\( \sinh x = \sum_{n=0}^\infty \frac{x^{2n+1}}{(2n+1)!} = x + \frac{x^3}{3!} + \frac{x^5}{5!} + \cdots \)</li>
+          <li>\( \cosh x = \sum_{n=0}^\infty \frac{x^{2n}}{(2n)!} = 1 + \frac{x^2}{2!} + \frac{x^4}{4!} + \cdots \)</li>
+        </ul>
+      </li>
+      <li>
+        <b>Ejemplo aproximado:</b><br>
+        Para \( f(x) = \sin x \) cerca de \(0\): <br>
+        \( \sin x \approx x - \frac{x^3}{6} + \frac{x^5}{120} \) para \(x\) pequeño.
+      </li>
+      <li>
+        <b>Radio de convergencia:</b> Depende del comportamiento de la función y del punto \(a\).
+      </li>
+    </ul>
+    <hr style="border:1px solid var(--color-block);margin:1.2rem 0;">
+
+    <!-- MÉTODO DE NEWTON-RAPHSON -->
+    <div class="subtitle"><i class="fas fa-search"></i> Método de Newton-Raphson para aproximación de raíces</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>
+        <b>Fórmula iterativa:</b><br>
+        \( x_{n+1} = x_n - \frac{f(x_n)}{f'(x_n)} \)
+      </li>
+      <li>
+        <b>Condiciones:</b> \( f \) diferenciable, \( f'(x_n) \neq 0 \), buena aproximación inicial \(x_0\).
+      </li>
+      <li>
+        <b>Convergencia:</b> Generalmente cuadrática cuando \(x_0\) está cerca de la raíz.
+      </li>
+      <li>
+        <b>Ventajas:</b> Alta velocidad de convergencia frente a otros métodos numéricos.
+      </li>
+      <li>
+        <b>Limitaciones:</b> Puede divergir si la derivada es cero o la función no es suave.
+      </li>
+      <li>
+        <b>Ejemplo:</b> Para \( f(x) = x^3 - 5x + 1 \), con \( x_0 = 2 \), calcular sucesivas iteraciones para encontrar raíz.
+      </li>
+    </ul>
+    <hr style="border:1px solid var(--color-block);margin:1.2rem 0;">
+
+    <!-- REGLAS DE INTEGRACIÓN NUMÉRICA -->
+    <div class="subtitle"><i class="fas fa-ruler-combined"></i> Reglas de Integración Numérica</div>
+    <ul style="font-size:1.13rem;line-height:2;">
+      <li>
+        <b>Regla del Trapecio Simple:</b><br>
+        \( \displaystyle \int_a^b f(x) dx \approx \frac{b - a}{2} [f(a) + f(b)] \)
+      </li>
+      <li>
+        <b>Regla del Trapecio Compuesta:</b><br>
+        \( \displaystyle \int_a^b f(x) dx \approx \frac{h}{2} \left[ f(x_0) + 2 \sum_{i=1}^{n-1} f(x_i) + f(x_n) \right] \),<br>
+        con \( h = \frac{b-a}{n} \), \( x_i = a + ih \).
+      </li>
+      <li>
+        <b>Regla de Simpson 1/3 Simple:</b><br>
+        \( \displaystyle \int_a^b f(x) dx \approx \frac{b - a}{6} \left[f(a) + 4f\left(\frac{a+b}{2}\right) + f(b) \right] \)
+      </li>
+      <li>
+        <b>Regla de Simpson 1/3 Compuesta:</b><br>
+        \( \displaystyle \int_a^b f(x) dx \approx \frac{h}{3} \left[f(x_0) + 4 \sum_{\substack{i=1 \\ i \text{ impar}}}^{n-1} f(x_i) + 2 \sum_{\substack{i=2 \\ i \text{ par}}}^{n-2} f(x_i) + f(x_n)\right] \),<br>
+        con \( n \) par.
+      </li>
+      <li>
+        <b>Regla de Simpson 3/8 Simple:</b><br>
+        \( \displaystyle \int_a^b f(x) dx \approx \frac{3h}{8} \left[f(x_0) + 3f(x_1) + 3f(x_2) + f(x_3) \right] \),<br>
+        con \( h = \frac{b-a}{3} \).
+      </li>
+      <li>
+        <b>Regla de Simpson 3/8 Compuesta:</b><br>
+        \( \displaystyle \int_a^b f(x) dx \approx \frac{3h}{8} \left[f(x_0) + 3 \sum_{i=1}^{n-1} f(x_i) + f(x_n)\right] \),<br>
+        con \( n \) múltiplo de 3.
+      </li>
+      <li>
+        <b>Regla de Newton-Cotes general:</b><br>
+        Aproxima la integral con polinomios interpolantes en nodos equidistantes.
+      </li>
+      <li>
+        <b>Error aproximado para regla del trapecio:</b><br>
+        \( E \approx -\frac{(b-a)^3}{12 n^2} f''(\xi) \), para algún \( \xi \in [a,b] \).
+      </li>
+      <li>
+        <b>Error aproximado para regla de Simpson:</b><br>
+        \( E \approx -\frac{(b-a)^5}{180 n^4} f^{(4)}(\xi) \), para algún \( \xi \in [a,b] \).
+      </li>
+    </ul>
+
+    <!-- CONSEJOS -->
+    <div class="subtitle"><i class="fas fa-lightbulb"></i> Consejos y observaciones didácticas</div>
+    <ul style="font-size:1.07rem;line-height:1.75;">
+      <li>🧠 Las series de Taylor y Maclaurin permiten aproximar funciones con polinomios para cálculo y análisis.</li>
+      <li>📉 Newton-Raphson es uno de los métodos numéricos más potentes para hallar raíces.</li>
+      <li>📏 Las reglas de integración numérica son cruciales para funciones difíciles o datos experimentales.</li>
+      <li>✨ Combina métodos analíticos y numéricos para mejores aproximaciones y soluciones.</li>
+    </ul>
+
+    <div style="font-size:1.1rem;color:#00dfa2;font-weight:bold;margin-top:1em;">
+      <i class="fas fa-rocket"></i> ¡Conquista el cálculo avanzado y los métodos numéricos con rigor y práctica!
+    </div>
+
+  </div>
+</section>
+
+
+
+<!--
+======================================================
+BLOQUE: TRANSFORMADA DE LAPLACE E INVERSA 🌀📉 (ULTRA COMPLETO)
+======================================================
+-->
+<section class="glass-card collapsed" id="laplace-completo">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Transformada de Laplace">🌀</div>
+    <h2 class="main-title" style="font-size:2.15rem; color:#fff;">
+      Transformada de Laplace e Inversa    </h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+
+    <!-- DEFINICIÓN -->
+    <div class="subtitle"><i class="fas fa-superscript"></i> Definición general</div>
+    <ul style="font-size:1.13rem; line-height:2;">
+      <li>
+        <b>Transformada de Laplace:</b><br>
+        \( \displaystyle \mathcal{L}[f(t)] = F(s) = \int_0^\infty e^{-st} f(t)\, dt \)
+      </li>
+      <li>
+        <b>Transformada inversa:</b><br>
+        \( \displaystyle \mathcal{L}^{-1}[F(s)] = f(t) \)
+      </li>
+    </ul>
+
+    <!-- PROPIEDADES FUNDAMENTALES -->
+    <div class="subtitle"><i class="fas fa-cogs"></i> Propiedades fundamentales</div>
+    <ul style="font-size:1.13rem; line-height:2;">
+      <li><b>Linealidad:</b><br>
+        \( \mathcal{L}[a f(t) + b g(t)] = a F(s) + b G(s) \)
+      </li>
+      <li><b>Desplazamiento en \(t\) (teorema del retardo):</b><br>
+        \( \mathcal{L}[f(t - a) u(t - a)] = e^{-as} F(s) \)
+      </li>
+      <li><b>Desplazamiento en \(s\) (multiplicación por exponencial):</b><br>
+        \( \mathcal{L}[e^{at} f(t)] = F(s - a) \)
+      </li>
+      <li><b>Derivadas en \(t\):</b><br>
+        \(\displaystyle
+        \mathcal{L}[f'(t)] = s F(s) - f(0)
+        \)<br>
+        \(\displaystyle
+        \mathcal{L}[f''(t)] = s^2 F(s) - s f(0) - f'(0)
+        \)<br>
+        \(\displaystyle
+        \mathcal{L}[f^{(n)}(t)] = s^n F(s) - s^{n-1} f(0) - \cdots - f^{(n-1)}(0)
+        \)
+      </li>
+      <li><b>Integración en \(t\):</b><br>
+        \( \mathcal{L}\left[\int_0^t f(\tau) d\tau\right] = \frac{F(s)}{s} \)
+      </li>
+      <li><b>Derivada respecto a \(s\):</b><br>
+        \( \mathcal{L}[t f(t)] = - \frac{d}{ds} F(s) \)
+      </li>
+      <li><b>Multiplicación por potencias de \(t\):</b><br>
+        \( \mathcal{L}[t^n f(t)] = (-1)^n \frac{d^n}{ds^n} F(s) \)
+      </li>
+      <li><b>Teorema de la convolución:</b><br>
+        \( \mathcal{L}[f * g](s) = F(s) G(s) \), donde \( (f * g)(t) = \int_0^t f(\tau) g(t-\tau) d\tau \)
+      </li>
+      <li><b>Límite inicial:</b><br>
+        \( \lim_{t \to 0^+} f(t) = \lim_{s \to \infty} s F(s) \) (si existe)
+      </li>
+      <li><b>Límite final:</b><br>
+        \( \lim_{t \to \infty} f(t) = \lim_{s \to 0} s F(s) \) (si existe)
+      </li>
+      <li><b>Periodicidad:</b><br>
+        Para \(f(t)\) periódica de periodo \(T\):<br>
+        \( \mathcal{L}[f(t)] = \frac{1}{1 - e^{-s T}} \int_0^T e^{-st} f(t) dt \)
+      </li>
+      <li><b>Transformada de la delta de Dirac:</b><br>
+        \( \mathcal{L}[\delta(t - a)] = e^{-a s} \)
+      </li>
+    </ul>
+
+    <!-- TABLA EXTENDIDA DE TRANSFORMADAS -->
+    <div class="subtitle"><i class="fas fa-table"></i> Tabla extendida de transformadas de Laplace</div>
+    <table style="width:100%;color:var(--color-title);background:rgba(44,62,80,0.85);font-size:1.07rem;border-radius:14px;overflow:hidden;border-collapse:collapse;box-shadow:0 4px 24px rgba(31,38,135,0.2);margin-bottom:1.2rem;">
+      <thead>
+        <tr style="background:var(--color-accent);color:#232526;">
+          <th style="padding:0.7em;">\(f(t)\)</th>
+          <th style="padding:0.7em;">\(\mathcal{L}[f(t)] = F(s)\)</th>
+          <th style="padding:0.7em;">Condición</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>\(1\)</td><td>\(\frac{1}{s}\)</td><td>\(\Re(s) > 0\)</td></tr>
+        <tr><td>\(t^n\)</td><td>\(\frac{n!}{s^{n+1}}\)</td><td>\(\Re(s) > 0\)</td></tr>
+        <tr><td>\(e^{a t}\)</td><td>\(\frac{1}{s - a}\)</td><td>\(\Re(s) > a\)</td></tr>
+        <tr><td>\(\sin(\omega t)\)</td><td>\(\frac{\omega}{s^2 + \omega^2}\)</td><td>\(\Re(s) > 0\)</td></tr>
+        <tr><td>\(\cos(\omega t)\)</td><td>\(\frac{s}{s^2 + \omega^2}\)</td><td>\(\Re(s) > 0\)</td></tr>
+        <tr><td>\(e^{a t} \sin(\omega t)\)</td><td>\(\frac{\omega}{(s - a)^2 + \omega^2}\)</td><td>\(\Re(s) > a\)</td></tr>
+        <tr><td>\(e^{a t} \cos(\omega t)\)</td><td>\(\frac{s - a}{(s - a)^2 + \omega^2}\)</td><td>\(\Re(s) > a\)</td></tr>
+        <tr><td>\(\sinh(a t)\)</td><td>\(\frac{a}{s^2 - a^2}\)</td><td>\(\Re(s) > |a|\)</td></tr>
+        <tr><td>\(\cosh(a t)\)</td><td>\(\frac{s}{s^2 - a^2}\)</td><td>\(\Re(s) > |a|\)</td></tr>
+        <tr><td>\(u(t - a)\) (escalón unitario)</td><td>\(\frac{e^{-a s}}{s}\)</td><td>\(\Re(s) > 0\)</td></tr>
+        <tr><td>\(t^n e^{a t}\)</td><td>\(\frac{n!}{(s - a)^{n+1}}\)</td><td>\(\Re(s) > a\)</td></tr>
+        <tr><td>\(f(t - a) u(t - a)\)</td><td>\(e^{-a s} F(s)\)</td><td>Dominio de \(F(s)\)</td></tr>
+        <tr><td>\(\delta(t - a)\)</td><td>\(e^{-a s}\)</td><td>\( \forall s \)</td></tr>
+        <tr><td>\(\frac{1}{t^p}, \quad 0 < p < 1\)</td><td>\(\Gamma(1 - p) s^{p - 1}\)</td><td>\(\Re(s) > 0\)</td></tr>
+        <tr><td>\(\frac{1}{\sqrt{t}}\)</td><td>\(\sqrt{\frac{\pi}{s}}\)</td><td>\(\Re(s) > 0\)</td></tr>
+      </tbody>
+    </table>
+
+    <!-- TRANSFORMADAS INVERSAS -->
+    <div class="subtitle"><i class="fas fa-undo"></i> Principales transformadas inversas</div>
+    <ul style="font-size:1.13rem; line-height:2;">
+      <li>\( \mathcal{L}^{-1}\left[\frac{1}{s^n}\right] = \frac{t^{n-1}}{(n-1)!}, \quad n > 0 \)</li>
+      <li>\( \mathcal{L}^{-1}\left[\frac{1}{s - a}\right] = e^{a t} \)</li>
+      <li>\( \mathcal{L}^{-1}\left[\frac{\omega}{s^2 + \omega^2}\right] = \sin(\omega t) \)</li>
+      <li>\( \mathcal{L}^{-1}\left[\frac{s}{s^2 + \omega^2}\right] = \cos(\omega t) \)</li>
+      <li>\( \mathcal{L}^{-1}\left[\frac{e^{-a s}}{s}\right] = u(t - a) \)</li>
+      <li>\( \mathcal{L}^{-1}[F(s - a)] = e^{a t} f(t) \)</li>
+      <li>Para transformadas racionales, usar descomposición en fracciones parciales.</li>
+    </ul>
+
+    <!-- EJEMPLOS Y APLICACIONES -->
+    <hr style="border:1px solid var(--color-block); margin:1.2rem 0;">
+    <div class="subtitle"><i class="fas fa-lightbulb"></i> Consejos clave y aplicaciones</div>
+    <ul style="font-size:1.07rem; line-height:1.8;">
+      <li>🧮 Utiliza Laplace para resolver ecuaciones diferenciales ordinarias y sistemas lineales con condiciones iniciales.</li>
+      <li>⚙️ La propiedad de desplazamiento es fundamental en análisis de circuitos eléctricos y control.</li>
+      <li>🔄 La transformada de la delta de Dirac modela señales impulsivas o discontinuas.</li>
+      <li>⏳ La convolución simplifica la solución de sistemas lineales con entrada arbitraria.</li>
+      <li>🧠 El dominio de Laplace conecta análisis temporal con algebraico, facilitando soluciones analíticas.</li>
+    </ul>
+
+    <div style="font-size:1.1rem; color:#00dfa2; font-weight:bold; margin-top:1em;">
+      <i class="fas fa-rocket"></i> Domina las transformadas de Laplace con rigor y confianza para tus problemas científicos y de ingeniería.
+    </div>
+  </div>
+</section>
+
+
+<!--
+======================================================
+BLOQUE: SERIES DE FOURIER 🎶🌐
+======================================================
+-->
+<section class="glass-card collapsed" id="fourier">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Series de Fourier">🎶</div>
+    <h2 class="main-title" style="font-size:2.15rem; color:#fff;">Series de Fourier</h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+
+    <!-- Definición y Fórmulas -->
+    <div class="subtitle"><i class="fas fa-wave-square"></i> Definición y fórmulas generales</div>
+    <ul style="font-size:1.13rem; line-height:2;">
+      <li>
+        <b>Expansión en serie de Fourier de una función periódica \( f(x) \) de periodo \( 2L \):</b><br>
+        \[
+          f(x) = \frac{a_0}{2} +
+          \sum_{n=1}^{\infty} \left[
+            a_n \cos\left(\frac{n\pi x}{L}\right) + b_n \sin\left(\frac{n\pi x}{L}\right)
+          \right]
+        \]
+      </li>
+      <li>
+        <b>Cálculo de coeficientes:</b>
+        <ul>
+          <li>\( a_0 = \frac{1}{L} \int_{-L}^L f(x) \, dx \)</li>
+          <li>\( a_n = \frac{1}{L} \int_{-L}^L f(x) \cos\left(\frac{n\pi x}{L}\right) dx \)</li>
+          <li>\( b_n = \frac{1}{L} \int_{-L}^L f(x) \sin\left(\frac{n\pi x}{L}\right) dx \)</li>
+        </ul>
+      </li>
+      <li>
+        <b>Forma compleja:</b><br>
+        \[
+          f(x) = \sum_{n=-\infty}^\infty c_n e^{i n \omega_0 x},
+          \quad
+          \omega_0 = \frac{\pi}{L}, \quad
+          c_n = \frac{1}{2L} \int_{-L}^L f(x) e^{-i n \omega_0 x} dx
+        \]
+      </li>
+      <li>
+        <b>Funciones pares e impares:</b>
+        <ul>
+          <li>Si \( f(x) \) es par, \( b_n = 0 \) (solo cosenos).</li>
+          <li>Si \( f(x) \) es impar, \( a_n = 0 \) (solo senos).</li>
+        </ul>
+      </li>
+      <li>
+        <b>Propiedades:</b>
+        <ul>
+          <li><b>Ortogonalidad:</b> <br>
+            \( \int_{-L}^L \sin\left(\frac{n\pi x}{L}\right) \sin\left(\frac{m\pi x}{L}\right) dx = 0 \) para \( n \neq m \), similar para cosenos.
+          </li>
+          <li><b>Linealidad:</b> La serie es lineal respecto a \(f(x)\).</li>
+          <li><b>Criterio de Dirichlet:</b> Convergencia a \( f(x) \) salvo en discontinuidades donde converge al promedio lateral.</li>
+        </ul>
+      </li>
+    </ul>
+
+    <hr style="border:1px solid var(--color-block); margin:1.1rem 0;">
+
+    <!-- Ejemplos Clásicos -->
+    <div class="subtitle"><i class="fas fa-music"></i> Ejemplos clásicos de series de Fourier</div>
+    <ul style="font-size:1.13rem; line-height:2;">
+      <li>
+        <b>Onda cuadrada (periodo \(2\pi\), amplitud 1):</b><br>
+        \[
+          f(x) =
+          \begin{cases}
+            1, & 0 < x < \pi \\
+            -1, & -\pi < x < 0
+          \end{cases}
+          \quad
+          f(x) = \frac{4}{\pi} \sum_{n=1,\,n\,\text{impar}}^\infty \frac{\sin(nx)}{n}
+        \]
+      </li>
+      <li>
+        <b>Diente de sierra (periodo \(2\pi\)):</b><br>
+        \[
+          f(x) = \frac{\pi - x}{2}, \quad x \in (-\pi, \pi)
+          \quad\Rightarrow\quad
+          f(x) = \frac{1}{2} - \frac{1}{\pi} \sum_{n=1}^\infty \frac{\sin(n x)}{n}
+        \]
+      </li>
+      <li>
+        <b>Pulso rectangular (amplitud 1, ancho \(2a\), centro en 0):</b><br>
+        \[
+          f(x) =
+          \begin{cases}
+            1, & |x| < a \\
+            0, & a \leq |x| \leq L
+          \end{cases}
+          \quad
+          a_0 = \frac{2a}{L}, \quad
+          a_n = \frac{2}{n\pi} \sin\left(\frac{n\pi a}{L}\right), \quad b_n = 0
+        \]
+      </li>
+      <li>
+        <b>Onda triangular (periodo \(2\pi\)):</b><br>
+        \[
+          f(x) = \frac{8}{\pi^2} \sum_{n=1,\,n\,\text{impar}}^\infty \frac{(-1)^{\frac{n-1}{2}}}{n^2} \cos(nx)
+        \]
+      </li>
+    </ul>
+
+    <hr style="border:1px solid var(--color-block); margin:1.1rem 0;">
+
+    <!-- Aplicaciones y Observaciones -->
+    <div class="subtitle"><i class="fas fa-lightbulb"></i> Observaciones y aplicaciones</div>
+    <ul style="font-size:1.08rem; line-height:1.8;">
+      <li>La serie de Fourier permite descomponer funciones periódicas en suma de senos y cosenos.</li>
+      <li>Es fundamental en análisis de señales, acústica, procesamiento digital, teoría de circuitos y física matemática.</li>
+      <li>Las series complejas y transformadas de Fourier generalizan estos conceptos para funciones no periódicas.</li>
+      <li>El conocimiento del periodo \(2L\) es clave para adaptar las integrales y coeficientes.</li>
+      <li>La convergencia puede ser lenta en funciones con discontinuidades, fenómeno conocido como efecto Gibbs.</li>
+    </ul>
+
+    <div class="subtitle"><i class="fas fa-waveform-path"></i> Expansión en otros intervalos</div>
+    <ul style="font-size:1.07rem; line-height:1.6;">
+      <li>Para \( f(x) \) periódica en \([a, a+2L]\), usar:<br>
+        \[
+          a_n = \frac{1}{L} \int_a^{a+2L} f(x) \cos\left(\frac{n \pi (x - a)}{L}\right) dx, \quad
+          b_n = \frac{1}{L} \int_a^{a+2L} f(x) \sin\left(\frac{n \pi (x - a)}{L}\right) dx
+        \]
+      </li>
+    </ul>
+
+  </div>
+</section>
+
+
+<!--
+======================================================
+BLOQUE AMPLIADO: ECUACIONES DIFERENCIALES ORDINARIAS Y ESPECIALES 🧩
+======================================================
+-->
+<div class="container">
+<section class="glass-card collapsed" id="edos-ampliado">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Ecuaciones Diferenciales Ampliadas">🧩📈</div>
+    <h2 class="main-title" style="font-size:2rem; color:#fff;">Ecuaciones Diferenciales Ordinarias y Parciales (EDO, EDP)</h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+
+    <!-- Definiciones, clasificación y generalidades -->
+    <div class="subtitle"><i class="fas fa-infinity"></i> Definiciones, clasificación y métodos generales</div>
+    <ul style="font-size:1.14rem;line-height:2;">
+      <li>
+        <b>EDO de primer orden:</b> <br>
+        \( \frac{dy}{dx} = f(x,y) \)
+      </li>
+      <li>
+        <b>EDO de orden \(n\):</b> <br>
+        \( \frac{d^n y}{dx^n} + a_{n-1}(x)\frac{d^{n-1}y}{dx^{n-1}} + \cdots + a_0(x)y = g(x) \)
+      </li>
+      <li>
+        <b>Clasificación importante:</b>
+        <ul>
+          <li>Lineales / No lineales</li>
+          <li>Homogéneas / No homogéneas</li>
+          <li>Autónomas / No autónomas</li>
+          <li>Coeficientes constantes / variables</li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- Ecuación lineal de primer orden -->
+    <div class="subtitle"><i class="fas fa-pencil-ruler"></i> Ecuación lineal de primer orden</div>
+    <p style="font-size:1.12rem;line-height:1.8;">
+      La forma general es:
+      \[
+        y' + P(x) y = Q(x)
+      \]
+      donde \( P(x) \) y \( Q(x) \) son funciones continuas.
+    </p>
+    <p style="font-size:1.12rem;line-height:1.8;">
+      <b>Solución general:</b> se usa el factor integrante \( \mu(x) \):
+      \[
+        \mu(x) = e^{\int P(x) dx}
+      \]
+      Multiplicando toda la ecuación por \( \mu(x) \), se obtiene:
+      \[
+        \frac{d}{dx} \left( \mu(x) y \right) = \mu(x) Q(x)
+      \]
+      Integrando ambos lados:
+      \[
+        \mu(x) y = \int \mu(x) Q(x) dx + C
+      \]
+      Por lo tanto,
+      \[
+        y = \frac{1}{\mu(x)} \left( \int \mu(x) Q(x) dx + C \right)
+      \]
+    </p>
+
+    <!-- Ecuación de Euler-Cauchy -->
+    <div class="subtitle"><i class="fas fa-asterisk"></i> Ecuación de Euler-Cauchy</div>
+    <p style="font-size:1.12rem;line-height:1.8;">
+      Es una EDO lineal con coeficientes variables de la forma:
+      \[
+        x^2 y'' + a x y' + b y = 0, \quad x > 0
+      \]
+      Se resuelve con la sustitución:
+      \[
+        y = x^m \implies m(m-1) + a m + b = 0
+      \]
+      Resolviendo la ecuación característica para \( m \).
+    </p>
+
+    <!-- Métodos numéricos: Euler y Runge-Kutta -->
+    <div class="subtitle"><i class="fas fa-laptop-code"></i> Métodos numéricos para EDO</div>
+    <ul style="font-size:1.14rem;line-height:2;">
+      <li>
+        <b>Método de Euler (explícito):</b>
+        <br>
+        Aproxima la solución con paso \( h \):
+        \[
+          y_{n+1} = y_n + h f(x_n, y_n)
+        \]
+        Es simple pero con error global \( O(h) \).
+      </li>
+      <li>
+        <b>Método de Euler mejorado (Heun):</b>
+        <br>
+        Utiliza predicción y corrección para mejorar la precisión:
+        \[
+          y_{n+1}^* = y_n + h f(x_n, y_n)
+        \]
+        \[
+          y_{n+1} = y_n + \frac{h}{2} \left( f(x_n, y_n) + f(x_{n+1}, y_{n+1}^*) \right)
+        \]
+      </li>
+      <li>
+        <b>Método de Runge-Kutta de orden 4 (RK4):</b>
+        <br>
+        Cálculo de pendientes:
+        \[
+          \begin{cases}
+          k_1 = h f(x_n, y_n) \\
+          k_2 = h f\left(x_n + \frac{h}{2}, y_n + \frac{k_1}{2}\right) \\
+          k_3 = h f\left(x_n + \frac{h}{2}, y_n + \frac{k_2}{2}\right) \\
+          k_4 = h f(x_n + h, y_n + k_3)
+          \end{cases}
+        \]
+        Actualización:
+        \[
+          y_{n+1} = y_n + \frac{1}{6} (k_1 + 2k_2 + 2k_3 + k_4)
+        \]
+        Es muy preciso, con error global \( O(h^4) \).
+      </li>
+    </ul>
+
+    <!-- Otros métodos numéricos -->
+    <div class="subtitle"><i class="fas fa-tools"></i> Otros métodos numéricos y conceptos</div>
+    <ul style="font-size:1.14rem;line-height:2;">
+      <li><b>Métodos multistep (Adams-Bashforth, Adams-Moulton):</b> Utilizan valores anteriores para predecir futuros.</li>
+      <li><b>Estabilidad y rigidez:</b> Análisis crítico en ecuaciones rígidas para elegir método adecuado.</li>
+      <li><b>Método de variación de parámetros:</b> Para encontrar soluciones particulares en ecuaciones no homogéneas.</li>
+      <li><b>Wronskiano:</b> Determina independencia lineal de soluciones.
+        \[
+          W(y_1, y_2, ..., y_n) = \det
+          \begin{pmatrix}
+          y_1 & y_2 & \cdots & y_n \\
+          y_1' & y_2' & \cdots & y_n' \\
+          \vdots & \vdots & \ddots & \vdots \\
+          y_1^{(n-1)} & y_2^{(n-1)} & \cdots & y_n^{(n-1)}
+          \end{pmatrix}
+        \]
+      </li>
+    </ul>
+
+    <!-- Ecuaciones en derivadas parciales -->
+    <div class="subtitle"><i class="fas fa-wave-square"></i> Introducción a ecuaciones en derivadas parciales (EDP)</div>
+    <ul style="font-size:1.14rem;line-height:2;">
+      <li><b>EDP de segundo orden en dos variables:</b>
+        \[
+          a u_{xx} + 2b u_{xy} + c u_{yy} + \cdots = f(x,y)
+        \]
+      </li>
+      <li><b>Ejemplos canónicos:</b>
+        <ul>
+          <li>Ecuación de calor: \( u_t = k u_{xx} \)</li>
+          <li>Ecuación de onda: \( u_{tt} = c^2 u_{xx} \)</li>
+          <li>Ecuación de Laplace: \( u_{xx} + u_{yy} = 0 \)</li>
+          <li>Ecuación de Poisson: \( u_{xx} + u_{yy} = f(x,y) \)</li>
+        </ul>
+      </li>
+      <li><b>Métodos clásicos de solución:</b> separación de variables, transformadas (Fourier, Laplace), series ortogonales.</li>
+    </ul>
+
+    <hr style="border:1px solid var(--color-block);margin:1.1rem 0;">
+
+    <!-- Observaciones y consejos -->
+    <div class="subtitle"><i class="fas fa-lightbulb"></i> Observaciones y consejos prácticos</div>
+    <ul style="font-size:1.08rem;line-height:1.8;">
+      <li>Identificar el tipo de ecuación y método es crucial para eficiencia y exactitud.</li>
+      <li>Condiciones iniciales y de frontera definen soluciones únicas en problemas físicos.</li>
+      <li>Herramientas computacionales como Python (SymPy, SciPy), MATLAB o Mathematica son recomendadas para problemas complejos.</li>
+      <li>Implementar métodos numéricos en Python es altamente didáctico para entender el comportamiento de soluciones aproximadas.</li>
+    </ul>
+
+  </div>
+</section>
+</div>
+
+
+<!--
+======================================================
+BLOQUE: FORMULARIO COMPLETO DE FÍSICA GENERAL 🔬⚙️🚀
+======================================================
+-->
+<div class="container">
+<section class="glass-card collapsed" id="formulario-fisica">
+  <div class="collapsible-header" onclick="toggleCollapse(this)">
+    <div class="hero-emoji" title="Formulario de Física">🔬⚙️🚀</div>
+    <h2 class="main-title" style="font-size:2rem; color:#fff;">Formulario Completo de Física General</h2>
+    <span class="collapsible-arrow"><i class="fas fa-caret-down"></i></span>
+  </div>
+  <div class="collapsible-content">
+
+    <!-- CINEMÁTICA -->
+    <div class="subtitle">🚗 <i class="fas fa-car"></i> Cinemática</div>
+    <ul style="font-size:1.1rem;line-height:2;">
+      <li><b>MRU (Movimiento Rectilíneo Uniforme):</b> \( x = x_0 + vt \)</li>
+      <li><b>MRUA (Movimiento Rectilíneo Uniformemente Acelerado):</b><br>
+        \( v = v_0 + at \),<br>
+        \( x = x_0 + v_0 t + \frac{1}{2} a t^2 \),<br>
+        \( v^2 = v_0^2 + 2a(x - x_0) \)
+      </li>
+      <li><b>MCU (Movimiento Circular Uniforme):</b><br>
+        \( \omega = \frac{\theta}{t} \),<br>
+        \( v = \omega r \),<br>
+        \( a_c = \frac{v^2}{r} = \omega^2 r \)
+      </li>
+      <li><b>Movimiento Parabólico:</b><br>
+        Ejes \(x\) e \(y\) independientes:<br>
+        \( x = v_0 \cos\theta \, t \),<br>
+        \( y = v_0 \sin\theta \, t - \frac{1}{2} g t^2 \),<br>
+        \( y = x \tan\theta - \frac{g x^2}{2 v_0^2 \cos^2\theta} \)
+      </li>
+      <li><b>Velocidad promedio:</b> \( v_{prom} = \frac{\Delta x}{\Delta t} \)</li>
+      <li><b>Aceleración promedio:</b> \( a_{prom} = \frac{\Delta v}{\Delta t} \)</li>
+    </ul>
+
+    <!-- DINÁMICA -->
+    <div class="subtitle">⚖️ <i class="fas fa-balance-scale"></i> Dinámica y Leyes Fundamentales</div>
+    <ul style="font-size:1.1rem;line-height:2;">
+      <li><b>Leyes de Newton:</b>
+        <ul>
+          <li>1ra Ley (Inercia): \( \sum \vec{F} = 0 \Rightarrow \text{velocidad constante} \)</li>
+          <li>2da Ley: \( \vec{F} = m \vec{a} \)</li>
+          <li>3ra Ley (Acción-Reacción): \( \vec{F}_{12} = -\vec{F}_{21} \)</li>
+        </ul>
+      </li>
+      <li><b>Peso:</b> \( \vec{P} = m \vec{g} \), con \( g \approx 9.81 \, m/s^2 \)</li>
+      <li><b>Fuerza de fricción:</b> \( f_r = \mu N \), \( \mu \) coeficiente de fricción, \( N \) fuerza normal</li>
+      <li><b>Ley de Hooke (Elasticidad):</b> \( F = -k x \), \( k \) constante del resorte</li>
+      <li><b>Ley de Gravitación Universal:</b> \( F = G \frac{m_1 m_2}{r^2} \), \( G=6.674\times10^{-11} \, Nm^2/kg^2 \)</li>
+      <li><b>Trabajo:</b> \( W = \vec{F} \cdot \vec{d} = F d \cos\theta \)</li>
+      <li><b>Energía Cinética:</b> \( K = \frac{1}{2} m v^2 \)</li>
+      <li><b>Energía Potencial Gravitatoria:</b> \( U = m g h \)</li>
+      <li><b>Potencia:</b> \( P = \frac{W}{t} = F v \cos\theta \)</li>
+      <li><b>Palancas:</b> \( F_1 d_1 = F_2 d_2 \) (equilibrio)</li>
+      <li><b>Poleas:</b>
+        <ul>
+          <li>🧵 <b>Aparejo potencial:</b> ventaja mecánica igual al número de cuerdas que sostienen la carga</li>
+          <li>🔧 <b>Aparejo factorial:</b> ventaja mecánica multiplicativa (poleas compuestas)</li>
+        </ul>
+      </li>
+      <li><b>Dinámica del cuerpo rígido:</b> \( \tau = I \alpha \) (torque = momento de inercia × aceleración angular)</li>
+      <li><b>Momentos de inercia comunes:</b>
+        <ul>
+          <li>Disco sólido (eje central): \( I = \frac{1}{2} M R^2 \)</li>
+          <li>Esfera sólida: \( I = \frac{2}{5} M R^2 \)</li>
+          <li>Varilla (eje por el centro): \( I = \frac{1}{12} M L^2 \)</li>
+        </ul>
+      </li>
+    </ul>
+
+    <!-- TEMPERATURA Y CALOR -->
+    <div class="subtitle">🌡️ <i class="fas fa-thermometer-half"></i> Temperatura y Calor</div>
+    <ul style="font-size:1.1rem;line-height:2;">
+      <li><b>Calor específico:</b> \( Q = m c \Delta T \)</li>
+      <li><b>Calor latente:</b> \( Q = m L \)</li>
+      <li><b>Primera ley de la termodinámica:</b> \( \Delta U = Q - W \)</li>
+      <li><b>Conducción térmica (Ley de Fourier):</b> \( \dot{Q} = -k A \frac{dT}{dx} \)</li>
+      <li><b>Expansión térmica lineal:</b> \( \Delta L = \alpha L_0 \Delta T \)</li>
+    </ul>
+
+    <!-- MECÁNICA DE FLUIDOS -->
+    <div class="subtitle">💧 <i class="fas fa-water"></i> Mecánica de Fluidos</div>
+    <ul style="font-size:1.1rem;line-height:2;">
+      <li><b>Presión hidrostática:</b> \( P = \rho g h \)</li>
+      <li><b>Empuje (Principio de Arquímedes):</b> \( E = \rho_f g V_{sumergido} \)</li>
+      <li><b>Principio de Pascal:</b> \( \Delta P = \rho g \Delta h \) y transmisión de presión</li>
+      <li><b>Ecuación de Bernoulli:</b>
+        \[
+          P + \frac{1}{2} \rho v^2 + \rho g h = \text{constante}
+        \]
+      </li>
+      <li><b>Continuidad (flujo incompresible):</b> \( A_1 v_1 = A_2 v_2 \)</li>
+    </ul>
+
+    <!-- OSCILACIONES Y ONDAS -->
+    <div class="subtitle">🎵 <i class="fas fa-broadcast-tower"></i> Oscilaciones y Ondas</div>
+    <ul style="font-size:1.1rem;line-height:2;">
+      <li><b>Movimiento Armónico Simple (MAS):</b>
+        \[
+          x(t) = A \cos(\omega t + \phi)
+        \]
+        con \( \omega = \sqrt{\frac{k}{m}} \), \( T = \frac{2\pi}{\omega} \), \( f = \frac{1}{T} \).
+      </li>
+      <li><b>Energía total en MAS:</b>
+        \[
+          E = \frac{1}{2} k A^2
+        \]
+      </li>
+      <li><b>Velocidad y aceleración en MAS:</b>
+        \[
+          v(t) = -\omega A \sin(\omega t + \phi), \quad a(t) = -\omega^2 A \cos(\omega t + \phi)
+        \]
+      </li>
+      <li><b>Ecuación de onda unidimensional:</b>
+        \[
+          \frac{\partial^2 y}{\partial x^2} = \frac{1}{v^2} \frac{\partial^2 y}{\partial t^2}
+        \]
+      </li>
+      <li><b>Velocidad de la onda en cuerda:</b> \( v = \sqrt{\frac{T}{\mu}} \), \( T \) tensión, \( \mu \) densidad lineal</li>
+      <li><b>Intensidad y nivel de intensidad sonora:</b>
+        \[
+          I = \frac{P}{A}, \quad \beta = 10 \log_{10} \left(\frac{I}{I_0}\right) \text{ dB}
+        \]
+      </li>
+    </ul>
+
+    <!-- ÓPTICA -->
+    <div class="subtitle">🌈 <i class="fas fa-lightbulb"></i> Óptica</div>
+    <ul style="font-size:1.1rem;line-height:2;">
+      <li><b>Ley de Snell:</b> 
+        \[
+          n_1 \sin \theta_1 = n_2 \sin \theta_2
+        \]
+      </li>
+      <li><b>Espejos esféricos:</b>
+        \[
+          \frac{1}{f} = \frac{1}{d_o} + \frac{1}{d_i}, \quad f = \frac{R}{2}
+        \]
+      </li>
+      <li><b>Lentes delgadas:</b>
+        \[
+          \frac{1}{f} = \frac{1}{d_o} + \frac{1}{d_i} = (n-1)\left(\frac{1}{R_1} - \frac{1}{R_2}\right)
+        \]
+      </li>
+      <li><b>Tipos de lentes:</b> convergentes (\( f > 0 \)), divergentes (\( f < 0 \))</li>
+    </ul>
+
+    <!-- ELECTROMAGNETISMO -->
+    <div class="subtitle">⚡ <i class="fas fa-bolt"></i> Electromagnetismo</div>
+    <ul style="font-size:1.1rem;line-height:2;">
+      <li><b>Ley de Coulomb:</b>
+        \[
+          F = k_e \frac{|q_1 q_2|}{r^2}
+        \]
+      </li>
+      <li><b>Ley de Gauss:</b>
+        \[
+          \Phi_E = \frac{Q_{enc}}{\epsilon_0}
+        \]
+      </li>
+      <li><b>Ley de Ohm:</b>
+        \[
+          V = IR
+        \]
+      </li>
+      <li><b>Leyes de Kirchhoff:</b>
+        <ul>
+          <li>Primera ley (nodos): suma de corrientes en nodo = 0</li>
+          <li>Segunda ley (mallas): suma de voltajes en malla = 0</li>
+        </ul>
+      </li>
+      <li><b>Capacitancia:</b>
+        \[
+          C = \frac{Q}{V}
+        \]
+      </li>
+      <li><b>Inductancia:</b>
+        \[
+          V_L = L \frac{dI}{dt}
+        \]
+      </li>
+    </ul>
+
+  </div>
+</section>
+</div>
+
+
+
+ <!---------------------------------------------------->
+
 </body>
+
 </html>
