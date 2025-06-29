@@ -65,128 +65,145 @@
         }
         @keyframes glow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
 
-        /* --- Paneles Generales (Desktop First) --- */
-        .panel {
-            position: absolute; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border); border-radius: 24px; padding: 1.5rem; z-index: 10;
-            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s, width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .info-panel {
-            right: 2rem; top: 50%; transform: translateY(-50%); width: 320px;
-        }
-        .control-panel {
-            left: 2rem; top: 50%; transform: translateY(-50%);
-            width: 330px; max-height: 90vh; overflow-y: auto; overflow-x: hidden;
-            padding-top: 3.5rem; /* Espacio para el botón de colapsar */
-        }
-
-        /* Lógica para ocultar/colapsar paneles */
-        .panel.is-hidden { 
-            opacity: 0; 
-            pointer-events: none; 
-            transform: translateX(120%) translateY(-50%);
-        }
-        .control-panel.is-hidden { /* Clase para compatibilidad, aunque no se usa para ocultar completamente */
-            transform: translateX(-120%) translateY(-50%);
-        }
-
-        /* --- Botón para Colapsar Panel de Control --- */
-        #panel-expander {
-            display: none; /* Oculto en móvil por defecto */
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            width: 35px;
-            height: 35px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            color: var(--text-primary);
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
-            z-index: 102;
-            transition: all 0.3s ease;
-        }
-        #panel-expander:hover {
-            background-color: var(--accent-1);
-            color: var(--bg-primary);
-            transform: scale(1.1);
-        }
-
-        /* Estilos del Panel de Control Colapsado */
-        .control-panel.is-collapsed {
-            width: 90px;
-            padding-top: 1.5rem;
-        }
-        .control-panel.is-collapsed .panel-title,
-        .control-panel.is-collapsed .panel-content > *:not(.solid-selector),
-        .control-panel.is-collapsed .solid-name {
+        /* --- Botones de toggle móvil --- */
+        .mobile-toggle {
             display: none;
+            position: fixed; bottom: 1.5rem; z-index: 200; width: 50px; height: 50px; border-radius: 50%;
+            background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
+            color: var(--accent-1); cursor: pointer; align-items: center; justify-content: center; font-size: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
         }
-        .control-panel.is-collapsed .solid-selector {
-            grid-template-columns: 1fr;
-            gap: 1rem;
-            margin-bottom: 0;
-        }
-        .control-panel.is-collapsed #panel-expander {
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-        }
+        #mobile-control-panel-toggle { left: 1.5rem; }
+        #mobile-info-panel-toggle { right: 1.5rem; }
 
-        /* --- Botón para Ocultar/Mostrar Panel de Información (Desktop) --- */
-        #info-panel-toggle {
-            position: absolute; right: 2rem; top: 10rem; width: 50px; height: 50px;
-            border-radius: 50%; background: var(--glass-bg); backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border); color: var(--accent-1); cursor: pointer;
-            display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 101; font-size: 1.5rem;
-        }
-        #info-panel-toggle:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.1) rotate(90deg); }
-
-        /* --- Estilos para Móvil (Overrides) --- */
-        .mobile-toggle, .panel-close-btn { display: none; }
-
+        /* --- Paneles para Desktop --- */
         @media (min-width: 769px) {
-             /* Hacemos visibles los botones de escritorio solo en pantallas grandes */
-            #panel-expander, #info-panel-toggle {
-                display: flex;
+            .panel {
+                position: absolute; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border); border-radius: 24px; padding: 1.5rem; z-index: 10;
+                box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+                transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s, width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             }
+            .info-panel {
+                right: 2rem; top: 50%; transform: translateY(-50%); width: 320px;
+            }
+            .control-panel {
+                left: 2rem; top: 50%; transform: translateY(-50%);
+                width: 330px; max-height: 90vh; overflow-y: auto; overflow-x: hidden;
+                padding-top: 3.5rem;
+            }
+            .panel.is-hidden { 
+                opacity: 0; 
+                pointer-events: none; 
+                transform: translateX(120%) translateY(-50%);
+            }
+            .control-panel.is-hidden {
+                transform: translateX(-120%) translateY(-50%);
+            }
+            
+            /* Panel de control colapsado - solo desktop */
+            .control-panel.is-collapsed {
+                width: 90px;
+                padding-top: 1.5rem;
+            }
+            .control-panel.is-collapsed .panel-title,
+            .control-panel.is-collapsed .panel-content > *:not(.solid-selector),
+            .control-panel.is-collapsed .solid-name {
+                display: none;
+            }
+            .control-panel.is-collapsed .solid-selector {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+                margin-bottom: 0;
+            }
+            .control-panel.is-collapsed #panel-expander {
+                top: 1rem;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+
+            #panel-expander {
+                display: flex;
+                position: absolute;
+                top: 1rem;
+                left: 1rem;
+                width: 35px;
+                height: 35px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid var(--glass-border);
+                border-radius: 50%;
+                color: var(--text-primary);
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.1rem;
+                z-index: 102;
+                transition: all 0.3s ease;
+            }
+            #panel-expander:hover {
+                background-color: var(--accent-1);
+                color: var(--bg-primary);
+                transform: scale(1.1);
+            }
+
+            #info-panel-toggle {
+                position: absolute; right: 2rem; top: 10rem; width: 50px; height: 50px;
+                border-radius: 50%; background: var(--glass-bg); backdrop-filter: blur(10px);
+                border: 1px solid var(--glass-border); color: var(--accent-1); cursor: pointer;
+                display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 101; font-size: 1.5rem;
+            }
+            #info-panel-toggle:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.1) rotate(90deg); }
         }
 
+        /* --- Estilos para Móvil --- */
         @media (max-width: 768px) {
-            .control-panel {
-                padding-top: 2.5rem; /* Reset padding para móvil */
-            }
+            .mobile-toggle { display: flex; }
+            
+            /* Ocultar botones de desktop en móvil */
+            #panel-expander, #info-panel-toggle { display: none !important; }
+            
             .panel {
                 position: fixed; bottom: 0; left: 0; right: 0; top: auto; width: 100%; max-height: 80vh;
                 border-radius: 24px 24px 0 0; transform: translateY(100%); z-index: 150;
+                background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+                border: 1px solid var(--glass-border); padding: 1.5rem;
+                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+                transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
             }
+            
             .panel.is-visible-mobile { transform: translateY(0); }
-            .mobile-toggle {
-                display: flex;
-                position: fixed; bottom: 1.5rem; z-index: 200; width: 50px; height: 50px; border-radius: 50%;
-                background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
-                color: var(--accent-1); cursor: pointer; align-items: center; justify-content: center; font-size: 1.5rem;
-            }
-            #mobile-control-panel-toggle { left: 1.5rem; }
-            #mobile-info-panel-toggle { right: 1.5rem; }
+            
+            .control-panel { padding-top: 3rem; }
+            
             .panel-close-btn {
                 display: flex;
                 position: absolute; top: 0.75rem; right: 1rem; width: 35px; height: 35px; border-radius: 50%;
                 background: rgba(255, 255, 255, 0.1); border: none; color: var(--text-secondary); cursor: pointer;
                 font-size: 1.2rem; z-index: 160; align-items: center; justify-content: center;
             }
+            
             .mobile-overlay {
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
                 z-index: 140; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
             }
             .mobile-overlay.is-active { opacity: 1; pointer-events: auto; }
+            
+            /* Ajustar el header en móvil */
+            .header { padding: 1rem; }
+            .logo { font-size: 1.5rem; }
+            
+            /* Ajustar tamaños de fuente y espaciado en móvil */
+            .panel-title { font-size: 1.2rem; margin-bottom: 1rem; }
+            .section-title { font-size: 0.9rem; }
+            .solid-selector { grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
+            .solid-btn { padding: 0.4rem; }
+            .solid-btn i { font-size: 1.5rem; }
+            .solid-name { font-size: 0.6rem; }
         }
 
-        /* --- Estilos de Componentes Internos (Sin cambios) --- */
+        /* --- Estilos de Componentes Internos --- */
         h2.panel-title { font-size: 1.3rem; margin-bottom: 1.5rem; text-align: center; }
         h3.section-title { font-size: 1rem; margin-bottom: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
         .solid-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
@@ -236,6 +253,11 @@
         .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.8s ease; }
         .loading-spinner { width: 80px; height: 80px; border: 4px solid rgba(255, 214, 10, 0.1); border-top-color: var(--accent-1); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 2rem; }
         @keyframes spin { to { transform: rotate(360deg); } }
+        
+        /* Ocultar botón de cerrar en desktop */
+        @media (min-width: 769px) {
+            .panel-close-btn { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -252,10 +274,21 @@
     <main class="main-container">
         <canvas id="three-canvas"></canvas>
         
+        <!-- Botones de toggle para móvil -->
+        <button id="mobile-control-panel-toggle" class="mobile-toggle" aria-label="Abrir Panel de Controles">
+            <i class="fas fa-palette"></i>
+        </button>
+        <button id="mobile-info-panel-toggle" class="mobile-toggle" aria-label="Abrir Panel de Información">
+            <i class="fas fa-info-circle"></i>
+        </button>
+        
+        <!-- Overlay para móvil -->
+        <div class="mobile-overlay" id="mobile-overlay"></div>
+        
+        <!-- Botón de toggle para desktop -->
         <button id="info-panel-toggle" aria-label="Abrir Panel de Información"><i class="fas fa-info-circle"></i></button>
 
         <aside id="control-panel" class="panel control-panel">
-            <!-- Botón para colapsar/expandir, ahora dentro del panel -->
             <button id="panel-expander" aria-label="Contraer panel"><i class="fas fa-chevron-left"></i></button>
             <button class="panel-close-btn" aria-label="Cerrar Panel de Controles">✕</button>
             
@@ -428,26 +461,16 @@
             const infoPanel = document.getElementById('info-panel');
 
             if (isMobile) {
-                const mainContainer = document.querySelector('.main-container');
-                const controlToggle = document.createElement('button');
-                controlToggle.className = 'mobile-toggle';
-                controlToggle.id = 'mobile-control-panel-toggle';
-                controlToggle.innerHTML = '<i class="fas fa-palette"></i>';
-                
-                const infoToggle = document.createElement('button');
-                infoToggle.className = 'mobile-toggle';
-                infoToggle.id = 'mobile-info-panel-toggle';
-                infoToggle.innerHTML = '<i class="fas fa-info-circle"></i>';
-                
-                const mobileOverlay = document.createElement('div');
-                mobileOverlay.className = 'mobile-overlay';
-
-                mainContainer.append(controlToggle, infoToggle, mobileOverlay);
+                // Lógica móvil
+                const controlToggle = document.getElementById('mobile-control-panel-toggle');
+                const infoToggle = document.getElementById('mobile-info-panel-toggle');
+                const mobileOverlay = document.getElementById('mobile-overlay');
                 
                 const showPanel = (panel) => {
                     panel.classList.add('is-visible-mobile');
                     mobileOverlay.classList.add('is-active');
                 };
+                
                 const hidePanel = (panel) => {
                     panel.classList.remove('is-visible-mobile');
                     if (!document.querySelector('.panel.is-visible-mobile')) {
@@ -457,6 +480,7 @@
 
                 controlToggle.addEventListener('click', () => showPanel(controlPanel));
                 infoToggle.addEventListener('click', () => showPanel(infoPanel));
+                
                 mobileOverlay.addEventListener('click', () => {
                     hidePanel(controlPanel);
                     hidePanel(infoPanel);
@@ -465,7 +489,13 @@
                 controlPanel.querySelector('.panel-close-btn').addEventListener('click', () => hidePanel(controlPanel));
                 infoPanel.querySelector('.panel-close-btn').addEventListener('click', () => hidePanel(infoPanel));
 
-            } else { // --- LÓGICA DE ESCRITORIO ACTUALIZADA ---
+                // Mostrar panel de información automáticamente al iniciar en móvil
+                setTimeout(() => {
+                    showPanel(infoPanel);
+                }, 1000);
+
+            } else {
+                // Lógica de escritorio
                 const expanderBtn = document.getElementById('panel-expander');
                 const infoToggleBtn = document.getElementById('info-panel-toggle');
                 
@@ -539,60 +569,86 @@
                 const fullscreenBtn = target.closest('#fullscreen-btn');
                 if (fullscreenBtn) { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); return; }
             });
+            
             document.body.addEventListener('change', (e) => {
                 if (e.target.id === 'wireframe-toggle' && currentSolid) currentSolid.material.wireframe = e.target.checked;
                 if (e.target.id === 'rotation-toggle') autoRotate = e.target.checked;
             });
+            
             setupCameraControls();
         }
 
         function setupCameraControls() {
             const canvas = renderer.domElement;
-            let startX, startY, startDistance, isDragging = false;
+            let startX = 0, startY = 0, startDistance = 0, isDragging = false;
+            
             const onPointerDown = (e) => {
                 isDragging = true;
-                if (isMobile && e.touches) {
-                    if (e.touches.length === 1) { startX = e.touches[0].clientX; startY = e.touches[0].clientY; }
+                if (e.touches) {
+                    if (e.touches.length === 1) { 
+                        startX = e.touches[0].clientX; 
+                        startY = e.touches[0].clientY; 
+                    }
                     else if (e.touches.length === 2) {
                         const dx = e.touches[0].clientX - e.touches[1].clientX;
                         const dy = e.touches[0].clientY - e.touches[1].clientY;
                         startDistance = Math.sqrt(dx*dx + dy*dy);
                     }
+                } else {
+                    startX = e.clientX;
+                    startY = e.clientY;
                 }
             };
+            
             const onPointerUp = () => { isDragging = false; };
+            
             const onPointerMove = (e) => {
-                if (!currentSolid || (!isDragging && !isMobile)) return;
+                if (!currentSolid || !isDragging) return;
                 e.preventDefault();
-                if (isMobile && e.touches) {
-                    if (e.touches.length === 1) {
-                        const dx = e.touches[0].clientX - startX; const dy = e.touches[0].clientY - startY;
-                        currentSolid.rotation.y += dx * 0.01; currentSolid.rotation.x += dy * 0.01;
-                        startX = e.touches[0].clientX; startY = e.touches[0].clientY;
+                
+                if (e.touches) {
+                    if (e.touches.length === 1 && isDragging) {
+                        const dx = e.touches[0].clientX - startX; 
+                        const dy = e.touches[0].clientY - startY;
+                        currentSolid.rotation.y += dx * 0.01; 
+                        currentSolid.rotation.x += dy * 0.01;
+                        startX = e.touches[0].clientX; 
+                        startY = e.touches[0].clientY;
                     } else if (e.touches.length === 2) {
                         const dx = e.touches[0].clientX - e.touches[1].clientX;
                         const dy = e.touches[0].clientY - e.touches[1].clientY;
                         const distance = Math.sqrt(dx*dx + dy*dy);
-                        setZoom(camera.position.z / (distance / startDistance));
+                        if (startDistance > 0) {
+                            setZoom(camera.position.z / (distance / startDistance));
+                        }
                         startDistance = distance;
                     }
-                } else if (!isMobile) {
-                      if (!isDragging) return;
-                      currentSolid.rotation.y += e.movementX * 0.005;
-                      currentSolid.rotation.x += e.movementY * 0.005;
+                } else {
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    currentSolid.rotation.y += dx * 0.005;
+                    currentSolid.rotation.x += dy * 0.005;
+                    startX = e.clientX;
+                    startY = e.clientY;
                 }
             };
+            
             const onWheel = (e) => {
                 e.preventDefault();
                 setZoom(camera.position.z + e.deltaY * 0.01);
             };
-            canvas.addEventListener(isMobile ? 'touchstart' : 'mousedown', onPointerDown, { passive: true });
-            canvas.addEventListener(isMobile ? 'touchend' : 'mouseup', onPointerUp);
-            canvas.addEventListener(isMobile ? 'touchmove' : 'mousemove', onPointerMove, { passive: false });
-            if(!isMobile) {
-                canvas.addEventListener('mouseleave', onPointerUp);
-                canvas.addEventListener('wheel', onWheel, { passive: false });
-            }
+            
+            // Eventos táctiles
+            canvas.addEventListener('touchstart', onPointerDown, { passive: true });
+            canvas.addEventListener('touchend', onPointerUp);
+            canvas.addEventListener('touchmove', onPointerMove, { passive: false });
+            
+            // Eventos de mouse
+            canvas.addEventListener('mousedown', onPointerDown);
+            canvas.addEventListener('mouseup', onPointerUp);
+            canvas.addEventListener('mousemove', onPointerMove);
+            canvas.addEventListener('mouseleave', onPointerUp);
+            canvas.addEventListener('wheel', onWheel, { passive: false });
         }
         
         function animate() {
