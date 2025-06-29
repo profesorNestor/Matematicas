@@ -1,0 +1,481 @@
+<!-- PARTE 1: ESTRUCTURA BASE Y LIBRERÍAS -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solucionador de EDO | Interfaz Moderna</title>
+
+    <!-- 🌀 Google Fonts: Inter y JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- 🎨 Tailwind CSS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        'brand-bg': '#0D1117',
+                        'brand-surface': '#161B22',
+                        'brand-border': '#30363D',
+                        'brand-text-primary': '#E6EDF3',
+                        'brand-text-secondary': '#8D96A0',
+                        'brand-accent': '#58A6FF',
+                        'brand-accent-hover': '#7BC0FF',
+                        'brand-success': '#3FB950',
+                        'brand-warning': '#D29922',
+                        'brand-danger': '#F85149',
+                    }
+                }
+            }
+        };
+    </script>
+
+    <!-- 🧠 MathJax (Renderizado de ecuaciones LaTeX) -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                displayMath: [['\\[', '\\]'], ['$$', '$$']],
+                tags: 'ams'
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!-- 📈 Plotly.js (Gráficas interactivas) -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <!-- ✅ Nerdamer (Motor de cálculo simbólico) -->
+    <script src="https://unpkg.com/nerdamer@1.1.11/nerdamer.core.js"></script>
+    <script src="https://unpkg.com/nerdamer@1.1.11/Algebra.js"></script>
+    <script src="https://unpkg.com/nerdamer@1.1.11/Calculus.js"></script>
+    <script src="https://unpkg.com/nerdamer@1.1.11/Solve.js"></script>
+    <script src="https://unpkg.com/nerdamer@1.1.11/Extra.js"></script>
+
+    <!-- 💅 Estilos personalizados para un look moderno -->
+    <style>
+        body {
+            background-color: #0D1117;
+            font-family: 'Inter', sans-serif;
+            color: #E6EDF3;
+        }
+
+        /* Estilo de los inputs y selects */
+        .form-input {
+            background-color: #0D1117;
+            border: 1px solid #30363D;
+            color: #E6EDF3;
+            border-radius: 6px;
+            padding: 10px 12px;
+            font-family: 'JetBrains Mono', monospace;
+            width: 100%;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #58A6FF;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.2);
+        }
+        
+        /* Estilo de los botones */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            background-color: #238636;
+            color: white;
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 6px;
+            border: 1px solid rgba(240, 246, 252, 0.1);
+            transition: background-color 0.2s;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background-color: #2EA043;
+        }
+
+        /* Contenedor de las secciones */
+        .card {
+            background-color: #161B22;
+            border: 1px solid #30363D;
+            border-radius: 8px;
+            padding: 1.5rem 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #161B22;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #30363D;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #58A6FF;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen w-full flex flex-col items-center p-4 sm:p-6 lg:p-8">
+    <header class="text-center mb-10 max-w-4xl w-full">
+        <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-brand-text-primary">Solucionador de Ecuaciones Diferenciales</h1>
+        <p class="text-lg text-brand-text-secondary mt-3">Una herramienta interactiva para el análisis simbólico y gráfico de EDOs.</p>
+    </header>
+
+    <main class="w-full max-w-4xl">
+
+        <!-- PARTE 2: EDO de Primer Orden Lineal -->
+        <section id="edo-primer-orden" class="card">
+            <h2 class="text-2xl font-semibold text-brand-text-primary mb-1">1. EDO de Primer Orden (Lineal)</h2>
+            <p class="text-brand-text-secondary mb-6">Resuelve ecuaciones de la forma: \( y'(x) + p(x)y(x) = q(x) \)</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-end mb-6">
+                <div>
+                    <label for="px" class="block text-sm font-medium mb-2 text-brand-text-secondary">Función p(x):</label>
+                    <input type="text" id="px" value="2/x" placeholder="Ej: 2/x" class="form-input" />
+                </div>
+                <div>
+                    <label for="qx" class="block text-sm font-medium mb-2 text-brand-text-secondary">Función q(x):</label>
+                    <input type="text" id="qx" value="x^3" placeholder="Ej: x^3" class="form-input" />
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button id="resolver-primer-orden" class="btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M12 14v4"/><path d="M12 14h-4"/><path d="M12 14h4"/><path d="M12 14v-4"/><path d="m12 14-4 4"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 18h.01"/><path d="M18 12h.01"/><path d="M6 12h.01"/><circle cx="12" cy="12" r="10"/></svg>
+                    Resolver
+                </button>
+            </div>
+            <div id="salida-primer-orden" class="mt-6 p-4 bg-brand-bg rounded-md border border-brand-border font-mono text-sm leading-relaxed min-h-[50px]"></div>
+        </section>
+        
+        <!-- Script Específico: Primer Orden -->
+        <script>
+            document.getElementById("resolver-primer-orden").addEventListener("click", () => {
+                const p = document.getElementById("px").value.trim();
+                const q = document.getElementById("qx").value.trim();
+                const salida = document.getElementById("salida-primer-orden");
+
+                if (!p || !q) {
+                    salida.innerHTML = `<p class="text-brand-danger">Por favor ingresa funciones válidas para p(x) y q(x).</p>`;
+                    return;
+                }
+                salida.innerHTML = '<p class="text-brand-text-secondary">Calculando...</p>';
+                
+                setTimeout(() => {
+                  const pasos = [];
+                  try {
+                      pasos.push(`<strong>Ecuación Original:</strong>\\[ y' + (${nerdamer(p).toTeX()})y = ${nerdamer(q).toTeX()} \\]`);
+                      const integralP = nerdamer.integrate(p, 'x');
+                      pasos.push(`<strong>Factor Integrante (μ):</strong>\\[ \\mu(x) = e^{\\int p(x)dx} = e^{${integralP.toTeX()}} \\]`);
+                      const mu = nerdamer(`exp(${integralP.toString()})`).expand();
+                      pasos.push(`\\[ \\mu(x) = ${mu.toTeX()} \\]`);
+                      pasos.push(`<strong>Solución:</strong>\\[ \\frac{d}{dx}[\\mu(x)y] = \\mu(x)q(x) \\]`);
+                      const integrando = `(${mu.toString()})*(${q})`;
+                      const integralFinal = nerdamer.integrate(integrando, 'x');
+                      pasos.push(`\\[ \\int \\mu(x)q(x)dx = ${integralFinal.toTeX()} \\]`);
+                      const solucion = nerdamer(`(1/(${mu.toString()})) * (${integralFinal.toString()} + C)`).expand();
+                      pasos.push(`<strong class="text-brand-success text-base">Solución General:</strong>\\[ y(x) = ${solucion.toTeX()} \\]`);
+                  } catch (e) {
+                      salida.innerHTML = `<p class="text-brand-danger">Error en el cálculo simbólico: ${e.message}</p>`;
+                      return;
+                  }
+                  salida.innerHTML = pasos.map(p => `<div class="mb-3">${p}</div>`).join("");
+                  MathJax.typesetPromise([salida]);
+                }, 100);
+            });
+        </script>
+
+
+        <!-- PARTE 3: Ecuación Exacta -->
+        <section id="edo-exacta" class="card">
+            <h2 class="text-2xl font-semibold text-brand-text-primary mb-1">2. Ecuación Diferencial Exacta</h2>
+            <p class="text-brand-text-secondary mb-6">Resuelve ecuaciones de la forma: \( M(x, y)\,dx + N(x, y)\,dy = 0 \)</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label for="mxy" class="block text-sm font-medium mb-2 text-brand-text-secondary">Función M(x,y):</label>
+                    <input type="text" id="mxy" value="2*x*y" placeholder="Ej: 2*x*y" class="form-input" />
+                </div>
+                <div>
+                    <label for="nxy" class="block text-sm font-medium mb-2 text-brand-text-secondary">Función N(x,y):</label>
+                    <input type="text" id="nxy" value="x^2" placeholder="Ej: x^2 - 1" class="form-input" />
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button id="resolver-exacta" class="btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M12 14v4"/><path d="M12 14h-4"/><path d="M12 14h4"/><path d="M12 14v-4"/><path d="m12 14-4 4"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 18h.01"/><path d="M18 12h.01"/><path d="M6 12h.01"/><circle cx="12" cy="12" r="10"/></svg>
+                    Resolver
+                </button>
+            </div>
+            <div id="salida-exacta" class="mt-6 p-4 bg-brand-bg rounded-md border border-brand-border font-mono text-sm leading-relaxed min-h-[50px]"></div>
+        </section>
+
+        <!-- Script Específico: Exacta -->
+        <script>
+            function derivadaParcial(exprStr, variable) {
+                try { return nerdamer(`diff(${exprStr}, ${variable})`).expand(); } 
+                catch { return nerdamer('0'); }
+            }
+            document.getElementById("resolver-exacta").addEventListener("click", () => {
+                const Mstr = document.getElementById("mxy").value.trim();
+                const Nstr = document.getElementById("nxy").value.trim();
+                const salida = document.getElementById("salida-exacta");
+
+                if (!Mstr || !Nstr) {
+                    salida.innerHTML = `<p class="text-brand-danger">Por favor ingresa funciones válidas para M(x,y) y N(x,y).</p>`;
+                    return;
+                }
+                salida.innerHTML = '<p class="text-brand-text-secondary">Calculando...</p>';
+
+                setTimeout(() => {
+                  const pasos = [];
+                  try {
+                      pasos.push(`\\[ ${nerdamer(Mstr).toTeX()}\\,dx + ${nerdamer(Nstr).toTeX()}\\,dy = 0 \\]`);
+                      const dMdy = derivadaParcial(Mstr, 'y');
+                      const dNdx = derivadaParcial(Nstr, 'x');
+                      pasos.push(`<strong>Verificación de exactitud:</strong>\\[ \\frac{\\partial M}{\\partial y} = ${dMdy.toTeX()} \\quad \\text{, } \\quad \\frac{\\partial N}{\\partial x} = ${dNdx.toTeX()} \\]`);
+
+                      if (dMdy.toString() !== dNdx.toString()) {
+                          pasos.push(`<p class="text-brand-danger font-semibold text-base">❌ No es una ecuación exacta.</p>`);
+                          salida.innerHTML = pasos.map(p => `<div class="mb-3">${p}</div>`).join("");
+                          MathJax.typesetPromise([salida]);
+                          return;
+                      }
+
+                      pasos.push(`<p class="text-brand-success font-semibold text-base">✅ Ecuación exacta verificada.</p>`);
+                      const Fx = nerdamer.integrate(Mstr, 'x');
+                      pasos.push(`\\[ \\int M(x,y)\\,dx = ${Fx.toTeX()} + g(y) \\]`);
+                      const dFdy = nerdamer(`diff(${Fx.toString()}, y)`).expand();
+                      const gPrime = nerdamer(`${Nstr} - (${dFdy.toString()})`).expand();
+                      pasos.push(`\\[ g'(y) = N(x,y) - \\frac{\\partial F}{\\partial y} = ${gPrime.toTeX()} \\]`);
+                      const gy = nerdamer.integrate(gPrime, 'y');
+                      pasos.push(`\\[ g(y) = ${gy.toTeX()} \\]`);
+                      const solucionFinal = nerdamer(`${Fx.toString()} + (${gy.toString()})`);
+                      pasos.push(`<strong class="text-brand-success text-base">Solución implícita:</strong>\\[ ${solucionFinal.toTeX()} = C \\]`);
+                  } catch (e) {
+                      salida.innerHTML = `<p class="text-brand-danger">Error en el cálculo simbólico: ${e.message}</p>`;
+                      return;
+                  }
+                  salida.innerHTML = pasos.map(p => `<div class="mb-3">${p}</div>`).join("");
+                  MathJax.typesetPromise([salida]);
+                }, 100);
+            });
+        </script>
+
+        <!-- PARTE 4: EDO Homogénea de 2º Orden -->
+        <section id="edo-2o-homogenea" class="card">
+             <h2 class="text-2xl font-semibold text-brand-text-primary mb-1">3. EDO Homogénea de 2º Orden</h2>
+            <p class="text-brand-text-secondary mb-6">Resuelve ecuaciones de la forma: \( a\,y'' + b\,y' + c\,y = 0 \)</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-brand-text-secondary">Coeficiente a:</label>
+                    <input type="number" id="homo-a" value="1" class="form-input" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-2 text-brand-text-secondary">Coeficiente b:</label>
+                    <input type="number" id="homo-b" value="-3" class="form-input" />
+                </div>
+                 <div>
+                    <label class="block text-sm font-medium mb-2 text-brand-text-secondary">Coeficiente c:</label>
+                    <input type="number" id="homo-c" value="2" class="form-input" />
+                </div>
+            </div>
+
+            <div class="p-4 rounded-md border border-brand-border bg-brand-bg mb-6">
+                <p class="font-medium text-brand-text-primary mb-3">Condiciones Iniciales (Opcional)</p>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <input type="number" id="homo-x0" value="0" class="form-input" placeholder="x₀" title="x₀"/>
+                    <input type="number" id="homo-y0" value="1" class="form-input" placeholder="y(x₀)" title="y(x₀)"/>
+                    <input type="number" id="homo-dy0" value="2" class="form-input" placeholder="y'(x₀)" title="y'(x₀)"/>
+                </div>
+            </div>
+
+            <div class="flex justify-end">
+                <button id="resolver-homogenea" class="btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 14 4-4"/><path d="M12 14v4"/><path d="M12 14h-4"/><path d="M12 14h4"/><path d="M12 14v-4"/><path d="m12 14-4 4"/><path d="M12 6h.01"/><path d="M12 10h.01"/><path d="M12 18h.01"/><path d="M18 12h.01"/><path d="M6 12h.01"/><circle cx="12" cy="12" r="10"/></svg>
+                    Resolver y Graficar
+                </button>
+            </div>
+            
+            <div id="salida-homogenea" class="mt-6 p-4 bg-brand-bg rounded-md border border-brand-border font-mono text-sm leading-relaxed min-h-[50px]"></div>
+            
+            <div id="controles-grafico-homogenea" class="hidden items-center gap-4 mt-6 p-3 bg-brand-bg rounded-md border-brand-border">
+                 <label for="color-picker-homogenea" class="text-sm font-medium text-brand-text-secondary">Color del gráfico:</label>
+                 <input type="color" id="color-picker-homogenea" value="#3FB950" class="h-8 w-14 p-1 bg-brand-bg border border-brand-border rounded cursor-pointer">
+                 <p class="text-xs text-brand-text-secondary ml-auto">La gráfica es interactiva: usa el scroll para hacer zoom y arrastra para moverte.</p>
+            </div>
+            <div id="grafico-homogenea" class="mt-2 w-full h-[400px]"></div>
+        </section>
+
+        <!-- Script Específico: Homogénea -->
+        <script>
+            document.getElementById("resolver-homogenea").addEventListener("click", () => {
+                const a = parseFloat(document.getElementById("homo-a").value);
+                const b = parseFloat(document.getElementById("homo-b").value);
+                const c = parseFloat(document.getElementById("homo-c").value);
+                const x0 = parseFloat(document.getElementById("homo-x0").value);
+                const y0 = parseFloat(document.getElementById("homo-y0").value);
+                const dy0 = parseFloat(document.getElementById("homo-dy0").value);
+                const salida = document.getElementById("salida-homogenea");
+                const graficoDiv = document.getElementById("grafico-homogenea");
+                const controlesGrafico = document.getElementById("controles-grafico-homogenea");
+
+                salida.innerHTML = "";
+                Plotly.purge(graficoDiv); // Limpia el gráfico anterior
+                controlesGrafico.classList.add("hidden");
+
+                if (isNaN(a) || a === 0 || isNaN(b) || isNaN(c)) {
+                    salida.innerHTML = `<p class="text-brand-danger">Debe ingresar coeficientes válidos, con a ≠ 0.</p>`;
+                    return;
+                }
+                
+                salida.innerHTML = '<p class="text-brand-text-secondary">Calculando...</p>';
+
+                setTimeout(() => {
+                  const pasos = [];
+                  const delta = b * b - 4 * a * c;
+                  pasos.push(`\\[ a = ${a}, \\ b = ${b}, \\ c = ${c} \\]`);
+                  pasos.push(`<strong>Ecuación característica:</strong> \\[ ${a}r^2 + ${b}r + c = 0 \\]`);
+                  pasos.push(`<strong>Discriminante:</strong> \\[ \\Delta = b^2 - 4ac = ${delta.toFixed(4)} \\]`);
+
+                  let yc = '', funcStr = '';
+                  let C1 = 1, C2 = 1;
+
+                  if (delta > 0) {
+                      const r1 = (-b + Math.sqrt(delta)) / (2 * a);
+                      const r2 = (-b - Math.sqrt(delta)) / (2 * a);
+                      yc = `C_1 e^{${r1.toFixed(4)}x} + C_2 e^{${r2.toFixed(4)}x}`;
+                      pasos.push(`Raíces reales distintas: \\[ r_1 = ${r1.toFixed(4)}, \\quad r_2 = ${r2.toFixed(4)} \\]`);
+                      funcStr = `(C1)*Math.exp(${r1}*x) + (C2)*Math.exp(${r2}*x)`;
+                  } else if (delta === 0) {
+                      const r = -b / (2 * a);
+                      yc = `(C_1 + C_2 x) e^{${r.toFixed(4)}x}`;
+                      pasos.push(`Raíz real doble: \\[ r = ${r.toFixed(4)} \\]`);
+                      funcStr = `(C1 + C2*x)*Math.exp(${r}*x)`;
+                  } else {
+                      const alpha = -b / (2 * a);
+                      const beta = Math.sqrt(-delta) / (2 * a);
+                      yc = `e^{${alpha.toFixed(4)}x}(C_1 \\cos(${beta.toFixed(4)}x) + C_2 \\sin(${beta.toFixed(4)}x))`;
+                      pasos.push(`Raíces complejas conjugadas: \\[ r = ${alpha.toFixed(4)} \\pm ${beta.toFixed(4)}i \\]`);
+                      funcStr = `Math.exp(${alpha}*x)*(C1*Math.cos(${beta}*x) + C2*Math.sin(${beta}*x))`;
+                  }
+
+                  pasos.push(`<strong class="text-base">Solución general:</strong>\\[ y(x) = ${yc} \\]`);
+
+                  if (!isNaN(x0) && !isNaN(y0) && !isNaN(dy0)) {
+                      pasos.push(`<strong class="text-base">Condiciones iniciales:</strong> \\[ y(${x0}) = ${y0}, \\ y'(${x0}) = ${dy0} \\]`);
+                      const f = new Function("x", "C1", "C2", `return ${funcStr}`);
+                      const e = Math.exp, cos = Math.cos, sin = Math.sin;
+                      let A = [], B = [];
+
+                      if (delta > 0) {
+                          const r1 = (-b + Math.sqrt(delta)) / (2*a), r2 = (-b - Math.sqrt(delta)) / (2*a);
+                          A = [[e(r1 * x0), e(r2 * x0)], [r1 * e(r1 * x0), r2 * e(r2 * x0)]];
+                      } else if (delta === 0) {
+                          const r = -b / (2*a);
+                          A = [[e(r*x0), x0*e(r*x0)], [r*e(r*x0), e(r*x0) + r*x0*e(r*x0)]];
+                      } else {
+                          const alpha = -b / (2*a), beta = Math.sqrt(-delta) / (2*a);
+                          A = [[e(alpha*x0)*cos(beta*x0), e(alpha*x0)*sin(beta*x0)], [e(alpha*x0)*(-beta*sin(beta*x0) + alpha*cos(beta*x0)), e(alpha*x0)*(beta*cos(beta*x0) + alpha*sin(beta*x0))]];
+                      }
+                      B = [y0, dy0];
+                      const det = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+
+                      if (Math.abs(det) > 1e-12) {
+                          C1 = (B[0] * A[1][1] - B[1] * A[0][1]) / det;
+                          C2 = (A[0][0] * B[1] - A[1][0] * B[0]) / det;
+                          pasos.push(`Constantes calculadas: \\[ C_1 = ${C1.toFixed(4)}, \\quad C_2 = ${C2.toFixed(4)} \\]`);
+                          
+                          try {
+                              const xs = [], ys = [];
+                              const x_start = x0 - 5;
+                              const x_end = x0 + 5;
+                              const points = 400;
+                              for (let i = 0; i <= points; i++) {
+                                  const x = x_start + ((x_end - x_start) * i) / points;
+                                  xs.push(x);
+                                  ys.push(f(x, C1, C2));
+                              }
+
+                              const colorPicker = document.getElementById("color-picker-homogenea");
+                              
+                              Plotly.newPlot(graficoDiv, [{
+                                  x: xs, y: ys, mode: "lines", line: { color: colorPicker.value, width: 3 }, name: "y(x)"
+                              }], {
+                                  title: { text: "Solución Particular y(x)", font: { color: '#E6EDF3', size: 18 } },
+                                  paper_bgcolor: "transparent",
+                                  plot_bgcolor: "#0D1117",
+                                  font: { color: "#8D96A0" },
+                                  xaxis: { title: "x", gridcolor: "#30363D", zerolinecolor: '#58A6FF' },
+                                  yaxis: { title: "y(x)", gridcolor: "#30363D", zerolinecolor: '#58A6FF' }
+                              }, { responsive: true, displaylogo: false });
+
+                              controlesGrafico.classList.remove("hidden");
+                              controlesGrafico.classList.add("flex"); // Asegura que se muestre como flex
+
+                          } catch (err) {
+                              graficoDiv.innerHTML = `<p class="text-brand-danger">Error al graficar: ${err.message}</p>`;
+                          }
+
+                      } else {
+                          pasos.push(`<span class="text-brand-warning">Sistema singular: no se pueden determinar C₁ y C₂.</span>`);
+                      }
+                  }
+
+                  salida.innerHTML = pasos.map(p => `<div class="mb-3">${p}</div>`).join("");
+                  MathJax.typesetPromise([salida]);
+                }, 100);
+            });
+            // Listener para el selector de color
+            document.getElementById("color-picker-homogenea").addEventListener("input", (event) => {
+                const newColor = event.target.value;
+                try {
+                    Plotly.restyle('grafico-homogenea', { 'line.color': newColor }, [0]);
+                } catch(e) { console.error("Plotly no ha sido inicializado aún."); }
+            });
+        </script>
+        
+    </main>
+    
+    <!-- PARTE FINAL: Pie de página -->
+    <footer class="text-center text-brand-text-secondary mt-12 text-sm pb-8">
+        <p>📘 Proyecto desarrollado por Msc: Néstor Fabioo Montoya Palacios</p>
+        <p class="mt-2">
+            Interfaz rediseñada y mejorada con
+            <span class="font-semibold text-brand-accent">Plotly</span>,
+            <span class="font-semibold text-purple-400">MathJax</span>,
+            <span class="font-semibold text-green-400">Nerdamer</span> y
+            <span class="font-semibold text-sky-400">Tailwind CSS</span>.
+        </p>
+        <p class="mt-2">Última actualización: Junio 2025</p>
+    </footer>
+
+    <!-- ✅ Forzar renderizado MathJax inicial -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            if (window.MathJax) {
+                MathJax.typesetPromise()
+                    .catch(err => console.error("Error al renderizar MathJax:", err));
+            }
+        });
+    </script>
+</body>
+</html>

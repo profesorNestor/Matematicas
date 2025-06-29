@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Unidades PRO</title>
+    <!-- Tailwind CSS para un diseño rápido y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts para una tipografía más elegante -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* * MEJORA: Paleta de colores renovada y variables CSS para fácil personalización.
+         * He elegido un violeta vibrante como color primario para un look más moderno.
+         * Las variables permiten cambiar el tema (claro/oscuro) de forma sencilla.
+        */
+        :root {
+            --bg-light: #f4f7fa;
+            --card-light: rgba(255, 255, 255, 0.6);
+            --text-primary-light: #1e293b;
+            --text-secondary-light: #475569;
+            --border-light: rgba(203, 213, 225, 0.8);
+            --shadow-light: rgba(100, 116, 139, 0.1);
+            
+            /* Color primario cambiado a violeta */
+            --primary: #8b5cf6; 
+            --primary-hover: #7c3aed;
+            
+            /* **NUEVO**: Variable para el fondo de los inputs para mayor contraste */
+            --input-bg: rgba(248, 250, 252, 0.6); /* Color sutil para modo claro */
+        }
+        .dark {
+            --bg-light: #0f172a;
+            --card-light: rgba(30, 41, 59, 0.6);
+            --text-primary-light: #e2e8f0;
+            --text-secondary-light: #94a3b8;
+            --border-light: rgba(51, 65, 85, 0.8);
+            --shadow-light: rgba(0, 0, 0, 0.2);
+
+            /* **NUEVO**: Variable para el fondo de los inputs en modo oscuro */
+            --input-bg: rgba(51, 65, 85, 0.5); /* Color sutil para modo oscuro */
+        }
+        html, body {
+            height: 100%;
+        }
+        body { 
+            font-family: 'Poppins', sans-serif; /* MEJORA: Fuente más moderna */
+            background-color: var(--bg-light); 
+            color: var(--text-secondary-light); 
+            transition: background-color 0.5s ease, color 0.5s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        /* MEJORA: Gradiente de fondo más sutil y profesional */
+        .animated-gradient { 
+            background: linear-gradient(-45deg, #4f46e5, #7c3aed, #0ea5e9, #14b8a6);
+            background-size: 400% 400%; 
+            animation: gradient 18s ease infinite; 
+            position: fixed; 
+            top: 0; left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: -1; 
+        }
+        @keyframes gradient { 
+            0% { background-position: 0% 50%; } 
+            50% { background-position: 100% 50%; } 
+            100% { background-position: 0% 50%; } 
+        }
+        /* MEJORA: Efecto "glassmorphism" refinado con un borde sutil */
+        .glass-card { 
+            background-color: var(--card-light); 
+            backdrop-filter: blur(28px) saturate(180%); 
+            -webkit-backdrop-filter: blur(28px) saturate(180%); 
+            border: 1px solid var(--border-light); 
+            transition: background-color 0.5s ease, border-color 0.5s ease;
+            box-shadow: 0 12px 35px -12px var(--shadow-light);
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: rgba(156, 163, 175, 0.5); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; }
+        
+        /* MEJORA: Estilo de los selectores personalizados */
+        .custom-select-wrapper { position: relative; }
+        .custom-options { z-index: 10; max-height: 250px; overflow-y: auto; border: 1px solid var(--border-light); background-color: var(--card-light); backdrop-filter: blur(10px); }
+        .custom-option:hover { background-color: var(--primary); color: white !important; }
+        .custom-option.selected { background-color: var(--primary); color: white !important; font-weight: 600; }
+        
+        /* MEJORA: Estilo de las pestañas */
+        .tab-active { 
+            background-color: var(--primary) !important; 
+            color: white !important; 
+            box-shadow: 0 4px 14px -4px var(--primary); 
+        }
+        .primary-text { color: var(--text-primary-light); text-shadow: 0 1px 2px var(--shadow-light); }
+        .secondary-text { color: var(--text-secondary-light); }
+
+        /* MEJORA: Botones de acción en el input con mejor feedback visual */
+        .input-action-btn {
+            padding: 0.35rem;
+            border-radius: 9999px;
+            transition: all 0.2s ease-in-out;
+        }
+        .input-action-btn:hover {
+            background-color: rgba(148, 163, 184, 0.2);
+            transform: scale(1.15);
+        }
+         .input-action-btn:active {
+            transform: scale(0.95);
+        }
+        
+        /* **NUEVO**: Clase de utilidad para aplicar el fondo con contraste a los inputs */
+        .input-contrast-bg {
+            background-color: var(--input-bg);
+        }
+    </style>
+</head>
+<body class="dark:bg-gray-900">
+    <div class="animated-gradient"></div>
+
+    <div class="w-full flex-grow flex items-center justify-center p-4 sm:p-6 md:p-8">
+        <main class="w-full max-w-4xl glass-card rounded-3xl shadow-2xl"> <!-- MEJORA: Bordes más redondeados -->
+            <header class="p-6 border-b border-[var(--border-light)] flex justify-between items-center">
+                <div>
+                    <!-- MEJORA: Tipografía más grande y con más peso -->
+                    <h1 class="text-3xl font-bold primary-text">Conversor PRO</h1>
+                    <p class="text-base secondary-text mt-1">Tu herramienta de conversión definitiva</p>
+                </div>
+                <button id="themeToggle" class="w-12 h-6 rounded-full bg-slate-300 dark:bg-slate-700 flex items-center transition-colors duration-300 focus:outline-none shadow-inner">
+                    <span id="themeToggleDot" class="w-5 h-5 bg-white rounded-full shadow-md transform transition-transform duration-300"></span>
+                </button>
+            </header>
+
+            <div class="p-6">
+                <div id="mainTabs" class="flex flex-wrap items-center gap-3 mb-6"></div>
+                
+                <div id="converter-view">
+                    <div id="subTabsContainer" class="flex flex-wrap items-center gap-2 mb-6 border-t border-[var(--border-light)] pt-5"></div>
+                    <div class="flex flex-col gap-8"> <!-- MEJORA: Mayor espaciado entre elementos -->
+                        <div id="magnitudeDescription" class="p-4 rounded-xl bg-slate-500/10 text-center primary-text h-16 flex items-center justify-center font-mono text-xl"></div>
+                        <div>
+                            <label for="inputValue" class="block text-base font-medium mb-2 primary-text">Valor a Convertir</label>
+                            <div class="relative">
+                                <!-- MEJORA: Se cambió `bg-transparent` por la nueva clase `input-contrast-bg` para mayor contraste -->
+                                <input type="number" id="inputValue" value="1" class="w-full pl-5 pr-28 py-4 rounded-xl border input-contrast-bg border-[var(--border-light)] focus:ring-2 focus:ring-[var(--primary)] focus:border-[var(--primary)] transition-all primary-text text-xl">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 gap-1">
+                                    <button id="clearInput" class="input-action-btn" title="Limpiar">
+                                         <svg class="w-6 h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                    <button id="decrementInput" class="input-action-btn" title="Decrementar">
+                                         <svg class="w-6 h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15" /></svg>
+                                    </button>
+                                    <button id="incrementInput" class="input-action-btn" title="Incrementar">
+                                        <svg class="w-6 h-6 secondary-text" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                            <div class="w-full" id="fromUnitContainer"></div>
+                            <!-- MEJORA: Botón de intercambio más prominente -->
+                            <button id="swapBtn" class="mt-2 sm:mt-7 flex-shrink-0 p-4 rounded-full border border-[var(--border-light)] bg-slate-500/10 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] hover:rotate-180 transition-all duration-300 secondary-text">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
+                            </button>
+                            <div class="w-full" id="toUnitContainer"></div>
+                        </div>
+                        
+                        <!-- MEJORA: Área de resultado más destacada -->
+                        <div class="h-full flex flex-col justify-center bg-slate-500/10 rounded-xl p-6 relative">
+                             <div class="flex justify-between items-start">
+                                <div>
+                                    <label class="block text-base font-medium mb-1">Resultado</label>
+                                    <p id="resultText" class="text-6xl font-bold text-[var(--primary)] break-words">1.00</p>
+                                    <div id="resultUnit" class="text-xl h-8 secondary-text mt-1"></div>
+                                </div>
+                                <button id="copyBtn" class="p-2.5 rounded-lg hover:bg-slate-500/20 transition-colors" title="Copiar resultado">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                    <span id="copyFeedback" class="absolute top-0 right-0 -mr-4 -mt-4 bg-green-500 text-white text-xs rounded-full px-2 py-1 opacity-0 transition-all pointer-events-none">¡Copiado!</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="constants-view" class="hidden custom-scrollbar max-h-96 overflow-y-auto">
+                    <!-- Las constantes físicas se inyectarán aquí por JavaScript -->
+                </div>
+            </div>
+        </main>
+    </div>
+    <footer class="text-center text-white/70 text-sm py-4 flex-shrink-0">
+        <p>Interfaz rediseñada por Gemini AI. Funcionalidad original de Néstor Fabio Montoya Palacios.</p>
+    </footer>
+
+<script>
+    // =================================================================================================
+    // IMPORTANTE: TODA LA LÓGICA DE CONVERSIÓN DE JAVASCRIPT SE HA MANTENIDO 100% IDÉNTICA.
+    // Los únicos cambios en el script son para ajustar las clases CSS y asegurar que la nueva 
+    // interfaz funcione correctamente, sin alterar el núcleo funcional del programa.
+    // =================================================================================================
+    document.addEventListener('DOMContentLoaded', () => {
+        const initializeApp = () => {
+            const unitData = {
+                basics: {
+                    name: "Fundamentales",
+                    icon: '�',
+                    magnitudes: {
+                        length: { name: "Longitud", description: "L", units: { m: {factor: 1, label:"Metro (m)"}, km: {factor: 1000, label:"Kilómetro (km)"}, cm: {factor: 0.01, label:"Centímetro (cm)"}, mm: {factor: 0.001, label:"Milímetro (mm)"}, um: {factor: 1e-6, label:"Micrómetro (µm)"}, nm: {factor: 1e-9, label:"Nanómetro (nm)"}, in: {factor: 0.0254, label:"Pulgada (in)"}, ft: {factor: 0.3048, label:"Pie (ft)"}, yd: {factor: 0.9144, label:"Yarda (yd)"}, mi: {factor: 1609.34, label:"Milla (mi)"}, nmi: {factor: 1852, label:"Milla náutica (nmi)"}, ly: {factor: 9.461e15, label:"Año luz (ly)"}, parsec: {factor: 3.086e16, label:"Parsec (pc)"}, angstrom: {factor: 1e-10, label:"Angstrom (Å)"}, furlong: {factor: 201.168, label:"Furlong"}, chain: {factor: 20.1168, label:"Chain"}, rod: {factor: 5.0292, label:"Rod"} } },
+                        mass: { name: "Masa", description: "M", units: { kg: {factor: 1, label:"Kilogramo (kg)"}, g: {factor: 0.001, label:"Gramo (g)"}, mg: {factor: 1e-6, label:"Miligramo (mg)"}, ug: {factor: 1e-9, label:"Microgramo (µg)"}, t: {factor: 1000, label:"Tonelada métrica (t)"}, ton_us: {factor: 907.185, label:"Tonelada (US)"}, ton_uk: {factor: 1016.05, label:"Tonelada (UK)"}, lb: {factor: 0.453592, label:"Libra (lb)"}, oz: {factor: 0.0283495, label:"Onza (oz)"}, stone: {factor: 6.35029, label:"Stone (st)"}, carat: {factor: 0.0002, label:"Quilate (ct)"}, grain: {factor: 6.47989e-5, label:"Grano"} } },
+                        time: { name: "Tiempo", description: "T", units: { s: {factor: 1, label:"Segundo (s)"}, ms: {factor: 0.001, label:"Milisegundo (ms)"}, us: {factor: 1e-6, label:"Microsegundo (µs)"}, ns: {factor: 1e-9, label:"Nanosegundo (ns)"}, min: {factor: 60, label:"Minuto (min)"}, h: {factor: 3600, label:"Hora (h)"}, day: {factor: 86400, label:"Día (d)"}, week: {factor: 604800, label:"Semana"}, month: {factor: 2.628e6, label:"Mes"}, yr: {factor: 3.154e7, label:"Año"}, decade: {factor: 3.154e8, label:"Década"}, century: {factor: 3.154e9, label:"Siglo"} } },
+                        area: { name: "Área", description: "A = L²", units: { m2: {factor: 1, label:"Metro² (m²)"}, km2: {factor: 1e6, label:"Kilómetro² (km²)"}, cm2: {factor: 1e-4, label:"Centímetro² (cm²)"}, mm2: {factor: 1e-6, label:"Milímetro² (mm²)"}, ha: {factor: 10000, label:"Hectárea (ha)"}, acre: {factor: 4046.86, label:"Acre"}, in2: {factor: 0.00064516, label:"Pulgada² (in²)"}, ft2: {factor: 0.092903, label:"Pie² (ft²)"}, yd2: {factor: 0.836127, label:"Yarda² (yd²)"}, mi2: {factor: 2.59e6, label:"Milla² (mi²)"} } },
+                        volume: { name: "Volumen", description: "V = L³", units: { m3: {factor: 1, label:"Metro³ (m³)"}, L: {factor: 0.001, label:"Litro (L)"}, mL: {factor: 1e-6, label:"Mililitro (mL)"}, cm3: {factor: 1e-6, label:"Centímetro³ (cm³)"}, ft3: {factor: 0.0283168, label:"Pie³ (ft³)"}, in3: {factor: 1.6387e-5, label:"Pulgada³ (in³)"}, gal_us: {factor: 0.00378541, label:"Galón (US)"}, gal_uk: {factor: 0.00454609, label:"Galón (UK)"}, bbl: {factor: 0.158987, label:"Barril (petróleo)"}, cup_us: {factor: 0.000236588, label:"Taza (US)"}, tbsp_us: {factor: 1.47868e-5, label:"Cucharada (US)"}, tsp_us: {factor: 4.92892e-6, label:"Cucharadita (US)"} } },
+                        temperature: { name: "Temperatura", description: "Grado de calor", units: { C: {label:"Celsius (°C)"}, F: {label:"Fahrenheit (°F)"}, K: {label:"Kelvin (K)"}, R: {label:"Rankine (°R)"} }, isSpecial: true, convert: (v,f,t) => { let k; switch(f){ case 'C':k=v+273.15;break;case 'F':k=(v-32)*5/9+273.15;break;case 'K':k=v;break;case 'R':k=v*5/9;break;} switch(t){ case 'C':return k-273.15; case 'F':return(k-273.15)*9/5+32; case 'K':return k; case 'R':return k*9/5;} } }
+                    }
+                },
+                mechanics: {
+                    name: "Mecánica",
+                    icon: '⚙️',
+                    magnitudes: {
+                        velocity: { name: "Velocidad", description: "v = d/t", units: { "m/s": {factor: 1, label:"Metro/seg (m/s)"}, "km/h": {factor: 1/3.6, label:"Kilómetro/hora (km/h)"}, mph: {factor: 0.44704, label:"Milla/hora (mph)"}, "ft/s": {factor: 0.3048, label:"Pie/seg (ft/s)"}, knot: {factor: 0.514444, label:"Nudo (knot)"}, c: {factor: 299792458, label:"Velocidad de la luz (c)"} } },
+                        acceleration: { name: "Aceleración", description: "a = Δv/t", units: { "m/s2": {factor: 1, label:"Metro/seg² (m/s²)"}, gal: {factor: 0.01, label:"Gal"}, g_force: {factor: 9.80665, label:"Fuerza G (g)"} } },
+                        force: { name: "Fuerza", description: "F = m · a", units: { N: {factor: 1, label:"Newton (N)"}, kN: {factor: 1000, label:"Kilonewton (kN)"}, dyn: {factor: 1e-5, label:"Dina (dyn)"}, lbf: {factor: 4.44822, label:"Libra-fuerza (lbf)"}, kgf: {factor: 9.80665, label:"Kilogramo-fuerza (kgf)"}, poundal: {factor: 0.138255, label:"Poundal (pdl)"} } },
+                        pressure: { name: "Presión", description: "P = F/A", units: { Pa: {factor: 1, label:"Pascal (Pa)"}, kPa: {factor: 1000, label:"Kilopascal (kPa)"}, MPa: {factor: 1e6, label:"Megapascal (MPa)"}, bar: {factor: 1e5, label:"Bar"}, mbar: {factor: 100, label:"Milibar (mbar)"}, atm: {factor: 101325, label:"Atmósfera (atm)"}, psi: {factor: 6894.76, label:"PSI"}, torr: {factor: 133.322, label:"Torr"}, mmHg: {factor: 133.322, label:"mmHg"}, inHg: {factor: 3386.39, label:"inHg"} } },
+                        density: { name: "Densidad", description: "ρ = m/V", units: { "kg/m3": {factor: 1, label:"kg/m³"}, "g/cm3": {factor: 1000, label:"g/cm³"}, "kg/L": {factor: 1000, label:"kg/L"}, "g/L": {factor: 1, label:"g/L"}, "lb/ft3": {factor: 16.0185, label:"lb/ft³"}, "oz/gal": {factor: 7.48915, label:"oz/gal (US)"} } },
+                        flow_rate: { name: "Caudal", description: "Q = V/t", units: { "m3/s": {factor: 1, label:"m³/s"}, "L/s": {factor: 0.001, label:"L/s"}, "m3/h": {factor: 1/3600, label:"m³/h"}, "L/h": {factor: 1/3600000, label:"L/h"}, "ft3/s": {factor: 0.0283168, label:"ft³/s"}, "gal/min": {factor: 6.309e-5, label:"gal/min (US)"} } }
+                    }
+                },
+                thermodynamics: {
+                    name: "Energía",
+                    icon: '🔥',
+                    magnitudes: {
+                        energy: { name: "Energía/Trabajo", description: "W = F · d", units: { J: {factor: 1, label:"Joule (J)"}, kJ: {factor: 1000, label:"Kilojoule (kJ)"}, cal: {factor: 4.184, label:"Caloría (cal)"}, kcal: {factor: 4184, label:"Kilocaloría (kcal)"}, kWh: {factor: 3.6e6, label:"Kilowatt-hora (kWh)"}, Wh: {factor: 3600, label:"Watt-hora (Wh)"}, BTU: {factor: 1055.06, label:"BTU"}, eV: {factor: 1.602e-19, label:"Electronvoltio (eV)"}, erg: {factor: 1e-7, label:"Ergio (erg)"}, ft_lbf: {factor: 1.35582, label:"ft·lbf"}, ton_tnt: {factor: 4.184e9, label:"ton (TNT)"} } },
+                        power: { name: "Potencia", description: "P = W/t", units: { W: {factor: 1, label:"Watt (W)"}, kW: {factor: 1000, label:"Kilowatt (kW)"}, MW: {factor: 1e6, label:"Megawatt (MW)"}, hp_mech: {factor: 745.7, label:"Caballo de fuerza (hp)"}, hp_metric: {factor: 735.499, label:"Caballo de vapor (CV)"}, "BTU/h": {factor: 0.293071, label:"BTU/h"} } },
+                    }
+                },
+                electromagnetism: {
+                    name: "Electricidad",
+                    icon: '⚡',
+                    magnitudes: {
+                        charge: { name: "Carga Eléctrica", description: "Q", units: { C: {factor: 1, label:"Coulomb (C)"}, mC: {factor: 1e-3, label:"mC"}, uC: {factor: 1e-6, label:"µC"}, nC: {factor: 1e-9, label:"nC"}, e: {factor: 1.602e-19, label:"Carga elemental (e)"} } },
+                        current: { name: "Corriente", description: "I = Q/t", units: { A: {factor: 1, label:"Amperio (A)"}, mA: {factor: 1e-3, label:"miliamperio (mA)"}, uA: {factor: 1e-6, label:"microamperio (µA)"} } },
+                        voltage: { name: "Voltaje", description: "V = I · R", units: { V: {factor: 1, label:"Voltio (V)"}, mV: {factor: 1e-3, label:"milivoltio (mV)"}, kV: {factor: 1e3, label:"kilovoltio (kV)"} } },
+                        resistance: { name: "Resistencia", description: "R = V/I", units: { Ohm: {factor: 1, label:"Ohmio (Ω)"}, kOhm: {factor: 1e3, label:"kΩ"}, MOhm: {factor: 1e6, label:"MΩ"} } },
+                        capacitance: { name: "Capacitancia", description: "C = Q/V", units: { F: {factor: 1, label:"Faradio (F)"}, mF: {factor: 1e-3, label:"mF"}, uF: {factor: 1e-6, label:"µF"}, nF: {factor: 1e-9, label:"nF"}, pF: {factor: 1e-12, label:"pF"} } },
+                        inductance: { name: "Inductancia", description: "L", units: { H: {factor: 1, label:"Henrio (H)"}, mH: {factor: 1e-3, label:"mH"}, uH: {factor: 1e-6, label:"µH"} } }
+                    }
+                },
+                other: {
+                    name: "Digital y Otros",
+                    icon: '🌐',
+                    magnitudes: {
+                        angle: { name: "Ángulo Plano", description: "", units: { deg: {factor: Math.PI/180, label:"Grado (°)"}, rad: {factor: 1, label:"Radian (rad)"}, grad: {factor: Math.PI/200, label:"Gradián (grad)"}, turn: {factor: 2*Math.PI, label:"Vuelta"}, arcmin: {factor: Math.PI/10800, label:"Minuto de arco (')"}, arcsec: {factor: Math.PI/648000, label:"Segundo de arco ('')"} } },
+                        data: { name: "Almacenamiento", description: "", units: { bit: {factor: 1/8, label:"Bit"}, byte: {factor: 1, label:"Byte (B)"}, KB: {factor: 1024, label:"Kilobyte (KB)"}, MB: {factor: 1024**2, label:"Megabyte (MB)"}, GB: {factor: 1024**3, label:"Gigabyte (GB)"}, TB: {factor: 1024**4, label:"Terabyte (TB)"}, PB: {factor: 1024**5, label:"Petabyte (PB)"} } },
+                        frequency: { name: "Frecuencia", description: "f = 1/T", units: { Hz: {factor: 1, label:"Hertz (Hz)"}, kHz: {factor: 1e3, label:"kHz"}, MHz: {factor: 1e6, label:"MHz"}, GHz: {factor: 1e9, label:"GHz"}, rpm: {factor: 1/60, label:"RPM"} } },
+                        fuel_consumption: { name: "Consumo", description: "", units: { "km/L": {label:"km/L"}, "L/100km": {label:"L/100km"}, mpg_us: {label:"MPG (US)"}, mpg_uk: {label:"MPG (UK)"} }, isSpecial: true, convert: (v,f,t) => { let kpl; switch(f) { case "km/L": kpl=v; break; case "L/100km": kpl=v===0?0:100/v; break; case "mpg_us": kpl=v*0.425144; break; case "mpg_uk": kpl=v*0.354006; break; } switch(t) { case "km/L": return kpl; case "L/100km": return kpl===0?0:100/kpl; case "mpg_us": return kpl/0.425144; case "mpg_uk": return kpl/0.354006; } } }
+                    }
+                }
+            };
+            
+            const constantsData = [
+                { name: 'Velocidad de la luz en el vacío', symbol: 'c', value: '299792458', unit: 'm/s' },
+                { name: 'Constante de Gravitación Universal', symbol: 'G', value: '6.67430e-11', unit: 'N·m²/kg²' },
+                { name: 'Constante de Planck', symbol: 'h', value: '6.62607015e-34', unit: 'J·s' },
+                { name: 'Constante de Planck reducida', symbol: 'ħ', value: '1.054571817e-34', unit: 'J·s' },
+                { name: 'Carga elemental', symbol: 'e', value: '1.602176634e-19', unit: 'C' },
+                { name: 'Masa del electrón en reposo', symbol: 'mₑ', value: '9.1093837015e-31', unit: 'kg' },
+                { name: 'Masa del protón en reposo', symbol: 'mₚ', value: '1.67262192369e-27', unit: 'kg' },
+                { name: 'Masa del neutrón en reposo', symbol: 'mₙ', value: '1.67492749804e-27', unit: 'kg' },
+                { name: 'Número de Avogadro', symbol: 'Nₐ', value: '6.02214076e23', unit: 'mol⁻¹' },
+                { name: 'Constante de Boltzmann', symbol: 'k', value: '1.380649e-23', unit: 'J/K' },
+                { name: 'Constante de los gases ideales', symbol: 'R', value: '8.314462618', unit: 'J/(mol·K)' },
+                { name: 'Constante de Faraday', symbol: 'F', value: '96485.33212', unit: 'C/mol' },
+                { name: 'Permitividad del vacío', symbol: 'ε₀', value: '8.8541878128e-12', unit: 'F/m' },
+                { name: 'Permeabilidad del vacío', symbol: 'μ₀', value: '1.25663706212e-6', unit: 'H/m' },
+                { name: 'Constante de Stefan-Boltzmann', symbol: 'σ', value: '5.670374419e-8', unit: 'W/(m²·K⁴)' },
+                { name: 'Aceleración de la gravedad estándar', symbol: 'g', value: '9.80665', unit: 'm/s²' },
+            ];
+
+            let state = {
+                activeView: 'converter',
+                category: 'basics',
+                magnitude: 'length',
+                from: 'm',
+                to: 'km'
+            };
+
+            const el = {
+                themeToggle: document.querySelector('#themeToggle'),
+                themeToggleDot: document.getElementById('themeToggleDot'),
+                mainTabs: document.getElementById('mainTabs'),
+                converterView: document.getElementById('converter-view'),
+                constantsView: document.getElementById('constants-view'),
+                subTabsContainer: document.getElementById('subTabsContainer'),
+                magnitudeDescription: document.getElementById('magnitudeDescription'),
+                inputValue: document.getElementById('inputValue'),
+                fromUnitContainer: document.getElementById('fromUnitContainer'),
+                toUnitContainer: document.getElementById('toUnitContainer'),
+                resultText: document.getElementById('resultText'),
+                resultUnit: document.getElementById('resultUnit'),
+                swapBtn: document.getElementById('swapBtn'),
+                copyBtn: document.getElementById('copyBtn'),
+                copyFeedback: document.getElementById('copyFeedback'),
+            };
+            
+            const convert = () => {
+                const val = parseFloat(el.inputValue.value) || 0;
+                const { category, magnitude, from, to } = state;
+                const magData = unitData[category].magnitudes[magnitude];
+
+                let result;
+                if (magData.isSpecial) {
+                    result = magData.convert(val, from, to);
+                } else {
+                    const fromFactor = magData.units[from].factor;
+                    const toFactor = magData.units[to].factor;
+                    result = (val * fromFactor) / toFactor;
+                }
+
+                el.resultText.textContent = formatResult(result);
+                el.resultUnit.textContent = magData.units[to].label;
+            };
+            
+            const createCustomSelect = (id, label, magnitudeData, selectedValue) => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'custom-select-wrapper w-full';
+                const selectedLabel = magnitudeData.units[selectedValue].label;
+                // **CAMBIO**: Se reemplazó `bg-transparent` con `input-contrast-bg` en el div del selector.
+                wrapper.innerHTML = `
+                    <label class="block text-base font-medium mb-2 primary-text">${label}</label>
+                    <div class="relative">
+                        <div class="w-full p-4 rounded-xl cursor-pointer flex justify-between items-center border border-[var(--border-light)] input-contrast-bg" data-trigger>
+                            <span class="primary-text text-lg">${selectedLabel}</span>
+                            <svg class="h-5 w-5 secondary-text" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+                        </div>
+                        <div class="custom-options absolute top-full left-0 right-0 mt-1 rounded-lg shadow-lg hidden custom-scrollbar">
+                            <input type="text" placeholder="Buscar unidad..." class="sticky top-0 w-full p-3 border-b border-[var(--border-light)] bg-inherit focus:outline-none primary-text" data-search>
+                            <div data-list></div>
+                        </div>
+                    </div>`;
+
+                const listContainer = wrapper.querySelector('[data-list]');
+                const triggerTextSpan = wrapper.querySelector('[data-trigger] span');
+                
+                const renderOptions = (filter = '') => {
+                    listContainer.innerHTML = '';
+                    Object.entries(magnitudeData.units)
+                        .filter(([key, unit]) => key.toLowerCase().includes(filter.toLowerCase()) || unit.label.toLowerCase().includes(filter.toLowerCase()))
+                        .forEach(([key, unit]) => {
+                            const optionEl = document.createElement('div');
+                            optionEl.className = `custom-option p-3 cursor-pointer primary-text`;
+                            if (key === selectedValue) optionEl.classList.add('selected');
+                            optionEl.dataset.value = key;
+                            optionEl.textContent = unit.label;
+                            listContainer.appendChild(optionEl);
+                        });
+                };
+                
+                renderOptions();
+                
+                const optionsContainer = wrapper.querySelector('.custom-options');
+                wrapper.querySelector('[data-trigger]').addEventListener('click', () => optionsContainer.classList.toggle('hidden'));
+                wrapper.querySelector('[data-search]').addEventListener('input', (e) => renderOptions(e.target.value));
+                
+                listContainer.addEventListener('click', (e) => {
+                    const option = e.target.closest('.custom-option');
+                    if (option) {
+                        selectedValue = option.dataset.value;
+                        triggerTextSpan.textContent = magnitudeData.units[selectedValue].label;
+                        optionsContainer.classList.add('hidden');
+                        if (id === 'fromUnit') state.from = selectedValue; else state.to = selectedValue;
+                        convert();
+                    }
+                });
+                
+                document.addEventListener('click', (e) => { if (!wrapper.contains(e.target)) optionsContainer.classList.add('hidden'); });
+                
+                return wrapper;
+            };
+
+            const updateConverterUI = () => {
+                const magData = unitData[state.category].magnitudes[state.magnitude];
+                el.magnitudeDescription.textContent = magData.description || magData.name;
+
+                el.fromUnitContainer.innerHTML = '';
+                el.fromUnitContainer.appendChild(createCustomSelect('fromUnit', 'Desde', magData, state.from));
+                el.toUnitContainer.innerHTML = '';
+                el.toUnitContainer.appendChild(createCustomSelect('toUnit', 'Hacia', magData, state.to));
+                
+                convert();
+            };
+
+            const renderConstants = () => {
+                el.constantsView.innerHTML = '';
+                const list = document.createElement('div');
+                list.className = 'space-y-3';
+                constantsData.forEach(c => {
+                    const item = document.createElement('div');
+                    item.className = 'p-4 rounded-xl hover:bg-slate-500/10 flex justify-between items-center transition-colors duration-200';
+                    item.innerHTML = `
+                        <div>
+                            <p class="font-semibold primary-text">${c.name} (${c.symbol})</p>
+                            <p class="text-lg font-mono text-[var(--primary)]">${c.value} <span class="text-sm secondary-text">${c.unit}</span></p>
+                        </div>
+                        <button class="copy-constant-btn p-2 rounded-lg hover:bg-slate-500/20 transition-colors" data-value="${c.value}" title="Copiar valor">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 secondary-text" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                        </button>
+                    `;
+                    list.appendChild(item);
+                });
+                el.constantsView.appendChild(list);
+            };
+
+            const renderMainUI = () => {
+                if(state.activeView === 'converter') {
+                    el.converterView.classList.remove('hidden');
+                    el.constantsView.classList.add('hidden');
+                    renderConverterTabs();
+                    updateConverterUI();
+                } else {
+                    el.converterView.classList.add('hidden');
+                    el.constantsView.classList.remove('hidden');
+                    renderConstants();
+                }
+            }
+
+            const renderMainTabs = () => {
+                el.mainTabs.innerHTML = '';
+                const converterTab = document.createElement('button');
+                converterTab.className = `px-5 py-2.5 rounded-xl text-base font-semibold transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.activeView === 'converter' ? 'tab-active' : ''}`;
+                converterTab.innerHTML = `<span class="mr-2">🔢</span> Conversor`;
+                converterTab.dataset.view = 'converter';
+                el.mainTabs.appendChild(converterTab);
+                
+                const constantsTab = document.createElement('button');
+                constantsTab.className = `px-5 py-2.5 rounded-xl text-base font-semibold transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.activeView === 'constants' ? 'tab-active' : ''}`;
+                constantsTab.innerHTML = `<span class="mr-2">🌌</span> Constantes`;
+                constantsTab.dataset.view = 'constants';
+                el.mainTabs.appendChild(constantsTab);
+            };
+
+            const renderConverterTabs = () => {
+                el.subTabsContainer.innerHTML = '';
+                Object.keys(unitData).forEach(catKey => {
+                    const category = unitData[catKey];
+                    const tab = document.createElement('button');
+                    tab.className = `px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 hover:bg-slate-500/10 secondary-text ${state.category === catKey ? 'tab-active' : ''}`;
+                    tab.innerHTML = `<span class="hidden sm:inline-block mr-2">${category.icon}</span> ${category.name}`;
+                    tab.dataset.category = catKey;
+                    el.subTabsContainer.appendChild(tab);
+                });
+
+                const subTabsContainer = document.createElement('div');
+                subTabsContainer.id = "magnitude-sub-tabs";
+                subTabsContainer.className = "w-full flex flex-wrap items-center gap-2 mt-4 pt-4 border-t border-dashed border-[var(--border-light)]";
+                
+                const oldSubTabs = document.getElementById('magnitude-sub-tabs');
+                if(oldSubTabs) oldSubTabs.remove();
+                
+                const magnitudes = unitData[state.category].magnitudes;
+                Object.keys(magnitudes).forEach(magKey => {
+                    const subTab = document.createElement('button');
+                    subTab.className = `px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${state.magnitude === magKey ? 'bg-violet-100 dark:bg-violet-800/40 text-[var(--primary)] font-semibold' : 'hover:bg-slate-500/10 secondary-text'}`;
+                    subTab.textContent = magnitudes[magKey].name;
+                    subTab.dataset.magnitude = magKey;
+                    subTabsContainer.appendChild(subTab);
+                });
+                el.subTabsContainer.appendChild(subTabsContainer);
+            };
+            
+            const setupEventListeners = () => {
+                el.inputValue.addEventListener('input', convert);
+                el.swapBtn.addEventListener('click', () => { [state.from, state.to] = [state.to, state.from]; updateConverterUI(); });
+                el.copyBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(el.resultText.textContent);
+                    el.copyFeedback.style.opacity = '1';
+                    setTimeout(() => { el.copyFeedback.style.opacity = '0' }, 2000);
+                });
+                
+                document.getElementById('clearInput').addEventListener('click', () => { el.inputValue.value = '1'; convert(); });
+                document.getElementById('incrementInput').addEventListener('click', () => { el.inputValue.value = parseFloat(el.inputValue.value || 0) + 1; convert(); });
+                document.getElementById('decrementInput').addEventListener('click', () => { el.inputValue.value = parseFloat(el.inputValue.value || 0) - 1; convert(); });
+
+                el.mainTabs.addEventListener('click', (e) => {
+                    const button = e.target.closest('button');
+                    if(button && button.dataset.view) {
+                        state.activeView = button.dataset.view;
+                        renderMainTabs();
+                        renderMainUI();
+                    }
+                });
+
+                el.subTabsContainer.addEventListener('click', (e) => {
+                    const button = e.target.closest('button');
+                    if (button && button.dataset.category) {
+                        state.category = button.dataset.category;
+                        state.magnitude = Object.keys(unitData[state.category].magnitudes)[0];
+                        const mag = unitData[state.category].magnitudes[state.magnitude];
+                        state.from = Object.keys(mag.units)[0];
+                        state.to = Object.keys(mag.units)[1] || Object.keys(mag.units)[0];
+                        renderConverterTabs(); updateConverterUI();
+                    } else if (button && button.dataset.magnitude) {
+                        state.magnitude = button.dataset.magnitude;
+                        const mag = unitData[state.category].magnitudes[state.magnitude];
+                        state.from = Object.keys(mag.units)[0];
+                        state.to = Object.keys(mag.units)[1] || Object.keys(mag.units)[0];
+                        renderConverterTabs();
+                        updateConverterUI();
+                    }
+                });
+
+                el.constantsView.addEventListener('click', (e) => {
+                    const button = e.target.closest('.copy-constant-btn');
+                    if (button) {
+                        navigator.clipboard.writeText(button.dataset.value);
+                        const originalIcon = button.innerHTML;
+                        button.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>`;
+                        setTimeout(() => { button.innerHTML = originalIcon; }, 2000);
+                    }
+                });
+                
+                const applyTheme = (isDark) => {
+                    if (isDark) {
+                        document.documentElement.classList.add('dark');
+                        el.themeToggleDot.classList.add('translate-x-5');
+                    } else {
+                        document.documentElement.classList.remove('dark');
+                        el.themeToggleDot.classList.remove('translate-x-5');
+                    }
+                }
+
+                const currentTheme = localStorage.getItem('theme_v7_pro');
+                const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                applyTheme(currentTheme === 'dark' || (currentTheme === null && prefersDark));
+
+                el.themeToggle.addEventListener('click', () => {
+                    const isDark = document.documentElement.classList.toggle('dark');
+                    applyTheme(isDark);
+                    localStorage.setItem('theme_v7_pro', isDark ? 'dark' : 'light');
+                });
+            };
+            
+            const formatResult = (value) => {
+                if (isNaN(value)) return "Error";
+                if (Math.abs(value) > 1e12 || (Math.abs(value) < 1e-6 && value !== 0)) return value.toExponential(4);
+                return value.toLocaleString(undefined, { maximumFractionDigits: 6 });
+            };
+
+            renderMainTabs();
+            renderMainUI();
+            setupEventListeners();
+        };
+
+        initializeApp();
+    });
+</script>
+</body>
+</html>
