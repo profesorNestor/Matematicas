@@ -284,9 +284,9 @@
         .decomposition-table {
             background: rgba(0, 0, 0, 0.6);
             border-radius: 15px;
-            padding: 25px;
+            padding: 15px;
             margin-bottom: 20px;
-            overflow-x: auto; /* Para tablas muy anchas en pantallas pequeñas */
+            overflow-x: auto; /* Permite el scroll horizontal si el contenido es muy ancho */
             border: 1px solid rgba(0, 245, 255, 0.3);
         }
 
@@ -296,38 +296,34 @@
             margin-bottom: 15px;
             padding: 10px;
             border: 1px solid rgba(0, 245, 255, 0.3);
+            text-align: center;
         }
         
-        /* --- ESTILOS NUEVOS Y CORREGIDOS PARA LA TABLA --- */
+        /* --- ESTILOS DEFINITIVOS PARA LA TABLA --- */
         .table-body {
-            display: flex;
-            justify-content: flex-start; /* Alinea los elementos al inicio */
+            display: inline-flex; /* Hace que el contenedor se ajuste al ancho de su contenido */
+            align-items: stretch; /* Asegura que todos los elementos hijos tengan la misma altura */
             gap: 15px;
             font-family: 'Courier New', monospace;
         }
         
-        .numbers-section {
+        .numbers-section, .divisors-section {
             display: flex;
             flex-direction: column;
-            flex-shrink: 0; /* Evita que la columna de números se encoja */
+            flex-shrink: 0; 
         }
         
         .number-row {
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap; /* Impide que los números de una fila se partan en varias líneas */
             gap: 15px;
             min-height: 48px;
             align-items: center;
-            padding: 4px 0;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
             border-bottom: 1px solid rgba(0, 245, 255, 0.1);
-            transition: background-color 0.3s ease;
         }
-
-        .number-row:hover {
-             background: rgba(0, 245, 255, 0.05);
-             border-radius: 8px;
-        }
-
+        
         .number-row:last-child {
             border-bottom: none;
         }
@@ -345,16 +341,10 @@
         
         .vertical-line {
             width: 4px;
-            flex-shrink: 0; /* Evita que la línea se encoja */
+            flex-shrink: 0;
             background: linear-gradient(to bottom, #00f5ff, #0080ff);
             border-radius: 2px;
             box-shadow: 0 0 15px rgba(0, 245, 255, 0.6);
-        }
-        
-        .divisors-section {
-            display: flex;
-            flex-direction: column;
-            flex-shrink: 0; /* Evita que la columna de divisores se encoja */
         }
         
         .divisor-item {
@@ -362,7 +352,8 @@
             align-items: center;
             justify-content: center;
             min-height: 48px;
-            padding: 4px 0;
+            padding-bottom: 4px;
+            margin-bottom: 4px;
             border-bottom: 1px solid rgba(0, 245, 255, 0.1);
         }
 
@@ -383,7 +374,7 @@
             border-radius: 8px;
             border: 1px solid rgba(0, 245, 255, 0.3);
         }
-        /* --- FIN DE ESTILOS NUEVOS Y CORREGIDOS --- */
+        /* --- FIN DE ESTILOS DEFINITIVOS --- */
 
         .explanation {
             background: rgba(128, 0, 255, 0.1);
@@ -870,7 +861,7 @@
                     <h3 class="procedure-title">📊 Lista de Divisores</h3>
                     <div class="decomposition-table">
                         <div class="table-header">
-                            <div style="color: #00f5ff; font-weight: 600; text-align: center; font-size: 1.2rem;">
+                            <div>
                                 Todos los divisores de ${number}
                             </div>
                         </div>
@@ -928,30 +919,22 @@
             document.getElementById('results').style.display = 'block';
         }
 
-        /**
-         * FUNCIÓN CORREGIDA para generar la tabla de descomposición.
-         * Usa un layout de Flexbox que mantiene la línea vertical junto a los números.
-         */
         function generateTable(title, steps, initialNumbers) {
             const tableDiv = document.getElementById('decompositionTable');
 
-            const headerHtml = `<div class="table-header"><div style="color: #00f5ff; font-weight: 600; text-align: center; font-size: 1.2rem;">${title}</div></div>`;
+            const headerHtml = `<div class="table-header"><div>${title}</div></div>`;
             
             let numbersHtml = '';
             let divisorsHtml = '';
 
-            // Fila de números iniciales
             numbersHtml += `<div class="number-row">${initialNumbers.map(num => `<div class="number">${num}</div>`).join('')}</div>`;
-            // Divisor placeholder para la primera fila
             divisorsHtml += `<div class="divisor-item"><div class="divisor" style="background: transparent; border: none; color: #8892b0;">-</div></div>`;
 
-            // Filas para cada paso de la descomposición
             steps.forEach(step => {
                 numbersHtml += `<div class="number-row">${step.newNumbers.map(num => `<div class="number">${num}</div>`).join('')}</div>`;
                 divisorsHtml += `<div class="divisor-item"><div class="divisor">${step.divisor}</div></div>`;
             });
 
-            // Ensambla la tabla final con las columnas separadas
             const tableBodyHtml = `
                 <div class="table-body">
                     <div class="numbers-section">${numbersHtml}</div>
