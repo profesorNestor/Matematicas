@@ -286,7 +286,7 @@
             border-radius: 15px;
             padding: 25px;
             margin-bottom: 20px;
-            overflow: hidden;
+            overflow-x: auto; /* Para tablas muy anchas en pantallas pequeñas */
             border: 1px solid rgba(0, 245, 255, 0.3);
         }
 
@@ -297,54 +297,41 @@
             padding: 10px;
             border: 1px solid rgba(0, 245, 255, 0.3);
         }
-
-        .table-container {
+        
+        /* --- ESTILOS NUEVOS Y CORREGIDOS PARA LA TABLA --- */
+        .table-body {
+            display: flex;
+            justify-content: flex-start; /* Alinea los elementos al inicio */
+            gap: 15px;
+            font-family: 'Courier New', monospace;
+        }
+        
+        .numbers-section {
             display: flex;
             flex-direction: column;
-            gap: 0;
-            font-family: 'Courier New', monospace;
-            position: relative;
+            flex-shrink: 0; /* Evita que la columna de números se encoja */
         }
-
-        .vertical-line {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            width: 4px;
-            background: linear-gradient(to bottom, #00f5ff, #0080ff);
-            border-radius: 2px;
-            box-shadow: 0 0 15px rgba(0, 245, 255, 0.6);
-            z-index: 1;
-        }
-
-        .table-row {
+        
+        .number-row {
             display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            min-height: 48px;
             align-items: center;
-            padding: 8px 0;
+            padding: 4px 0;
             border-bottom: 1px solid rgba(0, 245, 255, 0.1);
-            transition: all 0.3s ease;
-            min-height: 45px;
-            position: relative;
+            transition: background-color 0.3s ease;
         }
 
-        .table-row:hover {
-            background: rgba(0, 245, 255, 0.05);
-            border-radius: 8px;
+        .number-row:hover {
+             background: rgba(0, 245, 255, 0.05);
+             border-radius: 8px;
         }
 
-        .table-row:last-child {
+        .number-row:last-child {
             border-bottom: none;
         }
-
-        .numbers {
-            display: flex;
-            gap: 20px;
-            font-size: 1.4rem;
-            font-weight: 600;
-            margin-right: 15px;
-            flex: 1;
-        }
-
+        
         .number {
             min-width: 60px;
             text-align: center;
@@ -352,21 +339,51 @@
             padding: 5px;
             border-radius: 5px;
             background: rgba(255, 255, 255, 0.05);
+            font-size: 1.4rem;
+            font-weight: 600;
+        }
+        
+        .vertical-line {
+            width: 4px;
+            flex-shrink: 0; /* Evita que la línea se encoja */
+            background: linear-gradient(to bottom, #00f5ff, #0080ff);
+            border-radius: 2px;
+            box-shadow: 0 0 15px rgba(0, 245, 255, 0.6);
+        }
+        
+        .divisors-section {
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0; /* Evita que la columna de divisores se encoja */
+        }
+        
+        .divisor-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 48px;
+            padding: 4px 0;
+            border-bottom: 1px solid rgba(0, 245, 255, 0.1);
         }
 
+        .divisor-item:last-child {
+            border-bottom: none;
+        }
+        
         .divisor {
             font-size: 1.4rem;
             font-weight: bold;
             color: #00f5ff;
-            min-width: 40px;
-            text-align: center;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             background: rgba(0, 245, 255, 0.1);
             border-radius: 8px;
-            padding: 8px;
             border: 1px solid rgba(0, 245, 255, 0.3);
-            position: absolute;
-            z-index: 2;
         }
+        /* --- FIN DE ESTILOS NUEVOS Y CORREGIDOS --- */
 
         .explanation {
             background: rgba(128, 0, 255, 0.1);
@@ -426,20 +443,17 @@
             .title { font-size: 2rem; }
             .buttons { flex-direction: column; }
             .btn { width: 100%; }
-            .numbers { 
-                flex-wrap: wrap; 
-                gap: 10px;
-                margin-right: 15px;
-                width: calc(100% - 80px); /* Adjust width to prevent overflow */
-            }
+
+            .number-row { gap: 10px; }
             .number {
                 min-width: 45px;
                 font-size: 1.2rem;
             }
+            .table-body { gap: 10px; }
             .divisor {
                 font-size: 1.2rem;
-                min-width: 35px;
-                padding: 6px;
+                width: 35px;
+                height: 35px;
             }
         }
     </style>
@@ -914,43 +928,39 @@
             document.getElementById('results').style.display = 'block';
         }
 
+        /**
+         * FUNCIÓN CORREGIDA para generar la tabla de descomposición.
+         * Usa un layout de Flexbox que mantiene la línea vertical junto a los números.
+         */
         function generateTable(title, steps, initialNumbers) {
             const tableDiv = document.getElementById('decompositionTable');
-            
-            let headerHtml = `<div class="table-header"><div style="color: #00f5ff; font-weight: 600; text-align: center; font-size: 1.2rem;">${title}</div></div>`;
-            
-            const allNumberStrings = [initialNumbers.join(' '), ...steps.map(s => s.newNumbers.join(' '))];
-            const maxLength = Math.max(...allNumberStrings.map(s => s.length));
-            
-            // Adjusted calculation for more space ("holgura")
-            const linePosition = (window.innerWidth <= 768) ? (window.innerWidth - 110) : 110 + maxLength * 17;
 
-            let rowsHtml = '';
-            rowsHtml += '<div class="table-row">';
-            rowsHtml += '<div class="numbers">';
-            initialNumbers.forEach(num => { rowsHtml += `<div class="number">${num}</div>`; });
-            rowsHtml += '</div>';
-            // Adjusted divisor position for more space
-            rowsHtml += `<div class="divisor" style="left: ${linePosition + 25}px;">-</div>`;
-            rowsHtml += '</div>';
+            const headerHtml = `<div class="table-header"><div style="color: #00f5ff; font-weight: 600; text-align: center; font-size: 1.2rem;">${title}</div></div>`;
             
-            steps.forEach((step) => {
-                rowsHtml += '<div class="table-row">';
-                rowsHtml += '<div class="numbers">';
-                step.newNumbers.forEach(num => { rowsHtml += `<div class="number">${num}</div>`; });
-                rowsHtml += '</div>';
-                // Adjusted divisor position for more space
-                rowsHtml += `<div class="divisor" style="left: ${linePosition + 25}px;">${step.divisor}</div>`;
-                rowsHtml += '</div>';
+            let numbersHtml = '';
+            let divisorsHtml = '';
+
+            // Fila de números iniciales
+            numbersHtml += `<div class="number-row">${initialNumbers.map(num => `<div class="number">${num}</div>`).join('')}</div>`;
+            // Divisor placeholder para la primera fila
+            divisorsHtml += `<div class="divisor-item"><div class="divisor" style="background: transparent; border: none; color: #8892b0;">-</div></div>`;
+
+            // Filas para cada paso de la descomposición
+            steps.forEach(step => {
+                numbersHtml += `<div class="number-row">${step.newNumbers.map(num => `<div class="number">${num}</div>`).join('')}</div>`;
+                divisorsHtml += `<div class="divisor-item"><div class="divisor">${step.divisor}</div></div>`;
             });
-            
-            tableDiv.innerHTML = `
-                ${headerHtml}
-                <div class="table-container">
-                    <div class="vertical-line" style="left: ${linePosition}px;"></div>
-                    ${rowsHtml}
+
+            // Ensambla la tabla final con las columnas separadas
+            const tableBodyHtml = `
+                <div class="table-body">
+                    <div class="numbers-section">${numbersHtml}</div>
+                    <div class="vertical-line"></div>
+                    <div class="divisors-section">${divisorsHtml}</div>
                 </div>
             `;
+
+            tableDiv.innerHTML = headerHtml + tableBodyHtml;
         }
         
         function generateMCDTable(numbers) {
