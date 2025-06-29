@@ -5,12 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Calculadora Modular Web</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Carga local de FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
     <div class="app-container">
-        <!-- Menú Lateral (Sidebar) -->
         <aside id="sidebar" class="sidebar">
             <header class="sidebar-header">
                 <i class="fas fa-calculator fa-2x text-sky-400"></i>
@@ -19,24 +17,23 @@
             <nav class="sidebar-nav">
                 <a href="#" class="sidebar-link" data-module="inicio"><i class="fas fa-home fa-fw"></i><span>Inicio</span></a>
                 <a href="#" class="sidebar-link" data-module="algebra"><i class="fas fa-square-root-alt fa-fw"></i><span>Álgebra</span></a>
-                <!-- NUEVO: Módulo MCD y MCM -->
+                <a href="#" class="sidebar-link" data-module="complejos"><i class="fas fa-atom fa-fw"></i><span>Números Complejos</span></a>
                 <a href="#" class="sidebar-link" data-module="calculadora_mcd_mcm"><i class="fas fa-divide fa-fw"></i><span>MCD y MCM</span></a>
+                <a href="#" class="sidebar-link" data-module="ConversionUnidades"><i class="fas fa-exchange-alt fa-fw"></i><span>Conversión de Unidades</span></a>
+                <a href="#" class="sidebar-link" data-module="ConversionAngular"><i class="fas fa-exchange-alt fa-fw"></i><span>Conversión de ángulos</span></a>
                 <a href="#" class="sidebar-link" data-module="matrices"><i class="fas fa-th fa-fw"></i><span>Matrices</span></a>
-                <!-- NUEVO: Módulo de Sistemas de Ecuaciones -->
                 <a href="#" class="sidebar-link" data-module="sistemas"><i class="fas fa-equals fa-fw"></i><span>Sistemas Ecuaciones</span></a>
                 <a href="#" class="sidebar-link" data-module="logica_conjuntos"><i class="fas fa-project-diagram fa-fw"></i><span>Lógica y Conjuntos</span></a>
                 <a href="#" class="sidebar-link" data-module="combinatoria"><i class="fas fa-dice fa-fw"></i><span>Combinatoria</span></a>
                 <a href="#" class="sidebar-link" data-module="progresiones"><i class="fas fa-arrow-trend-up fa-fw"></i><span>Progresiones</span></a>
-                 <!-- NUEVO: Módulo de Polígonos -->
                 <a href="#" class="sidebar-link" data-module="poligonos"><i class="fas fa-draw-polygon fa-fw"></i><span>Polígonos</span></a>
-                <!-- NUEVO: Módulo de Poliedros -->
                 <a href="#" class="sidebar-link" data-module="poliedros"><i class="fas fa-cube fa-fw"></i><span>Poliedros</span></a>
                 <a href="#" class="sidebar-link" data-module="triangulos"><i class="fas fa-triangle-exclamation fa-fw"></i><span>Triángulos</span></a>
                 <a href="#" class="sidebar-link" data-module="estadistica"><i class="fas fa-chart-bar fa-fw"></i><span>Estadística</span></a>
                 <a href="#" class="sidebar-link" data-module="probabilidad"><i class="fas fa-percent fa-fw"></i><span>Probabilidad</span></a>
                 <a href="#" class="sidebar-link" data-module="calculo"><i class="fas fa-infinity fa-fw"></i><span>Cálculo</span></a>
+                <a href="#" class="sidebar-link" data-module="edos"><i class="fas fa-wave-square fa-fw"></i><span>Ecuaciones Diferenciales</span></a>
                 <a href="#" class="sidebar-link" data-module="graficas"><i class="fas fa-chart-line fa-fw"></i><span>Gráficas</span></a>
-                 <!-- NUEVO: Módulo de Fórmulas -->
                 <a href="#" class="sidebar-link" data-module="formulas"><i class="fas fa-scroll fa-fw"></i><span>Fórmulas</span></a>
             </nav>
             <footer class="sidebar-footer">
@@ -47,7 +44,6 @@
             </footer>
         </aside>
 
-        <!-- Contenido Principal -->
         <div class="main-content-wrapper">
              <header class="main-header">
                 <button id="mobile-menu-button" class="mobile-menu-btn">
@@ -60,7 +56,6 @@
             </main>
         </div>
     </div>
-    <!-- Overlay para menú móvil -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
     <script src="script.js"></script>
