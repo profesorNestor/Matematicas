@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universo Platónico - Edición Definitiva</title>
+    <title>Universo Platónico - Edición Final</title>
     <!-- Iconos de Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Biblioteca Three.js para 3D -->
@@ -59,7 +59,7 @@
         }
         .logo {
             font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 900;
-            background: linear-gradient(45deg, var(--accent-1), var(--accent-3));
+            background: linear-gradient(45deg, var(--accent-1), var(--accent-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-shadow: 0 0 40px rgba(255, 214, 10, 0.6); animation: glow 2s ease-in-out infinite alternate;
         }
@@ -78,47 +78,107 @@
         .control-panel {
             left: 2rem; top: 50%; transform: translateY(-50%);
             width: 330px; max-height: 90vh; overflow-y: auto; overflow-x: hidden;
+            padding-top: 3.5rem; /* Espacio para el botón de colapsar */
         }
-        .panel.is-hidden { opacity: 0; pointer-events: none; transform: translateX(120%) translateY(-50%); }
-        .control-panel.is-hidden { transform: translateX(-120%) translateY(-50%); }
-        
-        /* --- Panel Colapsable (Desktop) --- */
-        .panel-expander {
-            position: absolute; top: 50%; right: -16px; transform: translateY(-50%); width: 32px; height: 70px; background: var(--glass-bg);
-            border: 1px solid var(--glass-border); border-left: none; border-radius: 0 16px 16px 0; color: var(--text-primary); cursor: pointer;
-            display: flex; align-items: center; justify-content: center; backdrop-filter: blur(20px); transition: all 0.3s ease;
-        }
-        .panel-expander:hover { background: rgba(255, 214, 10, 0.1); color: var(--accent-1); }
-        .control-panel.is-collapsed { width: 90px; }
-        .control-panel.is-collapsed .panel-content > *:not(.solid-selector) { display: none; }
-        .control-panel.is-collapsed .solid-selector { grid-template-columns: repeat(2, 1fr); padding: 0.5rem; gap: 0.5rem; }
-        .control-panel.is-collapsed .solid-name { display: none; }
 
-        /* Botón de toggle para panel de info (Desktop) */
+        /* Lógica para ocultar/colapsar paneles */
+        .panel.is-hidden { 
+            opacity: 0; 
+            pointer-events: none; 
+            transform: translateX(120%) translateY(-50%);
+        }
+        .control-panel.is-hidden { /* Clase para compatibilidad, aunque no se usa para ocultar completamente */
+            transform: translateX(-120%) translateY(-50%);
+        }
+
+        /* --- Botón para Colapsar Panel de Control --- */
+        #panel-expander {
+            display: none; /* Oculto en móvil por defecto */
+            position: absolute;
+            top: 1rem;
+            left: 1rem;
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            color: var(--text-primary);
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            z-index: 102;
+            transition: all 0.3s ease;
+        }
+        #panel-expander:hover {
+            background-color: var(--accent-1);
+            color: var(--bg-primary);
+            transform: scale(1.1);
+        }
+
+        /* Estilos del Panel de Control Colapsado */
+        .control-panel.is-collapsed {
+            width: 90px;
+            padding-top: 1.5rem;
+        }
+        .control-panel.is-collapsed .panel-title,
+        .control-panel.is-collapsed .panel-content > *:not(.solid-selector),
+        .control-panel.is-collapsed .solid-name {
+            display: none;
+        }
+        .control-panel.is-collapsed .solid-selector {
+            grid-template-columns: 1fr;
+            gap: 1rem;
+            margin-bottom: 0;
+        }
+        .control-panel.is-collapsed #panel-expander {
+            top: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* --- Botón para Ocultar/Mostrar Panel de Información (Desktop) --- */
         #info-panel-toggle {
             position: absolute; right: 2rem; top: 10rem; width: 50px; height: 50px;
             border-radius: 50%; background: var(--glass-bg); backdrop-filter: blur(10px);
             border: 1px solid var(--glass-border); color: var(--accent-1); cursor: pointer;
             display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 101; font-size: 1.5rem;
         }
-        #info-panel-toggle:hover { background: rgba(255, 214, 10, 0.1); transform: scale(1.1) rotate(90deg); }
+        #info-panel-toggle:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.1) rotate(90deg); }
 
         /* --- Estilos para Móvil (Overrides) --- */
+        .mobile-toggle, .panel-close-btn { display: none; }
+
+        @media (min-width: 769px) {
+             /* Hacemos visibles los botones de escritorio solo en pantallas grandes */
+            #panel-expander, #info-panel-toggle {
+                display: flex;
+            }
+        }
+
         @media (max-width: 768px) {
-            .panel-expander, #info-panel-toggle { display: none; }
+            .control-panel {
+                padding-top: 2.5rem; /* Reset padding para móvil */
+            }
             .panel {
                 position: fixed; bottom: 0; left: 0; right: 0; top: auto; width: 100%; max-height: 80vh;
-                border-radius: 24px 24px 0 0; transform: translateY(100%); padding-top: 2.5rem; z-index: 150;
+                border-radius: 24px 24px 0 0; transform: translateY(100%); z-index: 150;
             }
             .panel.is-visible-mobile { transform: translateY(0); }
-            .control-panel.is-collapsed { width: 100%; }
             .mobile-toggle {
+                display: flex;
                 position: fixed; bottom: 1.5rem; z-index: 200; width: 50px; height: 50px; border-radius: 50%;
                 background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
-                color: var(--accent-1); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+                color: var(--accent-1); cursor: pointer; align-items: center; justify-content: center; font-size: 1.5rem;
             }
             #mobile-control-panel-toggle { left: 1.5rem; }
             #mobile-info-panel-toggle { right: 1.5rem; }
+            .panel-close-btn {
+                display: flex;
+                position: absolute; top: 0.75rem; right: 1rem; width: 35px; height: 35px; border-radius: 50%;
+                background: rgba(255, 255, 255, 0.1); border: none; color: var(--text-secondary); cursor: pointer;
+                font-size: 1.2rem; z-index: 160; align-items: center; justify-content: center;
+            }
             .mobile-overlay {
                 position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
                 z-index: 140; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
@@ -126,7 +186,7 @@
             .mobile-overlay.is-active { opacity: 1; pointer-events: auto; }
         }
 
-        /* --- Estilos de Componentes Internos --- */
+        /* --- Estilos de Componentes Internos (Sin cambios) --- */
         h2.panel-title { font-size: 1.3rem; margin-bottom: 1.5rem; text-align: center; }
         h3.section-title { font-size: 1rem; margin-bottom: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
         .solid-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
@@ -166,13 +226,10 @@
         .toggle-switch input { display: none; }
         .toggle-slider { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: all 0.3s; }
         .toggle-switch input:checked ~ .toggle-slider { transform: translateX(20px); background: var(--accent-1); }
-        
-        /* --- Nuevo Control de Zoom --- */
         .zoom-control { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); border-radius: 2rem; padding: 0.25rem; }
         .zoom-btn { background: none; border: none; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; transition: background-color 0.2s; }
         .zoom-btn:hover { background-color: rgba(255,255,255,0.1); }
         #zoom-level-text { font-size: 1rem; font-weight: 600; color: var(--accent-1); }
-
         .action-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
         .action-btn { padding: 0.8rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); cursor: pointer; transition: all 0.3s; font-weight: 600; text-align: center; }
         .action-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-1); transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); }
@@ -198,9 +255,12 @@
         <button id="info-panel-toggle" aria-label="Abrir Panel de Información"><i class="fas fa-info-circle"></i></button>
 
         <aside id="control-panel" class="panel control-panel">
+            <!-- Botón para colapsar/expandir, ahora dentro del panel -->
             <button id="panel-expander" aria-label="Contraer panel"><i class="fas fa-chevron-left"></i></button>
+            <button class="panel-close-btn" aria-label="Cerrar Panel de Controles">✕</button>
+            
+            <h2 class="panel-title">Selector de Sólidos</h2>
             <div class="panel-content">
-                <h2 class="panel-title">Selector de Sólidos</h2>
                 <div class="solid-selector">
                     <button class="solid-btn active" data-solid="tetrahedron"><i class="fas fa-mountain"></i><span class="solid-name">Tetraedro</span></button>
                     <button class="solid-btn" data-solid="cube"><i class="fas fa-cube"></i><span class="solid-name">Cubo</span></button>
@@ -257,6 +317,7 @@
         </aside>
 
         <aside id="info-panel" class="panel info-panel is-hidden">
+            <button class="panel-close-btn" aria-label="Cerrar Panel de Información">✕</button>
             <h3 class="info-title" id="info-title"></h3>
             <div class="info-content" id="info-content"></div>
             <div class="properties">
@@ -352,11 +413,11 @@
         
         function updateUI(type) {
             const data = solidsData[type];
-            document.querySelectorAll('#info-panel #info-title').forEach(el => el.textContent = data.name);
-            document.querySelectorAll('#info-panel #info-content').forEach(el => el.textContent = data.info);
-            document.querySelectorAll('#info-panel #vertices').forEach(el => el.textContent = data.vertices);
-            document.querySelectorAll('#info-panel #edges').forEach(el => el.textContent = data.edges);
-            document.querySelectorAll('#info-panel #faces').forEach(el => el.textContent = data.faces);
+            document.getElementById('info-title').textContent = data.name;
+            document.getElementById('info-content').textContent = data.info;
+            document.getElementById('vertices').textContent = data.vertices;
+            document.getElementById('edges').textContent = data.edges;
+            document.getElementById('faces').textContent = data.faces;
             document.querySelectorAll('.solid-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.solid === type);
             });
@@ -389,7 +450,7 @@
                 };
                 const hidePanel = (panel) => {
                     panel.classList.remove('is-visible-mobile');
-                    if (!document.querySelector('.is-visible-mobile')) {
+                    if (!document.querySelector('.panel.is-visible-mobile')) {
                          mobileOverlay.classList.remove('is-active');
                     }
                 };
@@ -400,31 +461,41 @@
                     hidePanel(controlPanel);
                     hidePanel(infoPanel);
                 });
-            } else { // Desktop
+                
+                controlPanel.querySelector('.panel-close-btn').addEventListener('click', () => hidePanel(controlPanel));
+                infoPanel.querySelector('.panel-close-btn').addEventListener('click', () => hidePanel(infoPanel));
+
+            } else { // --- LÓGICA DE ESCRITORIO ACTUALIZADA ---
                 const expanderBtn = document.getElementById('panel-expander');
                 const infoToggleBtn = document.getElementById('info-panel-toggle');
                 
-                expanderBtn.addEventListener('click', () => {
-                    controlPanel.classList.toggle('is-collapsed');
-                    const icon = expanderBtn.querySelector('i');
-                    icon.className = controlPanel.classList.contains('is-collapsed') ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
-                });
-                infoToggleBtn.addEventListener('click', () => {
-                    infoPanel.classList.toggle('is-hidden');
-                });
+                if(expanderBtn) {
+                    expanderBtn.addEventListener('click', () => {
+                        const isCollapsed = controlPanel.classList.toggle('is-collapsed');
+                        const icon = expanderBtn.querySelector('i');
+                        if(icon) {
+                            icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
+                        }
+                        expanderBtn.setAttribute('aria-label', isCollapsed ? 'Expandir panel' : 'Contraer panel');
+                    });
+                }
+
+                if(infoToggleBtn) {
+                    infoToggleBtn.addEventListener('click', () => {
+                        infoPanel.classList.toggle('is-hidden');
+                    });
+                }
             }
         }
 
         function updateZoomUI() {
             if (!camera) return;
             const percentage = 100 * (MAX_ZOOM - camera.position.z) / (MAX_ZOOM - MIN_ZOOM);
-            const zoomText = document.getElementById('zoom-level-text');
-            if(zoomText) {
-                zoomText.textContent = `${Math.round(percentage)}%`;
-            }
+            document.getElementById('zoom-level-text').textContent = `${Math.round(percentage)}%`;
         }
 
         function setZoom(newZ) {
+            if(!camera) return;
             camera.position.z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, newZ));
             updateZoomUI();
         }
@@ -456,14 +527,14 @@
 
                 const screenshotBtn = target.closest('#screenshot-btn');
                 if (screenshotBtn) {
-                     renderer.render(scene, camera);
-                     renderer.domElement.toBlob((blob) => {
-                        const link = document.createElement('a');
-                        link.href = URL.createObjectURL(blob);
-                        link.download = `universo-platonico.png`;
-                        link.click(); URL.revokeObjectURL(link.href);
-                    });
-                    return;
+                        renderer.render(scene, camera);
+                        renderer.domElement.toBlob((blob) => {
+                            const link = document.createElement('a');
+                            link.href = URL.createObjectURL(blob);
+                            link.download = `universo-platonico.png`;
+                            link.click(); URL.revokeObjectURL(link.href);
+                        });
+                        return;
                 }
                 const fullscreenBtn = target.closest('#fullscreen-btn');
                 if (fullscreenBtn) { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); return; }
@@ -506,9 +577,9 @@
                         startDistance = distance;
                     }
                 } else if (!isMobile) {
-                     if (!isDragging) return;
-                     currentSolid.rotation.y += e.movementX * 0.005;
-                     currentSolid.rotation.x += e.movementY * 0.005;
+                      if (!isDragging) return;
+                      currentSolid.rotation.y += e.movementX * 0.005;
+                      currentSolid.rotation.x += e.movementY * 0.005;
                 }
             };
             const onWheel = (e) => {
