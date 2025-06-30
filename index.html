@@ -31,37 +31,35 @@
             <!-- Menú de Navegación -->
             <!-- 'sidebar-nav' contiene todos los enlaces a los diferentes módulos de la calculadora. -->
             <nav class="sidebar-nav">
-                <!-- CADA ENLACE es un '<a>' con una clase 'sidebar-link'. -->
+                <!-- CADA ENLACE ahora tiene solo UN emoji por tema, sin duplicación -->
                 <!-- 'data-module' es un atributo personalizado que usamos en JavaScript para saber qué página cargar. -->
-                <!-- El ícono '<i>' de Font Awesome y el '<span>' con el texto del enlace. -->
 
-                <a href="#" class="sidebar-link" data-module="inicio"><i class="fas fa-home fa-fw"></i><span>🏠 Inicio</span></a>
-                <a href="#" class="sidebar-link" data-module="algebra"><i class="fas fa-square-root-alt fa-fw"></i><span>📐 Álgebra</span></a>
-                <a href="#" class="sidebar-link" data-module="complejos"><i class="fas fa-atom fa-fw"></i><span>⚛️ Números Complejos</span></a>
-                <a href="#" class="sidebar-link" data-module="calculadora_mcd_mcm"><i class="fas fa-divide fa-fw"></i><span>➗ MCD y MCM</span></a>
-                <a href="#" class="sidebar-link" data-module="ConversionUnidades"><i class="fas fa-exchange-alt fa-fw"></i><span>📏 Conversión de Unidades</span></a>
-                <a href="#" class="sidebar-link" data-module="ConversionAngular"><i class="fas fa-drafting-compass fa-fw"></i><span>🔄 Conversión de Ángulos</span></a>
-                <a href="#" class="sidebar-link" data-module="matrices"><i class="fas fa-th fa-fw"></i><span>🔢 Matrices</span></a>
-                <a href="#" class="sidebar-link" data-module="sistemas"><i class="fas fa-equals fa-fw"></i><span>🟰 Sistemas de Ecuaciones</span></a>
-                <a href="#" class="sidebar-link" data-module="logica_conjuntos"><i class="fas fa-brain fa-fw"></i><span>🧠 Lógica y Conjuntos</span></a>
-                <a href="#" class="sidebar-link" data-module="combinatoria"><i class="fas fa-dice fa-fw"></i><span>🎲 Combinatoria</span></a>
-                <a href="#" class="sidebar-link" data-module="progresiones"><i class="fas fa-arrow-trend-up fa-fw"></i><span>📈 Progresiones</span></a>
-                <a href="#" class="sidebar-link" data-module="poligonos"><i class="fas fa-draw-polygon fa-fw"></i><span>💠 Polígonos</span></a>
-                <a href="#" class="sidebar-link" data-module="poliedros"><i class="fas fa-cube fa-fw"></i><span>🧊 Poliedros</span></a>
-                <a href="#" class="sidebar-link" data-module="triangulos"><i class="fas fa-triangle-exclamation fa-fw"></i><span>🔺 Triángulos</span></a>
-                <a href="#" class="sidebar-link" data-module="estadistica"><i class="fas fa-chart-bar fa-fw"></i><span>📊 Estadística</span></a>
-                <a href="#" class="sidebar-link" data-module="probabilidad"><i class="fas fa-percent fa-fw"></i><span>💯 Probabilidad</span></a>
-                <a href="#" class="sidebar-link" data-module="calculo"><i class="fas fa-infinity fa-fw"></i><span>♾️ Cálculo</span></a>
-                <a href="#" class="sidebar-link" data-module="edos"><i class="fas fa-wave-square fa-fw"></i><span>📉 Ecuaciones Diferenciales</span></a>
+                <a href="#" class="sidebar-link" data-module="inicio"><span>🏠 Inicio</span></a>
+                <a href="#" class="sidebar-link" data-module="algebra"><span>📐 Álgebra</span></a>
+                <a href="#" class="sidebar-link" data-module="complejos"><span>⚛️ Números Complejos</span></a>
+                <a href="#" class="sidebar-link" data-module="calculadora_mcd_mcm"><span>➗ MCD y MCM</span></a>
+                <a href="#" class="sidebar-link" data-module="ConversionUnidades"><span>📏 Conversión de Unidades</span></a>
+                <a href="#" class="sidebar-link" data-module="ConversionAngular"><span>🔄 Conversión de Ángulos</span></a>
+                <a href="#" class="sidebar-link" data-module="matrices"><span>🔢 Matrices</span></a>
+                <a href="#" class="sidebar-link" data-module="sistemas"><span>🟰 Sistemas de Ecuaciones</span></a>
+                <a href="#" class="sidebar-link" data-module="logica_conjuntos"><span>🧠 Lógica y Conjuntos</span></a>
+                <a href="#" class="sidebar-link" data-module="combinatoria"><span>🎲 Combinatoria</span></a>
+                <a href="#" class="sidebar-link" data-module="progresiones"><span>📈 Progresiones</span></a>
+                <a href="#" class="sidebar-link" data-module="poligonos"><span>💠 Polígonos</span></a>
                 
-                <!-- ✅ NUEVOS ENLACES AÑADIDOS -->
-                <!-- Aquí están los dos nuevos enlaces que solicitaste. -->
-                <!-- Les he asignado íconos que creo que van bien con el tema. -->
-                <a href="#" class="sidebar-link" data-module="IntegralesDefinidas"><i class="fas fa-chart-area fa-fw"></i><span>📈 Integrales Definidas</span></a>
-                <a href="#" class="sidebar-link" data-module="RungeKutta"><i class="fas fa-cogs fa-fw"></i><span>⚙️ Runge-Kutta</span></a>
+                <!-- ✨ NUEVO ENLACE PARA GAUSS AÑADIDO -->
+                <a href="#" class="sidebar-link" data-module="gauss"><span>🧮 Fórmula de Gauss</span></a>
                 
-                <a href="#" class="sidebar-link" data-module="graficas"><i class="fas fa-chart-line fa-fw"></i><span>📈 Gráficas</span></a>
-                <a href="#" class="sidebar-link" data-module="formulas"><i class="fas fa-scroll fa-fw"></i><span>📜 Fórmulas</span></a>
+                <a href="#" class="sidebar-link" data-module="poliedros"><span>🧊 Poliedros</span></a>
+                <a href="#" class="sidebar-link" data-module="triangulos"><span>🔺 Triángulos</span></a>
+                <a href="#" class="sidebar-link" data-module="estadistica"><span>📊 Estadística</span></a>
+                <a href="#" class="sidebar-link" data-module="probabilidad"><span>💯 Probabilidad</span></a>
+                <a href="#" class="sidebar-link" data-module="calculo"><span>♾️ Cálculo</span></a>
+                <a href="#" class="sidebar-link" data-module="edos"><span>📉 Ecuaciones Diferenciales</span></a>
+                <a href="#" class="sidebar-link" data-module="IntegralesDefinidas"><span>🔗 Integrales Definidas</span></a>
+                <a href="#" class="sidebar-link" data-module="RungeKutta"><span>⚙️ Runge-Kutta</span></a>
+                <a href="#" class="sidebar-link" data-module="graficas"><span>📈 Gráficas</span></a>
+                <a href="#" class="sidebar-link" data-module="formulas"><span>📜 Fórmulas</span></a>
             </nav>
             
             <!-- Pie de página del Sidebar -->
@@ -93,6 +91,7 @@
                 <!-- '<iframe>' es la clave de la aplicación modular. -->
                 <!-- El atributo 'src' cambiará con JavaScript para cargar la página del módulo correspondiente. -->
                 <!-- Por ejemplo, al hacer clic en 'Álgebra', el src cambiará a 'modules/algebra.html'. -->
+                <!-- Para Gauss, el src cambiará a 'modules/gauss.html'. -->
                 <iframe id="content-frame" src="modules/inicio.html" frameborder="0" class="content-frame"></iframe>
             </main>
         </div>
