@@ -2,525 +2,355 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Inicio - Super Calculadora</title>
-    <link rel="stylesheet" href="../style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Pro (Diseño Restaurado)</title>
+    
+    <!-- 📚 LIBRERÍAS EXTERNAS 📚 -->
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Extra.js"></script>
+
+    <!-- MathJax para renderizar fórmulas matemáticas (LaTeX) -->
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!-- 💅 ESTILOS CSS DEL DISEÑO ORIGINAL 💅 -->
     <style>
-        .hero-container {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
 
-        .animated-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            opacity: 0.1;
-            z-index: -2;
+        :root {
+            --bg-color: #2c3e50;
+            --container-color: #34495e;
+            --screen-bg: #1d2b38;
+            --text-color: #ecf0f1;
+            --accent-color-1: #3498db;
+            --accent-color-2: #9b59b6;
+            --op-key-color: #f39c12;
+            --clear-key-color: #e74c3c;
+            --eq-key-color: #1abc9c;
+            --num-key-bg: #4a637c;
+            --func-key-bg: #5f7b97;
+            --adv-func-key-bg: #3e566d;
+            --shadow-light: rgba(255, 255, 255, 0.1);
+            --shadow-dark: rgba(0, 0, 0, 0.4);
+            --error-color: #e74c3c;
         }
+        
+        /* --- TEMAS DE COLOR --- */
+        body.theme-matrix { --bg-color: #0D0208; --container-color: #1a1a1a; --screen-bg: #000000; --text-color: #00FF41; --accent-color-1: #00FF41; --accent-color-2: #39FF14; --op-key-color: #00b32d; --clear-key-color: #c0392b; --eq-key-color: #008f39; --num-key-bg: #111; --func-key-bg: #222; --adv-func-key-bg: #000; }
+        body.theme-solar { --bg-color: #f4f6f7; --container-color: #ffffff; --screen-bg: #e5e8e8; --text-color: #212f3c; --accent-color-1: #2980b9; --accent-color-2: #8e44ad; --op-key-color: #f39c12; --clear-key-color: #e74c3c; --eq-key-color: #16a085; --num-key-bg: #ecf0f1; --func-key-bg: #d5dbdb; --adv-func-key-bg: #bdc3c7; --shadow-light: rgba(255, 255, 255, 0.8); --shadow-dark: rgba(0, 0, 0, 0.1); }
+        body.theme-ruby { --bg-color: #4A0404; --container-color: #780206; --screen-bg: #330101; --text-color: #f5b7b1; --accent-color-1: #E84A5F; --accent-color-2: #FF847C; --op-key-color: #c0392b; --clear-key-color: #922b21; --eq-key-color: #e74c3c; --num-key-bg: #641e16; --func-key-bg: #943126; --adv-func-key-bg: #512e2e; }
+        body.theme-ocean { --bg-color: #0B2F3A; --container-color: #115E74; --screen-bg: #082129; --text-color: #E0F7FA; --accent-color-1: #4DD0E1; --accent-color-2: #00ACC1; --op-key-color: #00796B; --clear-key-color: #FF6F61; --eq-key-color: #00BCD4; --num-key-bg: #1A7E91; --func-key-bg: #1E8E9F; --adv-func-key-bg: #0F4C5A; }
+        body.theme-dusk { --bg-color: #23153C; --container-color: #44318D; --screen-bg: #190F2C; --text-color: #FDEED9; --accent-color-1: #F47A60; --accent-color-2: #ECB92F; --op-key-color: #F8A055; --clear-key-color: #D95B5B; --eq-key-color: #F47A60; --num-key-bg: #5A45A0; --func-key-bg: #6E55C0; --adv-func-key-bg: #31235E; }
 
-        html.dark .animated-bg {
-            background: linear-gradient(135deg, #1a202c 0%, #2d3748 50%, #4a5568 100%);
-            opacity: 0.3;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Poppins', sans-serif; background-color: var(--bg-color); color: var(--text-color);
+            display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 100vh; padding: 1rem;
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
+        .calculator-body {
+            width: 100%; max-width: 500px; background-color: var(--container-color);
+            border-radius: 20px; padding: 1.5rem;
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.4), -10px -10px 30px var(--shadow-light);
+            border: 2px solid var(--accent-color-1);
+        }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; position: relative; }
+        header h1 {
+            font-size: 1.6rem; font-weight: 600;
+            background: linear-gradient(45deg, var(--accent-color-1), var(--accent-color-2));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .header-controls { display: flex; align-items: center; gap: 1rem; }
+        .angle-selector { display: flex; background-color: var(--screen-bg); border-radius: 8px; overflow: hidden; border: 1px solid var(--adv-func-key-bg); }
+        .angle-btn { background: none; border: none; color: var(--text-color); padding: 0.3rem 0.6rem; cursor: pointer; font-weight: 500; font-size: 0.8rem; transition: background-color 0.3s; }
+        .angle-btn.active { background-color: var(--accent-color-1); }
+        .screen { background-color: var(--screen-bg); border-radius: 10px; padding: 1rem;
+            box-shadow: inset 5px 5px 10px var(--shadow-dark); margin-bottom: 1.5rem; }
+        .input-display { width: 100%; padding: 0.5rem; font-family: 'Poppins', monospace; font-size: 2rem; background: transparent;
+            border: none; color: var(--text-color); text-align: right; outline: none; }
+        .output-section { min-height: 70px; padding-top: 1rem; border-top: 1px solid var(--accent-color-1); }
+        #output { font-size: 1.5rem; text-align: center; overflow-x: auto; word-wrap: break-word; }
+        #error-message { color: var(--error-color); text-align: center; margin-top: 0.5rem; font-weight: 500; display: none; }
+        .keypad-container { display: flex; flex-direction: column; gap: 1rem; }
+        .function-pad, .number-pad { display: grid; gap: 0.75rem; }
+        .function-pad { grid-template-columns: repeat(6, 1fr); }
+        .number-pad { grid-template-columns: repeat(4, 1fr); }
+        .keypad-button {
+            padding: 0.8rem 0; font-size: 1rem; font-weight: 500; color: var(--text-color);
+            border: none; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;
+            box-shadow: 3px 3px 6px var(--shadow-dark), -3px -3px 6px var(--shadow-light);
+            display: flex; justify-content: center; align-items: center; background-color: var(--func-key-bg);
+        }
+        .keypad-button:active { transform: scale(0.95); box-shadow: inset 2px 2px 5px var(--shadow-dark); }
+        .keypad-button sup { font-size: 0.55em; position: relative; top: -0.6em; margin-left: 1px; }
+        .num-key { background-color: var(--num-key-bg); }
+        .op-key { background-color: var(--op-key-color); font-size: 1.2rem; }
+        .clear-key { background-color: var(--clear-key-color); }
+        .equals-key { background: linear-gradient(145deg, var(--accent-color-1), var(--accent-color-2)); font-size: 1.5rem; grid-column: span 2; }
+        .adv-button { background-color: var(--adv-func-key-bg); padding: 0.7rem; font-size: 0.8rem; text-align: center; }
+        .advanced-controls { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--accent-color-1); }
+        #menu-toggle { cursor: pointer; z-index: 1001; width: 30px; height: 25px; display: flex; flex-direction: column; justify-content: space-between; }
+        #menu-toggle .bar { width: 100%; height: 3px; background-color: var(--text-color); border-radius: 3px; transition: all 0.3s ease; }
+        #main-menu { position: absolute; top: 40px; right: 0; background-color: var(--container-color); backdrop-filter: blur(5px);
+            border-radius: 10px; list-style: none; padding: 0.5rem; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none; z-index: 1000; }
+        #main-menu.active { display: block; }
+        #main-menu li { padding: 0.5rem 1rem; }
+        #main-menu a, #main-menu .theme-title { color: var(--text-color); text-decoration: none; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: color 0.2s ease; }
+        .theme-selector { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; padding-top: 0.5rem; }
+        .theme-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--text-color); cursor: pointer; }
 
-        .floating-shapes {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: -1;
-            overflow: hidden;
-        }
-
-        .shape {
-            position: absolute;
-            border-radius: 50%;
-            background: linear-gradient(45deg, rgba(14, 165, 233, 0.3), rgba(56, 189, 248, 0.2));
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .shape:nth-child(1) {
-            width: 80px;
-            height: 80px;
-            top: 20%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .shape:nth-child(2) {
-            width: 60px;
-            height: 60px;
-            top: 60%;
-            right: 15%;
-            animation-delay: 2s;
-        }
-
-        .shape:nth-child(3) {
-            width: 100px;
-            height: 100px;
-            bottom: 20%;
-            left: 20%;
-            animation-delay: 4s;
-        }
-
-        .shape:nth-child(4) {
-            width: 40px;
-            height: 40px;
-            top: 40%;
-            right: 30%;
-            animation-delay: 1s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
-        }
-
-        .hero-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            text-align: center;
-            padding: 2rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .logo-container {
-            margin-bottom: 2rem;
-            position: relative;
-        }
-
-        .logo-icon {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1rem;
-            animation: pulse 2s ease-in-out infinite;
-            box-shadow: 0 20px 40px rgba(102, 126, 234, 0.3);
-        }
-
-        html.dark .logo-icon {
-            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
-            box-shadow: 0 20px 40px rgba(56, 189, 248, 0.2);
-        }
-
-        .logo-icon i {
-            font-size: 3rem;
-            color: white;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-
-        .hero-title {
-            font-size: clamp(2.5rem, 5vw, 4rem);
-            font-weight: 900;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            animation: slideInUp 1s ease-out;
-        }
-
-        html.dark .hero-title {
-            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero-subtitle {
-            font-size: clamp(1.2rem, 3vw, 1.5rem);
-            margin-bottom: 2rem;
-            opacity: 0.8;
-            animation: slideInUp 1s ease-out 0.3s both;
-        }
-
-        .hero-description {
-            font-size: 1.1rem;
-            max-width: 600px;
-            margin-bottom: 3rem;
-            line-height: 1.6;
-            animation: slideInUp 1s ease-out 0.6s both;
-        }
-
-        @keyframes slideInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .feature-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            border-radius: 20px;
-            padding: 2rem;
-            text-align: center;
-            transition: all 0.3s ease;
-            animation: fadeInScale 0.8s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        html.dark .feature-card {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-        }
-
-        .feature-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
-            transition: left 0.5s;
-        }
-
-        .feature-card:hover::before {
-            left: 100%;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-        }
-
-        .feature-icon {
-            width: 80px;
-            height: 80px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem;
-            font-size: 2rem;
-            color: white;
-            position: relative;
-            z-index: 1;
-        }
-
-        .feature-card:nth-child(1) .feature-icon {
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-        }
-
-        .feature-card:nth-child(2) .feature-icon {
-            background: linear-gradient(135deg, #4ecdc4, #44a08d);
-        }
-
-        .feature-card:nth-child(3) .feature-icon {
-            background: linear-gradient(135deg, #45b7d1, #96c93f);
-        }
-
-        .feature-card:nth-child(4) .feature-icon {
-            background: linear-gradient(135deg, #f093fb, #f5576c);
-        }
-
-        .feature-card:nth-child(5) .feature-icon {
-            background: linear-gradient(135deg, #4facfe, #00f2fe);
-        }
-
-        .feature-card:nth-child(6) .feature-icon {
-            background: linear-gradient(135deg, #43e97b, #38f9d7);
-        }
-
-        .feature-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 1rem;
-            position: relative;
-            z-index: 1;
-        }
-
-        .feature-description {
-            font-size: 0.95rem;
-            opacity: 0.9;
-            line-height: 1.5;
-            position: relative;
-            z-index: 1;
-        }
-
-        @keyframes fadeInScale {
-            from {
-                opacity: 0;
-                transform: scale(0.9);
-            }
-            to {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }
-
-        .footer-section {
-            padding: 3rem 2rem;
-            text-align: center;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        html.dark .footer-section {
-            background: rgba(15, 23, 42, 0.6);
-            border-top: 1px solid rgba(148, 163, 184, 0.1);
-        }
-
-        .credits-card {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        html.dark .credits-card {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(148, 163, 184, 0.2);
-        }
-
-        .credits-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        html.dark .credits-title {
-            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .credit-item {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            font-size: 1rem;
-        }
-
-        .credit-icon {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 0.8rem;
-        }
-
-        html.dark .credit-icon {
-            background: linear-gradient(135deg, #38bdf8 0%, #0ea5e9 100%);
-        }
-
-        @media (max-width: 768px) {
-            .hero-content {
-                padding: 1rem;
-            }
-            
-            .features-grid {
-                grid-template-columns: 1fr;
-                padding: 1rem;
-            }
-            
-            .logo-icon {
-                width: 100px;
-                height: 100px;
-            }
-            
-            .logo-icon i {
-                font-size: 2.5rem;
-            }
-        }
-
-        /* Animación para la carga de la página */
-        .module-body {
-            animation: pageLoad 1s ease-out;
-        }
-
-        @keyframes pageLoad {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
     </style>
 </head>
-<body class="module-body">
-    <div class="hero-container">
-        <div class="animated-bg"></div>
-        
-        <div class="floating-shapes">
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
-            <div class="shape"></div>
-        </div>
+<body>
+    <div class="calculator-body">
+        <header>
+            <h1>Calculadora PRO-FX</h1>
+            <div class="header-controls">
+                <div id="angle-mode-selector" class="angle-selector">
+                    <button class="angle-btn active" data-mode="deg">D</button>
+                    <button class="angle-btn" data-mode="rad">R</button>
+                    <button class="angle-btn" data-mode="grad">G</button>
+                </div>
+                <!-- Botón de Menú -->
+                <div id="menu-toggle"><div class="bar"></div><div class="bar"></div><div class="bar"></div></div>
+            </div>
+            <!-- Panel del Menú -->
+            <nav>
+                <ul id="main-menu">
+                    <li><a id="help-btn">Ayuda</a></li>
+                    <li class="theme-title">Temas</li>
+                    <li class="theme-selector">
+                        <button class="theme-btn" data-theme="default" style="background-color: #34495e;"></button>
+                        <button class="theme-btn" data-theme="theme-matrix" style="background-color: #00FF41;"></button>
+                        <button class="theme-btn" data-theme="theme-solar" style="background-color: #f1c40f;"></button>
+                        <button class="theme-btn" data-theme="theme-ruby" style="background-color: #c0392b;"></button>
+                        <button class="theme-btn" data-theme="theme-ocean" style="background-color: #00BCD4;"></button>
+                        <button class="theme-btn" data-theme="theme-dusk" style="background-color: #F47A60;"></button>
+                    </li>
+                </ul>
+            </nav>
+        </header>
 
-        <div class="hero-content">
-            <div class="logo-container">
-                <div class="logo-icon">
-                    <i class="fas fa-calculator"></i>
+        <main>
+            <section class="screen">
+                <input type="text" id="function-input" class="input-display" placeholder="0">
+                <div class="output-section">
+                    <div id="output"></div>
+                    <p id="error-message"></p>
+                </div>
+            </section>
+            
+            <div class="keypad-container">
+                 <div class="function-pad">
+                    <!-- Fila 1 -->
+                    <button class="keypad-button func-key" data-value="sin(">sin</button>
+                    <button class="keypad-button func-key" data-value="cos(">cos</button>
+                    <button class="keypad-button func-key" data-value="tan(">tan</button>
+                    <button class="keypad-button func-key" data-value="asin(">sin⁻¹</button>
+                    <button class="keypad-button func-key" data-value="acos(">cos⁻¹</button>
+                    <button class="keypad-button func-key" data-value="atan(">tan⁻¹</button>
+                    <!-- Fila 2 -->
+                    <button class="keypad-button func-key" data-value="sinh(">sinh</button>
+                    <button class="keypad-button func-key" data-value="cosh(">cosh</button>
+                    <button class="keypad-button func-key" data-value="tanh(">tanh</button>
+                    <button class="keypad-button func-key" data-value="asinh(">asinh</button>
+                    <button class="keypad-button func-key" data-value="acosh(">acosh</button>
+                    <button class="keypad-button func-key" data-value="atanh(">atanh</button>
+                    <!-- Fila 3 -->
+                    <button class="keypad-button func-key" data-value="log(">log₁₀</button>
+                    <button class="keypad-button func-key" data-value="log(,)">logₙ</button>
+                    <button class="keypad-button func-key" data-value="^">x<sup>y</sup></button>
+                    <button class="keypad-button func-key" data-value="sqrt(">√</button>
+                    <button class="keypad-button func-key" data-value="pi">π</button>
+                    <button class="keypad-button func-key" data-value="e">e</button>
+                    <!-- Fila 4 -->
+                    <button class="keypad-button func-key" data-value="(">(</button>
+                    <button class="keypad-button func-key" data-value=")">)</button>
+                    <button class="keypad-button func-key" data-value="abs(">abs</button>
+                    <button class="keypad-button eq-key" data-value="=">=</button>
+                    <button class="keypad-button func-key" data-value="y">y</button>
+                    <button class="keypad-button func-key" data-value="z">z</button>
+                </div>
+                <div class="number-pad">
+                    <button class="keypad-button clear-key" data-action="AC">AC</button>
+                    <button class="keypad-button clear-key" data-action="DEL">DEL</button>
+                    <button class="keypad-button func-key" data-value="x">x</button>
+                    <button class="keypad-button op-key" data-value="/">÷</button>
+                    
+                    <button class="keypad-button num-key" data-value="7">7</button>
+                    <button class="keypad-button num-key" data-value="8">8</button>
+                    <button class="keypad-button num-key" data-value="9">9</button>
+                    <button class="keypad-button op-key" data-value="*">×</button>
+                    
+                    <button class="keypad-button num-key" data-value="4">4</button>
+                    <button class="keypad-button num-key" data-value="5">5</button>
+                    <button class="keypad-button num-key" data-value="6">6</button>
+                    <button class="keypad-button op-key" data-value="-">−</button>
+                    
+                    <button class="keypad-button num-key" data-value="1">1</button>
+                    <button class="keypad-button num-key" data-value="2">2</button>
+                    <button class="keypad-button num-key" data-value="3">3</button>
+                    <button class="keypad-button op-key" data-value="+">+</button>
+
+                    <button class="keypad-button num-key" data-value="0">0</button>
+                    <button class="keypad-button num-key" data-value=".">.</button>
+                     <button class="keypad-button" data-action="S2D">S↔D</button>
+                    <button class="keypad-button equals-key" data-action="EVAL">=</button>
                 </div>
             </div>
-
-            <h1 class="hero-title">ProfeNestor</h1>
-            <h2 class="hero-subtitle">Super Calculadora Modular Web</h2>
-            <p class="hero-description">
-                Descubre el futuro de las matemáticas educativas. Una plataforma revolucionaria que integra cálculo, álgebra, estadística, probabilidad y mucho más en una experiencia visual impresionante y completamente interactiva.
-            </p>
-        </div>
-
-        <div class="features-grid">
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-draw-polygon"></i>
-                </div>
-                <h3 class="feature-title">Geometría Avanzada</h3>
-                <p class="feature-description">Cálculos precisos de triángulos, áreas, perímetros y transformaciones geométricas con visualización en tiempo real.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-square-root-alt"></i>
-                </div>
-                <h3 class="feature-title">Álgebra Inteligente</h3>
-                <p class="feature-description">Resuelve ecuaciones complejas, sistemas lineales y operaciones algebraicas con pasos detallados.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-chart-bar"></i>
-                </div>
-                <h3 class="feature-title">Estadística Visual</h3>
-                <p class="feature-description">Análisis estadístico completo con gráficos interactivos, medidas de tendencia central y dispersión.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-percent"></i>
-                </div>
-                <h3 class="feature-title">Probabilidad</h3>
-                <p class="feature-description">Cálculos probabilísticos avanzados, distribuciones y simulaciones Monte Carlo.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-infinity"></i>
-                </div>
-                <h3 class="feature-title">Cálculo Diferencial</h3>
-                <p class="feature-description">Derivadas, integrales, límites y análisis de funciones con representación gráfica.</p>
-            </div>
-
-            <div class="feature-card">
-                <div class="feature-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <h3 class="feature-title">Gráficas Dinámicas</h3>
-                <p class="feature-description">Visualización de funciones matemáticas con zoom, pan y análisis interactivo.</p>
-            </div>
-        </div>
-
-        <div class="footer-section">
-            <div class="credits-card">
-                <h3 class="credits-title">Créditos del Proyecto</h3>
-                <div class="credit-item">
-                    <div class="credit-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <span><strong>Autor:</strong> Msc. Néstor Fabio Montoya Palacios</span>
-                </div>
-                <div class="credit-item">
-                    <div class="credit-icon">
-                        <i class="fas fa-robot"></i>
-                    </div>
-                    <span><strong>Desarrollo IA:</strong> Claude AI & Google Gemini</span>
-                </div>
-                <div class="credit-item">
-                    <div class="credit-icon">
-                        <i class="fas fa-graduation-cap"></i>
-                    </div>
-                    <span><strong>Propósito:</strong> Educación Matemática Innovadora</span>
-                </div>
-            </div>
-        </div>
+        </main>
     </div>
 
+    <!-- 💡 INICIO DEL SCRIPT (LÓGICA DE CONVERSIÓN MANUAL) 💡 -->
     <script>
-        // Escuchar cambios de tema desde el padre
-        window.addEventListener('message', function(event) {
-            if (event.data && event.data.theme) {
-                document.documentElement.classList.toggle('dark', event.data.theme === 'dark');
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const appState = {
+            lastExpression: '',
+            lastSymbolicResult: null,
+            isDecimalDisplayed: false,
+            currentAngleMode: 'deg',
+        };
+
+        const ui = {
+            input: document.getElementById('function-input'),
+            output: document.getElementById('output'),
+            error: document.getElementById('error-message'),
+            angleSelector: document.getElementById('angle-mode-selector'),
+            keypad: document.querySelector('.keypad-container'),
+            menuToggle: document.getElementById('menu-toggle'),
+            mainMenu: document.getElementById('main-menu'),
+        };
+        
+        const clearScreen = () => { ui.output.innerHTML = ''; ui.error.style.display = 'none'; };
+        const showError = (message) => { clearScreen(); ui.error.textContent = message; ui.error.style.display = 'block';};
+        const renderMath = (latex) => {
+            clearScreen();
+            ui.output.innerHTML = `$$${latex}$$`;
+            if (window.MathJax) {
+                MathJax.typesetPromise([ui.output]).catch(err => {
+                    console.error("MathJax Error:", err);
+                    showError("Error al formatear resultado.");
+                });
+            }
+        };
+
+        const convertExpressionToRadians = (expression) => {
+            if (appState.currentAngleMode === 'rad') return expression; 
+            const factor = appState.currentAngleMode === 'deg' ? '(pi/180)' : '(pi/200)';
+            const trigRegex = /(a?sin|a?cos|a?tan)h?\(([^()]*\((?:[^()]*\([^()]*\))*[^()]*\)|[^()]*)\)/g;
+            return expression.replace(trigRegex, (match, func, content) => `${func}((${content})*${factor})`);
+        };
+
+        const updateDisplay = () => {
+            if (!appState.lastSymbolicResult) return;
+            if (appState.isDecimalDisplayed) {
+                const numericString = appState.lastSymbolicResult.evaluate().text('decimal');
+                const cleanedNumber = parseFloat(numericString).toString();
+                renderMath(cleanedNumber);
+            } else {
+                renderMath(appState.lastSymbolicResult.toTeX());
+            }
+        };
+
+        const performCalculation = (operation) => {
+            const originalExpression = ui.input.value.trim();
+            if (!originalExpression) { showError("Introduzca una expresión."); return; }
+            try {
+                const radianExpression = convertExpressionToRadians(originalExpression);
+                let symbolicResult;
+                if (operation === 'EVAL') {
+                    symbolicResult = nerdamer(radianExpression);
+                    appState.isDecimalDisplayed = true;
+                } else {
+                    symbolicResult = nerdamer[operation](radianExpression, 'x');
+                    appState.isDecimalDisplayed = false;
+                }
+                appState.lastExpression = originalExpression;
+                appState.lastSymbolicResult = symbolicResult;
+                updateDisplay();
+            } catch (err) {
+                console.error("Error de cálculo:", err);
+                showError("Error en la expresión.");
+            }
+        };
+        
+        function insertAtCursor(text) {
+            const start = ui.input.selectionStart;
+            ui.input.value = ui.input.value.substring(0, start) + text + ui.input.value.substring(start);
+            const cursorPos = start + text.length;
+            ui.input.focus();
+            ui.input.setSelectionRange(cursorPos, cursorPos);
+        }
+
+        ui.keypad.addEventListener('click', (e) => {
+            const button = e.target.closest('button');
+            if (!button) return;
+            const action = button.dataset.action;
+            const value = button.dataset.value;
+
+            if (value) insertAtCursor(value);
+            else if (action) {
+                switch(action) {
+                    case 'AC': ui.input.value = ''; appState.lastSymbolicResult = null; appState.lastExpression = ''; clearScreen(); break;
+                    case 'DEL': ui.input.value = ui.input.value.slice(0, -1); break;
+                    case 'S2D': if (appState.lastExpression) { appState.isDecimalDisplayed = !appState.isDecimalDisplayed; updateDisplay(); } break;
+                    default: performCalculation(action); break;
+                }
             }
         });
+        
+        ui.angleSelector.addEventListener('click', (e) => {
+            const button = e.target.closest('button[data-mode]');
+            if (!button) return;
+            ui.angleSelector.querySelectorAll('.angle-btn').forEach(btn => btn.classList.remove('active'));
+            button.classList.add('active');
+            appState.currentAngleMode = button.dataset.mode;
+            if (appState.lastExpression) performCalculation('EVAL');
+        });
+        
+        // --- LÓGICA DEL MENÚ Y TEMAS ---
+        ui.menuToggle.addEventListener('click', () => ui.mainMenu.classList.toggle('active'));
 
-        // Aplicar tema inicial basado en el padre
-        const isDark = window.parent.document.documentElement.classList.contains('dark');
-        document.documentElement.classList.toggle('dark', isDark);
-
-        // Animación de entrada escalonada para las cards
-        const featureCards = document.querySelectorAll('.feature-card');
-        featureCards.forEach((card, index) => {
-            card.style.animationDelay = `${0.2 * index}s`;
+        document.getElementById('help-btn').addEventListener('click', () => {
+            alert('Ayuda: \n- Usa el teclado para introducir expresiones. \n- Elige el modo angular (D, R, G). \n- Usa S<->D para cambiar entre resultado simbólico y decimal.');
+            ui.mainMenu.classList.remove('active');
         });
 
-        // Efecto parallax suave en las formas flotantes
-        window.addEventListener('scroll', () => {
-            const shapes = document.querySelectorAll('.shape');
-            const scrolled = window.pageYOffset;
-            
-            shapes.forEach((shape, index) => {
-                const rate = scrolled * -0.5 * (index + 1);
-                shape.style.transform = `translateY(${rate}px)`;
-            });
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        const applyTheme = (theme) => {
+            document.body.className = '';
+            if (theme && theme !== 'default') document.body.classList.add(theme);
+            localStorage.setItem('calculatorTheme', theme);
+        };
+        themeButtons.forEach(button => button.addEventListener('click', () => {
+            applyTheme(button.dataset.theme);
+            ui.mainMenu.classList.remove('active');
+        }));
+        
+        const savedTheme = localStorage.getItem('calculatorTheme');
+        if (savedTheme) applyTheme(savedTheme);
+
+        window.addEventListener('click', e => {
+            if (!ui.mainMenu.contains(e.target) && !ui.menuToggle.contains(e.target)) {
+                ui.mainMenu.classList.remove('active');
+            }
         });
+    });
     </script>
 </body>
 </html>
