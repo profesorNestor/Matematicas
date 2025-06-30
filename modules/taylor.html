@@ -1,0 +1,2123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taylor Series - Ultra Futuristic Visualizer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --taylor-gradient: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            --convergence-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            --error-gradient: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            --dark-bg: #0a0a0f;
+            --card-bg: rgba(15, 15, 30, 0.85);
+            --glass-bg: rgba(255, 255, 255, 0.08);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --text-primary: #e0e0e0;
+            --text-secondary: #9ca3af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --taylor-orange: #ff6b35;
+            --taylor-blue: #004e89;
+            --taylor-green: #00a896;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(255, 107, 53, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(0, 168, 150, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 40% 70%, rgba(0, 78, 137, 0.1) 0%, transparent 50%);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            display: grid;
+            grid-template-columns: 420px 1fr;
+            grid-template-rows: 80px 1fr;
+            grid-template-areas: 
+                "header header"
+                "sidebar main";
+            height: 100vh;
+            gap: 15px;
+            padding: 15px;
+        }
+
+        .header {
+            grid-area: header;
+            text-align: center;
+            margin-bottom: 0;
+        }
+
+        .main-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: var(--taylor-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 5px;
+            text-shadow: 0 0 40px rgba(255, 107, 53, 0.5);
+            animation: taylorGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes taylorGlow {
+            from { filter: brightness(1) drop-shadow(0 0 20px rgba(255, 107, 53, 0.3)); }
+            to { filter: brightness(1.3) drop-shadow(0 0 30px rgba(255, 107, 53, 0.6)); }
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .sidebar {
+            grid-area: sidebar;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 20px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            background: var(--convergence-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .function-presets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .preset-btn {
+            padding: 8px 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.8rem;
+        }
+
+        .preset-btn:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: var(--taylor-orange);
+        }
+
+        .preset-btn.active {
+            background: var(--taylor-gradient);
+            border-color: transparent;
+            color: white;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 6px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+
+        .modern-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+
+        .modern-input:focus {
+            border-color: var(--taylor-orange);
+            background: rgba(255, 107, 53, 0.1);
+            box-shadow: 0 0 20px rgba(255, 107, 53, 0.2);
+        }
+
+        .expansion-point-control {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .expansion-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--taylor-orange);
+        }
+
+        .point-slider-container {
+            position: relative;
+        }
+
+        .point-slider {
+            width: 100%;
+            height: 8px;
+            background: var(--glass-bg);
+            border-radius: 4px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+
+        .point-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 24px;
+            height: 24px;
+            background: var(--taylor-gradient);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(255, 107, 53, 0.6);
+        }
+
+        .point-value {
+            text-align: center;
+            font-weight: 600;
+            color: var(--taylor-orange);
+            font-size: 1.1rem;
+            margin-top: 5px;
+        }
+
+        .taylor-terms-widget {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            flex: 1;
+        }
+
+        .terms-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .terms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+            gap: 6px;
+            margin-bottom: 12px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .term-btn {
+            width: 45px;
+            height: 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--glass-bg);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .term-btn:hover {
+            border-color: var(--taylor-orange);
+            color: var(--text-primary);
+        }
+
+        .term-btn.active {
+            background: var(--taylor-gradient);
+            border-color: transparent;
+            color: white;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+        }
+
+        .term-btn.zero-term {
+            background: var(--convergence-gradient);
+        }
+
+        .term-btn.zero-term.active {
+            background: var(--convergence-gradient);
+        }
+
+        .terms-controls {
+            display: flex;
+            gap: 6px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 6px 8px;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-primary);
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: var(--taylor-orange);
+        }
+
+        .modern-btn {
+            background: var(--taylor-gradient);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 107, 53, 0.4);
+        }
+
+        .modern-btn.secondary {
+            background: var(--error-gradient);
+        }
+
+        .modern-btn.formula {
+            background: var(--convergence-gradient);
+            color: #2d3748;
+        }
+
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .modal-content {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--taylor-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-close {
+            width: 40px;
+            height: 40px;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 107, 53, 0.2);
+            border-color: var(--taylor-orange);
+        }
+
+        .formula-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: var(--glass-bg);
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+        }
+
+        .formula-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--taylor-orange);
+        }
+
+        .formula-content {
+            font-family: 'Courier New', monospace;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-primary);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .formula-expanded {
+            background: rgba(0, 168, 150, 0.1);
+            border: 1px solid rgba(0, 168, 150, 0.3);
+        }
+
+        .math-symbol {
+            color: var(--taylor-orange);
+            font-weight: bold;
+        }
+
+        .coefficient {
+            color: var(--taylor-green);
+            font-weight: bold;
+        }
+
+        .variable {
+            color: #4ecdc4;
+            font-weight: bold;
+        }
+
+        .superscript {
+            font-size: 0.8em;
+            vertical-align: super;
+        }
+
+        .subscript {
+            font-size: 0.8em;
+            vertical-align: sub;
+        }
+
+        .main-content {
+            grid-area: main;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .section {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(255, 107, 53, 0.2);
+        }
+
+        .graph-container {
+            flex: 1;
+            position: relative;
+            min-height: 500px;
+            background: rgba(10, 10, 15, 0.8);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        #canvas {
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+
+        #canvas:active {
+            cursor: grabbing;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            z-index: 10;
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            transition: all 0.3s ease;
+        }
+
+        .zoom-btn:hover {
+            background: rgba(255, 107, 53, 0.3);
+            border-color: var(--taylor-orange);
+        }
+
+        .animation-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            z-index: 10;
+        }
+
+        .range-slider {
+            width: 150px;
+            height: 6px;
+            background: var(--glass-bg);
+            border-radius: 3px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 10px 0;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--taylor-gradient);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(255, 107, 53, 0.5);
+        }
+
+        .coefficients-display {
+            max-height: 250px;
+            overflow-y: auto;
+            margin-top: 10px;
+        }
+
+        .coefficient-item {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            margin-bottom: 4px;
+            font-family: 'Monaco', 'Menlo', monospace;
+            transition: all 0.3s ease;
+            font-size: 0.8rem;
+        }
+
+        .coefficient-item:hover {
+            background: rgba(255, 107, 53, 0.1);
+            border-color: rgba(255, 107, 53, 0.5);
+        }
+
+        .coefficient-value {
+            color: var(--taylor-orange);
+            font-weight: 600;
+        }
+
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            border-radius: 16px;
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid var(--taylor-orange);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready { background: var(--success-color); }
+        .status-calculating { background: var(--warning-color); animation: pulse 1s infinite; }
+        .status-error { background: var(--error-color); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .convergence-info {
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .convergence-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--taylor-green);
+        }
+
+        .convergence-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            font-size: 0.8rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 8px;
+            background: rgba(0, 168, 150, 0.1);
+            border-radius: 6px;
+        }
+
+        .stat-value {
+            display: block;
+            font-weight: 600;
+            color: var(--taylor-green);
+            font-size: 1rem;
+        }
+
+        .legend {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            z-index: 10;
+            font-size: 0.8rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 3px;
+            margin-right: 8px;
+            border-radius: 2px;
+        }
+
+        /* Responsive Design Mejorado */
+        @media (max-width: 1200px) {
+            .app-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 60px auto 1fr;
+                grid-template-areas: 
+                    "header"
+                    "sidebar"
+                    "main";
+                padding: 10px;
+                gap: 10px;
+            }
+            
+            .sidebar {
+                max-height: 400px;
+                padding: 15px;
+            }
+
+            .main-title {
+                font-size: 2.2rem;
+            }
+
+            .subtitle {
+                font-size: 0.9rem;
+            }
+
+            .function-presets {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 6px;
+            }
+
+            .preset-btn {
+                padding: 6px 8px;
+                font-size: 0.7rem;
+            }
+        }
+
+        /* Tablet Portrait */
+        @media (max-width: 768px) {
+            .app-container {
+                grid-template-rows: 50px auto 1fr;
+                padding: 8px;
+                gap: 8px;
+            }
+
+            .header {
+                margin-bottom: 0;
+            }
+
+            .main-title {
+                font-size: 1.8rem;
+                margin-bottom: 2px;
+            }
+
+            .subtitle {
+                font-size: 0.8rem;
+            }
+
+            .sidebar {
+                padding: 12px;
+                max-height: 350px;
+                border-radius: 12px;
+            }
+
+            .function-presets {
+                grid-template-columns: repeat(4, 1fr);
+                gap: 4px;
+                margin-bottom: 10px;
+            }
+
+            .preset-btn {
+                padding: 8px 4px;
+                font-size: 0.7rem;
+                border-radius: 6px;
+            }
+
+            .input-group {
+                margin-bottom: 10px;
+            }
+
+            .modern-input {
+                padding: 8px 10px;
+                font-size: 0.85rem;
+            }
+
+            .expansion-point-control, .taylor-terms-widget, .convergence-info {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            .terms-grid {
+                grid-template-columns: repeat(auto-fill, minmax(35px, 1fr));
+                gap: 4px;
+                max-height: 120px;
+            }
+
+            .term-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 0.7rem;
+            }
+
+            .modern-btn {
+                padding: 8px 15px;
+                font-size: 0.8rem;
+                margin-right: 6px;
+                margin-bottom: 6px;
+            }
+
+            .section {
+                padding: 15px;
+                border-radius: 12px;
+            }
+
+            .graph-container {
+                min-height: 400px;
+                border-radius: 12px;
+            }
+
+            .controls-overlay {
+                top: 10px;
+                right: 10px;
+                padding: 10px;
+                font-size: 0.8rem;
+            }
+
+            .zoom-controls {
+                bottom: 10px;
+                left: 10px;
+            }
+
+            .zoom-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+
+            .animation-controls {
+                bottom: 10px;
+                right: 10px;
+                padding: 10px;
+            }
+
+            .range-slider {
+                width: 100px;
+            }
+
+            .legend {
+                top: 10px;
+                left: 10px;
+                padding: 8px;
+                font-size: 0.7rem;
+            }
+
+            .convergence-stats {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+
+            .stat-item {
+                padding: 6px;
+            }
+        }
+
+        /* Mobile */
+        @media (max-width: 480px) {
+            .app-container {
+                padding: 5px;
+                gap: 5px;
+                grid-template-rows: 45px auto 1fr;
+            }
+
+            .header {
+                text-align: center;
+            }
+
+            .main-title {
+                font-size: 1.5rem;
+                margin-bottom: 0;
+            }
+
+            .subtitle {
+                font-size: 0.7rem;
+                display: none; /* Ocultar en móviles muy pequeños */
+            }
+
+            .sidebar {
+                padding: 10px;
+                max-height: 300px;
+                border-radius: 10px;
+            }
+
+            .section-title {
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+
+            .function-presets {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 3px;
+                margin-bottom: 8px;
+            }
+
+            .preset-btn {
+                padding: 6px 3px;
+                font-size: 0.6rem;
+                border-radius: 4px;
+            }
+
+            .input-group {
+                margin-bottom: 8px;
+            }
+
+            .input-label {
+                font-size: 0.75rem;
+                margin-bottom: 4px;
+            }
+
+            .modern-input {
+                padding: 6px 8px;
+                font-size: 0.8rem;
+                border-radius: 6px;
+            }
+
+            .expansion-point-control {
+                padding: 8px;
+                margin-bottom: 8px;
+                border-radius: 8px;
+            }
+
+            .expansion-title {
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+
+            .point-value {
+                font-size: 0.9rem;
+            }
+
+            .taylor-terms-widget {
+                padding: 8px;
+                margin-bottom: 8px;
+                border-radius: 8px;
+            }
+
+            .terms-title {
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+
+            .terms-grid {
+                grid-template-columns: repeat(auto-fill, minmax(30px, 1fr));
+                gap: 3px;
+                max-height: 100px;
+            }
+
+            .term-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 0.65rem;
+                border-radius: 4px;
+            }
+
+            .terms-controls {
+                gap: 3px;
+            }
+
+            .control-btn {
+                padding: 4px 6px;
+                font-size: 0.65rem;
+                border-radius: 4px;
+            }
+
+            .convergence-info {
+                padding: 8px;
+                margin-bottom: 8px;
+                border-radius: 8px;
+            }
+
+            .convergence-title {
+                font-size: 0.9rem;
+                margin-bottom: 6px;
+            }
+
+            .modern-btn {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 4px;
+                padding: 8px 12px;
+                font-size: 0.75rem;
+                border-radius: 6px;
+            }
+
+            .coefficients-display {
+                max-height: 150px;
+            }
+
+            .coefficient-item {
+                padding: 6px 8px;
+                margin-bottom: 3px;
+                font-size: 0.7rem;
+                border-radius: 4px;
+            }
+
+            .section {
+                padding: 10px;
+                border-radius: 10px;
+            }
+
+            .graph-container {
+                min-height: 350px;
+                border-radius: 10px;
+            }
+
+            .controls-overlay {
+                display: none; /* Ocultar en móviles pequeños */
+            }
+
+            .legend {
+                top: 5px;
+                left: 5px;
+                padding: 6px;
+                font-size: 0.6rem;
+                border-radius: 6px;
+            }
+
+            .legend-item {
+                margin-bottom: 3px;
+            }
+
+            .legend-color {
+                width: 15px;
+                height: 2px;
+                margin-right: 5px;
+            }
+
+            .zoom-controls {
+                bottom: 5px;
+                left: 5px;
+                gap: 3px;
+            }
+
+            .zoom-btn {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
+                border-radius: 6px;
+            }
+
+            .animation-controls {
+                bottom: 5px;
+                right: 5px;
+                padding: 8px;
+                border-radius: 8px;
+            }
+
+            .range-slider {
+                width: 80px;
+                height: 4px;
+            }
+
+            .range-slider::-webkit-slider-thumb {
+                width: 15px;
+                height: 15px;
+            }
+        }
+
+        /* Modal Responsive */
+        @media (max-width: 768px) {
+            .modal-content {
+                margin: 10px;
+                padding: 20px;
+                max-width: calc(100vw - 20px);
+                max-height: calc(100vh - 20px);
+                border-radius: 15px;
+            }
+
+            .modal-title {
+                font-size: 1.4rem;
+            }
+
+            .modal-close {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+
+            .formula-section {
+                padding: 15px;
+                margin-bottom: 15px;
+                border-radius: 8px;
+            }
+
+            .formula-title {
+                font-size: 1rem;
+                margin-bottom: 10px;
+            }
+
+            .formula-content {
+                font-size: 0.9rem;
+                padding: 10px;
+                border-radius: 6px;
+                line-height: 1.6;
+                overflow-x: auto;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .modal-content {
+                margin: 5px;
+                padding: 15px;
+                max-width: calc(100vw - 10px);
+                max-height: calc(100vh - 10px);
+                border-radius: 10px;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .modal-close {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
+            }
+
+            .formula-section {
+                padding: 10px;
+                margin-bottom: 10px;
+            }
+
+            .formula-title {
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+
+            .formula-content {
+                font-size: 0.8rem;
+                padding: 8px;
+                line-height: 1.4;
+            }
+
+            .formula-content div {
+                margin-bottom: 6px;
+            }
+        }
+
+        /* Touch-friendly improvements */
+        @media (hover: none) and (pointer: coarse) {
+            .term-btn, .control-btn, .preset-btn, .zoom-btn {
+                min-height: 44px; /* Mínimo recomendado para touch */
+            }
+
+            .modern-input {
+                min-height: 44px;
+                font-size: 16px; /* Prevenir zoom en iOS */
+            }
+
+            .point-slider {
+                height: 12px;
+            }
+
+            .point-slider::-webkit-slider-thumb {
+                width: 28px;
+                height: 28px;
+            }
+
+            .range-slider {
+                height: 8px;
+            }
+
+            .range-slider::-webkit-slider-thumb {
+                width: 24px;
+                height: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="header">
+            <h1 class="main-title">Taylor Series</h1>
+            <p class="subtitle">Ultra Futuristic Interactive Visualizer & Analyzer</p>
+        </div>
+
+        <div class="sidebar">
+            <div class="section-title">
+                <span class="status-indicator status-ready"></span>
+                Configuración de Función
+            </div>
+
+            <div class="function-presets">
+                <div class="preset-btn active" data-func="sin(x)">sin(x)</div>
+                <div class="preset-btn" data-func="cos(x)">cos(x)</div>
+                <div class="preset-btn" data-func="exp(x)">e^x</div>
+                <div class="preset-btn" data-func="log(x)">ln(x)</div>
+                <div class="preset-btn" data-func="1/(1-x)">1/(1-x)</div>
+                <div class="preset-btn" data-func="sqrt(1+x)">√(1+x)</div>
+                <div class="preset-btn" data-func="1/(1+x^2)">1/(1+x²)</div>
+                <div class="preset-btn" data-func="atan(x)">arctan(x)</div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Función f(x)</label>
+                <input type="text" class="modern-input" id="function-input" placeholder="sin(x), exp(x), 1/(1-x)" value="sin(x)">
+            </div>
+
+            <div class="expansion-point-control">
+                <div class="expansion-title">Punto de Expansión (a)</div>
+                <input type="range" class="point-slider" id="expansion-point" min="-3" max="3" step="0.1" value="0">
+                <div class="point-value" id="point-value">a = 0.0</div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Número máximo de términos</label>
+                <input type="number" class="modern-input" id="max-terms" value="15" min="1" max="25">
+            </div>
+
+            <div class="taylor-terms-widget">
+                <div class="terms-title">Términos de Taylor a mostrar</div>
+                <div class="terms-grid" id="terms-grid">
+                    <!-- Se generará dinámicamente -->
+                </div>
+                <div class="terms-controls">
+                    <div class="control-btn" onclick="selectAllTerms()">Todos</div>
+                    <div class="control-btn" onclick="clearTerms()">Ninguno</div>
+                    <div class="control-btn" onclick="selectUpToN()">Hasta N</div>
+                </div>
+            </div>
+
+            <div class="convergence-info">
+                <div class="convergence-title">Análisis de Convergencia</div>
+                <div class="convergence-stats">
+                    <div class="stat-item">
+                        <span class="stat-value" id="error-value">0.000</span>
+                        <div>Error RMS</div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="radius-value">∞</span>
+                        <div>Radio</div>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: auto;">
+                <button class="modern-btn" onclick="calculateTaylor()">Calcular Serie</button>
+                <button class="modern-btn formula" onclick="showFormulaModal()">📜 Ver Fórmula</button>
+                <button class="modern-btn secondary" onclick="resetAll()">Reiniciar</button>
+
+                <div class="section-title" style="margin-top: 15px; margin-bottom: 8px;">Coeficientes de Taylor</div>
+                <div class="coefficients-display" id="coefficients-container">
+                    <p style="color: var(--text-secondary); text-align: center; margin: 20px 0; font-size: 0.8rem;">
+                        Los coeficientes aparecerán aquí después del cálculo...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <div class="section-title">Visualización Interactiva de Series de Taylor</div>
+                <div class="graph-container">
+                    <canvas id="canvas"></canvas>
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div>
+                            <div class="spinner"></div>
+                            <p style="margin-top: 15px; text-align: center;">Calculando derivadas...</p>
+                        </div>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff6b6b;"></div>
+                            <span>Función Original</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4ecdc4;"></div>
+                            <span>Serie de Taylor</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffe66d;"></div>
+                            <span>Términos Individuales</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff6b35;"></div>
+                            <span>Punto de Expansión</span>
+                        </div>
+                    </div>
+                    <div class="controls-overlay">
+                        <p>🖱️ Arrastra para mover</p>
+                        <p>🔍 Scroll para zoom</p>
+                        <p>📱 Doble click para centrar</p>
+                        <p>🎯 Click para cambiar punto</p>
+                    </div>
+                    <div class="zoom-controls">
+                        <div class="zoom-btn" onclick="zoomIn()">+</div>
+                        <div class="zoom-btn" onclick="zoomOut()">−</div>
+                        <div class="zoom-btn" onclick="resetView()">⌂</div>
+                        <div class="zoom-btn" onclick="centerOnExpansion()">🎯</div>
+                    </div>
+                    <div class="animation-controls">
+                        <label style="font-size: 0.9rem; margin-bottom: 5px; display: block;">Velocidad</label>
+                        <input type="range" class="range-slider" id="animation-speed" min="0" max="3" step="0.1" value="1">
+                        <div style="display: flex; gap: 5px; margin-top: 10px;">
+                            <button class="control-btn" onclick="toggleAnimation()" id="play-btn">⏸️</button>
+                            <button class="control-btn" onclick="resetAnimation()">⏹️</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para mostrar la fórmula matemática -->
+    <div class="modal-overlay" id="formula-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Expresión Matemática de la Serie de Taylor</h2>
+                <div class="modal-close" onclick="hideFormulaModal()">×</div>
+            </div>
+            
+            <div class="formula-section">
+                <div class="formula-title">Fórmula General</div>
+                <div class="formula-content">
+                    <span class="math-symbol">f(x) = </span>
+                    <span class="math-symbol">∑</span><span class="subscript">n=0</span><span class="superscript">∞</span>
+                    <span class="coefficient">f<span class="superscript">(n)</span>(a)</span> / <span class="math-symbol">n!</span> × 
+                    <span class="variable">(x - a)</span><span class="superscript">n</span>
+                </div>
+            </div>
+
+            <div class="formula-section">
+                <div class="formula-title">Serie Específica para <span id="modal-function-name">f(x)</span></div>
+                <div class="formula-content" id="specific-formula">
+                    <!-- Se generará dinámicamente -->
+                </div>
+            </div>
+
+            <div class="formula-section formula-expanded">
+                <div class="formula-title">Términos Expandidos (hasta orden <span id="modal-max-terms">n</span>)</div>
+                <div class="formula-content" id="expanded-terms">
+                    <!-- Se generará dinámicamente -->
+                </div>
+            </div>
+
+            <div class="formula-section">
+                <div class="formula-title">Información Actual</div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 0.9rem;">
+                    <div>
+                        <strong>Función:</strong> <span id="modal-current-function">sin(x)</span><br>
+                        <strong>Punto de expansión:</strong> <span id="modal-expansion-point">a = 0</span><br>
+                        <strong>Términos calculados:</strong> <span id="modal-terms-count">0</span>
+                    </div>
+                    <div>
+                        <strong>Términos seleccionados:</strong> <span id="modal-selected-terms">0, 1, 2, 3, 4</span><br>
+                        <strong>Error RMS actual:</strong> <span id="modal-current-error">0.000</span><br>
+                        <strong>Rango de visualización:</strong> <span id="modal-range">±10</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <script>
+        // Variables globales
+        let canvas, ctx;
+        let currentFunction = 'sin(x)';
+        let expansionPoint = 0;
+        let coefficients = [];
+        let selectedTerms = new Set([0, 1, 2, 3, 4]);
+        let isAnimating = true;
+        let animationSpeed = 1;
+        let animationTime = 0;
+        
+        // Variables de vista
+        let zoom = 50;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCanvas();
+            initializeEventListeners();
+            generateTermsGrid();
+            animate();
+        });
+
+        function initializeCanvas() {
+            canvas = document.getElementById('canvas');
+            ctx = canvas.getContext('2d');
+            
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                drawGrid();
+            }
+            
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        function initializeEventListeners() {
+            // Presets de funciones
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFunction = this.dataset.func;
+                    document.getElementById('function-input').value = currentFunction;
+                });
+            });
+
+            // Control del punto de expansión
+            document.getElementById('expansion-point').addEventListener('input', function() {
+                expansionPoint = parseFloat(this.value);
+                document.getElementById('point-value').textContent = `a = ${expansionPoint.toFixed(1)}`;
+                if (coefficients.length > 0) {
+                    drawFunctions();
+                }
+            });
+
+            // Controles del canvas
+            canvas.addEventListener('mousedown', startDragging);
+            canvas.addEventListener('mousemove', drag);
+            canvas.addEventListener('mouseup', stopDragging);
+            canvas.addEventListener('wheel', handleZoom);
+            canvas.addEventListener('dblclick', resetView);
+            canvas.addEventListener('click', handleCanvasClick);
+
+            // Control de velocidad
+            document.getElementById('animation-speed').addEventListener('input', function() {
+                animationSpeed = parseFloat(this.value);
+            });
+
+            // Input de función
+            document.getElementById('function-input').addEventListener('input', function() {
+                currentFunction = this.value;
+                document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+            });
+        }
+
+        function generateTermsGrid() {
+            const grid = document.getElementById('terms-grid');
+            const maxTerms = parseInt(document.getElementById('max-terms').value);
+            
+            grid.innerHTML = '';
+            
+            for (let i = 0; i <= maxTerms; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'term-btn';
+                if (i === 0) btn.classList.add('zero-term');
+                btn.textContent = i;
+                btn.dataset.term = i;
+                
+                if (selectedTerms.has(i)) {
+                    btn.classList.add('active');
+                }
+                
+                btn.addEventListener('click', function() {
+                    const term = parseInt(this.dataset.term);
+                    if (selectedTerms.has(term)) {
+                        selectedTerms.delete(term);
+                        this.classList.remove('active');
+                    } else {
+                        selectedTerms.add(term);
+                        this.classList.add('active');
+                    }
+                    drawFunctions();
+                });
+                
+                grid.appendChild(btn);
+            }
+        }
+
+        function selectAllTerms() {
+            const maxTerms = parseInt(document.getElementById('max-terms').value);
+            selectedTerms.clear();
+            for (let i = 0; i <= maxTerms; i++) {
+                selectedTerms.add(i);
+            }
+            updateTermsUI();
+            drawFunctions();
+        }
+
+        function clearTerms() {
+            selectedTerms.clear();
+            updateTermsUI();
+            drawFunctions();
+        }
+
+        function selectUpToN() {
+            const n = prompt("¿Hasta qué término? (0-" + document.getElementById('max-terms').value + ")");
+            if (n !== null) {
+                const maxN = parseInt(n);
+                if (!isNaN(maxN) && maxN >= 0) {
+                    selectedTerms.clear();
+                    for (let i = 0; i <= maxN; i++) {
+                        selectedTerms.add(i);
+                    }
+                    updateTermsUI();
+                    drawFunctions();
+                }
+            }
+        }
+
+        function updateTermsUI() {
+            document.querySelectorAll('.term-btn').forEach(btn => {
+                const term = parseInt(btn.dataset.term);
+                if (selectedTerms.has(term)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function startDragging(e) {
+            isDragging = true;
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            canvas.style.cursor = 'grabbing';
+        }
+
+        function drag(e) {
+            if (!isDragging) return;
+            
+            const deltaX = e.clientX - lastMouseX;
+            const deltaY = e.clientY - lastMouseY;
+            
+            offsetX += deltaX / zoom;
+            offsetY -= deltaY / zoom;
+            
+            lastMouseX = e.clientX;
+            lastMouseY = e.clientY;
+            
+            drawGrid();
+            drawFunctions();
+        }
+
+        function stopDragging() {
+            isDragging = false;
+            canvas.style.cursor = 'grab';
+        }
+
+        function handleZoom(e) {
+            e.preventDefault();
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
+            zoom *= zoomFactor;
+            zoom = Math.max(10, Math.min(200, zoom));
+            
+            drawGrid();
+            drawFunctions();
+        }
+
+        function handleCanvasClick(e) {
+            if (e.detail === 1) { // Single click
+                const rect = canvas.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const worldX = screenToWorld(x, y).x;
+                
+                // Actualizar punto de expansión
+                expansionPoint = Math.round(worldX * 10) / 10;
+                document.getElementById('expansion-point').value = expansionPoint;
+                document.getElementById('point-value').textContent = `a = ${expansionPoint.toFixed(1)}`;
+                
+                if (coefficients.length > 0) {
+                    calculateTaylorCoefficients();
+                    drawFunctions();
+                }
+            }
+        }
+
+        function screenToWorld(screenX, screenY) {
+            const centerX = canvas.width / 2 + offsetX * zoom;
+            const centerY = canvas.height / 2 + offsetY * zoom;
+            
+            return {
+                x: (screenX - centerX) / zoom,
+                y: (centerY - screenY) / zoom
+            };
+        }
+
+        function worldToScreen(x, y) {
+            const centerX = canvas.width / 2 + offsetX * zoom;
+            const centerY = canvas.height / 2 + offsetY * zoom;
+            
+            return {
+                x: centerX + x * zoom,
+                y: centerY - y * zoom
+            };
+        }
+
+        function drawGrid() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const centerX = canvas.width / 2 + offsetX * zoom;
+            const centerY = canvas.height / 2 + offsetY * zoom;
+            
+            // Grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+            ctx.lineWidth = 1;
+            
+            const gridSpacing = zoom * 0.5;
+            
+            for (let x = centerX % gridSpacing; x < canvas.width; x += gridSpacing) {
+                ctx.beginPath();
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+                ctx.stroke();
+            }
+            
+            for (let y = centerY % gridSpacing; y < canvas.height; y += gridSpacing) {
+                ctx.beginPath();
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+                ctx.stroke();
+            }
+            
+            // Ejes principales
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.lineWidth = 2;
+            
+            // Eje X
+            if (centerY >= 0 && centerY <= canvas.height) {
+                ctx.beginPath();
+                ctx.moveTo(0, centerY);
+                ctx.lineTo(canvas.width, centerY);
+                ctx.stroke();
+            }
+            
+            // Eje Y
+            if (centerX >= 0 && centerX <= canvas.width) {
+                ctx.beginPath();
+                ctx.moveTo(centerX, 0);
+                ctx.lineTo(centerX, canvas.height);
+                ctx.stroke();
+            }
+            
+            // Punto de expansión
+            const expPoint = worldToScreen(expansionPoint, 0);
+            if (expPoint.x >= 0 && expPoint.x <= canvas.width && 
+                expPoint.y >= 0 && expPoint.y <= canvas.height) {
+                ctx.fillStyle = '#ff6b35';
+                ctx.beginPath();
+                ctx.arc(expPoint.x, expPoint.y, 8, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                // Línea vertical en el punto de expansión
+                ctx.strokeStyle = 'rgba(255, 107, 53, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                ctx.moveTo(expPoint.x, 0);
+                ctx.lineTo(expPoint.x, canvas.height);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
+
+        function evaluateFunction(func, x) {
+            try {
+                const scope = { 
+                    x: x, 
+                    sin: Math.sin, cos: Math.cos, tan: Math.tan,
+                    exp: Math.exp, log: Math.log, sqrt: Math.sqrt,
+                    pi: Math.PI, e: Math.E, abs: Math.abs,
+                    pow: Math.pow, atan: Math.atan
+                };
+                return math.evaluate(func, scope);
+            } catch (e) {
+                console.error('Error evaluating function:', e);
+                return NaN;
+            }
+        }
+
+        function numericalDerivative(func, x, h = 1e-5) {
+            return (evaluateFunction(func, x + h) - evaluateFunction(func, x - h)) / (2 * h);
+        }
+
+        function factorial(n) {
+            if (n <= 1) return 1;
+            return n * factorial(n - 1);
+        }
+
+        function calculateTaylorCoefficients() {
+            const maxTerms = parseInt(document.getElementById('max-terms').value);
+            coefficients = [];
+            
+            // Calcular f(a) y las derivadas en el punto de expansión
+            let currentFunc = currentFunction;
+            
+            for (let n = 0; n <= maxTerms; n++) {
+                let value;
+                
+                if (n === 0) {
+                    value = evaluateFunction(currentFunc, expansionPoint);
+                } else {
+                    // Derivada numérica de orden n
+                    value = 0;
+                    const h = 1e-4;
+                    
+                    // Usar diferencias finitas centradas para mayor precisión
+                    if (n === 1) {
+                        value = numericalDerivative(currentFunc, expansionPoint);
+                    } else {
+                        // Para derivadas de orden superior, usar aproximación iterativa
+                        let derivFunc = currentFunc;
+                        for (let i = 0; i < n; i++) {
+                            const tempFunc = derivFunc;
+                            derivFunc = (x) => numericalDerivative(tempFunc.toString(), x);
+                        }
+                        value = numericalDerivative(currentFunc, expansionPoint, h);
+                        
+                        // Aproximación más directa para derivadas comunes
+                        if (currentFunc === 'sin(x)') {
+                            const cycle = n % 4;
+                            if (cycle === 0) value = Math.sin(expansionPoint);
+                            else if (cycle === 1) value = Math.cos(expansionPoint);
+                            else if (cycle === 2) value = -Math.sin(expansionPoint);
+                            else value = -Math.cos(expansionPoint);
+                        } else if (currentFunc === 'cos(x)') {
+                            const cycle = n % 4;
+                            if (cycle === 0) value = Math.cos(expansionPoint);
+                            else if (cycle === 1) value = -Math.sin(expansionPoint);
+                            else if (cycle === 2) value = -Math.cos(expansionPoint);
+                            else value = Math.sin(expansionPoint);
+                        } else if (currentFunc === 'exp(x)') {
+                            value = Math.exp(expansionPoint);
+                        }
+                    }
+                }
+                
+                coefficients.push(value / factorial(n));
+            }
+        }
+
+        function taylorTerm(x, n) {
+            if (n >= coefficients.length) return 0;
+            return coefficients[n] * Math.pow(x - expansionPoint, n) * factorial(n);
+        }
+
+        function taylorSeries(x, maxTerm) {
+            let result = 0;
+            for (let n = 0; n <= maxTerm && n < coefficients.length; n++) {
+                if (selectedTerms.has(n)) {
+                    result += coefficients[n] * Math.pow(x - expansionPoint, n);
+                }
+            }
+            return result;
+        }
+
+        function drawFunction(evalFunc, color, lineWidth = 2, isDashed = false) {
+            const points = [];
+            const numPoints = 1000;
+            const range = 15;
+            
+            for (let i = 0; i <= numPoints; i++) {
+                const x = -range + (2 * range * i / numPoints);
+                const y = evalFunc(x);
+                if (!isNaN(y) && isFinite(y)) {
+                    points.push(worldToScreen(x, y));
+                }
+            }
+            
+            if (points.length === 0) return;
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            
+            if (isDashed) {
+                ctx.setLineDash([8, 4]);
+            } else {
+                ctx.setLineDash([]);
+            }
+            
+            ctx.beginPath();
+            let started = false;
+            
+            for (let point of points) {
+                if (point.x >= -50 && point.x <= canvas.width + 50 && 
+                    point.y >= -50 && point.y <= canvas.height + 50) {
+                    if (!started) {
+                        ctx.moveTo(point.x, point.y);
+                        started = true;
+                    } else {
+                        ctx.lineTo(point.x, point.y);
+                    }
+                }
+            }
+            
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawFunctions() {
+            if (coefficients.length === 0) return;
+            
+            // Función original
+            const originalFunc = (x) => evaluateFunction(currentFunction, x);
+            drawFunction(originalFunc, '#ff6b6b', 3);
+            
+            // Serie de Taylor completa
+            const maxSelected = Math.max(...Array.from(selectedTerms));
+            const taylorFunc = (x) => taylorSeries(x, maxSelected);
+            drawFunction(taylorFunc, '#4ecdc4', 2);
+            
+            // Términos individuales (solo los primeros 3 para no saturar)
+            const termColors = ['#ffe66d', '#ff9ff3', '#54a0ff', '#5f27cd', '#00d2d3'];
+            let colorIndex = 0;
+            
+            for (let n of Array.from(selectedTerms).slice(0, 3)) {
+                if (n < coefficients.length && n > 0) { // Skip el término constante
+                    const termFunc = (x) => coefficients[n] * Math.pow(x - expansionPoint, n);
+                    drawFunction(termFunc, termColors[colorIndex % termColors.length], 1, true);
+                    colorIndex++;
+                }
+            }
+            
+            // Calcular error RMS
+            calculateError();
+        }
+
+        function calculateError() {
+            if (coefficients.length === 0) return;
+            
+            let sumSquaredError = 0;
+            let count = 0;
+            const range = 2;
+            
+            for (let x = expansionPoint - range; x <= expansionPoint + range; x += 0.1) {
+                const original = evaluateFunction(currentFunction, x);
+                const maxSelected = Math.max(...Array.from(selectedTerms));
+                const taylor = taylorSeries(x, maxSelected);
+                
+                if (!isNaN(original) && !isNaN(taylor) && isFinite(original) && isFinite(taylor)) {
+                    sumSquaredError += Math.pow(original - taylor, 2);
+                    count++;
+                }
+            }
+            
+            const rmsError = count > 0 ? Math.sqrt(sumSquaredError / count) : 0;
+            document.getElementById('error-value').textContent = rmsError.toFixed(3);
+        }
+
+        function displayCoefficients() {
+            const container = document.getElementById('coefficients-container');
+            let html = '';
+            
+            for (let i = 0; i < coefficients.length; i++) {
+                const coeff = coefficients[i];
+                const derivative = i === 0 ? 'f' : `f${'⁽' + i + '⁾'}`;
+                
+                html += `<div class="coefficient-item">
+                            <strong>${derivative}(${expansionPoint}) =</strong> 
+                            <span class="coefficient-value">${coeff.toFixed(6)}</span><br>
+                            <small>Término ${i}: ${coeff.toFixed(4)}(x-${expansionPoint})^${i}${i > 0 ? `/${factorial(i)}` : ''}</small>
+                         </div>`;
+            }
+            
+            container.innerHTML = html;
+        }
+
+        function calculateTaylor() {
+            document.getElementById('loading-overlay').classList.add('active');
+            document.querySelector('.status-indicator').className = 'status-indicator status-calculating';
+            
+            setTimeout(() => {
+                try {
+                    calculateTaylorCoefficients();
+                    displayCoefficients();
+                    generateTermsGrid();
+                    drawGrid();
+                    drawFunctions();
+                    document.querySelector('.status-indicator').className = 'status-indicator status-ready';
+                } catch (error) {
+                    console.error('Error calculating Taylor series:', error);
+                    document.querySelector('.status-indicator').className = 'status-indicator status-error';
+                } finally {
+                    document.getElementById('loading-overlay').classList.remove('active');
+                }
+            }, 100);
+        }
+
+        function resetAll() {
+            coefficients = [];
+            selectedTerms = new Set([0, 1, 2, 3, 4]);
+            expansionPoint = 0;
+            document.getElementById('expansion-point').value = 0;
+            document.getElementById('point-value').textContent = 'a = 0.0';
+            document.getElementById('error-value').textContent = '0.000';
+            document.getElementById('coefficients-container').innerHTML = 
+                '<p style="color: var(--text-secondary); text-align: center; margin: 20px 0; font-size: 0.8rem;">Los coeficientes aparecerán aquí después del cálculo...</p>';
+            generateTermsGrid();
+            resetView();
+            document.querySelector('.status-indicator').className = 'status-indicator status-ready';
+        }
+
+        function zoomIn() {
+            zoom *= 1.2;
+            zoom = Math.min(200, zoom);
+            drawGrid();
+            drawFunctions();
+        }
+
+        function zoomOut() {
+            zoom *= 0.8;
+            zoom = Math.max(10, zoom);
+            drawGrid();
+            drawFunctions();
+        }
+
+        function resetView() {
+            zoom = 50;
+            offsetX = 0;
+            offsetY = 0;
+            drawGrid();
+            drawFunctions();
+        }
+
+        function centerOnExpansion() {
+            offsetX = -expansionPoint;
+            offsetY = 0;
+            drawGrid();
+            drawFunctions();
+        }
+
+        function toggleAnimation() {
+            isAnimating = !isAnimating;
+            document.getElementById('play-btn').textContent = isAnimating ? '⏸️' : '▶️';
+        }
+
+        function resetAnimation() {
+            animationTime = 0;
+        }
+
+        function animate() {
+            if (isAnimating) {
+                animationTime += 0.02 * animationSpeed;
+                drawGrid();
+                drawFunctions();
+            }
+            requestAnimationFrame(animate);
+        }
+
+        // Actualizar grid cuando cambie el número máximo de términos
+        document.getElementById('max-terms').addEventListener('change', generateTermsGrid);
+
+        // Funciones del modal
+        function showFormulaModal() {
+            updateModalContent();
+            document.getElementById('formula-modal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideFormulaModal() {
+            document.getElementById('formula-modal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        function updateModalContent() {
+            // Información básica
+            document.getElementById('modal-function-name').textContent = currentFunction;
+            document.getElementById('modal-current-function').textContent = currentFunction;
+            document.getElementById('modal-expansion-point').textContent = `a = ${expansionPoint}`;
+            document.getElementById('modal-terms-count').textContent = coefficients.length;
+            document.getElementById('modal-max-terms').textContent = coefficients.length - 1;
+            document.getElementById('modal-selected-terms').textContent = Array.from(selectedTerms).sort((a, b) => a - b).join(', ');
+            document.getElementById('modal-current-error').textContent = document.getElementById('error-value').textContent;
+
+            // Generar fórmula específica
+            generateSpecificFormula();
+            
+            // Generar términos expandidos
+            generateExpandedTerms();
+        }
+
+        function generateSpecificFormula() {
+            const container = document.getElementById('specific-formula');
+            let formula = `<span class="variable">${currentFunction}</span> = `;
+            
+            if (coefficients.length === 0) {
+                container.innerHTML = formula + '<span class="math-symbol">[ Calcular primero los coeficientes ]</span>';
+                return;
+            }
+
+            // Construir la serie término por término
+            let terms = [];
+            for (let n = 0; n < Math.min(coefficients.length, 8); n++) {
+                if (selectedTerms.has(n)) {
+                    let term = '';
+                    const coeff = coefficients[n];
+                    
+                    if (n === 0) {
+                        term = `<span class="coefficient">${formatCoefficient(coeff)}</span>`;
+                    } else {
+                        let coeffDisplay = formatCoefficient(coeff);
+                        if (Math.abs(coeff - 1) < 1e-10) coeffDisplay = '';
+                        else if (Math.abs(coeff + 1) < 1e-10) coeffDisplay = '-';
+                        else coeffDisplay += ' × ';
+                        
+                        if (expansionPoint === 0) {
+                            term = `<span class="coefficient">${coeffDisplay}</span><span class="variable">x</span>`;
+                            if (n > 1) term += `<span class="superscript">${n}</span>`;
+                        } else {
+                            term = `<span class="coefficient">${coeffDisplay}</span><span class="variable">(x - ${expansionPoint})</span>`;
+                            if (n > 1) term += `<span class="superscript">${n}</span>`;
+                        }
+                    }
+                    terms.push(term);
+                }
+            }
+
+            if (coefficients.length > 8) {
+                terms.push('<span class="math-symbol">+ ...</span>');
+            }
+
+            container.innerHTML = formula + terms.join(' <span class="math-symbol">+</span> ');
+        }
+
+        function generateExpandedTerms() {
+            const container = document.getElementById('expanded-terms');
+            
+            if (coefficients.length === 0) {
+                container.innerHTML = '<span class="math-symbol">[ Calcular primero los coeficientes ]</span>';
+                return;
+            }
+
+            let expandedHTML = '';
+            
+            for (let n = 0; n < coefficients.length && n <= 10; n++) {
+                if (selectedTerms.has(n)) {
+                    const coeff = coefficients[n];
+                    const originalCoeff = coeff * factorial(n);
+                    
+                    expandedHTML += `<div style="margin-bottom: 8px;">`;
+                    expandedHTML += `<span class="math-symbol">T<span class="subscript">${n}</span>(x) = </span>`;
+                    
+                    if (n === 0) {
+                        expandedHTML += `<span class="coefficient">${formatCoefficient(originalCoeff)}</span>`;
+                    } else {
+                        expandedHTML += `<span class="coefficient">${formatCoefficient(originalCoeff)}</span>`;
+                        expandedHTML += ` <span class="math-symbol">/</span> <span class="math-symbol">${factorial(n)}!</span>`;
+                        
+                        if (expansionPoint === 0) {
+                            expandedHTML += ` <span class="math-symbol">×</span> <span class="variable">x</span>`;
+                            if (n > 1) expandedHTML += `<span class="superscript">${n}</span>`;
+                        } else {
+                            expandedHTML += ` <span class="math-symbol">×</span> <span class="variable">(x - ${expansionPoint})</span>`;
+                            if (n > 1) expandedHTML += `<span class="superscript">${n}</span>`;
+                        }
+                        
+                        expandedHTML += ` = <span class="coefficient">${formatCoefficient(coeff)}</span>`;
+                        if (expansionPoint === 0) {
+                            if (n === 1) expandedHTML += ` <span class="variable">x</span>`;
+                            else if (n > 1) expandedHTML += ` <span class="variable">x</span><span class="superscript">${n}</span>`;
+                        } else {
+                            if (n === 1) expandedHTML += ` <span class="variable">(x - ${expansionPoint})</span>`;
+                            else if (n > 1) expandedHTML += ` <span class="variable">(x - ${expansionPoint})</span><span class="superscript">${n}</span>`;
+                        }
+                    }
+                    
+                    expandedHTML += `</div>`;
+                }
+            }
+
+            container.innerHTML = expandedHTML;
+        }
+
+        function formatCoefficient(value) {
+            if (Math.abs(value) < 1e-10) return '0';
+            if (Math.abs(value - Math.round(value)) < 1e-10) return Math.round(value).toString();
+            return value.toFixed(6);
+        }
+
+        // Cerrar modal al hacer click fuera
+        document.getElementById('formula-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideFormulaModal();
+            }
+        });
+
+        // Cerrar modal con tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideFormulaModal();
+            }
+        });
+    </script>
+</body>
+</html>
