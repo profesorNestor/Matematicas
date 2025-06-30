@@ -1,39 +1,25 @@
+html
 <!DOCTYPE html>
-<!-- 'lang="es"' es importante para la accesibilidad y el SEO, indica que el idioma es español. -->
-<!-- 'class="dark"' establece el tema oscuro por defecto, esto se puede controlar con JavaScript. -->
 <html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
-    <!-- La etiqueta 'viewport' es crucial para que el diseño se adapte a dispositivos móviles (Responsive Design). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Calculadora Modular Web 🧮</title>
     
-    <!-- 🎨 ENLACES A ARCHIVOS DE ESTILO (CSS) -->
-    <!-- Enlaza a tu hoja de estilos principal donde defines la apariencia de la página. -->
     <link rel="stylesheet" href="style.css">
-    <!-- Se utiliza Font Awesome para los íconos. Es una biblioteca muy popular y fácil de usar. -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
-    <!-- 🏛️ ESTRUCTURA PRINCIPAL DE LA APLICACIÓN -->
-    <!-- 'app-container' es el contenedor principal que usa Flexbox para organizar el sidebar y el contenido. -->
     <div class="app-container">
         
-        <!-- 🧭 BARRA LATERAL DE NAVEGACIÓN (SIDEBAR) -->
         <aside id="sidebar" class="sidebar">
             
-            <!-- Encabezado del Sidebar -->
             <header class="sidebar-header">
                 <i class="fas fa-calculator fa-2x text-sky-400"></i>
                 <span class="text-xl font-bold">Herramientas 🛠️</span>
             </header>
             
-            <!-- Menú de Navegación -->
-            <!-- 'sidebar-nav' contiene todos los enlaces a los diferentes módulos de la calculadora. -->
             <nav class="sidebar-nav">
-                <!-- CADA ENLACE ahora tiene solo UN emoji por tema, sin duplicación -->
-                <!-- 'data-module' es un atributo personalizado que usamos en JavaScript para saber qué página cargar. -->
-
                 <a href="#" class="sidebar-link" data-module="inicio"><span>🏠 Inicio</span></a>
                 <a href="#" class="sidebar-link" data-module="algebra"><span>📐 Álgebra</span></a>
                 <a href="#" class="sidebar-link" data-module="complejos"><span>⚛️ Números Complejos</span></a>
@@ -47,7 +33,6 @@
                 <a href="#" class="sidebar-link" data-module="progresiones"><span>📈 Progresiones</span></a>
                 <a href="#" class="sidebar-link" data-module="poligonos"><span>💠 Polígonos</span></a>
                 
-                <!-- ✨ NUEVO ENLACE PARA GAUSS AÑADIDO -->
                 <a href="#" class="sidebar-link" data-module="gauss"><span>🧮 Fórmula de Gauss</span></a>
                 
                 <a href="#" class="sidebar-link" data-module="poliedros"><span>🧊 Poliedros</span></a>
@@ -58,13 +43,15 @@
                 <a href="#" class="sidebar-link" data-module="edos"><span>📉 Ecuaciones Diferenciales</span></a>
                 <a href="#" class="sidebar-link" data-module="IntegralesDefinidas"><span>🔗 Integrales Definidas</span></a>
                 <a href="#" class="sidebar-link" data-module="RungeKutta"><span>⚙️ Runge-Kutta</span></a>
+                
+                <a href="#" class="sidebar-link" data-module="taylor"><span>✨ Series de Taylor</span></a>
+                <a href="#" class="sidebar-link" data-module="fourier"><span>〰️ Series de Fourier</span></a>
+
                 <a href="#" class="sidebar-link" data-module="graficas"><span>📈 Gráficas</span></a>
                 <a href="#" class="sidebar-link" data-module="formulas"><span>📜 Fórmulas</span></a>
             </nav>
             
-            <!-- Pie de página del Sidebar -->
             <footer class="sidebar-footer">
-                <!-- Este botón permite cambiar entre el modo claro y oscuro. -->
                 <button id="theme-toggle" class="theme-toggle-btn">
                     <i class="fas fa-sun"></i>
                     <span id="theme-text">Modo Claro</span>
@@ -72,38 +59,23 @@
             </footer>
         </aside>
 
-        <!-- 🖼️ ÁREA DE CONTENIDO PRINCIPAL -->
-        <!-- 'main-content-wrapper' envuelve la cabecera (para móviles) y el área de contenido. -->
         <div class="main-content-wrapper">
              
-             <!-- Cabecera para la vista en móviles -->
              <header class="main-header">
-                <!-- Este botón aparece en móviles para mostrar/ocultar el sidebar. -->
                 <button id="mobile-menu-button" class="mobile-menu-btn">
                     <i class="fas fa-bars"></i>
                 </button>
-                <!-- El título de la cabecera cambiará dinámicamente con JavaScript. -->
                 <h1 id="main-header-title" class="main-title">Inicio</h1>
             </header>
 
-            <!-- El Iframe donde se cargarán los módulos -->
             <main class="content-area">
-                <!-- '<iframe>' es la clave de la aplicación modular. -->
-                <!-- El atributo 'src' cambiará con JavaScript para cargar la página del módulo correspondiente. -->
-                <!-- Por ejemplo, al hacer clic en 'Álgebra', el src cambiará a 'modules/algebra.html'. -->
-                <!-- Para Gauss, el src cambiará a 'modules/gauss.html'. -->
                 <iframe id="content-frame" src="modules/inicio.html" frameborder="0" class="content-frame"></iframe>
             </main>
         </div>
     </div>
     
-    <!-- 🌑 CAPA DE SUPERPOSICIÓN (OVERLAY) -->
-    <!-- Esta capa oscura aparece detrás del sidebar en móviles para enfocar la atención en el menú. -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-    <!-- 📜 SCRIPTS DE JAVASCRIPT -->
-    <!-- El archivo 'script.js' contiene toda la lógica para hacer la página interactiva. -->
-    <!-- Se coloca al final del 'body' para que la página cargue su contenido HTML y CSS primero. -->
     <script src="script.js"></script>
 </body>
 </html>
