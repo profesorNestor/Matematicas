@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universo Platónico - Edición Final</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Universo Platónico - Versión con Iconos Actualizados</title>
     <!-- Iconos de Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Biblioteca Three.js para 3D -->
@@ -15,21 +15,27 @@
             --accent-1: #ffd60a;
             --accent-purple: #9d4edd;
             --accent-blue: #00a6fb;
-            --glass-bg: rgba(22, 28, 48, 0.75);
+            --glass-bg: rgba(22, 28, 48, 0.85);
             --glass-border: rgba(255, 255, 255, 0.1);
             --text-primary: #ffffff;
             --text-secondary: rgba(255, 255, 255, 0.85);
             --font-main: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            /* Altura de la barra de control móvil */
+            --mobile-control-bar-height: 80px;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        /* Previene el highlight azul en iOS al tocar elementos */
         html { -webkit-tap-highlight-color: transparent; }
+        
         body {
             font-family: var(--font-main);
             background: var(--bg-primary);
             color: var(--text-primary);
             overflow: hidden;
             position: relative;
+            height: 100vh;
         }
 
         /* --- Fondo Animado Cósmico --- */
@@ -54,171 +60,155 @@
         
         /* --- Encabezado --- */
         .header {
-            position: absolute; top: 0; left: 0; width: 100%; padding: 1.5rem 2rem; z-index: 100;
-            background: linear-gradient(to bottom, rgba(0, 8, 20, 0.8), transparent); text-align: center;
+            position: absolute; top: 0; left: 0; width: 100%; padding: 1rem 1.5rem; z-index: 10;
+            background: linear-gradient(to bottom, rgba(0, 8, 20, 0.7), transparent); text-align: center;
         }
         .logo {
-            font-size: clamp(1.8rem, 4vw, 2.5rem); font-weight: 900;
+            font-size: clamp(1.5rem, 4vw, 2.2rem); font-weight: 900;
             background: linear-gradient(45deg, var(--accent-1), var(--accent-blue));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 40px rgba(255, 214, 10, 0.6); animation: glow 2s ease-in-out infinite alternate;
-        }
-        @keyframes glow { from { filter: brightness(1); } to { filter: brightness(1.3); } }
-
-        /* --- Botones de toggle móvil --- */
-        .mobile-toggle {
-            display: none;
-            position: fixed; bottom: 1.5rem; z-index: 200; width: 50px; height: 50px; border-radius: 50%;
-            background: var(--glass-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border);
-            color: var(--accent-1); cursor: pointer; align-items: center; justify-content: center; font-size: 1.5rem;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
-        #mobile-control-panel-toggle { left: 1.5rem; }
-        #mobile-info-panel-toggle { right: 1.5rem; }
-
-        /* --- Paneles para Desktop --- */
-        @media (min-width: 769px) {
-            .panel {
-                position: absolute; background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-                border: 1px solid var(--glass-border); border-radius: 24px; padding: 1.5rem; z-index: 10;
-                box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
-                transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s, width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-            }
-            .info-panel {
-                right: 2rem; top: 50%; transform: translateY(-50%); width: 320px;
-            }
-            .control-panel {
-                left: 2rem; top: 50%; transform: translateY(-50%);
-                width: 330px; max-height: 90vh; overflow-y: auto; overflow-x: hidden;
-                padding-top: 3.5rem;
-            }
-            .panel.is-hidden { 
-                opacity: 0; 
-                pointer-events: none; 
-                transform: translateX(120%) translateY(-50%);
-            }
-            .control-panel.is-hidden {
-                transform: translateX(-120%) translateY(-50%);
-            }
-            
-            /* Panel de control colapsado - solo desktop */
-            .control-panel.is-collapsed {
-                width: 90px;
-                padding-top: 1.5rem;
-            }
-            .control-panel.is-collapsed .panel-title,
-            .control-panel.is-collapsed .panel-content > *:not(.solid-selector),
-            .control-panel.is-collapsed .solid-name {
-                display: none;
-            }
-            .control-panel.is-collapsed .solid-selector {
-                grid-template-columns: 1fr;
-                gap: 1rem;
-                margin-bottom: 0;
-            }
-            .control-panel.is-collapsed #panel-expander {
-                top: 1rem;
-                left: 50%;
-                transform: translateX(-50%);
-            }
-
-            #panel-expander {
-                display: flex;
-                position: absolute;
-                top: 1rem;
-                left: 1rem;
-                width: 35px;
-                height: 35px;
-                background: rgba(255, 255, 255, 0.1);
-                border: 1px solid var(--glass-border);
-                border-radius: 50%;
-                color: var(--text-primary);
-                cursor: pointer;
-                align-items: center;
-                justify-content: center;
-                font-size: 1.1rem;
-                z-index: 102;
-                transition: all 0.3s ease;
-            }
-            #panel-expander:hover {
-                background-color: var(--accent-1);
-                color: var(--bg-primary);
-                transform: scale(1.1);
-            }
-
-            #info-panel-toggle {
-                position: absolute; right: 2rem; top: 10rem; width: 50px; height: 50px;
-                border-radius: 50%; background: var(--glass-bg); backdrop-filter: blur(10px);
-                border: 1px solid var(--glass-border); color: var(--accent-1); cursor: pointer;
-                display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; z-index: 101; font-size: 1.5rem;
-            }
-            #info-panel-toggle:hover { background: rgba(255, 255, 255, 0.1); transform: scale(1.1) rotate(90deg); }
+            text-shadow: 0 0 20px rgba(255, 214, 10, 0.5);
         }
 
-        /* --- Estilos para Móvil --- */
-        @media (max-width: 768px) {
-            .mobile-toggle { display: flex; }
-            
-            /* Ocultar botones de desktop en móvil */
-            #panel-expander, #info-panel-toggle { display: none !important; }
-            
-            .panel {
-                position: fixed; bottom: 0; left: 0; right: 0; top: auto; width: 100%; max-height: 80vh;
-                border-radius: 24px 24px 0 0; transform: translateY(100%); z-index: 150;
-                background: var(--glass-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-                border: 1px solid var(--glass-border); padding: 1.5rem;
-                box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
-                transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            .panel.is-visible-mobile { transform: translateY(0); }
-            
-            .control-panel { padding-top: 3rem; }
-            
-            .panel-close-btn {
-                display: flex;
-                position: absolute; top: 0.75rem; right: 1rem; width: 35px; height: 35px; border-radius: 50%;
-                background: rgba(255, 255, 255, 0.1); border: none; color: var(--text-secondary); cursor: pointer;
-                font-size: 1.2rem; z-index: 160; align-items: center; justify-content: center;
-            }
-            
-            .mobile-overlay {
-                position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6);
-                z-index: 140; opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
-            }
-            .mobile-overlay.is-active { opacity: 1; pointer-events: auto; }
-            
-            /* Ajustar el header en móvil */
-            .header { padding: 1rem; }
-            .logo { font-size: 1.5rem; }
-            
-            /* Ajustar tamaños de fuente y espaciado en móvil */
-            .panel-title { font-size: 1.2rem; margin-bottom: 1rem; }
-            .section-title { font-size: 0.9rem; }
-            .solid-selector { grid-template-columns: repeat(5, 1fr); gap: 0.5rem; }
-            .solid-btn { padding: 0.4rem; }
-            .solid-btn i { font-size: 1.5rem; }
-            .solid-name { font-size: 0.6rem; }
+        /* --- Paneles Deslizables (Móvil Primero) --- */
+        .panel {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            max-height: calc(100vh - 60px); /* Deja espacio arriba */
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--glass-border);
+            border-radius: 24px 24px 0 0;
+            padding: 1rem;
+            padding-bottom: calc(var(--mobile-control-bar-height) + 1rem); /* Espacio para la barra de control */
+            z-index: 150;
+            box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .panel[data-state="open"] {
+            transform: translateY(0);
+        }
+        
+        /* Pequeña barra para indicar que se puede deslizar */
+        .panel::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 4px;
+            background: var(--glass-border);
+            border-radius: 2px;
         }
 
-        /* --- Estilos de Componentes Internos --- */
-        h2.panel-title { font-size: 1.3rem; margin-bottom: 1.5rem; text-align: center; }
-        h3.section-title { font-size: 1rem; margin-bottom: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); display: flex; justify-content: space-between; align-items: center; }
-        .solid-selector { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
-        .solid-btn { aspect-ratio: 1; background: var(--glass-bg); border: 2px solid transparent; border-radius: 12px; cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem; position: relative; overflow: hidden; }
-        .solid-btn i { font-size: 1.8rem; transition: all 0.3s; color: var(--text-secondary); }
-        .solid-btn:hover { background: rgba(255, 255, 255, 0.1); }
-        .solid-btn:hover i { color: var(--text-primary); transform: scale(1.1); }
+        .panel-close-btn {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 50%;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            z-index: 160;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .mobile-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 140;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.4s ease;
+        }
+        .mobile-overlay[data-state="active"] {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* --- Barra de Controles Fija (Solo Móvil) --- */
+        .mobile-control-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: var(--mobile-control-bar-height);
+            background: linear-gradient(to top, rgba(0, 8, 20, 0.8), transparent);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 1rem;
+            z-index: 100;
+        }
+
+        .mobile-toggle-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.3rem;
+            transition: color 0.2s, transform 0.2s;
+        }
+        .mobile-toggle-btn:hover { color: var(--text-primary); }
+        .mobile-toggle-btn.active { color: var(--accent-1); transform: scale(1.1); }
+        .mobile-toggle-btn i { font-size: 1.8rem; }
+        .mobile-toggle-btn span { font-size: 0.7rem; font-weight: 500; }
+
+        /* --- ESTILOS DE COMPONENTES INTERNOS (Comunes para móvil y escritorio) --- */
+        .panel-title { font-size: 1.3rem; margin-bottom: 1.5rem; text-align: center; padding-top: 1.5rem; }
+        .section-title { font-size: 1rem; margin-bottom: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1.5px; padding-bottom: 0.5rem; border-bottom: 1px solid var(--glass-border); }
+        
+        .solid-selector { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+        .solid-btn { aspect-ratio: 1; background: transparent; border: 2px solid var(--glass-border); border-radius: 16px; cursor: pointer; transition: all 0.3s; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem; }
+        .solid-btn i { font-size: 2rem; color: var(--text-secondary); transition: all 0.3s; }
+        .solid-btn:hover { border-color: var(--accent-1); background: rgba(255, 255, 255, 0.05); }
+        .solid-btn:hover i { color: var(--text-primary); }
         .solid-btn.active { border-image: linear-gradient(45deg, var(--accent-blue), var(--accent-purple)) 1; }
         .solid-btn.active i { background: linear-gradient(45deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .solid-name { font-size: 0.7rem; text-align: center; margin-top: 0.4rem; font-weight: 500;}
-        .section-toggle { background: none; border: none; color: var(--accent-1); font-size: 1.2rem; cursor: pointer; padding: 0.25rem; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-        .section-toggle:hover { transform: scale(1.2) rotate(15deg); }
-        .section-toggle.is-active { transform: rotate(180deg); }
-        .collapsible-container { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-in-out, margin-top 0.4s ease-in-out; }
-        .collapsible-container.is-visible { max-height: 150px; margin-top: 1rem; }
+        .solid-name { font-size: 0.7rem; text-align: center; margin-top: 0.5rem; font-weight: 500;}
+
+        .collapsible-section { margin-top: 1.5rem; }
+        .section-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        
+        /* CAMBIO: Estilos para los nuevos iconos en los encabezados de sección */
+        .header-icons {
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            color: var(--accent-1);
+        }
+        .header-icons .section-toggle-icon {
+             color: var(--text-secondary);
+        }
+        .section-header[aria-expanded="true"] .section-toggle-icon { transform: rotate(180deg); }
+        
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out, padding-top 0.4s ease-in-out;
+        }
+        .collapsible-content[data-state="open"] {
+            max-height: 500px; /* Suficientemente grande */
+            padding-top: 1rem;
+        }
+
         .color-themes { display: grid; grid-template-columns: repeat(6, 1fr); gap: 0.75rem; }
         .theme-btn { width: 100%; aspect-ratio: 1; border-radius: 50%; cursor: pointer; border: 2px solid transparent; transition: all 0.3s ease; box-shadow: 0 2px 10px rgba(0,0,0,0.3); }
         .theme-btn:hover { transform: scale(1.1); }
@@ -229,35 +219,100 @@
         .theme-btn[data-theme="amethyst"] { background: linear-gradient(45deg, #9d4edd, #e0aaff); }
         .theme-btn[data-theme="cosmic"] { background: linear-gradient(45deg, #8e2de2, #4a00e0); }
         .theme-btn[data-theme="synthwave"] { background: linear-gradient(45deg, #ff00c1, #00fff2); }
+        
         .properties { margin-top: 1.5rem; }
         .property-item { display: flex; justify-content: space-between; align-items: center; padding: 0.9rem 0.5rem; border-bottom: 1px solid var(--glass-border); }
         .property-item:last-child { border-bottom: none; }
         .property-label { color: var(--text-secondary); font-size: 0.9rem; }
         .property-value { font-size: 1.1rem; font-weight: 600; color: var(--text-primary); }
+        
         .info-title { font-size: 1.4rem; margin-bottom: 1rem; color: var(--accent-1); }
         .info-content { color: var(--text-secondary); line-height: 1.7; font-size: 0.95rem; }
-        .controls-section, .actions-section { margin-top: 1.5rem; }
+        
         .toggle-group { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem; }
-        .toggle-item { display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 0.5rem; font-size: 0.8rem; }
+        .toggle-item { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); border-radius: 12px; padding: 0.75rem; }
+        .toggle-item span { font-size: 0.9rem; font-weight: 500;}
         .toggle-switch { position: relative; width: 44px; height: 24px; background: rgba(0, 0, 0, 0.2); border-radius: 24px; cursor: pointer; transition: all 0.3s; border: 1px solid var(--glass-border); }
         .toggle-switch input { display: none; }
         .toggle-slider { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: all 0.3s; }
         .toggle-switch input:checked ~ .toggle-slider { transform: translateX(20px); background: var(--accent-1); }
+
         .zoom-control { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); border-radius: 2rem; padding: 0.25rem; }
-        .zoom-btn { background: none; border: none; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; transition: background-color 0.2s; }
+        .zoom-btn { background: none; border: none; color: var(--text-primary); font-size: 1.2rem; cursor: pointer; width: 40px; height: 40px; border-radius: 50%; transition: background-color 0.2s; display: flex; align-items: center; justify-content: center;}
         .zoom-btn:hover { background-color: rgba(255,255,255,0.1); }
-        #zoom-level-text { font-size: 1rem; font-weight: 600; color: var(--accent-1); }
+        #zoom-level-text { font-size: 1rem; font-weight: 600; color: var(--accent-1); padding: 0 0.5rem; }
+        
         .action-buttons { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-        .action-btn { padding: 0.8rem; background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 12px; color: var(--text-primary); cursor: pointer; transition: all 0.3s; font-weight: 600; text-align: center; }
-        .action-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-1); transform: translateY(-2px); box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3); }
+        .action-btn { padding: 0.8rem; background: rgba(0,0,0,0.2); border: 1px solid transparent; border-radius: 12px; color: var(--text-primary); cursor: pointer; transition: all 0.3s; font-weight: 600; text-align: center; }
+        .action-btn:hover { background: rgba(255, 255, 255, 0.1); border-color: var(--accent-1); }
+
         .loading-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-primary); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 1000; transition: opacity 0.8s ease; }
         .loading-spinner { width: 80px; height: 80px; border: 4px solid rgba(255, 214, 10, 0.1); border-top-color: var(--accent-1); border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 2rem; }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        /* Ocultar botón de cerrar en desktop */
+        /* --- ESTILOS PARA ESCRITORIO --- */
         @media (min-width: 769px) {
-            .panel-close-btn { display: none !important; }
+            .mobile-control-bar, .mobile-overlay, .panel-close-btn {
+                display: none !important;
+            }
+
+            .panel {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 330px;
+                max-height: 90vh;
+                border: 1px solid var(--glass-border);
+                border-radius: 24px;
+                padding: 1.5rem;
+                padding-bottom: 1.5rem;
+                transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.5s;
+            }
+            .panel::before { display: none; }
+            .panel[data-state="closed"] {
+                opacity: 0;
+                pointer-events: none;
+            }
+            #control-panel {
+                left: 2rem;
+            }
+             #control-panel[data-state="closed"] {
+                transform: translateX(-120%) translateY(-50%);
+            }
+            #info-panel {
+                right: 2rem;
+            }
+            #info-panel[data-state="closed"] {
+                transform: translateX(120%) translateY(-50%);
+            }
+
+            /* Botones de toggle para escritorio */
+            .desktop-toggle-btn {
+                display: flex;
+                position: absolute;
+                top: 10rem;
+                width: 50px;
+                height: 50px;
+                border-radius: 50%;
+                background: var(--glass-bg);
+                backdrop-filter: blur(10px);
+                border: 1px solid var(--glass-border);
+                color: var(--accent-1);
+                cursor: pointer;
+                align-items: center;
+                justify-content: center;
+                transition: all 0.3s ease;
+                z-index: 101;
+                font-size: 1.5rem;
+            }
+            .desktop-toggle-btn:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: scale(1.1);
+            }
+            #desktop-control-toggle { left: 2rem; }
+            #desktop-info-toggle { right: 2rem; }
         }
+
     </style>
 </head>
 <body>
@@ -273,27 +328,17 @@
 
     <main class="main-container">
         <canvas id="three-canvas"></canvas>
-        
-        <!-- Botones de toggle para móvil -->
-        <button id="mobile-control-panel-toggle" class="mobile-toggle" aria-label="Abrir Panel de Controles">
-            <i class="fas fa-palette"></i>
-        </button>
-        <button id="mobile-info-panel-toggle" class="mobile-toggle" aria-label="Abrir Panel de Información">
-            <i class="fas fa-info-circle"></i>
-        </button>
-        
-        <!-- Overlay para móvil -->
-        <div class="mobile-overlay" id="mobile-overlay"></div>
-        
-        <!-- Botón de toggle para desktop -->
-        <button id="info-panel-toggle" aria-label="Abrir Panel de Información"><i class="fas fa-info-circle"></i></button>
 
-        <aside id="control-panel" class="panel control-panel">
-            <button id="panel-expander" aria-label="Contraer panel"><i class="fas fa-chevron-left"></i></button>
+        <!-- Controles de Escritorio -->
+        <button id="desktop-control-toggle" class="desktop-toggle-btn" aria-label="Mostrar/Ocultar Controles"><i class="fas fa-eye"></i></button>
+        <button id="desktop-info-toggle" class="desktop-toggle-btn" aria-label="Mostrar/Ocultar Información"><i class="fas fa-info-circle"></i></button>
+
+        <!-- Paneles -->
+        <aside id="control-panel" class="panel" data-state="closed">
             <button class="panel-close-btn" aria-label="Cerrar Panel de Controles">✕</button>
-            
-            <h2 class="panel-title">Selector de Sólidos</h2>
+            <h2 class="panel-title">Panel de Control</h2>
             <div class="panel-content">
+                <h3 class="section-title">Selector de Sólidos</h3>
                 <div class="solid-selector">
                     <button class="solid-btn active" data-solid="tetrahedron"><i class="fas fa-mountain"></i><span class="solid-name">Tetraedro</span></button>
                     <button class="solid-btn" data-solid="cube"><i class="fas fa-cube"></i><span class="solid-name">Cubo</span></button>
@@ -301,12 +346,17 @@
                     <button class="solid-btn" data-solid="dodecahedron"><i class="fas fa-dice-d20"></i><span class="solid-name">Dodecaedro</span></button>
                     <button class="solid-btn" data-solid="icosahedron"><i class="fas fa-atom"></i><span class="solid-name">Icosaedro</span></button>
                 </div>
-                <div class="color-theme-section">
-                    <h3 class="section-title">
-                        <span>Temas de Color</span>
-                        <button class="section-toggle" aria-label="Mostrar temas"><i class="fas fa-palette"></i></button>
-                    </h3>
-                    <div class="collapsible-container">
+                
+                <div class="collapsible-section">
+                    <!-- CAMBIO: Encabezado de sección actualizado con icono de paleta -->
+                    <div class="section-header" role="button" tabindex="0" aria-expanded="false" aria-controls="theme-content">
+                        <h3 class="section-title">Temas de Color</h3>
+                        <span class="header-icons">
+                            <i class="fas fa-palette"></i>
+                            <i class="fas fa-chevron-down section-toggle-icon"></i>
+                        </span>
+                    </div>
+                    <div id="theme-content" class="collapsible-content">
                         <div class="color-themes">
                             <button class="theme-btn active" data-theme="fire"></button>
                             <button class="theme-btn" data-theme="ocean"></button>
@@ -317,15 +367,20 @@
                         </div>
                     </div>
                 </div>
-                <div class="controls-section">
-                    <h3 class="section-title">
-                        <span>Controles</span>
-                        <button class="section-toggle" aria-label="Mostrar controles"><i class="fas fa-sliders"></i></button>
-                    </h3>
-                    <div class="collapsible-container">
+
+                <div class="collapsible-section">
+                     <!-- CAMBIO: Encabezado de sección actualizado con icono de controles -->
+                    <div class="section-header" role="button" tabindex="0" aria-expanded="false" aria-controls="options-content">
+                        <h3 class="section-title">Controles</h3>
+                        <span class="header-icons">
+                            <i class="fas fa-sliders-h"></i>
+                            <i class="fas fa-chevron-down section-toggle-icon"></i>
+                        </span>
+                    </div>
+                    <div id="options-content" class="collapsible-content">
                         <div class="toggle-group">
-                            <div class="toggle-item"><label class="toggle-switch"><input type="checkbox" id="wireframe-toggle"><span class="toggle-slider"></span></label><span>Malla</span></div>
-                            <div class="toggle-item"><label class="toggle-switch"><input type="checkbox" id="rotation-toggle" checked><span class="toggle-slider"></span></label><span>Rotación</span></div>
+                            <div class="toggle-item"><span>Malla</span><label class="toggle-switch"><input type="checkbox" id="wireframe-toggle"><span class="toggle-slider"></span></label></div>
+                            <div class="toggle-item"><span>Rotación</span><label class="toggle-switch"><input type="checkbox" id="rotation-toggle" checked><span class="toggle-slider"></span></label></div>
                         </div>
                         <div class="zoom-control">
                             <button id="zoom-out-btn" class="zoom-btn" aria-label="Alejar"><i class="fas fa-search-minus"></i></button>
@@ -334,12 +389,17 @@
                         </div>
                     </div>
                 </div>
-                <div class="actions-section">
-                     <h3 class="section-title">
-                        <span>Acciones</span>
-                        <button class="section-toggle" aria-label="Mostrar acciones"><i class="fas fa-bolt"></i></button>
-                    </h3>
-                    <div class="collapsible-container">
+
+                <div class="collapsible-section">
+                     <!-- CAMBIO: Encabezado de sección actualizado con icono de rayo -->
+                    <div class="section-header" role="button" tabindex="0" aria-expanded="false" aria-controls="actions-content">
+                        <h3 class="section-title">Acciones</h3>
+                        <span class="header-icons">
+                            <i class="fas fa-bolt"></i>
+                            <i class="fas fa-chevron-down section-toggle-icon"></i>
+                        </span>
+                    </div>
+                    <div id="actions-content" class="collapsible-content">
                         <div class="action-buttons">
                             <button class="action-btn" id="screenshot-btn"><i class="fas fa-camera"></i> <span>Captura</span></button>
                             <button class="action-btn" id="fullscreen-btn"><i class="fas fa-expand"></i> <span>Expandir</span></button>
@@ -349,7 +409,7 @@
             </div>
         </aside>
 
-        <aside id="info-panel" class="panel info-panel is-hidden">
+        <aside id="info-panel" class="panel" data-state="closed">
             <button class="panel-close-btn" aria-label="Cerrar Panel de Información">✕</button>
             <h3 class="info-title" id="info-title"></h3>
             <div class="info-content" id="info-content"></div>
@@ -359,25 +419,39 @@
                 <div class="property-item"><span class="property-label">Caras (C)</span><span class="property-value" id="faces"></span></div>
             </div>
         </aside>
+
+        <!-- Overlay para móvil -->
+        <div class="mobile-overlay" id="mobile-overlay" data-state="inactive"></div>
+
+        <!-- Barra de controles para móvil -->
+        <div class="mobile-control-bar">
+             <button class="mobile-toggle-btn" data-panel-id="control-panel">
+                <i class="fas fa-palette"></i>
+                <span>Controles</span>
+            </button>
+            <button class="mobile-toggle-btn" data-panel-id="info-panel">
+                <i class="fas fa-info-circle"></i>
+                <span>Info</span>
+            </button>
+        </div>
     </main>
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const isMobile = window.matchMedia("(max-width: 768px)").matches;
+        // --- VARIABLES GLOBALES ---
         let scene, camera, renderer, currentSolid;
         let autoRotate = true;
+        const MIN_ZOOM = 3, MAX_ZOOM = 15;
+        let activePanelId = null;
 
-        const MIN_ZOOM = 3;
-        const MAX_ZOOM = 15;
-
+        // --- DATOS Y TEMAS ---
         const solidsData = {
-            tetrahedron: { name: 'Tetraedro (Fuego)', vertices: 4, edges: 6, faces: 4, info: 'Simboliza el fuego y la sabiduría. Es el más simple de los sólidos, una pirámide de base triangular. En la alquimia, representa la ascensión y la conexión entre el cielo y la tierra. Es la única figura que es su propia dual.' },
-            cube: { name: 'Cubo (Tierra)', vertices: 8, edges: 12, faces: 6, info: 'Representa la tierra, la estabilidad y el mundo material. Sus caras cuadradas y su estructura sólida evocan fundamentos y orden. Es uno de los sólidos más reconocibles en la naturaleza y la arquitectura humana.' },
-            octahedron: { name: 'Octaedro (Aire)', vertices: 6, edges: 12, faces: 8, info: 'Asociado al aire y al intelecto. Formado por dos pirámides unidas por sus bases, sus caras triangulares le dan una apariencia ligera y fluida. Es la figura dual del cubo, mostrando un equilibrio perfecto entre vértices y caras.' },
-            dodecahedron: { name: 'Dodecaedro (Éter)', vertices: 20, edges: 30, faces: 12, info: 'Considerado por Platón como el símbolo del universo o el éter, la sustancia de los cielos. Sus 12 caras pentagonales se asocian a los signos del zodiaco. Es una figura de gran complejidad y belleza mística.' },
-            icosahedron: { name: 'Icosaedro (Agua)', vertices: 12, edges: 30, faces: 20, info: 'Simboliza el agua, la emoción y el cambio. Con 20 caras triangulares, es el sólido platónico con más caras, lo que le da una apariencia casi esférica y fluida. Es la figura dual del dodecaedro.' }
+            tetrahedron: { name: 'Tetraedro (Fuego)', vertices: 4, edges: 6, faces: 4, info: 'Simboliza el fuego y la sabiduría. Es el más simple de los sólidos, una pirámide de base triangular. Representa la ascensión y la conexión entre el cielo y la tierra.' },
+            cube: { name: 'Cubo (Tierra)', vertices: 8, edges: 12, faces: 6, info: 'Representa la tierra, la estabilidad y el mundo material. Sus caras cuadradas y su estructura sólida evocan fundamentos y orden. Es uno de los sólidos más reconocibles.' },
+            octahedron: { name: 'Octaedro (Aire)', vertices: 6, edges: 12, faces: 8, info: 'Asociado al aire y al intelecto. Formado por dos pirámides unidas por sus bases, sus caras triangulares le dan una apariencia ligera y fluida. Es la figura dual del cubo.' },
+            dodecahedron: { name: 'Dodecaedro (Éter)', vertices: 20, edges: 30, faces: 12, info: 'Considerado por Platón como el símbolo del universo o el éter. Sus 12 caras pentagonales se asocian a los signos del zodiaco. Figura de gran complejidad y belleza mística.' },
+            icosahedron: { name: 'Icosaedro (Agua)', vertices: 12, edges: 30, faces: 20, info: 'Simboliza el agua, la emoción y el cambio. Con 20 caras triangulares, es el sólido platónico con más caras, lo que le da una apariencia casi esférica y fluida.' }
         };
-
         const colorThemes = {
             fire: { color: 0xfc4a1a, emissive: 0x8f1d0c },
             ocean: { color: 0x2193b0, emissive: 0x0f4a5a },
@@ -387,35 +461,52 @@
             synthwave: { color: 0xff00c1, emissive: 0x7a005e }
         };
         let activeTheme = 'fire';
+        
+        // --- INICIALIZACIÓN ---
+        function init() {
+            initThreeJS();
+            initUI();
+            setupEventListeners();
+            animate();
+            
+            // Ocultar pantalla de carga
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => { loadingScreen.style.display = 'none'; }, 800);
+            
+            // Mostrar panel de control en escritorio por defecto
+            if (window.innerWidth >= 769) {
+                togglePanelState(document.getElementById('control-panel'));
+            }
+        }
 
+        // --- LÓGICA DE THREE.JS ---
         function initThreeJS() {
+            const canvas = document.getElementById('three-canvas');
             scene = new THREE.Scene();
             camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.z = 5;
-            renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('three-canvas'), antialias: true, alpha: true });
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
+            
             scene.add(new THREE.AmbientLight(0xffffff, 0.6));
             const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
             dirLight.position.set(5, 5, 5);
             scene.add(dirLight);
             
             createSolid('tetrahedron');
-            setupPanelLogic();
-            setupControls();
-            updateZoomUI();
-            animate();
-
-            const loadingScreen = document.getElementById('loading-screen');
-            loadingScreen.style.opacity = '0';
-            setTimeout(() => { loadingScreen.style.display = 'none'; }, 800);
         }
 
         function createSolid(type) {
             if (currentSolid) {
                 scene.remove(currentSolid);
                 currentSolid.geometry.dispose();
-                currentSolid.material.dispose();
+                if (Array.isArray(currentSolid.material)) {
+                    currentSolid.material.forEach(material => material.dispose());
+                } else {
+                    currentSolid.material.dispose();
+                }
             }
             let geometry;
             switch (type) {
@@ -429,22 +520,24 @@
             currentSolid = new THREE.Mesh(geometry, material);
             scene.add(currentSolid);
             applyTheme(activeTheme);
-            updateUI(type);
+            updateSolidInfoUI(type);
         }
 
-        function applyTheme(themeName) {
-            activeTheme = themeName;
-            const theme = colorThemes[themeName];
-            if (currentSolid && theme) {
-                currentSolid.material.color.setHex(theme.color);
-                currentSolid.material.emissive.setHex(theme.emissive);
+        function animate() {
+            requestAnimationFrame(animate);
+            if (autoRotate && currentSolid) {
+                currentSolid.rotation.x += 0.001;
+                currentSolid.rotation.y += 0.0015;
             }
-            document.querySelectorAll('.theme-btn').forEach(btn => {
-                btn.classList.toggle('active', btn.dataset.theme === themeName);
-            });
+            renderer.render(scene, camera);
+        }
+
+        // --- LÓGICA DE UI ---
+        function initUI() {
+            updateZoomUI();
         }
         
-        function updateUI(type) {
+        function updateSolidInfoUI(type) {
             const data = solidsData[type];
             document.getElementById('info-title').textContent = data.name;
             document.getElementById('info-content').textContent = data.info;
@@ -456,72 +549,22 @@
             });
         }
         
-        function setupPanelLogic() {
-            const controlPanel = document.getElementById('control-panel');
-            const infoPanel = document.getElementById('info-panel');
-
-            if (isMobile) {
-                // Lógica móvil
-                const controlToggle = document.getElementById('mobile-control-panel-toggle');
-                const infoToggle = document.getElementById('mobile-info-panel-toggle');
-                const mobileOverlay = document.getElementById('mobile-overlay');
-                
-                const showPanel = (panel) => {
-                    panel.classList.add('is-visible-mobile');
-                    mobileOverlay.classList.add('is-active');
-                };
-                
-                const hidePanel = (panel) => {
-                    panel.classList.remove('is-visible-mobile');
-                    if (!document.querySelector('.panel.is-visible-mobile')) {
-                         mobileOverlay.classList.remove('is-active');
-                    }
-                };
-
-                controlToggle.addEventListener('click', () => showPanel(controlPanel));
-                infoToggle.addEventListener('click', () => showPanel(infoPanel));
-                
-                mobileOverlay.addEventListener('click', () => {
-                    hidePanel(controlPanel);
-                    hidePanel(infoPanel);
-                });
-                
-                controlPanel.querySelector('.panel-close-btn').addEventListener('click', () => hidePanel(controlPanel));
-                infoPanel.querySelector('.panel-close-btn').addEventListener('click', () => hidePanel(infoPanel));
-
-                // Mostrar panel de información automáticamente al iniciar en móvil
-                setTimeout(() => {
-                    showPanel(infoPanel);
-                }, 1000);
-
-            } else {
-                // Lógica de escritorio
-                const expanderBtn = document.getElementById('panel-expander');
-                const infoToggleBtn = document.getElementById('info-panel-toggle');
-                
-                if(expanderBtn) {
-                    expanderBtn.addEventListener('click', () => {
-                        const isCollapsed = controlPanel.classList.toggle('is-collapsed');
-                        const icon = expanderBtn.querySelector('i');
-                        if(icon) {
-                            icon.className = isCollapsed ? 'fas fa-chevron-right' : 'fas fa-chevron-left';
-                        }
-                        expanderBtn.setAttribute('aria-label', isCollapsed ? 'Expandir panel' : 'Contraer panel');
-                    });
-                }
-
-                if(infoToggleBtn) {
-                    infoToggleBtn.addEventListener('click', () => {
-                        infoPanel.classList.toggle('is-hidden');
-                    });
-                }
+        function applyTheme(themeName) {
+            activeTheme = themeName;
+            const theme = colorThemes[themeName];
+            if (currentSolid && theme) {
+                currentSolid.material.color.setHex(theme.color);
+                currentSolid.material.emissive.setHex(theme.emissive);
             }
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === themeName);
+            });
         }
 
         function updateZoomUI() {
             if (!camera) return;
             const percentage = 100 * (MAX_ZOOM - camera.position.z) / (MAX_ZOOM - MIN_ZOOM);
-            document.getElementById('zoom-level-text').textContent = `${Math.round(percentage)}%`;
+            document.getElementById('zoom-level-text').textContent = `${Math.round(Math.max(0, Math.min(100, percentage)))}%`;
         }
 
         function setZoom(newZ) {
@@ -530,52 +573,112 @@
             updateZoomUI();
         }
 
-        function setupControls() {
-            document.body.addEventListener('click', (e) => {
-                const target = e.target;
-                const solidBtn = target.closest('.solid-btn');
-                if (solidBtn) { createSolid(solidBtn.dataset.solid); return; }
+        function togglePanelState(panel) {
+            const currentState = panel.dataset.state;
+            const newState = currentState === 'open' ? 'closed' : 'open';
+            panel.dataset.state = newState;
+            return newState === 'open';
+        }
 
-                const themeBtn = target.closest('.theme-btn');
-                if (themeBtn) { applyTheme(themeBtn.dataset.theme); return; }
+        function managePanels(panelIdToOpen) {
+            const mobileOverlay = document.getElementById('mobile-overlay');
+            const allPanels = document.querySelectorAll('.panel');
+            let anyPanelOpen = false;
 
-                const sectionToggle = target.closest('.section-toggle');
-                if (sectionToggle) {
-                    sectionToggle.classList.toggle('is-active');
-                    const container = sectionToggle.closest('.section-title').nextElementSibling;
-                    if (container && container.classList.contains('collapsible-container')) {
-                        container.classList.toggle('is-visible');
+            allPanels.forEach(panel => {
+                if (panel.id === panelIdToOpen) {
+                    const wasOpened = togglePanelState(panel);
+                    if (wasOpened) {
+                        anyPanelOpen = true;
+                        activePanelId = panel.id;
+                    } else {
+                        activePanelId = null;
                     }
-                    return;
+                } else {
+                    panel.dataset.state = 'closed';
                 }
-                
-                const zoomInBtn = target.closest('#zoom-in-btn');
-                if (zoomInBtn) { setZoom(camera.position.z - 0.5); return; }
-
-                const zoomOutBtn = target.closest('#zoom-out-btn');
-                if (zoomOutBtn) { setZoom(camera.position.z + 0.5); return; }
-
-                const screenshotBtn = target.closest('#screenshot-btn');
-                if (screenshotBtn) {
-                        renderer.render(scene, camera);
-                        renderer.domElement.toBlob((blob) => {
-                            const link = document.createElement('a');
-                            link.href = URL.createObjectURL(blob);
-                            link.download = `universo-platonico.png`;
-                            link.click(); URL.revokeObjectURL(link.href);
-                        });
-                        return;
-                }
-                const fullscreenBtn = target.closest('#fullscreen-btn');
-                if (fullscreenBtn) { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); return; }
             });
             
-            document.body.addEventListener('change', (e) => {
-                if (e.target.id === 'wireframe-toggle' && currentSolid) currentSolid.material.wireframe = e.target.checked;
-                if (e.target.id === 'rotation-toggle') autoRotate = e.target.checked;
-            });
+            mobileOverlay.dataset.state = anyPanelOpen ? 'active' : 'inactive';
             
+            document.querySelectorAll('.mobile-toggle-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.panelId === activePanelId);
+            });
+        }
+
+        // --- MANEJADORES DE EVENTOS ---
+        function setupEventListeners() {
+            document.body.addEventListener('click', handleGlobalClick);
+            
+            document.getElementById('wireframe-toggle').addEventListener('change', (e) => {
+                if(currentSolid) currentSolid.material.wireframe = e.target.checked;
+            });
+            document.getElementById('rotation-toggle').addEventListener('change', (e) => {
+                autoRotate = e.target.checked;
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
             setupCameraControls();
+        }
+
+        function handleGlobalClick(e) {
+            const target = e.target;
+            
+            const solidBtn = target.closest('.solid-btn');
+            if (solidBtn) { createSolid(solidBtn.dataset.solid); return; }
+
+            const themeBtn = target.closest('.theme-btn');
+            if (themeBtn) { applyTheme(themeBtn.dataset.theme); return; }
+
+            if (target.closest('#zoom-in-btn')) { setZoom(camera.position.z - 0.5); return; }
+            if (target.closest('#zoom-out-btn')) { setZoom(camera.position.z + 0.5); return; }
+
+            if (target.closest('#screenshot-btn')) { takeScreenshot(); return; }
+            if (target.closest('#fullscreen-btn')) { toggleFullscreen(); return; }
+
+            const mobileToggle = target.closest('.mobile-toggle-btn');
+            if (mobileToggle) { managePanels(mobileToggle.dataset.panelId); return; }
+
+            if (target.closest('#desktop-control-toggle')) { managePanels('control-panel'); return; }
+            if (target.closest('#desktop-info-toggle')) { managePanels('info-panel'); return; }
+
+            if (target.closest('.panel-close-btn') || target.id === 'mobile-overlay') { 
+                managePanels(null); return; 
+            }
+
+            const sectionHeader = target.closest('.section-header');
+            if (sectionHeader) {
+                const content = document.getElementById(sectionHeader.getAttribute('aria-controls'));
+                const isExpanded = sectionHeader.getAttribute('aria-expanded') === 'true';
+                sectionHeader.setAttribute('aria-expanded', !isExpanded);
+                content.dataset.state = isExpanded ? 'closed' : 'open';
+            }
+        }
+        
+        function takeScreenshot() {
+            renderer.render(scene, camera);
+            renderer.domElement.toBlob((blob) => {
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `universo-platonico.png`;
+                link.click(); 
+                URL.revokeObjectURL(link.href);
+            });
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error al intentar entrar en pantalla completa: ${err.message} (${err.name})`);
+                });
+            } else if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
         }
 
         function setupCameraControls() {
@@ -592,7 +695,7 @@
                     else if (e.touches.length === 2) {
                         const dx = e.touches[0].clientX - e.touches[1].clientX;
                         const dy = e.touches[0].clientY - e.touches[1].clientY;
-                        startDistance = Math.sqrt(dx*dx + dy*dy);
+                        startDistance = Math.hypot(dx, dy);
                     }
                 } else {
                     startX = e.clientX;
@@ -604,32 +707,28 @@
             
             const onPointerMove = (e) => {
                 if (!currentSolid || !isDragging) return;
-                e.preventDefault();
                 
-                if (e.touches) {
-                    if (e.touches.length === 1 && isDragging) {
-                        const dx = e.touches[0].clientX - startX; 
-                        const dy = e.touches[0].clientY - startY;
-                        currentSolid.rotation.y += dx * 0.01; 
-                        currentSolid.rotation.x += dy * 0.01;
-                        startX = e.touches[0].clientX; 
-                        startY = e.touches[0].clientY;
-                    } else if (e.touches.length === 2) {
-                        const dx = e.touches[0].clientX - e.touches[1].clientX;
-                        const dy = e.touches[0].clientY - e.touches[1].clientY;
-                        const distance = Math.sqrt(dx*dx + dy*dy);
-                        if (startDistance > 0) {
-                            setZoom(camera.position.z / (distance / startDistance));
-                        }
-                        startDistance = distance;
+                let isTouch = e.pointerType === 'touch';
+
+                if (isTouch && e.touches.length > 1) {
+                    e.preventDefault();
+                    const dx = e.touches[0].clientX - e.touches[1].clientX;
+                    const dy = e.touches[0].clientY - e.touches[1].clientY;
+                    const distance = Math.hypot(dx, dy);
+                    if (startDistance > 0) {
+                        setZoom(camera.position.z / (distance / startDistance));
                     }
-                } else {
-                    const dx = e.clientX - startX;
-                    const dy = e.clientY - startY;
+                    startDistance = distance;
+                } else if (isDragging) {
+                    e.preventDefault();
+                    const currentX = isTouch ? e.touches[0].clientX : e.clientX;
+                    const currentY = isTouch ? e.touches[0].clientY : e.clientY;
+                    const dx = currentX - startX;
+                    const dy = currentY - startY;
                     currentSolid.rotation.y += dx * 0.005;
                     currentSolid.rotation.x += dy * 0.005;
-                    startX = e.clientX;
-                    startY = e.clientY;
+                    startX = currentX;
+                    startY = currentY;
                 }
             };
             
@@ -638,35 +737,16 @@
                 setZoom(camera.position.z + e.deltaY * 0.01);
             };
             
-            // Eventos táctiles
-            canvas.addEventListener('touchstart', onPointerDown, { passive: true });
-            canvas.addEventListener('touchend', onPointerUp);
-            canvas.addEventListener('touchmove', onPointerMove, { passive: false });
-            
-            // Eventos de mouse
-            canvas.addEventListener('mousedown', onPointerDown);
-            canvas.addEventListener('mouseup', onPointerUp);
-            canvas.addEventListener('mousemove', onPointerMove);
-            canvas.addEventListener('mouseleave', onPointerUp);
+            // Usar Pointer Events para una gestión unificada de ratón y táctil
+            canvas.addEventListener('pointerdown', onPointerDown);
+            canvas.addEventListener('pointerup', onPointerUp);
+            canvas.addEventListener('pointerleave', onPointerUp);
+            canvas.addEventListener('pointermove', onPointerMove);
             canvas.addEventListener('wheel', onWheel, { passive: false });
         }
         
-        function animate() {
-            requestAnimationFrame(animate);
-            if (autoRotate && currentSolid) {
-                currentSolid.rotation.x += 0.001;
-                currentSolid.rotation.y += 0.0015;
-            }
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
-        initThreeJS();
+        // Iniciar la aplicación
+        init();
     });
     </script>
 </body>

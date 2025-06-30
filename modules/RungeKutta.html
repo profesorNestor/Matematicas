@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resolutor de EDOs con Runge-Kutta 4</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js for graphing -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <!-- Math.js for parsing functions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #e5e7eb;
+        }
+        .glassmorphism {
+            background: rgba(31, 41, 55, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+        .input-field {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            color: #e5e7eb;
+            border-radius: 0.5rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.4);
+        }
+        .btn-primary {
+            background-color: #6366f1;
+            color: white;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+        }
+        .btn-primary:disabled {
+            background-color: #4b5563;
+            cursor: not-allowed;
+        }
+        .order-selector label {
+            border: 1px solid #4b5563;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .order-selector input:checked + label {
+            background-color: #6366f1;
+            border-color: #6366f1;
+            color: white;
+        }
+        .table-header {
+            background-color: #1f2937;
+        }
+        .table-row:nth-child(even) {
+            background-color: rgba(55, 65, 81, 0.5);
+        }
+        #alert-modal { transition: opacity 0.3s; }
+        .hidden-transition {
+            transition: opacity 0.3s, transform 0.3s, max-height 0.3s;
+            opacity: 0;
+            transform: translateY(-10px);
+            max-height: 0;
+            overflow: hidden;
+        }
+        .visible-transition {
+            opacity: 1;
+            transform: translateY(0);
+            max-height: 500px; /* Adjust as needed */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-6xl mx-auto space-y-6">
+
+        <header class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-white">Resolutor de EDOs con Runge-Kutta 4</h1>
+            <p class="mt-2 text-lg text-gray-400">Soluciona ecuaciones diferenciales de 1er y 2º orden</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Controls Panel -->
+            <div class="lg:col-span-1 p-6 space-y-6 glassmorphism">
+                <h2 class="text-2xl font-semibold border-b border-gray-600 pb-3">Parámetros</h2>
+                
+                <!-- ODE Order Selector -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-300 mb-2">Orden de la Ecuación</h3>
+                    <div class="grid grid-cols-2 gap-2 order-selector">
+                        <input type="radio" name="order" id="order1" value="1" class="hidden" checked>
+                        <label for="order1" class="cursor-pointer text-center p-3 rounded-lg">1er Orden</label>
+                        
+                        <input type="radio" name="order" id="order2" value="2" class="hidden">
+                        <label for="order2" class="cursor-pointer text-center p-3 rounded-lg">2º Orden</label>
+                    </div>
+                </div>
+
+                <!-- Equation Input -->
+                <div>
+                    <label for="function" class="block text-sm font-medium text-gray-300 mb-1">
+                        <span id="function-label">Ecuación y' = f(x, y)</span>
+                    </label>
+                    <input type="text" id="function" value="x*y + sqrt(y)" class="w-full p-2 input-field" placeholder="Ej: y - x^2 + 1">
+                    <p class="text-xs text-gray-400 mt-1">Para 2º orden, usar 'z' para y'.</p>
+                </div>
+
+                <!-- Initial Conditions -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="x0" class="block text-sm font-medium text-gray-300 mb-1">x₀</label>
+                        <input type="number" id="x0" value="0" class="w-full p-2 input-field">
+                    </div>
+                    <div>
+                        <label for="y0" class="block text-sm font-medium text-gray-300 mb-1">y(x₀)</label>
+                        <input type="number" id="y0" value="1" class="w-full p-2 input-field">
+                    </div>
+                </div>
+                
+                <!-- Initial Derivative (2nd Order Only) -->
+                <div id="y-prime-container" class="hidden-transition">
+                     <label for="z0" class="block text-sm font-medium text-gray-300 mb-1">y'(x₀)</label>
+                     <input type="number" id="z0" value="0" class="w-full p-2 input-field">
+                </div>
+
+                <!-- Target x and step size h -->
+                <div class="grid grid-cols-2 gap-4">
+                     <div>
+                        <label for="x-target" class="block text-sm font-medium text-gray-300 mb-1">Evaluar en x =</label>
+                        <input type="number" id="x-target" value="1" class="w-full p-2 input-field">
+                    </div>
+                    <div>
+                        <label for="h" class="block text-sm font-medium text-gray-300 mb-1">Paso (h)</label>
+                        <input type="number" id="h" value="0.1" step="0.01" class="w-full p-2 input-field">
+                    </div>
+                </div>
+
+                <button id="solve-btn" class="w-full p-3 btn-primary text-lg">
+                    <span id="btn-text">Resolver</span>
+                    <span id="btn-loader" class="hidden">Calculando...</span>
+                </button>
+
+                <!-- Result Display -->
+                <div id="result-container" class="pt-4 border-t border-gray-600 text-center hidden">
+                    <h3 id="result-label" class="text-lg font-medium text-gray-400">Resultado y(x)</h3>
+                    <p id="result-value" class="text-3xl font-bold text-indigo-400 mt-1"></p>
+                </div>
+            </div>
+
+            <!-- Plot and Table -->
+            <div class="lg:col-span-2 space-y-6">
+                <div class="p-2 glassmorphism h-96">
+                    <div id="plot" class="w-full h-full"></div>
+                </div>
+
+                <div class="glassmorphism">
+                    <h3 class="text-xl font-semibold p-4 border-b border-gray-600">Tabla de Iteraciones (RK4)</h3>
+                    <div class="overflow-auto max-h-80">
+                        <table class="w-full text-sm text-left">
+                            <thead id="table-head" class="text-xs text-gray-300 uppercase table-header sticky top-0">
+                                <!-- Header will be set by JS -->
+                            </thead>
+                            <tbody id="table-body">
+                                <tr><td colspan="4" class="text-center p-8 text-gray-400">Ingresa los parámetros y resuelve para ver los datos.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alert-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden opacity-0">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center border border-red-500">
+            <h3 id="alert-title" class="text-xl font-bold text-red-400 mb-4">Error</h3>
+            <p id="alert-message" class="text-gray-300 mb-6"></p>
+            <button id="alert-close-btn" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Elements ---
+        const orderRadios = document.querySelectorAll('input[name="order"]');
+        const functionLabel = document.getElementById('function-label');
+        const functionInput = document.getElementById('function');
+        const yPrimeContainer = document.getElementById('y-prime-container');
+        const solveBtn = document.getElementById('solve-btn');
+        const x0Input = document.getElementById('x0');
+        const y0Input = document.getElementById('y0');
+        const z0Input = document.getElementById('z0');
+        const xTargetInput = document.getElementById('x-target');
+        const hInput = document.getElementById('h');
+        const resultContainer = document.getElementById('result-container');
+        const resultLabel = document.getElementById('result-label');
+        const resultValue = document.getElementById('result-value');
+        const tableHead = document.getElementById('table-head');
+        const tableBody = document.getElementById('table-body');
+        const plotDiv = document.getElementById('plot');
+        const btnText = document.getElementById('btn-text');
+        const btnLoader = document.getElementById('btn-loader');
+        const alertModal = document.getElementById('alert-modal');
+        const alertTitle = document.getElementById('alert-title');
+        const alertMessage = document.getElementById('alert-message');
+        const alertCloseBtn = document.getElementById('alert-close-btn');
+
+        // --- State Management ---
+        let currentOrder = 1;
+
+        // --- Event Listeners ---
+        orderRadios.forEach(radio => radio.addEventListener('change', handleOrderChange));
+        solveBtn.addEventListener('click', handleSolve);
+        alertCloseBtn.addEventListener('click', hideAlert);
+
+        // --- Functions ---
+        function handleOrderChange(event) {
+            currentOrder = parseInt(event.target.value, 10);
+            if (currentOrder === 1) {
+                functionLabel.innerHTML = "Ecuación y' = f(x, y)";
+                functionInput.value = "y - x^2 + 1";
+                y0Input.value = "0.5";
+                z0Input.value = "0";
+                yPrimeContainer.classList.add('hidden-transition');
+                yPrimeContainer.classList.remove('visible-transition');
+            } else {
+                functionLabel.innerHTML = "Ecuación y'' = f(x, y, y')";
+                functionInput.value = "-0.1*z - x"; // Example: Damped oscillator y'' = -0.1y' - x
+                y0Input.value = "0";
+                z0Input.value = "1";
+                yPrimeContainer.classList.remove('hidden-transition');
+                yPrimeContainer.classList.add('visible-transition');
+            }
+        }
+
+        function handleSolve() {
+            setButtonLoading(true);
+            resultContainer.classList.add('hidden');
+
+            // 1. Get and Validate Inputs
+            const funcStr = functionInput.value.trim();
+            const x0 = parseFloat(x0Input.value);
+            const y0 = parseFloat(y0Input.value);
+            const z0 = parseFloat(z0Input.value);
+            const x_target = parseFloat(xTargetInput.value);
+            const h = parseFloat(hInput.value);
+
+            if (funcStr === '' || isNaN(x0) || isNaN(y0) || isNaN(x_target) || isNaN(h)) {
+                showAlert('Entrada Inválida', 'Todos los campos numéricos y la función son obligatorios.');
+                setButtonLoading(false);
+                return;
+            }
+            if (h <= 0) {
+                showAlert('Paso Inválido', 'El paso (h) debe ser un número positivo.');
+                setButtonLoading(false);
+                return;
+            }
+            if (currentOrder === 2 && isNaN(z0)) {
+                 showAlert('Entrada Inválida', "El valor de y'(x₀) es obligatorio para EDOs de 2º orden.");
+                setButtonLoading(false);
+                return;
+            }
+
+            // 2. Parse Function
+            let f;
+            try {
+                const node = math.parse(funcStr);
+                f = node.compile();
+            } catch (error) {
+                showAlert('Error en la Función', `No se pudo interpretar la función: "${funcStr}".<br><br>Revise la sintaxis.`);
+                setButtonLoading(false);
+                return;
+            }
+
+            // 3. Perform Calculation
+            setTimeout(() => { // Use timeout to allow UI to update
+                try {
+                    let solution;
+                    if (currentOrder === 1) {
+                        solution = solveRk4_1stOrder(f, x0, y0, x_target, h);
+                    } else {
+                        solution = solveRk4_2ndOrder(f, x0, y0, z0, x_target, h);
+                    }
+                    
+                    // 4. Update UI
+                    displayResults(solution);
+                    drawPlot(solution);
+                } catch(error) {
+                    console.error("Calculation Error:", error);
+                    showAlert("Error de Cálculo", "Ocurrió un error durante el cálculo. Verifique que la función es válida para los valores iniciales (ej. no hay división por cero o logaritmos de negativos).");
+                } finally {
+                    setButtonLoading(false);
+                }
+            }, 100);
+        }
+
+        function solveRk4_1stOrder(f, x0, y0, x_target, h) {
+            let x = x0;
+            let y = y0;
+            const steps = [];
+            const n_steps = Math.round((x_target - x0) / h);
+
+            for (let i = 0; i < n_steps; i++) {
+                const k1 = h * f.evaluate({ x: x, y: y });
+                const k2 = h * f.evaluate({ x: x + h / 2, y: y + k1 / 2 });
+                const k3 = h * f.evaluate({ x: x + h / 2, y: y + k2 / 2 });
+                const k4 = h * f.evaluate({ x: x + h, y: y + k3 });
+                
+                const y_next = y + (1/6) * (k1 + 2 * k2 + 2 * k3 + k4);
+                steps.push({ i, x: x, y: y });
+                y = y_next;
+                x += h;
+            }
+            steps.push({ i: n_steps, x: x, y: y }); // Add final step
+            return { steps: steps, finalY: y, order: 1 };
+        }
+
+        function solveRk4_2ndOrder(g, x0, y0, z0, x_target, h) {
+            let x = x0;
+            let y = y0;
+            let z = z0; // z is y'
+            const steps = [];
+            const n_steps = Math.round((x_target - x0) / h);
+
+            for (let i = 0; i < n_steps; i++) {
+                const k1_y = h * z;
+                const k1_z = h * g.evaluate({ x: x, y: y, z: z });
+
+                const k2_y = h * (z + k1_z / 2);
+                const k2_z = h * g.evaluate({ x: x + h / 2, y: y + k1_y / 2, z: z + k1_z / 2 });
+
+                const k3_y = h * (z + k2_z / 2);
+                const k3_z = h * g.evaluate({ x: x + h / 2, y: y + k2_y / 2, z: z + k2_z / 2 });
+                
+                const k4_y = h * (z + k3_z);
+                const k4_z = h * g.evaluate({ x: x + h, y: y + k3_y, z: z + k3_z });
+
+                steps.push({ i, x: x, y: y, z: z });
+                
+                y += (1/6) * (k1_y + 2 * k2_y + 2 * k3_y + k4_y);
+                z += (1/6) * (k1_z + 2 * k2_z + 2 * k3_z + k4_z);
+                x += h;
+            }
+            steps.push({ i: n_steps, x: x, y: y, z: z });
+            return { steps: steps, finalY: y, order: 2 };
+        }
+        
+        function displayResults(solution) {
+            // Update result value
+            resultLabel.textContent = `Resultado y(${xTargetInput.value})`;
+            resultValue.textContent = solution.finalY.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+            resultContainer.classList.remove('hidden');
+
+            // Update table
+            tableBody.innerHTML = '';
+            tableHead.innerHTML = '';
+
+            let headerRow = document.createElement('tr');
+            if(solution.order === 1) {
+                headerRow.innerHTML = `
+                    <th scope="col" class="px-6 py-3">i</th>
+                    <th scope="col" class="px-6 py-3">x_i</th>
+                    <th scope="col" class="px-6 py-3">y_i</th>
+                `;
+                solution.steps.forEach(step => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'table-row border-b border-gray-700';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4">${step.i}</td>
+                        <td class="px-6 py-4">${step.x.toFixed(4)}</td>
+                        <td class="px-6 py-4">${step.y.toFixed(6)}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            } else { // 2nd order
+                headerRow.innerHTML = `
+                    <th scope="col" class="px-6 py-3">i</th>
+                    <th scope="col" class="px-6 py-3">x_i</th>
+                    <th scope="col" class="px-6 py-3">y_i</th>
+                    <th scope="col" class="px-6 py-3">y'_i (z_i)</th>
+                `;
+                 solution.steps.forEach(step => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'table-row border-b border-gray-700';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4">${step.i}</td>
+                        <td class="px-6 py-4">${step.x.toFixed(4)}</td>
+                        <td class="px-6 py-4">${step.y.toFixed(6)}</td>
+                        <td class="px-6 py-4">${step.z.toFixed(6)}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+            tableHead.appendChild(headerRow);
+        }
+        
+        function drawPlot(solution) {
+             const xPoints = solution.steps.map(s => s.x);
+             const yPoints = solution.steps.map(s => s.y);
+
+             const trace = {
+                x: xPoints,
+                y: yPoints,
+                mode: 'lines+markers',
+                type: 'scatter',
+                name: 'Solución y(x)',
+                line: { color: '#6366f1', width: 3 },
+                marker: { size: 4 }
+             };
+             
+             const layout = {
+                title: { text: 'Curva de la Solución de la EDO', font: { color: '#e5e7eb' }},
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                xaxis: { title: 'x', color: '#9ca3af', gridcolor: '#374151', zerolinecolor: '#4b5563'},
+                yaxis: { title: 'y', color: '#9ca3af', gridcolor: '#374151', zerolinecolor: '#4b5563'},
+                showlegend: true,
+                legend: { font: { color: '#e5e7eb' }},
+                margin: { l: 50, r: 20, t: 50, b: 40 }
+            };
+            
+            Plotly.newPlot(plotDiv, [trace], layout, {responsive: true});
+        }
+
+        function setButtonLoading(isLoading) {
+            solveBtn.disabled = isLoading;
+            btnText.classList.toggle('hidden', isLoading);
+            btnLoader.classList.toggle('hidden', !isLoading);
+        }
+
+        function showAlert(title, message) {
+            alertTitle.textContent = title;
+            alertMessage.innerHTML = message;
+            alertModal.classList.remove('hidden');
+            setTimeout(() => alertModal.classList.remove('opacity-0'), 10);
+        }
+
+        function hideAlert() {
+            alertModal.classList.add('opacity-0');
+            setTimeout(() => alertModal.classList.add('hidden'), 300);
+        }
+        
+        // Initial setup
+        handleOrderChange({ target: { value: '1' } }); // Set up for 1st order initially
+        handleSolve(); // Run with default values
+    });
+    </script>
+</body>
+</html>

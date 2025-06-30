@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Integrales Definidas</title>
+    
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js for graphing (Updated Version) -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <!-- Math.js for parsing functions -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Custom styles for a modern look */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827; /* Dark background */
+            color: #e5e7eb; /* Light text */
+        }
+        .glassmorphism {
+            background: rgba(31, 41, 55, 0.6); /* Semi-transparent dark background */
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+        .input-field {
+            background-color: #374151;
+            border: 1px solid #4b5563;
+            color: #e5e7eb;
+            border-radius: 0.5rem;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.4);
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: white;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-2px);
+        }
+        .btn-primary:disabled {
+            background-color: #4b5563;
+            cursor: not-allowed;
+        }
+        .method-selector label {
+            border: 1px solid #4b5563;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .method-selector input:checked + label {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            color: white;
+        }
+        .table-header {
+            background-color: #1f2937;
+        }
+        .table-row:nth-child(even) {
+            background-color: rgba(55, 65, 81, 0.5);
+        }
+        /* Custom modal for alerts */
+        #alert-modal {
+            transition: opacity 0.3s;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-6xl mx-auto space-y-6">
+
+        <!-- Header -->
+        <header class="text-center">
+            <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-white">Calculadora de Integrales Definidas</h1>
+            <p class="mt-2 text-lg text-gray-400">Visualiza y calcula integrales con la Regla de Simpson y del Trapecio</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Controls Panel -->
+            <div class="lg:col-span-1 p-6 space-y-6 glassmorphism">
+                <h2 class="text-2xl font-semibold border-b border-gray-600 pb-3">Parámetros</h2>
+                
+                <!-- Function Input -->
+                <div>
+                    <label for="function" class="block text-sm font-medium text-gray-300 mb-1">Función f(x)</label>
+                    <input type="text" id="function" value="x^2 * sin(x)" class="w-full p-2 input-field" placeholder="Ej: x^3 - 2*x + 5">
+                </div>
+
+                <!-- Integration Limits -->
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="lower-limit" class="block text-sm font-medium text-gray-300 mb-1">Límite inferior (a)</label>
+                        <input type="number" id="lower-limit" value="0" class="w-full p-2 input-field">
+                    </div>
+                    <div>
+                        <label for="upper-limit" class="block text-sm font-medium text-gray-300 mb-1">Límite superior (b)</label>
+                        <input type="number" id="upper-limit" value="3.14159" class="w-full p-2 input-field">
+                    </div>
+                </div>
+
+                <!-- Number of Intervals -->
+                <div>
+                    <label for="intervals" class="block text-sm font-medium text-gray-300 mb-1">Número de intervalos (n)</label>
+                    <input type="number" id="intervals" value="10" step="2" min="2" class="w-full p-2 input-field">
+                    <p id="intervals-hint" class="text-xs text-gray-400 mt-1 hidden">Para la Regla de Simpson, n debe ser par.</p>
+                </div>
+
+                <!-- Method Selector -->
+                <div>
+                    <h3 class="text-sm font-medium text-gray-300 mb-2">Método de Cálculo</h3>
+                    <div class="grid grid-cols-2 gap-2 method-selector">
+                        <input type="radio" name="method" id="trapezoid" value="trapezoid" class="hidden" checked>
+                        <label for="trapezoid" class="cursor-pointer text-center p-3 rounded-lg">Trapecio</label>
+                        
+                        <input type="radio" name="method" id="simpson" value="simpson" class="hidden">
+                        <label for="simpson" class="cursor-pointer text-center p-3 rounded-lg">Simpson</label>
+                    </div>
+                </div>
+
+                <!-- Calculate Button -->
+                <button id="calculate-btn" class="w-full p-3 btn-primary text-lg">
+                    <span id="btn-text">Calcular</span>
+                    <span id="btn-loader" class="hidden">Calculando...</span>
+                </button>
+
+                <!-- Result Display -->
+                <div id="result-container" class="pt-4 border-t border-gray-600 text-center hidden">
+                    <h3 class="text-lg font-medium text-gray-400">Resultado de la Integral</h3>
+                    <p id="result-value" class="text-3xl font-bold text-blue-400 mt-1"></p>
+                </div>
+            </div>
+
+            <!-- Plot and Table -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Plot Area -->
+                <div class="p-2 glassmorphism h-96">
+                    <div id="plot" class="w-full h-full"></div>
+                </div>
+
+                <!-- Iterations Table -->
+                <div class="glassmorphism">
+                    <h3 class="text-xl font-semibold p-4 border-b border-gray-600">Tabla de Iteraciones</h3>
+                    <div class="overflow-auto max-h-80">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-300 uppercase table-header sticky top-0">
+                                <tr>
+                                    <th scope="col" class="px-6 py-3">i</th>
+                                    <th scope="col" class="px-6 py-3">x_i</th>
+                                    <th scope="col" class="px-6 py-3">f(x_i)</th>
+                                    <th scope="col" class="px-6 py-3">Multiplicador</th>
+                                    <th scope="col" class="px-6 py-3">Término</th>
+                                </tr>
+                            </thead>
+                            <tbody id="table-body">
+                                <!-- Rows will be inserted here by JavaScript -->
+                                <tr><td colspan="5" class="text-center p-8 text-gray-400">Ingresa los parámetros y calcula para ver los datos.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Alert Modal -->
+    <div id="alert-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 hidden opacity-0">
+        <div class="bg-gray-800 rounded-lg shadow-xl p-6 w-full max-w-sm text-center border border-red-500">
+            <h3 id="alert-title" class="text-xl font-bold text-red-400 mb-4">Error</h3>
+            <p id="alert-message" class="text-gray-300 mb-6">Mensaje de error.</p>
+            <button id="alert-close-btn" class="px-6 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // DOM Elements
+            const functionInput = document.getElementById('function');
+            const lowerLimitInput = document.getElementById('lower-limit');
+            const upperLimitInput = document.getElementById('upper-limit');
+            const intervalsInput = document.getElementById('intervals');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const btnText = document.getElementById('btn-text');
+            const btnLoader = document.getElementById('btn-loader');
+            const resultContainer = document.getElementById('result-container');
+            const resultValue = document.getElementById('result-value');
+            const tableBody = document.getElementById('table-body');
+            const plotDiv = document.getElementById('plot');
+            const intervalsHint = document.getElementById('intervals-hint');
+            const simpsonRadio = document.getElementById('simpson');
+            
+            // Alert Modal Elements
+            const alertModal = document.getElementById('alert-modal');
+            const alertTitle = document.getElementById('alert-title');
+            const alertMessage = document.getElementById('alert-message');
+            const alertCloseBtn = document.getElementById('alert-close-btn');
+
+            let functionParser;
+
+            // --- Utility Functions ---
+
+            /**
+             * Safely parses and compiles a mathematical function string.
+             * @param {string} funcStr - The function string, e.g., "x^2".
+             * @returns {function(number): number | null} A function that takes x and returns y, or null on error.
+             */
+            function parseFunction(funcStr) {
+                try {
+                    const node = math.parse(funcStr);
+                    const code = node.compile();
+                    return x => code.evaluate({ x });
+                } catch (error) {
+                    showAlert('Error en la Función', `No se pudo interpretar la función: "${funcStr}".<br><br>Asegúrate de usar la sintaxis correcta, por ejemplo: <code>x^2 * sin(x)</code>.`);
+                    return null;
+                }
+            }
+
+            /**
+             * Shows the custom alert modal.
+             * @param {string} title - The title for the alert.
+             * @param {string} message - The message content for the alert.
+             */
+            function showAlert(title, message) {
+                alertTitle.textContent = title;
+                alertMessage.innerHTML = message;
+                alertModal.classList.remove('hidden');
+                setTimeout(() => alertModal.classList.remove('opacity-0'), 10);
+            }
+
+            /**
+             * Hides the custom alert modal.
+             */
+            function hideAlert() {
+                alertModal.classList.add('opacity-0');
+                setTimeout(() => alertModal.classList.add('hidden'), 300);
+            }
+
+            /**
+             * Toggles the button state to show a loader.
+             * @param {boolean} isLoading - True to show loader, false to show text.
+             */
+            function setButtonLoading(isLoading) {
+                calculateBtn.disabled = isLoading;
+                btnText.classList.toggle('hidden', isLoading);
+                btnLoader.classList.toggle('hidden', !isLoading);
+            }
+            
+            // --- Event Listeners ---
+
+            calculateBtn.addEventListener('click', handleCalculation);
+            alertCloseBtn.addEventListener('click', hideAlert);
+            
+            // Show hint for Simpson's rule when selected
+            document.querySelectorAll('input[name="method"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    intervalsHint.classList.toggle('hidden', e.target.value !== 'simpson');
+                });
+            });
+
+            // --- Core Calculation Logic ---
+
+            /**
+             * Main handler for the calculate button click.
+             */
+            async function handleCalculation() {
+                setButtonLoading(true);
+                resultContainer.classList.add('hidden'); // Hide previous results
+
+                // 1. Get and Validate Inputs
+                const funcStr = functionInput.value.trim();
+                const a = parseFloat(lowerLimitInput.value);
+                const b = parseFloat(upperLimitInput.value);
+                let n = parseInt(intervalsInput.value, 10);
+                const method = document.querySelector('input[name="method"]:checked').value;
+
+                if (funcStr === '') {
+                    showAlert('Entrada Inválida', 'El campo de la función no puede estar vacío.');
+                    setButtonLoading(false);
+                    return;
+                }
+                if (isNaN(a) || isNaN(b) || isNaN(n)) {
+                    showAlert('Entrada Inválida', 'Los límites y el número de intervalos deben ser números válidos.');
+                    setButtonLoading(false);
+                    return;
+                }
+                if (a >= b) {
+                    showAlert('Límites Inválidos', 'El límite inferior (a) debe ser menor que el límite superior (b).');
+                    setButtonLoading(false);
+                    return;
+                }
+                 if (n <= 0) {
+                    showAlert('Intervalos Inválidos', 'El número de intervalos (n) debe ser un entero positivo.');
+                    setButtonLoading(false);
+                    return;
+                }
+                if (method === 'simpson' && n % 2 !== 0) {
+                    showAlert('Intervalos Inválidos', 'Para la Regla de Simpson, el número de intervalos (n) debe ser par.');
+                    setButtonLoading(false);
+                    return;
+                }
+
+                // 2. Parse Function
+                const f = parseFunction(funcStr);
+                if (!f) {
+                    setButtonLoading(false);
+                    return;
+                }
+
+                // 3. Perform Calculation
+                let integralResult, tableData;
+                if (method === 'trapezoid') {
+                    [integralResult, tableData] = trapezoidalRule(f, a, b, n);
+                } else {
+                    [integralResult, tableData] = simpsonsRule(f, a, b, n);
+                }
+                
+                // Using a short delay to simulate heavy calculation and show loader
+                await new Promise(resolve => setTimeout(resolve, 300));
+
+                // 4. Update UI
+                displayResults(integralResult, tableData);
+                drawPlot(f, a, b, n);
+
+                setButtonLoading(false);
+            }
+            
+            /**
+             * Calculates the definite integral using the Trapezoidal Rule.
+             * @returns {[number, Array<object>]} A tuple with the result and the table data.
+             */
+            function trapezoidalRule(f, a, b, n) {
+                const h = (b - a) / n;
+                let sum = f(a) + f(b);
+                const tableData = [];
+
+                // Add first point to table
+                tableData.push({ i: 0, x: a, y: f(a), multiplier: 1, term: f(a) });
+
+                for (let i = 1; i < n; i++) {
+                    const x_i = a + i * h;
+                    const y_i = f(x_i);
+                    const multiplier = 2;
+                    sum += multiplier * y_i;
+                    tableData.push({ i, x: x_i, y: y_i, multiplier, term: multiplier * y_i });
+                }
+
+                // Add last point to table
+                tableData.push({ i: n, x: b, y: f(b), multiplier: 1, term: f(b) });
+
+                const result = (h / 2) * sum;
+                return [result, tableData];
+            }
+
+            /**
+             * Calculates the definite integral using Simpson's 1/3 Rule.
+             * @returns {[number, Array<object>]} A tuple with the result and the table data.
+             */
+            function simpsonsRule(f, a, b, n) {
+                const h = (b - a) / n;
+                let sum = f(a) + f(b);
+                const tableData = [];
+
+                // Add first point
+                tableData.push({ i: 0, x: a, y: f(a), multiplier: 1, term: f(a) });
+
+                for (let i = 1; i < n; i++) {
+                    const x_i = a + i * h;
+                    const y_i = f(x_i);
+                    const multiplier = (i % 2 === 0) ? 2 : 4;
+                    sum += multiplier * y_i;
+                    tableData.push({ i, x: x_i, y: y_i, multiplier, term: multiplier * y_i });
+                }
+                
+                // Add last point
+                tableData.push({ i: n, x: b, y: f(b), multiplier: 1, term: f(b) });
+
+                const result = (h / 3) * sum;
+                return [result, tableData];
+            }
+
+            // --- UI Update Functions ---
+
+            /**
+             * Displays the calculation results on the page.
+             * @param {number} result - The final integral value.
+             * @param {Array<object>} tableData - Data for the iterations table.
+             */
+            function displayResults(result, tableData) {
+                // Update result value
+                resultValue.textContent = result.toLocaleString(undefined, { minimumFractionDigits: 6, maximumFractionDigits: 6 });
+                resultContainer.classList.remove('hidden');
+
+                // Update table
+                tableBody.innerHTML = ''; // Clear previous data
+                if (tableData.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="5" class="text-center p-8 text-gray-400">No hay datos de iteración para mostrar.</td></tr>';
+                    return;
+                }
+
+                tableData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = 'table-row border-b border-gray-700';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4">${row.i}</td>
+                        <td class="px-6 py-4">${row.x.toFixed(4)}</td>
+                        <td class="px-6 py-4">${row.y.toFixed(4)}</td>
+                        <td class="px-6 py-4">${row.multiplier}</td>
+                        <td class="px-6 py-4">${row.term.toFixed(4)}</td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            /**
+             * Draws the function graph and the area approximation using Plotly.
+             * @param {function} f - The function to plot.
+             * @param {number} a - Lower limit.
+             * @param {number} b - Upper limit.
+             * @param {number} n - Number of intervals.
+             */
+            function drawPlot(f, a, b, n) {
+                const plotData = [];
+                
+                // 1. Generate points for the smooth function curve
+                const numCurvePoints = 400;
+                const xCurve = [];
+                const yCurve = [];
+                const step = (b - a) / numCurvePoints;
+                for (let i = 0; i <= numCurvePoints; i++) {
+                    const x = a + i * step;
+                    xCurve.push(x);
+                    yCurve.push(f(x));
+                }
+
+                const functionTrace = {
+                    x: xCurve,
+                    y: yCurve,
+                    mode: 'lines',
+                    name: 'f(x)',
+                    line: { color: '#3b82f6', width: 3 }
+                };
+                plotData.push(functionTrace);
+
+                // 2. Generate shapes for the approximation (trapezoids)
+                const h = (b - a) / n;
+                const xShapes = [];
+                const yShapes = [];
+
+                for (let i = 0; i < n; i++) {
+                    const x0 = a + i * h;
+                    const x1 = a + (i + 1) * h;
+                    // Create trapezoid shape
+                    xShapes.push(x0, x1, x1, x0, x0); 
+                    yShapes.push(0, 0, f(x1), f(x0), 0);
+                    xShapes.push(null); // Separator for shapes
+                    yShapes.push(null);
+                }
+
+                const areaTrace = {
+                    x: xShapes,
+                    y: yShapes,
+                    mode: 'lines',
+                    fill: 'toself',
+                    fillcolor: 'rgba(59, 130, 246, 0.3)',
+                    line: { color: 'rgba(167, 139, 250, 0.5)' },
+                    name: 'Área Aproximada'
+                };
+                plotData.push(areaTrace);
+
+                // 3. Define Plotly layout
+                const layout = {
+                    title: {
+                        text: 'Visualización de la Función y Área',
+                        font: { color: '#e5e7eb' }
+                    },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    xaxis: {
+                        title: 'x',
+                        color: '#9ca3af',
+                        gridcolor: '#374151',
+                        zerolinecolor: '#4b5563'
+                    },
+                    yaxis: {
+                        title: 'f(x)',
+                        color: '#9ca3af',
+                        gridcolor: '#374151',
+                        zerolinecolor: '#4b5563'
+                    },
+                    showlegend: true,
+                    legend: {
+                        font: { color: '#e5e7eb' }
+                    },
+                    margin: { l: 50, r: 20, t: 50, b: 40 }
+                };
+                
+                // 4. Create the plot
+                Plotly.newPlot(plotDiv, plotData, layout, {responsive: true});
+            }
+            
+            // Initial calculation on page load
+            handleCalculation();
+        });
+    </script>
+</body>
+</html>
