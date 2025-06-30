@@ -1,46 +1,72 @@
 <!DOCTYPE html>
+<!-- 'lang="es"' es importante para la accesibilidad y el SEO, indica que el idioma es español. -->
+<!-- 'class="dark"' establece el tema oscuro por defecto, esto se puede controlar con JavaScript. -->
 <html lang="es" class="dark">
 <head>
     <meta charset="UTF-8">
+    <!-- La etiqueta 'viewport' es crucial para que el diseño se adapte a dispositivos móviles (Responsive Design). -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Super Calculadora Modular Web</title>
+    <title>Super Calculadora Modular Web 🧮</title>
+    
+    <!-- 🎨 ENLACES A ARCHIVOS DE ESTILO (CSS) -->
+    <!-- Enlaza a tu hoja de estilos principal donde defines la apariencia de la página. -->
     <link rel="stylesheet" href="style.css">
-    <!-- Se mantiene la misma versión de Font Awesome -->
+    <!-- Se utiliza Font Awesome para los íconos. Es una biblioteca muy popular y fácil de usar. -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
+    <!-- 🏛️ ESTRUCTURA PRINCIPAL DE LA APLICACIÓN -->
+    <!-- 'app-container' es el contenedor principal que usa Flexbox para organizar el sidebar y el contenido. -->
     <div class="app-container">
+        
+        <!-- 🧭 BARRA LATERAL DE NAVEGACIÓN (SIDEBAR) -->
         <aside id="sidebar" class="sidebar">
+            
+            <!-- Encabezado del Sidebar -->
             <header class="sidebar-header">
                 <i class="fas fa-calculator fa-2x text-sky-400"></i>
-                <!-- **CAMBIO**: El título ahora es "Herramientas" -->
-                <span class="text-xl font-bold">Herramientas</span>
+                <span class="text-xl font-bold">Herramientas 🛠️</span>
             </header>
+            
+            <!-- Menú de Navegación -->
+            <!-- 'sidebar-nav' contiene todos los enlaces a los diferentes módulos de la calculadora. -->
             <nav class="sidebar-nav">
-                <a href="#" class="sidebar-link" data-module="inicio"><i class="fas fa-home fa-fw"></i><span>Inicio</span></a>
-                <a href="#" class="sidebar-link" data-module="algebra"><i class="fas fa-square-root-alt fa-fw"></i><span>Álgebra</span></a>
-                <a href="#" class="sidebar-link" data-module="complejos"><i class="fas fa-atom fa-fw"></i><span>Números Complejos</span></a>
-                <a href="#" class="sidebar-link" data-module="calculadora_mcd_mcm"><i class="fas fa-divide fa-fw"></i><span>MCD y MCM</span></a>
-                <a href="#" class="sidebar-link" data-module="ConversionUnidades"><i class="fas fa-exchange-alt fa-fw"></i><span>Conversión de Unidades</span></a>
-                <!-- **CAMBIO**: Ícono mejorado para "Conversión de ángulos" -->
-                <a href="#" class="sidebar-link" data-module="ConversionAngular"><i class="fas fa-drafting-compass fa-fw"></i><span>Conversión de ángulos</span></a>
-                <a href="#" class="sidebar-link" data-module="matrices"><i class="fas fa-th fa-fw"></i><span>Matrices</span></a>
-                <a href="#" class="sidebar-link" data-module="sistemas"><i class="fas fa-equals fa-fw"></i><span>Sistemas Ecuaciones</span></a>
-                <!-- **CAMBIO**: Ícono mejorado para "Lógica y Conjuntos" -->
-                <a href="#" class="sidebar-link" data-module="logica_conjuntos"><i class="fas fa-brain fa-fw"></i><span>Lógica y Conjuntos</span></a>
-                <a href="#" class="sidebar-link" data-module="combinatoria"><i class="fas fa-dice fa-fw"></i><span>Combinatoria</span></a>
-                <a href="#" class="sidebar-link" data-module="progresiones"><i class="fas fa-arrow-trend-up fa-fw"></i><span>Progresiones</span></a>
-                <a href="#" class="sidebar-link" data-module="poligonos"><i class="fas fa-draw-polygon fa-fw"></i><span>Polígonos</span></a>
-                <a href="#" class="sidebar-link" data-module="poliedros"><i class="fas fa-cube fa-fw"></i><span>Poliedros</span></a>
-                <a href="#" class="sidebar-link" data-module="triangulos"><i class="fas fa-triangle-exclamation fa-fw"></i><span>Triángulos</span></a>
-                <a href="#" class="sidebar-link" data-module="estadistica"><i class="fas fa-chart-bar fa-fw"></i><span>Estadística</span></a>
-                <a href="#" class="sidebar-link" data-module="probabilidad"><i class="fas fa-percent fa-fw"></i><span>Probabilidad</span></a>
-                <a href="#" class="sidebar-link" data-module="calculo"><i class="fas fa-infinity fa-fw"></i><span>Cálculo</span></a>
-                <a href="#" class="sidebar-link" data-module="edos"><i class="fas fa-wave-square fa-fw"></i><span>Ecuaciones Diferenciales</span></a>
-                <a href="#" class="sidebar-link" data-module="graficas"><i class="fas fa-chart-line fa-fw"></i><span>Gráficas</span></a>
-                <a href="#" class="sidebar-link" data-module="formulas"><i class="fas fa-scroll fa-fw"></i><span>Fórmulas</span></a>
+                <!-- CADA ENLACE es un '<a>' con una clase 'sidebar-link'. -->
+                <!-- 'data-module' es un atributo personalizado que usamos en JavaScript para saber qué página cargar. -->
+                <!-- El ícono '<i>' de Font Awesome y el '<span>' con el texto del enlace. -->
+
+                <a href="#" class="sidebar-link" data-module="inicio"><i class="fas fa-home fa-fw"></i><span>🏠 Inicio</span></a>
+                <a href="#" class="sidebar-link" data-module="algebra"><i class="fas fa-square-root-alt fa-fw"></i><span>📐 Álgebra</span></a>
+                <a href="#" class="sidebar-link" data-module="complejos"><i class="fas fa-atom fa-fw"></i><span>⚛️ Números Complejos</span></a>
+                <a href="#" class="sidebar-link" data-module="calculadora_mcd_mcm"><i class="fas fa-divide fa-fw"></i><span>➗ MCD y MCM</span></a>
+                <a href="#" class="sidebar-link" data-module="ConversionUnidades"><i class="fas fa-exchange-alt fa-fw"></i><span>📏 Conversión de Unidades</span></a>
+                <a href="#" class="sidebar-link" data-module="ConversionAngular"><i class="fas fa-drafting-compass fa-fw"></i><span>🔄 Conversión de Ángulos</span></a>
+                <a href="#" class="sidebar-link" data-module="matrices"><i class="fas fa-th fa-fw"></i><span>🔢 Matrices</span></a>
+                <a href="#" class="sidebar-link" data-module="sistemas"><i class="fas fa-equals fa-fw"></i><span>🟰 Sistemas de Ecuaciones</span></a>
+                <a href="#" class="sidebar-link" data-module="logica_conjuntos"><i class="fas fa-brain fa-fw"></i><span>🧠 Lógica y Conjuntos</span></a>
+                <a href="#" class="sidebar-link" data-module="combinatoria"><i class="fas fa-dice fa-fw"></i><span>🎲 Combinatoria</span></a>
+                <a href="#" class="sidebar-link" data-module="progresiones"><i class="fas fa-arrow-trend-up fa-fw"></i><span>📈 Progresiones</span></a>
+                <a href="#" class="sidebar-link" data-module="poligonos"><i class="fas fa-draw-polygon fa-fw"></i><span>💠 Polígonos</span></a>
+                <a href="#" class="sidebar-link" data-module="poliedros"><i class="fas fa-cube fa-fw"></i><span>🧊 Poliedros</span></a>
+                <a href="#" class="sidebar-link" data-module="triangulos"><i class="fas fa-triangle-exclamation fa-fw"></i><span>🔺 Triángulos</span></a>
+                <a href="#" class="sidebar-link" data-module="estadistica"><i class="fas fa-chart-bar fa-fw"></i><span>📊 Estadística</span></a>
+                <a href="#" class="sidebar-link" data-module="probabilidad"><i class="fas fa-percent fa-fw"></i><span>💯 Probabilidad</span></a>
+                <a href="#" class="sidebar-link" data-module="calculo"><i class="fas fa-infinity fa-fw"></i><span>♾️ Cálculo</span></a>
+                <a href="#" class="sidebar-link" data-module="edos"><i class="fas fa-wave-square fa-fw"></i><span>📉 Ecuaciones Diferenciales</span></a>
+                
+                <!-- ✅ NUEVOS ENLACES AÑADIDOS -->
+                <!-- Aquí están los dos nuevos enlaces que solicitaste. -->
+                <!-- Les he asignado íconos que creo que van bien con el tema. -->
+                <a href="#" class="sidebar-link" data-module="IntegralesDefinidas"><i class="fas fa-chart-area fa-fw"></i><span>📈 Integrales Definidas</span></a>
+                <a href="#" class="sidebar-link" data-module="RungeKutta"><i class="fas fa-cogs fa-fw"></i><span>⚙️ Runge-Kutta</span></a>
+                
+                <a href="#" class="sidebar-link" data-module="graficas"><i class="fas fa-chart-line fa-fw"></i><span>📈 Gráficas</span></a>
+                <a href="#" class="sidebar-link" data-module="formulas"><i class="fas fa-scroll fa-fw"></i><span>📜 Fórmulas</span></a>
             </nav>
+            
+            <!-- Pie de página del Sidebar -->
             <footer class="sidebar-footer">
+                <!-- Este botón permite cambiar entre el modo claro y oscuro. -->
                 <button id="theme-toggle" class="theme-toggle-btn">
                     <i class="fas fa-sun"></i>
                     <span id="theme-text">Modo Claro</span>
@@ -48,20 +74,37 @@
             </footer>
         </aside>
 
+        <!-- 🖼️ ÁREA DE CONTENIDO PRINCIPAL -->
+        <!-- 'main-content-wrapper' envuelve la cabecera (para móviles) y el área de contenido. -->
         <div class="main-content-wrapper">
+             
+             <!-- Cabecera para la vista en móviles -->
              <header class="main-header">
+                <!-- Este botón aparece en móviles para mostrar/ocultar el sidebar. -->
                 <button id="mobile-menu-button" class="mobile-menu-btn">
                     <i class="fas fa-bars"></i>
                 </button>
+                <!-- El título de la cabecera cambiará dinámicamente con JavaScript. -->
                 <h1 id="main-header-title" class="main-title">Inicio</h1>
             </header>
+
+            <!-- El Iframe donde se cargarán los módulos -->
             <main class="content-area">
+                <!-- '<iframe>' es la clave de la aplicación modular. -->
+                <!-- El atributo 'src' cambiará con JavaScript para cargar la página del módulo correspondiente. -->
+                <!-- Por ejemplo, al hacer clic en 'Álgebra', el src cambiará a 'modules/algebra.html'. -->
                 <iframe id="content-frame" src="modules/inicio.html" frameborder="0" class="content-frame"></iframe>
             </main>
         </div>
     </div>
+    
+    <!-- 🌑 CAPA DE SUPERPOSICIÓN (OVERLAY) -->
+    <!-- Esta capa oscura aparece detrás del sidebar en móviles para enfocar la atención en el menú. -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
+    <!-- 📜 SCRIPTS DE JAVASCRIPT -->
+    <!-- El archivo 'script.js' contiene toda la lógica para hacer la página interactiva. -->
+    <!-- Se coloca al final del 'body' para que la página cargue su contenido HTML y CSS primero. -->
     <script src="script.js"></script>
 </body>
 </html>
