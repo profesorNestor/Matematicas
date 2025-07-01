@@ -442,11 +442,17 @@
             color: var(--accent-primary);
         }
 
-        .theme-selector {
+        .top-right-controls {
             position: fixed;
             top: 2rem;
             right: 2rem;
             z-index: 1000;
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .theme-selector {
             display: flex;
             gap: 0.5rem;
             background: var(--glass-bg);
@@ -457,7 +463,7 @@
             box-shadow: var(--shadow);
         }
 
-        .theme-btn {
+        .theme-btn, .help-btn {
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -465,9 +471,21 @@
             cursor: pointer;
             transition: all 0.3s ease;
             position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
-        .theme-btn:hover {
+        .help-btn {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .theme-btn:hover, .help-btn:hover {
             transform: scale(1.1);
         }
 
@@ -542,6 +560,87 @@
             left: 100%;
         }
 
+        /* Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-panel {
+            color: var(--text-primary);
+            padding: 2.5rem;
+            max-width: 600px;
+            width: 90%;
+            transform: scale(0.95);
+            transition: transform 0.3s ease-in-out;
+        }
+        
+        .modal-overlay.show .modal-panel {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.75rem;
+            font-weight: 900;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-content p {
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .modal-content kbd {
+            background: rgba(0,0,0,0.1);
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        [data-theme="dark"] .modal-content kbd,
+        [data-theme="neon"] .modal-content kbd {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.2);
+        }
+
+        .modal-close-btn {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            cursor: pointer;
+            color: var(--text-primary);
+            opacity: 0.7;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .modal-close-btn:hover {
+            opacity: 1;
+            transform: rotate(90deg);
+        }
+
+
         /* Responsive Design */
         @media (max-width: 1024px) {
             .sidebar {
@@ -562,17 +661,21 @@
             .canvas-container {
                 margin: 1rem;
             }
-
-            .theme-selector {
+            
+            .top-right-controls {
                 top: 1rem;
                 right: 1rem;
+            }
+
+            .theme-selector {
                 padding: 0.5rem;
                 gap: 0.25rem;
             }
 
-            .theme-btn {
-                width: 32px;
-                height: 32px;
+            .theme-btn, .help-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 18px;
             }
 
             .toggle-btn {
@@ -595,8 +698,9 @@
                 margin: 0.5rem;
             }
 
-            .theme-selector {
+            .top-right-controls {
                 flex-direction: column;
+                align-items: flex-end;
                 top: 0.5rem;
                 right: 0.5rem;
             }
@@ -617,16 +721,6 @@
         .animate-fadeInUp {
             animation: fadeInUp 0.6s ease-out;
         }
-
-        /* Point animations */
-        .point-glow {
-            animation: pointGlow 2s ease-in-out infinite;
-        }
-
-        @keyframes pointGlow {
-            0%, 100% { filter: drop-shadow(0 0 5px currentColor); }
-            50% { filter: drop-shadow(0 0 15px currentColor); }
-        }
     </style>
 </head>
 <body data-theme="light">
@@ -643,13 +737,16 @@
         <div class="floating-shape" style="width: 21px; height: 21px; left: 90%; animation-delay: 16s;"></div>
     </div>
 
-    <!-- Theme Selector -->
-    <div class="theme-selector">
-        <div class="theme-btn theme-light active" data-theme="light" title="Clásico"></div>
-        <div class="theme-btn theme-dark" data-theme="dark" title="Oscuro"></div>
-        <div class="theme-btn theme-neon" data-theme="neon" title="Neón"></div>
-        <div class="theme-btn theme-ocean" data-theme="ocean" title="Océano"></div>
-        <div class="theme-btn theme-forest" data-theme="forest" title="Bosque"></div>
+    <!-- Top Right Controls -->
+    <div class="top-right-controls">
+        <button class="help-btn" id="help-btn" title="Ayuda">?</button>
+        <div class="theme-selector">
+            <div class="theme-btn theme-light active" data-theme="light" title="Clásico"></div>
+            <div class="theme-btn theme-dark" data-theme="dark" title="Oscuro"></div>
+            <div class="theme-btn theme-neon" data-theme="neon" title="Neón"></div>
+            <div class="theme-btn theme-ocean" data-theme="ocean" title="Océano"></div>
+            <div class="theme-btn theme-forest" data-theme="forest" title="Bosque"></div>
+        </div>
     </div>
 
     <!-- Sidebar Toggle -->
@@ -855,7 +952,30 @@
 
         <!-- Canvas Container -->
         <div class="canvas-container">
-            <canvas id="canvas" class="canvas glass-panel"></canvas>
+            <canvas id="canvas" class="canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="modal-overlay" id="help-modal">
+        <div class="modal-panel glass-panel">
+            <button class="modal-close-btn" id="modal-close-btn">&times;</button>
+            <h2 class="modal-title">Guía de Ayuda</h2>
+            <div class="modal-content">
+                <p>¡Bienvenido a la Geometría Interactiva! Esta es una guía rápida para empezar.</p>
+                <p>
+                    <strong>Arrastrar Vértices:</strong> Haz clic y arrastra los puntos <kbd>A</kbd>, <kbd>B</kbd>, o <kbd>C</kbd> en el plano para cambiar la forma del triángulo en tiempo real.
+                </p>
+                <p>
+                    <strong>Desplazar Plano:</strong> Haz clic en cualquier espacio vacío del plano y arrastra el ratón para moverte por el lienzo.
+                </p>
+                <p>
+                    <strong>Hacer Zoom:</strong> Usa la <kbd>rueda del ratón</kbd> para acercar o alejar la vista. En dispositivos táctiles, puedes usar el gesto de "pellizcar".
+                </p>
+                <p>
+                    <strong>Panel de Control:</strong> A la izquierda, puedes ajustar las coordenadas manualmente y activar/desactivar la visualización de diferentes elementos geométricos como el centroide, las medianas, las circunferencias y más.
+                </p>
+            </div>
         </div>
     </div>
 
@@ -925,7 +1045,6 @@
             currentTheme = theme;
             document.body.setAttribute('data-theme', theme);
             
-            // Update active theme button
             document.querySelectorAll('.theme-btn').forEach(btn => {
                 btn.classList.remove('active');
                 if (btn.dataset.theme === theme) {
@@ -936,7 +1055,6 @@
             redraw();
         }
 
-        // Initialize theme selector
         document.querySelectorAll('.theme-btn').forEach(btn => {
             btn.addEventListener('click', () => setTheme(btn.dataset.theme));
         });
@@ -954,7 +1072,6 @@
                 sidebarOpen = !sidebar.classList.contains('collapsed');
             }
             
-            // Update icon
             if (sidebarOpen) {
                 toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
             } else {
@@ -1014,8 +1131,9 @@
         function getThemeColors() {
             const themes = {
                 light: {
-                    grid: '#e2e8f0',
-                    axes: '#475569',
+                    background: '#ffffff',
+                    grid: '#cccccc',
+                    axes: '#333333',
                     triangle: '#3b82f6',
                     pointA: '#ef4444',
                     pointB: '#3b82f6',
@@ -1028,49 +1146,52 @@
                     altitudes: '#dc2626',
                     bisectors: '#ea580c',
                     perpendicularBisectors: '#9333ea',
-                    euler: '#475569',
+                    euler: '#333333',
                     circumcircle: '#9333ea',
                     incircle: '#ea580c'
                 },
                 dark: {
-                    grid: '#374151',
-                    axes: '#9ca3af',
+                    background: '#1f2937',
+                    grid: '#4b5563',
+                    axes: '#d1d5db',
                     triangle: '#60a5fa',
                     pointA: '#f87171',
                     pointB: '#60a5fa',
                     pointC: '#4ade80',
                     centroid: '#34d399',
-                    circumcenter: '#a78bfa',
-                    incenter: '#fb923c',
-                    orthocenter: '#f87171',
+                    circumcenter: '#c4b5fd',
+                    incenter: '#fcd34d',
+                    orthocenter: '#fda4af',
                     medians: '#fbbf24',
-                    altitudes: '#f87171',
-                    bisectors: '#fb923c',
-                    perpendicularBisectors: '#a78bfa',
+                    altitudes: '#fca5a5',
+                    bisectors: '#fdba74',
+                    perpendicularBisectors: '#d8b4fe',
                     euler: '#9ca3af',
-                    circumcircle: '#a78bfa',
-                    incircle: '#fb923c'
+                    circumcircle: '#d8b4fe',
+                    incircle: '#fcd34d'
                 },
                 neon: {
-                    grid: '#1f2937',
+                    background: '#111827',
+                    grid: '#374151',
                     axes: '#00ffff',
-                    triangle: '#00ff00',
-                    pointA: '#ff0080',
-                    pointB: '#00ffff',
-                    pointC: '#ffff00',
-                    centroid: '#00ff00',
-                    circumcenter: '#ff00ff',
-                    incenter: '#ff8000',
-                    orthocenter: '#ff0080',
-                    medians: '#ffff00',
-                    altitudes: '#ff0080',
-                    bisectors: '#ff8000',
-                    perpendicularBisectors: '#ff00ff',
+                    triangle: '#34d399',
+                    pointA: '#f472b6',
+                    pointB: '#60a5fa',
+                    pointC: '#facc15',
+                    centroid: '#34d399',
+                    circumcenter: '#c084fc',
+                    incenter: '#fb923c',
+                    orthocenter: '#f472b6',
+                    medians: '#facc15',
+                    altitudes: '#f472b6',
+                    bisectors: '#fb923c',
+                    perpendicularBisectors: '#c084fc',
                     euler: '#ffffff',
-                    circumcircle: '#ff00ff',
-                    incircle: '#ff8000'
+                    circumcircle: '#c084fc',
+                    incircle: '#fb923c'
                 },
                 ocean: {
+                    background: '#eff6ff',
                     grid: '#dbeafe',
                     axes: '#1e40af',
                     triangle: '#2563eb',
@@ -1090,9 +1211,10 @@
                     incircle: '#ea580c'
                 },
                 forest: {
-                    grid: '#d1fae5',
-                    axes: '#065f46',
-                    triangle: '#059669',
+                    background: '#f0fdf4',
+                    grid: '#dcfce7',
+                    axes: '#14532d',
+                    triangle: '#16a34a',
                     pointA: '#dc2626',
                     pointB: '#2563eb',
                     pointC: '#16a34a',
@@ -1104,7 +1226,7 @@
                     altitudes: '#dc2626',
                     bisectors: '#ea580c',
                     perpendicularBisectors: '#7c3aed',
-                    euler: '#065f46',
+                    euler: '#14532d',
                     circumcircle: '#7c3aed',
                     incircle: '#ea580c'
                 }
@@ -1118,9 +1240,8 @@
             const center = worldToCanvas(0, 0);
             const colors = getThemeColors();
 
-            // Grid
             ctx.strokeStyle = colors.grid;
-            ctx.lineWidth = 0.5;
+            ctx.lineWidth = 1;
             const fontSize = Math.max(10, 12 * Math.sqrt(zoomLevel / 40));
             ctx.font = `${fontSize}px Inter`;
             ctx.fillStyle = colors.axes;
@@ -1165,23 +1286,19 @@
                 ctx.restore();
             }
 
-            // Main axes
             ctx.strokeStyle = colors.axes;
             ctx.lineWidth = 2;
             
-            // X axis
             ctx.beginPath();
             ctx.moveTo(0, center.y);
             ctx.lineTo(width, center.y);
             ctx.stroke();
 
-            // Y axis
             ctx.beginPath();
             ctx.moveTo(center.x, 0);
             ctx.lineTo(center.x, height);
             ctx.stroke();
 
-            // Origin label
             if (center.x > fontSize && center.x < width - fontSize && 
                 center.y > fontSize && center.y < height - fontSize) {
                 ctx.fillStyle = colors.axes;
@@ -1196,31 +1313,25 @@
                 return;
             }
 
-            // Glow effect
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 15;
             ctx.fillStyle = color;
             ctx.beginPath();
             ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
             ctx.fill();
-            ctx.shadowBlur = 0;
 
-            // Inner highlight
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
             ctx.beginPath();
-            ctx.arc(pos.x - size * 0.3, pos.y - size * 0.3, size * 0.4, 0, Math.PI * 2);
+            ctx.arc(pos.x - size * 0.2, pos.y - size * 0.2, size * 0.5, 0, Math.PI * 2);
             ctx.fill();
 
-            // Label
             if (label) {
-                ctx.fillStyle = color;
+                const labelColor = getThemeColors().axes;
+                ctx.fillStyle = labelColor;
                 ctx.font = 'bold 16px Inter';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'bottom';
                 ctx.fillText(label, pos.x, pos.y - size - 5);
 
                 ctx.font = '12px JetBrains Mono';
-                ctx.fillStyle = getThemeColors().axes;
                 ctx.textAlign = 'left';
                 const textX = pos.x + size + 8;
                 const textY = pos.y + 4;
@@ -1236,14 +1347,9 @@
             }
         }
 
-        function drawLine(p1, p2, color, lineWidth = 2, dashed = false, glowEffect = false) {
+        function drawLine(p1, p2, color, lineWidth = 2, dashed = false) {
             const start = worldToCanvas(p1.x, p1.y);
             const end = worldToCanvas(p2.x, p2.y);
-            
-            if (glowEffect) {
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 10;
-            }
             
             ctx.strokeStyle = color;
             ctx.lineWidth = lineWidth;
@@ -1253,10 +1359,6 @@
             ctx.lineTo(end.x, end.y);
             ctx.stroke();
             ctx.setLineDash([]);
-            
-            if (glowEffect) {
-                ctx.shadowBlur = 0;
-            }
         }
 
         function drawInfiniteLine(p1, p2, color, lineWidth = 2, dashed = false) {
@@ -1267,15 +1369,13 @@
             const scale = 10000;
             const farP1 = { x: p1.x - dx * scale, y: p1.y - dy * scale };
             const farP2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };
-            drawLine(farP1, farP2, color, lineWidth, dashed, true);
+            drawLine(farP1, farP2, color, lineWidth, dashed);
         }
 
         function drawCircle(center, radius, color, lineWidth = 2, dashed = false) {
             const pos = worldToCanvas(center.x, center.y);
             const canvasRadius = radius * zoomLevel;
             
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 8;
             ctx.strokeStyle = color;
             ctx.lineWidth = lineWidth;
             ctx.setLineDash(dashed ? [10, 5] : []);
@@ -1283,7 +1383,6 @@
             ctx.arc(pos.x, pos.y, Math.max(0, canvasRadius), 0, Math.PI * 2);
             ctx.stroke();
             ctx.setLineDash([]);
-            ctx.shadowBlur = 0;
         }
 
         // --- Geometric Calculations ---
@@ -1327,27 +1426,15 @@
             const sides = [a, b, c].sort((x, y) => x - y);
             const [s1, s2, s3] = sides;
             
-            // Check if equilateral
-            if (Math.abs(s1 - s2) < 0.01 && Math.abs(s2 - s3) < 0.01) {
-                return 'Equilátero';
-            }
+            if (Math.abs(s1 - s2) < 0.01 && Math.abs(s2 - s3) < 0.01) return 'Equilátero';
+            if (Math.abs(s1 - s2) < 0.01 || Math.abs(s2 - s3) < 0.01) return 'Isósceles';
             
-            // Check if isosceles
-            if (Math.abs(s1 - s2) < 0.01 || Math.abs(s2 - s3) < 0.01) {
-                return 'Isósceles';
-            }
-            
-            // Check angle types
             const angles = calculateAngles(p1, p2, p3);
             const maxAngle = Math.max(angles.angleA, angles.angleB, angles.angleC);
             
-            if (Math.abs(maxAngle - 90) < 0.1) {
-                return 'Rectángulo';
-            } else if (maxAngle > 90) {
-                return 'Obtusángulo';
-            } else {
-                return 'Acutángulo';
-            }
+            if (Math.abs(maxAngle - 90) < 0.1) return 'Rectángulo';
+            if (maxAngle > 90) return 'Obtusángulo';
+            return 'Acutángulo';
         }
 
         function calculateCentroid(p1, p2, p3) {
@@ -1464,40 +1551,33 @@
         // --- Main Drawing Functions ---
         function drawTriangle() {
             const colors = getThemeColors();
-            drawLine(points[0], points[1], colors.triangle, 3, false, true);
-            drawLine(points[1], points[2], colors.triangle, 3, false, true);
-            drawLine(points[2], points[0], colors.triangle, 3, false, true);
+            drawLine(points[0], points[1], colors.triangle, 3);
+            drawLine(points[1], points[2], colors.triangle, 3);
+            drawLine(points[2], points[0], colors.triangle, 3);
         }
 
         function drawGeometricFeatures() {
             const [p1, p2, p3] = points;
             const colors = getThemeColors();
             
-            // Skip if collinear
             if (arePointsCollinear(p1, p2, p3)) return;
             
             const sides = [distance(p2, p3), distance(p1, p3), distance(p1, p2)];
             const triangleArea = calculateArea(p1, p2, p3);
             const trianglePerimeter = calculatePerimeter(p1, p2, p3);
             
-            // Calculate centers
             const centroid = calculateCentroid(p1, p2, p3);
             const circumcenter = calculateCircumcenter(p1, p2, p3);
             const incenter = calculateIncenter(p1, p2, p3, sides);
             const orthocenter = calculateOrthocenter(p1, p2, p3);
             
-            // Draw elements based on state
-            if (state.showCentroid && centroid) {
-                drawPoint(centroid, colors.centroid, 'G', 8);
-            }
-            
             if (state.showMedians && centroid) {
                 const mid1 = midpoint(p2, p3);
                 const mid2 = midpoint(p1, p3);
                 const mid3 = midpoint(p1, p2);
-                drawLine(p1, mid1, colors.medians, 2, true, true);
-                drawLine(p2, mid2, colors.medians, 2, true, true);
-                drawLine(p3, mid3, colors.medians, 2, true, true);
+                drawLine(p1, mid1, colors.medians, 2, true);
+                drawLine(p2, mid2, colors.medians, 2, true);
+                drawLine(p3, mid3, colors.medians, 2, true);
                 drawPoint(mid1, colors.medians, '', 4);
                 drawPoint(mid2, colors.medians, '', 4);
                 drawPoint(mid3, colors.medians, '', 4);
@@ -1507,16 +1587,12 @@
                 const foot1 = getPerpendicularFoot(p1, p2, p3);
                 const foot2 = getPerpendicularFoot(p2, p1, p3);
                 const foot3 = getPerpendicularFoot(p3, p1, p2);
-                drawLine(p1, foot1, colors.altitudes, 2, true, true);
-                drawLine(p2, foot2, colors.altitudes, 2, true, true);
-                drawLine(p3, foot3, colors.altitudes, 2, true, true);
+                drawLine(p1, foot1, colors.altitudes, 2, true);
+                drawLine(p2, foot2, colors.altitudes, 2, true);
+                drawLine(p3, foot3, colors.altitudes, 2, true);
                 drawPoint(foot1, colors.altitudes, '', 4);
                 drawPoint(foot2, colors.altitudes, '', 4);
                 drawPoint(foot3, colors.altitudes, '', 4);
-            }
-            
-            if (state.showOrthocenter && orthocenter) {
-                drawPoint(orthocenter, colors.orthocenter, 'H', 8);
             }
             
             if (state.showPerpendicularBisectors && circumcenter) {
@@ -1528,23 +1604,15 @@
                 drawInfiniteLine(mid3, getPerpendicularBisectorPoint(mid3, p1, p2), colors.perpendicularBisectors, 2, true);
             }
             
-            if (state.showCircumcenter && circumcenter) {
-                drawPoint(circumcenter, colors.circumcenter, 'O', 8);
-            }
-            
             if (state.showAngleBisectors && incenter) {
                 const bisectorEnd1 = lineIntersection(p1, getAngleBisectorPoint(p1, p2, p3), p2, p3);
                 const bisectorEnd2 = lineIntersection(p2, getAngleBisectorPoint(p2, p1, p3), p1, p3);
                 const bisectorEnd3 = lineIntersection(p3, getAngleBisectorPoint(p3, p1, p2), p1, p2);
-                if (bisectorEnd1) drawLine(p1, bisectorEnd1, colors.bisectors, 2, true, true);
-                if (bisectorEnd2) drawLine(p2, bisectorEnd2, colors.bisectors, 2, true, true);
-                if (bisectorEnd3) drawLine(p3, bisectorEnd3, colors.bisectors, 2, true, true);
+                if (bisectorEnd1) drawLine(p1, bisectorEnd1, colors.bisectors, 2, true);
+                if (bisectorEnd2) drawLine(p2, bisectorEnd2, colors.bisectors, 2, true);
+                if (bisectorEnd3) drawLine(p3, bisectorEnd3, colors.bisectors, 2, true);
             }
-            
-            if (state.showIncenter && incenter) {
-                drawPoint(incenter, colors.incenter, 'I', 8);
-            }
-            
+
             if (state.showEulerLine && centroid && circumcenter && orthocenter) {
                 const pointsForEuler = [centroid, circumcenter, orthocenter];
                 if (!arePointsCoincident(pointsForEuler)) {
@@ -1562,8 +1630,12 @@
                 const inRadius = calculateInradius(triangleArea, trianglePerimeter);
                 drawCircle(incenter, inRadius, colors.incircle, 2, true);
             }
+
+            if (state.showCentroid && centroid) drawPoint(centroid, colors.centroid, 'G', 8);
+            if (state.showOrthocenter && orthocenter) drawPoint(orthocenter, colors.orthocenter, 'H', 8);
+            if (state.showCircumcenter && circumcenter) drawPoint(circumcenter, colors.circumcenter, 'O', 8);
+            if (state.showIncenter && incenter) drawPoint(incenter, colors.incenter, 'I', 8);
             
-            // Update information panel
             updateInfoPanel(triangleArea, trianglePerimeter, sides, p1, p2, p3);
         }
 
@@ -1592,14 +1664,14 @@
                 canvas.height = newHeight;
             }
             
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const colors = getThemeColors();
+            ctx.fillStyle = colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             drawAxes();
-            drawGeometricFeatures();
             drawTriangle();
-            
-            // Draw vertices
-            const colors = getThemeColors();
+            drawGeometricFeatures();
+
             drawPoint(points[0], colors.pointA, 'A', pointRadius);
             drawPoint(points[1], colors.pointB, 'B', pointRadius);
             drawPoint(points[2], colors.pointC, 'C', pointRadius);
@@ -1616,7 +1688,6 @@
         function handleMouseDown(event) {
             event.preventDefault();
             
-            // Handle pinch zoom
             if (event.touches && event.touches.length === 2) {
                 pinchZoom = true;
                 isDraggingPoint = -1;
@@ -1639,7 +1710,6 @@
             lastMousePos = mousePos;
             isDraggingPoint = -1;
             
-            // Check for point dragging
             for (let i = 0; i < points.length; i++) {
                 const pointCanvasPos = worldToCanvas(points[i].x, points[i].y);
                 const dist = Math.sqrt((mousePos.x - pointCanvasPos.x)**2 + (mousePos.y - pointCanvasPos.y)**2);
@@ -1659,7 +1729,6 @@
         function handleMouseMove(event) {
             event.preventDefault();
             
-            // Handle pinch zoom
             if (pinchZoom && event.touches && event.touches.length === 2) {
                 const touch1 = { x: event.touches[0].clientX, y: event.touches[0].clientY };
                 const touch2 = { x: event.touches[1].clientX, y: event.touches[1].clientY };
@@ -1704,7 +1773,6 @@
                 originOffset.y += dy;
                 redraw();
             } else {
-                // Update cursor based on hover
                 let hoveringPoint = false;
                 for (let i = 0; i < points.length; i++) {
                     const pc = worldToCanvas(points[i].x, points[i].y);
@@ -1844,11 +1912,10 @@
                     resizer.classList.remove('resizing');
                     document.body.style.cursor = '';
                     document.body.style.userSelect = '';
-                    redraw(); // Redraw canvas after resize
+                    redraw();
                 }
             });
 
-            // Touch events for mobile
             resizer.addEventListener('touchstart', (e) => {
                 isResizing = true;
                 startX = e.touches[0].clientX;
@@ -1878,19 +1945,44 @@
             });
         }
 
+        // --- Modal Functionality ---
+        function initModal() {
+            const modal = document.getElementById('help-modal');
+            const openBtn = document.getElementById('help-btn');
+            const closeBtn = document.getElementById('modal-close-btn');
+
+            const showModal = () => modal.classList.add('show');
+            const hideModal = () => modal.classList.remove('show');
+
+            openBtn.addEventListener('click', showModal);
+            closeBtn.addEventListener('click', hideModal);
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    hideModal();
+                }
+            });
+
+            // Show modal on first visit
+            if (!localStorage.getItem('geometryHelpShown')) {
+                setTimeout(showModal, 1000);
+                localStorage.setItem('geometryHelpShown', 'true');
+            }
+        }
+
         // --- Initialization ---
         function init() {
             updateInputsFromPoints();
             redraw();
-            initResizer(); // Initialize resizer functionality
+            initResizer();
+            initModal();
             
-            // Event listeners
             Object.values(inputs).forEach(input => {
                 input.addEventListener('input', handleInputChange);
             });
             
-            canvas.addEventListener('mousedown', handleMouseDown);
-            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mousedown', handleMouseDown, { passive: false });
+            canvas.addEventListener('mousemove', handleMouseMove, { passive: false });
             canvas.addEventListener('mouseup', handleMouseUp);
             canvas.addEventListener('mouseleave', handleMouseUp);
             canvas.addEventListener('touchstart', handleMouseDown, { passive: false });
@@ -1899,19 +1991,16 @@
             canvas.addEventListener('touchcancel', handleMouseUp);
             canvas.addEventListener('wheel', handleWheel, { passive: false });
             
-            // Resize observer
             const resizeObserver = new ResizeObserver(() => {
                 redraw();
             });
             resizeObserver.observe(canvas.parentElement);
             
-            // Window resize handler
             window.addEventListener('resize', () => {
                 setTimeout(redraw, 100);
             });
         }
 
-        // Start the application
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', init);
         } else {
