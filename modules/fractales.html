@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Fractales Ultra-Futurista</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        /* Estilos personalizados para un look más futurista */
+        :root {
+            --glow-color: #00ffff;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0a1a;
+            color: #e0e0e0;
+            overflow: hidden;
+            background-image: radial-gradient(circle at 1% 1%, rgba(0, 255, 255, 0.15), transparent 25%),
+                              radial-gradient(circle at 99% 99%, rgba(255, 0, 255, 0.15), transparent 25%);
+        }
+        .font-orbitron {
+            font-family: 'Orbitron', sans-serif;
+        }
+        
+        /* Efecto de brillo para el título */
+        @keyframes glow {
+            0%, 100% { text-shadow: 0 0 5px var(--glow-color), 0 0 10px var(--glow-color), 0 0 20px var(--glow-color), 0 0 40px #00aaff, 0 0 70px #00aaff; }
+            50% { text-shadow: 0 0 10px var(--glow-color), 0 0 20px var(--glow-color), 0 0 40px var(--glow-color), 0 0 80px #00aaff, 0 0 120px #00aaff; }
+        }
+        .title-glow {
+            animation: glow 3s ease-in-out infinite;
+        }
+
+        /* Estilo mejorado para botones */
+        .btn-glass {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px rgba(0, 255, 255, 0.2), inset 0 0 5px rgba(0, 255, 255, 0.1);
+        }
+        .btn-glass:hover {
+            background: rgba(0, 255, 255, 0.1);
+            border-color: rgba(0, 255, 255, 0.5);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5), inset 0 0 10px rgba(0, 255, 255, 0.2);
+            transform: translateY(-3px);
+        }
+        .btn-glass.active {
+            background: rgba(0, 255, 255, 0.2);
+            border-color: rgba(0, 255, 255, 0.8);
+            box-shadow: 0 0 25px rgba(0, 255, 255, 0.7), inset 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        /* Estilo para el canvas */
+        #fractalCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            background: radial-gradient(circle, #1a1a3a 0%, #0a0a1a 70%);
+        }
+        
+        /* Animación para el loader */
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-left-color: var(--glow-color);
+            animation: spin 1s linear infinite;
+        }
+
+        /* Estilos para el Modal de Temas */
+        .modal-overlay {
+            transition: opacity 0.3s ease-in-out;
+        }
+        .modal-content {
+            background: rgba(10, 10, 26, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 255, 255, 0.3);
+            box-shadow: 0 0 50px rgba(0, 255, 255, 0.2);
+        }
+        .theme-preview-card {
+            border: 1px solid transparent;
+            transition: all 0.3s ease;
+        }
+        .theme-preview-card:hover {
+            border-color: var(--glow-color);
+            transform: scale(1.05);
+        }
+        .theme-preview-card.active {
+            border-color: var(--glow-color);
+            box-shadow: 0 0 15px var(--glow-color);
+        }
+    </style>
+</head>
+<body class="w-full h-screen flex flex-col md:flex-row">
+
+    <!-- Panel de Controles -->
+    <div id="controls" class="w-full md:w-80 lg:w-96 p-4 bg-black bg-opacity-40 backdrop-blur-md border-r border-gray-800 flex flex-col space-y-6 overflow-y-auto">
+        <div class="text-center">
+            <h1 class="font-orbitron text-2xl lg:text-3xl font-black text-white tracking-widest title-glow">FRACTALIS</h1>
+            <p class="text-sm text-cyan-200 opacity-80">Generador Cósmico</p>
+        </div>
+        
+        <div>
+            <h2 class="font-orbitron text-lg text-cyan-400 mb-3">Selector Fractal</h2>
+            <div id="fractal-buttons" class="grid grid-cols-2 gap-3">
+                <button data-fractal="tree" class="btn-glass p-3 rounded-lg text-sm active">Árbol Recursivo</button>
+                <button data-fractal="mandelbrot" class="btn-glass p-3 rounded-lg text-sm">Mandelbrot</button>
+                <button data-fractal="sierpinski" class="btn-glass p-3 rounded-lg text-sm">Sierpinski</button>
+                <button data-fractal="julia" class="btn-glass p-3 rounded-lg text-sm">Julia Set</button>
+                <button data-fractal="fern" class="btn-glass p-3 rounded-lg text-sm col-span-2">Helecho Barnsley</button>
+            </div>
+        </div>
+
+        <div>
+            <h2 class="font-orbitron text-lg text-cyan-400 mb-3">Paleta de Colores</h2>
+            <button id="theme-modal-button" class="btn-glass w-full p-3 rounded-lg flex items-center justify-center space-x-2">
+                <span>Elegir Tema</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg>
+            </button>
+        </div>
+
+        <div id="fractal-specific-controls" class="space-y-4 flex-grow"></div>
+
+        <div class="space-y-3 pt-4 border-t border-gray-800">
+            <button id="download-button" class="btn-glass w-full p-3 rounded-lg flex items-center justify-center space-x-2">
+                <span>Descargar PNG</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>
+            </button>
+            <div class="text-xs text-gray-500 text-center">
+                <p><strong class="text-cyan-400">Zoom:</strong> Rueda del ratón | <strong class="text-cyan-400">Mover:</strong> Clic y arrastrar</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor del Canvas -->
+    <div class="flex-grow relative">
+        <canvas id="fractalCanvas"></canvas>
+        <div id="loader" class="absolute inset-0 bg-black bg-opacity-50 flex-col items-center justify-center hidden">
+            <div class="loader w-16 h-16 rounded-full"></div>
+            <p class="mt-4 text-lg font-orbitron text-cyan-300">Generando fractal...</p>
+        </div>
+    </div>
+
+    <!-- Modal para seleccionar tema -->
+    <div id="theme-modal" class="modal-overlay fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 hidden z-50">
+        <div class="modal-content w-full max-w-2xl rounded-2xl p-6">
+            <h2 class="font-orbitron text-2xl text-center text-cyan-300 mb-6">Selecciona una Paleta de Colores</h2>
+            <div id="theme-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto">
+                <!-- Las paletas se inyectarán aquí -->
+            </div>
+            <button id="close-theme-modal" class="btn-glass w-full mt-6 p-3 rounded-lg">Cerrar</button>
+        </div>
+    </div>
+
+    <script>
+        // --- ELEMENTOS DEL DOM ---
+        const canvas = document.getElementById('fractalCanvas');
+        const ctx = canvas.getContext('2d');
+        const controlsContainer = document.getElementById('fractal-specific-controls');
+        const fractalButtonsContainer = document.getElementById('fractal-buttons');
+        const loader = document.getElementById('loader');
+        const themeModal = document.getElementById('theme-modal');
+        const themeModalButton = document.getElementById('theme-modal-button');
+        const closeThemeModalButton = document.getElementById('close-theme-modal');
+        const themeGrid = document.getElementById('theme-grid');
+        const downloadButton = document.getElementById('download-button');
+
+        // --- ESTADO DE LA APLICACIÓN ---
+        let currentFractal = 'tree';
+        let currentThemeIndex = 0;
+        let animationFrameId;
+
+        // --- PALETAS DE COLORES MEJORADAS ---
+        const themes = [
+            { name: 'Ciber-Neón', colors: ['#00ffff', '#ff00ff', '#ffff00', '#000000'] },
+            { name: 'Plasma Estelar', colors: ['#f0f', '#0ff', '#f00', '#ff0', '#00f', '#00001a'] },
+            { name: 'Amanecer Sintético', colors: ['#ff6e7f', '#bfe9ff', '#ff9a9e', '#fecfef', '#0a0a23'] },
+            { name: 'Agujero Negro', colors: ['#ffffff', '#cccccc', '#999999', '#666666', '#333333', '#000000'] },
+            { name: 'Naturaleza Alienígena', colors: ['#7CFFCB', '#00B4DB', '#0083B0', '#003973', '#00102b'] },
+            { name: 'Fuego de Dragón', colors: ['#FF4E50', '#F9D423', '#FF0000', '#800000', '#100000'] },
+            { name: 'Abismo Oceánico', colors: ['#2193b0', '#6dd5ed', '#ffffff', '#004e89', '#021019'] },
+            { name: 'Circuito Cuántico', colors: ['#a8ff78', '#78ffd6', '#ffffff', '#001a1a'] },
+        ];
+
+        // --- CONFIGURACIÓN DE FRACTALES ---
+        let fractalConfig = {
+            tree: { angle: 0.5, depth: 10, animated: false },
+            mandelbrot: { maxIter: 100, zoom: 1, offsetX: -0.5, offsetY: 0 },
+            sierpinski: { depth: 7 },
+            julia: { maxIter: 200, cx: -0.7, cy: 0.27015, zoom: 1, offsetX: 0, offsetY: 0 },
+            fern: { points: 50000 }
+        };
+
+        // --- LÓGICA DE DIBUJO ---
+        function resizeCanvas() {
+            const parent = canvas.parentElement;
+            canvas.width = parent.clientWidth;
+            canvas.height = parent.clientHeight;
+            draw();
+        }
+
+        function draw() {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+                animationFrameId = null;
+            }
+
+            if (currentFractal === 'tree' && fractalConfig.tree.animated) {
+                animateTree();
+            } else {
+                renderStaticFractal();
+            }
+        }
+        
+        function renderStaticFractal() {
+             showLoader(true);
+            setTimeout(() => {
+                ctx.fillStyle = themes[currentThemeIndex].colors.slice(-1)[0] || '#000';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                switch (currentFractal) {
+                    case 'tree': drawTree(fractalConfig.tree.angle); break;
+                    case 'mandelbrot': drawMandelbrot(); break;
+                    case 'sierpinski': drawSierpinski(); break;
+                    case 'julia': drawJulia(); break;
+                    case 'fern': drawBarnsleyFern(); break;
+                }
+                showLoader(false);
+            }, 50);
+        }
+
+        function showLoader(visible) {
+            loader.style.display = visible ? 'flex' : 'none';
+        }
+
+        // --- ALGORITMOS DE FRACTALES ---
+
+        function drawTree(angle) {
+            const { depth } = fractalConfig.tree;
+            const startX = canvas.width / 2;
+            const startY = canvas.height;
+            const len = Math.min(canvas.width, canvas.height) / 5.5;
+            
+            ctx.fillStyle = themes[currentThemeIndex].colors.slice(-1)[0] || '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            function branch(x1, y1, len, ang, currentDepth) {
+                if (currentDepth === 0) return;
+                const x2 = x1 + len * Math.cos(ang);
+                const y2 = y1 + len * Math.sin(ang);
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                const colorPalette = themes[currentThemeIndex].colors;
+                ctx.strokeStyle = colorPalette[currentDepth % (colorPalette.length - 1)];
+                ctx.lineWidth = currentDepth * 0.6 + 0.5;
+                ctx.stroke();
+                branch(x2, y2, len * 0.8, ang - angle, currentDepth - 1);
+                branch(x2, y2, len * 0.8, ang + angle, currentDepth - 1);
+            }
+            branch(startX, startY, len, -Math.PI / 2, depth);
+        }
+        
+        function animateTree() {
+            const baseAngle = fractalConfig.tree.angle;
+            const oscillation = Math.sin(Date.now() * 0.0005) * 0.1;
+            drawTree(baseAngle + oscillation);
+            animationFrameId = requestAnimationFrame(animateTree);
+        }
+
+        function drawMandelbrot() {
+            const { maxIter, zoom, offsetX, offsetY } = fractalConfig.mandelbrot;
+            const colorPalette = themes[currentThemeIndex].colors;
+            for (let px = 0; px < canvas.width; px++) {
+                for (let py = 0; py < canvas.height; py++) {
+                    const x0 = (px - canvas.width / 2) * 4 / (canvas.width * zoom) + offsetX;
+                    const y0 = (py - canvas.height / 2) * 4 / (canvas.width * zoom) + offsetY;
+                    let x = 0, y = 0, iteration = 0;
+                    while (x * x + y * y <= 4 && iteration < maxIter) {
+                        const xtemp = x * x - y * y + x0;
+                        y = 2 * x * y + y0;
+                        x = xtemp;
+                        iteration++;
+                    }
+                    if (iteration < maxIter) {
+                        const colorIndex = iteration % (colorPalette.length - 1);
+                        ctx.fillStyle = colorPalette[colorIndex];
+                        ctx.fillRect(px, py, 1, 1);
+                    }
+                }
+            }
+        }
+        
+        function drawSierpinski() {
+            const { depth } = fractalConfig.sierpinski;
+            const colorPalette = themes[currentThemeIndex].colors;
+            const size = Math.min(canvas.width, canvas.height) * 0.9;
+            const h = size * (Math.sqrt(3)/2);
+            const p1 = { x: canvas.width/2, y: (canvas.height - h)/2 };
+            const p2 = { x: (canvas.width - size)/2, y: (canvas.height + h)/2 };
+            const p3 = { x: (canvas.width + size)/2, y: (canvas.height + h)/2 };
+            function divideTriangle(p1, p2, p3, count) {
+                if (count === 0) {
+                    ctx.fillStyle = colorPalette[count % (colorPalette.length - 1)];
+                    ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath(); ctx.fill();
+                    return;
+                }
+                const p12 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+                const p23 = { x: (p2.x + p3.x) / 2, y: (p2.y + p3.y) / 2 };
+                const p31 = { x: (p3.x + p1.x) / 2, y: (p3.y + p1.y) / 2 };
+                divideTriangle(p1, p12, p31, count - 1);
+                divideTriangle(p12, p2, p23, count - 1);
+                divideTriangle(p31, p23, p3, count - 1);
+            }
+            divideTriangle(p1, p2, p3, depth);
+        }
+        
+        function drawJulia() {
+            const { maxIter, cx, cy, zoom, offsetX, offsetY } = fractalConfig.julia;
+            const colorPalette = themes[currentThemeIndex].colors;
+            for (let px = 0; px < canvas.width; px++) {
+                for (let py = 0; py < canvas.height; py++) {
+                    let zx = (px - canvas.width / 2) * 4 / (canvas.width * zoom) + offsetX;
+                    let zy = (py - canvas.height / 2) * 4 / (canvas.width * zoom) + offsetY;
+                    let iteration = 0;
+                    while (zx * zx + zy * zy <= 4 && iteration < maxIter) {
+                        const xtemp = zx * zx - zy * zy;
+                        zy = 2 * zx * zy + cy;
+                        zx = xtemp + cx;
+                        iteration++;
+                    }
+                    if (iteration < maxIter) {
+                        const colorIndex = iteration % (colorPalette.length - 1);
+                        ctx.fillStyle = colorPalette[colorIndex];
+                        ctx.fillRect(px, py, 1, 1);
+                    }
+                }
+            }
+        }
+
+        function drawBarnsleyFern() {
+            let x = 0, y = 0;
+            const colorPalette = themes[currentThemeIndex].colors;
+            ctx.globalAlpha = 0.7;
+
+            for (let i = 0; i < fractalConfig.fern.points; i++) {
+                const r = Math.random();
+                let nextX, nextY;
+
+                if (r < 0.01) { // Tallo
+                    nextX = 0;
+                    nextY = 0.16 * y;
+                } else if (r < 0.86) { // Hojas grandes
+                    nextX = 0.85 * x + 0.04 * y;
+                    nextY = -0.04 * x + 0.85 * y + 1.6;
+                } else if (r < 0.93) { // Hojas izquierdas
+                    nextX = 0.2 * x - 0.26 * y;
+                    nextY = 0.23 * x + 0.22 * y + 1.6;
+                } else { // Hojas derechas
+                    nextX = -0.15 * x + 0.28 * y;
+                    nextY = 0.26 * x + 0.24 * y + 0.44;
+                }
+                x = nextX;
+                y = nextY;
+                
+                const plotX = canvas.width / 2 + x * (canvas.height / 12);
+                const plotY = canvas.height - y * (canvas.height / 12);
+
+                ctx.fillStyle = colorPalette[i % (colorPalette.length - 1)];
+                ctx.fillRect(plotX, plotY, 1, 1);
+            }
+            ctx.globalAlpha = 1.0;
+        }
+
+        // --- MANEJO DE CONTROLES Y EVENTOS ---
+        function updateControls() {
+            controlsContainer.innerHTML = '';
+            let controlsHTML = `<h2 class="font-orbitron text-lg text-cyan-400 mb-3">Parámetros</h2>`;
+            switch(currentFractal) {
+                case 'tree':
+                    controlsHTML += `
+                        <div class="space-y-2">
+                            <label for="tree-angle" class="text-sm">Ángulo: <span id="tree-angle-val">${fractalConfig.tree.angle.toFixed(2)}</span></label>
+                            <input type="range" id="tree-angle" min="0.1" max="1.5" step="0.01" value="${fractalConfig.tree.angle}" class="w-full">
+                        </div>
+                        <div class="space-y-2">
+                            <label for="tree-depth" class="text-sm">Profundidad: <span id="tree-depth-val">${fractalConfig.tree.depth}</span></label>
+                            <input type="range" id="tree-depth" min="1" max="12" step="1" value="${fractalConfig.tree.depth}" class="w-full">
+                        </div>
+                        <div class="flex items-center justify-between mt-2">
+                            <label for="tree-animated" class="text-sm">Animar árbol</label>
+                            <input type="checkbox" id="tree-animated" ${fractalConfig.tree.animated ? 'checked' : ''} class="form-checkbox h-5 w-5 text-cyan-400 bg-gray-800 border-gray-600 rounded">
+                        </div>
+                    `;
+                    break;
+                case 'mandelbrot': case 'julia':
+                    const config = fractalConfig[currentFractal];
+                    controlsHTML += `<div class="space-y-2">
+                        <label for="iter" class="text-sm">Iteraciones: <span id="iter-val">${config.maxIter}</span></label>
+                        <input type="range" id="iter" min="50" max="1000" step="10" value="${config.maxIter}" class="w-full">
+                    </div>`;
+                    if (currentFractal === 'julia') {
+                        controlsHTML += `<div class="space-y-2">
+                            <label for="julia-cx" class="text-sm">Constante X: <span id="julia-cx-val">${config.cx.toFixed(4)}</span></label>
+                            <input type="range" id="julia-cx" min="-1" max="1" step="0.001" value="${config.cx}" class="w-full">
+                        </div>
+                        <div class="space-y-2">
+                            <label for="julia-cy" class="text-sm">Constante Y: <span id="julia-cy-val">${config.cy.toFixed(4)}</span></label>
+                            <input type="range" id="julia-cy" min="-1" max="1" step="0.001" value="${config.cy}" class="w-full">
+                        </div>`;
+                    }
+                    controlsHTML += `<button id="reset-button" class="btn-glass w-full p-2 mt-4 rounded-lg text-sm">Resetear Vista</button>`;
+                    break;
+                case 'sierpinski':
+                    controlsHTML += `<div class="space-y-2">
+                        <label for="sierpinski-depth" class="text-sm">Profundidad: <span id="sierpinski-depth-val">${fractalConfig.sierpinski.depth}</span></label>
+                        <input type="range" id="sierpinski-depth" min="1" max="9" step="1" value="${fractalConfig.sierpinski.depth}" class="w-full">
+                    </div>`;
+                    break;
+                case 'fern':
+                     controlsHTML += `<div class="space-y-2">
+                        <label for="fern-points" class="text-sm">Puntos: <span id="fern-points-val">${fractalConfig.fern.points}</span></label>
+                        <input type="range" id="fern-points" min="10000" max="200000" step="1000" value="${fractalConfig.fern.points}" class="w-full">
+                    </div>`;
+                    break;
+            }
+            controlsContainer.innerHTML = controlsHTML;
+            addControlListeners();
+        }
+
+        function addControlListeners() {
+            const inputs = controlsContainer.querySelectorAll('input[type="range"]');
+            inputs.forEach(input => {
+                input.addEventListener('input', (e) => {
+                    const id = e.target.id;
+                    const value = parseFloat(e.target.value);
+                    const valEl = document.getElementById(`${id}-val`);
+                    if (valEl) valEl.textContent = id.includes('angle') || id.includes('cx') || id.includes('cy') ? value.toFixed(4) : value;
+
+                    if (id === 'tree-angle') fractalConfig.tree.angle = value;
+                    if (id === 'tree-depth') fractalConfig.tree.depth = value;
+                    if (id === 'iter') { fractalConfig.mandelbrot.maxIter = value; fractalConfig.julia.maxIter = value; }
+                    if (id === 'sierpinski-depth') fractalConfig.sierpinski.depth = value;
+                    if (id === 'julia-cx') fractalConfig.julia.cx = value;
+                    if (id === 'julia-cy') fractalConfig.julia.cy = value;
+                    if (id === 'fern-points') fractalConfig.fern.points = value;
+                    
+                    if (currentFractal !== 'tree' || !fractalConfig.tree.animated) {
+                        draw();
+                    }
+                });
+                input.addEventListener('change', draw);
+            });
+            
+            const checkbox = controlsContainer.querySelector('#tree-animated');
+            if (checkbox) {
+                checkbox.addEventListener('change', (e) => {
+                    fractalConfig.tree.animated = e.target.checked;
+                    draw();
+                });
+            }
+
+            const resetButton = document.getElementById('reset-button');
+            if (resetButton) {
+                resetButton.addEventListener('click', () => {
+                    fractalConfig.mandelbrot = { maxIter: 100, zoom: 1, offsetX: -0.5, offsetY: 0 };
+                    fractalConfig.julia = { maxIter: 200, cx: -0.7, cy: 0.27015, zoom: 1, offsetX: 0, offsetY: 0 };
+                    draw();
+                });
+            }
+        }
+
+        fractalButtonsContainer.addEventListener('click', (e) => {
+            if (e.target.tagName === 'BUTTON') {
+                currentFractal = e.target.dataset.fractal;
+                fractalButtonsContainer.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                e.target.classList.add('active');
+                updateControls();
+                draw();
+            }
+        });
+        
+        // --- Lógica del Modal de Temas ---
+        function populateThemeModal() {
+            themeGrid.innerHTML = '';
+            themes.forEach((theme, index) => {
+                const colors = theme.colors.slice(0, -1);
+                const card = document.createElement('div');
+                card.className = `theme-preview-card p-3 rounded-lg cursor-pointer bg-gray-900 ${index === currentThemeIndex ? 'active' : ''}`;
+                card.dataset.index = index;
+                card.innerHTML = `
+                    <div class="w-full h-16 rounded-md mb-2" style="background: linear-gradient(45deg, ${colors.join(', ')})"></div>
+                    <p class="text-center text-sm">${theme.name}</p>
+                `;
+                card.addEventListener('click', () => {
+                    currentThemeIndex = index;
+                    document.querySelectorAll('.theme-preview-card').forEach(c => c.classList.remove('active'));
+                    card.classList.add('active');
+                    draw();
+                    setTimeout(() => themeModal.classList.add('hidden'), 200);
+                });
+                themeGrid.appendChild(card);
+            });
+        }
+        themeModalButton.addEventListener('click', () => {
+            populateThemeModal();
+            themeModal.classList.remove('hidden');
+        });
+        closeThemeModalButton.addEventListener('click', () => themeModal.classList.add('hidden'));
+        themeModal.addEventListener('click', (e) => {
+            if (e.target === themeModal) themeModal.classList.add('hidden');
+        });
+
+        // --- Interacción con el ratón y descarga ---
+        let isDragging = false, lastX, lastY;
+        canvas.addEventListener('wheel', (e) => {
+            if (currentFractal !== 'mandelbrot' && currentFractal !== 'julia') return;
+            e.preventDefault();
+            const config = fractalConfig[currentFractal];
+            config.zoom *= e.deltaY < 0 ? 1.2 : 1 / 1.2;
+            draw();
+        });
+        canvas.addEventListener('mousedown', (e) => {
+            if (currentFractal !== 'mandelbrot' && currentFractal !== 'julia') return;
+            isDragging = true; lastX = e.clientX; lastY = e.clientY; canvas.style.cursor = 'grabbing';
+        });
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isDragging || (currentFractal !== 'mandelbrot' && currentFractal !== 'julia')) return;
+            const config = fractalConfig[currentFractal];
+            config.offsetX -= (e.clientX - lastX) / (0.5 * canvas.width * config.zoom);
+            config.offsetY += (e.clientY - lastY) / (0.5 * canvas.width * config.zoom);
+            lastX = e.clientX; lastY = e.clientY;
+            draw();
+        });
+        canvas.addEventListener('mouseup', () => { isDragging = false; canvas.style.cursor = 'grab'; });
+        canvas.addEventListener('mouseleave', () => { isDragging = false; canvas.style.cursor = 'default'; });
+        
+        downloadButton.addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = `fractalis_${currentFractal}_${Date.now()}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+
+        // --- INICIALIZACIÓN ---
+        window.addEventListener('resize', resizeCanvas);
+        function init() {
+            updateControls();
+            resizeCanvas();
+            canvas.style.cursor = 'default';
+        }
+        init();
+    </script>
+</body>
+</html>
