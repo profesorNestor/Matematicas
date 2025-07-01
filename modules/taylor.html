@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taylor Series Visualizer [v7.0 Final]</title>
+    <title>Visualizador de Series de Taylor - Sci-Fi Edition</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
@@ -24,7 +24,7 @@
             --cyan-glow: #00FFFF;
             --magenta-glow: #FF00FF;
             --yellow-accent: #FFD60A;
-            --error-color: #FF4136;
+            --error-color: #ff4757;
             --transition-speed: 0.4s;
         }
 
@@ -35,7 +35,7 @@
             box-sizing: border-box;
         }
 
-        body {
+        html, body {
             font-family: 'Rajdhani', sans-serif;
             background-color: var(--bg-dark-space);
             color: var(--text-primary);
@@ -78,7 +78,7 @@
         #control-panel {
             top: 20px;
             left: 20px;
-            width: 380px;
+            width: 360px;
             padding: 1rem;
             transform: translateX(0);
         }
@@ -148,7 +148,7 @@
         }
         .preset-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
             gap: 0.5rem;
         }
         .preset-btn {
@@ -166,7 +166,7 @@
         
         /* --- Leyenda --- */
         #legend {
-            top: 20px;
+            bottom: 20px;
             right: 20px;
             padding: 0.75rem 1rem;
         }
@@ -236,11 +236,17 @@
         @media (max-width: 768px) {
             #control-panel {
                 width: calc(100% - 40px);
-                max-height: calc(100% - 40px);
+                max-height: calc(100% - 90px);
                 overflow-y: auto;
             }
             .panel-title { font-size: 1.2rem; }
-            #legend { top: 10px; right: 10px; padding: 0.5rem; }
+            #legend { 
+                top: 20px;
+                right: auto;
+                left: 20px;
+                bottom: auto;
+                width: calc(100% - 40px);
+            }
         }
     </style>
 </head>
@@ -262,6 +268,9 @@
                         <button class="preset-btn modern-btn" data-func="cos(x)">cos(x)</button>
                         <button class="preset-btn modern-btn" data-func="exp(x)">e^x</button>
                         <button class="preset-btn modern-btn" data-func="log(x+1)">ln(x+1)</button>
+                        <!-- NUEVAS FUNCIONES -->
+                        <button class="preset-btn modern-btn" data-func="1/(1-x)">1/(1-x)</button>
+                        <button class="preset-btn modern-btn" data-func="atan(x)">atan(x)</button>
                     </div>
                 </div>
                 <div class="input-group">
@@ -274,14 +283,14 @@
                 </div>
                 <div class="input-group">
                     <label for="max-terms" class="input-label">Número de Términos</label>
-                    <input type="number" id="max-terms" class="futuristic-input" value="7" min="1" max="15">
+                    <input type="number" id="max-terms" class="futuristic-input" value="7" min="1" max="20">
                 </div>
                 <div class="input-group">
                     <label class="input-label">Colores de Gráfica</label>
                     <div style="display: flex; justify-content: space-around;">
                         <div>
                             <label for="original-color-picker" class="input-label" style="font-size:0.8rem;">f(x)</label>
-                            <input type="color" id="original-color-picker" value="#FF00FF">
+                            <input type="color" id="original-color-picker" value="#FFD60A">
                         </div>
                         <div>
                             <label for="taylor-color-picker" class="input-label" style="font-size:0.8rem;">Taylor</label>
@@ -314,16 +323,21 @@
                     <button id="close-formula-btn" class="modern-btn" style="width: 40px; height: 40px; padding: 0;">X</button>
                 </header>
                 <div class="formula-section">
-                    <h3 class="input-label">Fórmula General</h3>
-                    <div class="formula-content" id="general-formula-container">$$ f(x) \approx \sum_{n=0}^{N} \frac{f^{(n)}(a)}{n!} (x-a)^n $$</div>
+                    <h3 class="input-label">Fórmula General de Taylor</h3>
+                    <div class="formula-content">$$ f(x) \approx \sum_{n=0}^{N} \frac{f^{(n)}(a)}{n!} (x-a)^n $$</div>
+                </div>
+                <!-- NUEVA SECCIÓN PARA FÓRMULA DE LIBRO -->
+                <div class="formula-section" id="textbook-formula-section" style="display: none;">
+                    <h3 class="input-label">Expansión de Maclaurin Conocida</h3>
+                    <div class="formula-content" id="textbook-formula-content"></div>
                 </div>
                  <div class="formula-section">
-                    <h3 class="input-label">Serie para <span id="modal-function-name"></span></h3>
+                    <h3 class="input-label">Serie Calculada para <span id="modal-function-name"></span></h3>
                     <div class="formula-content" id="expanded-terms"></div>
                 </div>
                 <div class="formula-section">
                     <h3 class="input-label">Término de Error (Residuo de Lagrange)</h3>
-                    <div class="formula-content" id="remainder-formula-container">$$ R_n(x) = \frac{f^{(n+1)}(c)}{(n+1)!} (x-a)^{n+1} $$</div>
+                    <div class="formula-content">$$ R_n(x) = \frac{f^{(n+1)}(c)}{(n+1)!} (x-a)^{n+1} $$</div>
                 </div>
             </div>
         </div>
@@ -350,6 +364,8 @@
             expandedTerms: document.getElementById('expanded-terms'),
             showFormulaBtn: document.getElementById('show-formula-btn'),
             closeFormulaBtn: document.getElementById('close-formula-btn'),
+            textbookFormulaSection: document.getElementById('textbook-formula-section'),
+            textbookFormulaContent: document.getElementById('textbook-formula-content'),
         };
         const ctx = dom.canvas.getContext('2d');
         let currentFunction = 'sin(x)';
@@ -359,21 +375,38 @@
         let taylorPolynomialLatex;
         let showError = false;
 
-        let zoom = 50;
-        let viewCenter = { x: 0, y: 0 };
-        let isDragging = false;
-        let lastMousePos = { x: 0, y: 0 };
-        let lastPinchDist = null;
+        // NUEVO: Mapa de fórmulas de libro
+        const textbookFormulas = {
+            'sin(x)': '$$ \\sin(x) = \\sum_{n=0}^{\\infty} \\frac{(-1)^n}{(2n+1)!} x^{2n+1} = x - \\frac{x^3}{3!} + \\frac{x^5}{5!} - \\cdots $$',
+            'cos(x)': '$$ \\cos(x) = \\sum_{n=0}^{\\infty} \\frac{(-1)^n}{(2n)!} x^{2n} = 1 - \\frac{x^2}{2!} + \\frac{x^4}{4!} - \\cdots $$',
+            'exp(x)': '$$ e^x = \\sum_{n=0}^{\\infty} \\frac{x^n}{n!} = 1 + x + \\frac{x^2}{2!} + \\frac{x^3}{3!} + \\cdots $$',
+            'log(x+1)': '$$ \\ln(1+x) = \\sum_{n=1}^{\\infty} \\frac{(-1)^{n+1}}{n} x^n = x - \\frac{x^2}{2} + \\frac{x^3}{3} - \\cdots $$',
+            '1/(1-x)': '$$ \\frac{1}{1-x} = \\sum_{n=0}^{\\infty} x^n = 1 + x + x^2 + x^3 + \\cdots, \\quad |x|<1 $$',
+            'atan(x)': '$$ \\arctan(x) = \\sum_{n=0}^{\\infty} \\frac{(-1)^n}{2n+1} x^{2n+1} = x - \\frac{x^3}{3} + \\frac{x^5}{5} - \\cdots $$'
+        };
+
+        let view = {
+            centerX: 0,
+            centerY: 0,
+            zoomX: 50,
+            zoomY: 50,
+            isDragging: false,
+            isScaling: false,
+            scalingAxis: 'none',
+            hoveringAxis: 'none',
+            lastMouse: { x: 0, y: 0 },
+            lastPinchDist: null,
+        };
         let animationFrameId;
 
-        let originalFuncColor = '#FF00FF';
+        let originalFuncColor = '#FFD60A';
         let taylorSeriesColor = '#00FFFF';
         const errorColor = getComputedStyle(document.documentElement).getPropertyValue('--error-color').trim();
 
         // --- Inicialización ---
         document.addEventListener('DOMContentLoaded', () => {
-            setupCanvas();
             setupEventListeners();
+            setupCanvas();
             calculateTaylor();
             if (window.innerWidth <= 768) {
                 dom.controlPanel.classList.add('collapsed');
@@ -382,16 +415,20 @@
         
         function setupCanvas() {
             const container = document.getElementById('app-container');
-            dom.canvas.width = container.clientWidth;
-            dom.canvas.height = container.clientHeight;
-            window.addEventListener('resize', () => {
-                dom.canvas.width = container.clientWidth;
-                dom.canvas.height = container.clientHeight;
-                requestDraw();
-            });
+            const dpr = window.devicePixelRatio || 1;
+            const rect = container.getBoundingClientRect();
+            
+            dom.canvas.width = rect.width * dpr;
+            dom.canvas.height = rect.height * dpr;
+            dom.canvas.style.width = `${rect.width}px`;
+            dom.canvas.style.height = `${rect.height}px`;
+            
+            requestDraw();
         }
 
         function setupEventListeners() {
+            window.addEventListener('resize', setupCanvas);
+
             // Controles del panel
             document.querySelectorAll('.preset-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -439,55 +476,113 @@
             });
 
             // Eventos del Canvas (Mouse)
-            dom.canvas.addEventListener('mousedown', e => { isDragging = true; lastMousePos = { x: e.clientX, y: e.clientY }; });
-            dom.canvas.addEventListener('mousemove', e => {
-                if (!isDragging) return;
-                const dx = e.clientX - lastMousePos.x;
-                const dy = e.clientY - lastMousePos.y;
-                lastMousePos = { x: e.clientX, y: e.clientY };
-                viewCenter.x -= dx / zoom;
-                viewCenter.y += dy / zoom;
-                requestDraw();
+            dom.canvas.addEventListener('mousedown', e => {
+                if (view.hoveringAxis !== 'none') {
+                    view.isScaling = true;
+                    view.scalingAxis = view.hoveringAxis;
+                } else {
+                    view.isDragging = true;
+                }
+                view.lastMouse = { x: e.offsetX, y: e.offsetY };
             });
-            dom.canvas.addEventListener('mouseup', () => isDragging = false);
-            dom.canvas.addEventListener('mouseleave', () => isDragging = false);
+
+            dom.canvas.addEventListener('mousemove', e => {
+                const mousePos = { x: e.offsetX, y: e.offsetY };
+                if (view.isScaling) {
+                    const worldCoords = screenToWorld(mousePos.x, mousePos.y);
+                    if (view.scalingAxis === 'x') {
+                        const scaleFactor = 1 - (mousePos.x - view.lastMouse.x) * 0.01;
+                        view.zoomX *= scaleFactor;
+                        dom.canvas.style.cursor = 'ew-resize';
+                    } else if (view.scalingAxis === 'y') {
+                        const scaleFactor = 1 + (mousePos.y - view.lastMouse.y) * 0.01;
+                        view.zoomY *= scaleFactor;
+                        dom.canvas.style.cursor = 'ns-resize';
+                    }
+                    const newWorldCoords = screenToWorld(mousePos.x, mousePos.y);
+                    view.centerX += worldCoords.x - newWorldCoords.x;
+                    view.centerY += worldCoords.y - newWorldCoords.y;
+                    requestDraw();
+                } else if (view.isDragging) {
+                    const dx = mousePos.x - view.lastMouse.x;
+                    const dy = mousePos.y - view.lastMouse.y;
+                    view.centerX -= dx / view.zoomX;
+                    view.centerY += dy / view.zoomY;
+                    dom.canvas.style.cursor = 'grabbing';
+                    requestDraw();
+                } else {
+                    const origin = worldToScreen(0, 0);
+                    const threshold = 10;
+                    if (Math.abs(mousePos.y - origin.y) < threshold) {
+                        view.hoveringAxis = 'x';
+                        dom.canvas.style.cursor = 'ew-resize';
+                    } else if (Math.abs(mousePos.x - origin.x) < threshold) {
+                        view.hoveringAxis = 'y';
+                        dom.canvas.style.cursor = 'ns-resize';
+                    } else {
+                        view.hoveringAxis = 'none';
+                        dom.canvas.style.cursor = 'grab';
+                    }
+                }
+                view.lastMouse = mousePos;
+            });
+
+            dom.canvas.addEventListener('mouseup', () => {
+                view.isDragging = false;
+                view.isScaling = false;
+            });
+            dom.canvas.addEventListener('mouseleave', () => {
+                view.isDragging = false;
+                view.isScaling = false;
+                view.hoveringAxis = 'none';
+                dom.canvas.style.cursor = 'grab';
+            });
+            
             dom.canvas.addEventListener('wheel', e => {
                 e.preventDefault();
-                const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-                zoom *= zoomFactor;
+                const worldCoords = screenToWorld(e.offsetX, e.offsetY);
+                const zoomFactor = e.deltaY < 0 ? 1.15 : 0.85;
+                view.zoomX *= zoomFactor;
+                view.zoomY *= zoomFactor;
+                const newWorldCoords = screenToWorld(e.offsetX, e.offsetY);
+                view.centerX += worldCoords.x - newWorldCoords.x;
+                view.centerY += worldCoords.y - newWorldCoords.y;
                 requestDraw();
             });
             
             // Eventos del Canvas (Táctil)
             dom.canvas.addEventListener('touchstart', e => {
                 if (e.touches.length === 1) {
-                    isDragging = true;
-                    lastMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    view.isDragging = true;
+                    view.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
                 } else if (e.touches.length === 2) {
-                    isDragging = false;
-                    lastPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+                    view.isDragging = false;
+                    view.lastPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                 }
             }, { passive: false });
+
             dom.canvas.addEventListener('touchmove', e => {
                 e.preventDefault();
-                if (isDragging && e.touches.length === 1) {
-                    const dx = e.touches[0].clientX - lastMousePos.x;
-                    const dy = e.touches[0].clientY - lastMousePos.y;
-                    lastMousePos = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                    viewCenter.x -= dx / zoom;
-                    viewCenter.y += dy / zoom;
+                if (view.isDragging && e.touches.length === 1) {
+                    const dx = e.touches[0].clientX - view.lastMouse.x;
+                    const dy = e.touches[0].clientY - view.lastMouse.y;
+                    view.lastMouse = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                    view.centerX -= dx / view.zoomX;
+                    view.centerY += dy / view.zoomY;
                     requestDraw();
                 } else if (e.touches.length === 2) {
                     const currentPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
-                    const zoomFactor = currentPinchDist / lastPinchDist;
-                    zoom *= zoomFactor;
-                    lastPinchDist = currentPinchDist;
+                    const zoomFactor = currentPinchDist / view.lastPinchDist;
+                    view.zoomX *= zoomFactor;
+                    view.zoomY *= zoomFactor;
+                    view.lastPinchDist = currentPinchDist;
                     requestDraw();
                 }
             }, { passive: false });
+
             dom.canvas.addEventListener('touchend', () => {
-                isDragging = false;
-                lastPinchDist = null;
+                view.isDragging = false;
+                view.lastPinchDist = null;
             });
         }
         
@@ -552,7 +647,12 @@
 
         function drawScene() {
             if (!ctx) return;
-            ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
+            const dpr = window.devicePixelRatio || 1;
+            const rect = dom.canvas.getBoundingClientRect();
+
+            ctx.save();
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, rect.width, rect.height);
             
             drawGridAndAxes();
             
@@ -563,40 +663,43 @@
                 drawFunction(taylorPolynomial, taylorSeriesColor, 2.5);
             }
             drawFunction(currentFunction, originalFuncColor, 3);
+
+            ctx.restore();
         }
 
         function drawGridAndAxes() {
             ctx.save();
-            const view = {
-                left: viewCenter.x - (dom.canvas.width / 2) / zoom,
-                right: viewCenter.x + (dom.canvas.width / 2) / zoom,
-                top: viewCenter.y + (dom.canvas.height / 2) / zoom,
-                bottom: viewCenter.y - (dom.canvas.height / 2) / zoom,
+            const rect = dom.canvas.getBoundingClientRect();
+            const viewExtents = {
+                left: view.centerX - (rect.width / 2) / view.zoomX,
+                right: view.centerX + (rect.width / 2) / view.zoomX,
+                top: view.centerY + (rect.height / 2) / view.zoomY,
+                bottom: view.centerY - (rect.height / 2) / view.zoomY,
             };
 
             const minPixelSpacing = 70;
-            let xStep = Math.pow(10, Math.floor(Math.log10(view.right - view.left)) - 1);
-            while(xStep * zoom < minPixelSpacing) {
+            let xStep = Math.pow(10, Math.floor(Math.log10(viewExtents.right - viewExtents.left)) - 1);
+            while(xStep * view.zoomX < minPixelSpacing) {
                 xStep *= 2;
-                if(xStep * zoom > minPixelSpacing * 2.5) { xStep /= 2.5; break; }
+                if(xStep * view.zoomX > minPixelSpacing * 2.5) { xStep /= 2.5; break; }
             }
 
-            let yStep = Math.pow(10, Math.floor(Math.log10(view.top - view.bottom)) - 1);
-             while(yStep * zoom < minPixelSpacing) {
+            let yStep = Math.pow(10, Math.floor(Math.log10(viewExtents.top - viewExtents.bottom)) - 1);
+             while(yStep * view.zoomY < minPixelSpacing) {
                 yStep *= 2;
-                 if(yStep * zoom > minPixelSpacing * 2.5) { yStep /= 2.5; break; }
+                 if(yStep * view.zoomY > minPixelSpacing * 2.5) { yStep /= 2.5; break; }
             }
             
-            ctx.strokeStyle = 'rgba(0, 191, 255, 0.2)'; // Cuadrícula más intensa
+            ctx.strokeStyle = 'rgba(0, 191, 255, 0.2)';
             ctx.lineWidth = 1;
             
-            for (let x = Math.floor(view.left / xStep) * xStep; x < view.right; x += xStep) {
+            for (let x = Math.floor(viewExtents.left / xStep) * xStep; x < viewExtents.right; x += xStep) {
                 const screenX = worldToScreen(x, 0).x;
-                ctx.beginPath(); ctx.moveTo(screenX, 0); ctx.lineTo(screenX, dom.canvas.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(screenX, 0); ctx.lineTo(screenX, rect.height); ctx.stroke();
             }
-            for (let y = Math.floor(view.bottom / yStep) * yStep; y < view.top; y += yStep) {
+            for (let y = Math.floor(viewExtents.bottom / yStep) * yStep; y < viewExtents.top; y += yStep) {
                 const screenY = worldToScreen(0, y).y;
-                ctx.beginPath(); ctx.moveTo(0, screenY); ctx.lineTo(dom.canvas.width, screenY); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, screenY); ctx.lineTo(rect.width, screenY); ctx.stroke();
             }
 
             const origin = worldToScreen(0, 0);
@@ -606,13 +709,13 @@
             ctx.font = "bold 14px Orbitron";
 
             ctx.beginPath();
-            ctx.moveTo(0, origin.y); ctx.lineTo(dom.canvas.width, origin.y);
-            ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, dom.canvas.height);
+            ctx.moveTo(0, origin.y); ctx.lineTo(rect.width, origin.y);
+            ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, rect.height);
             ctx.stroke();
             
             ctx.textAlign = "center";
             ctx.textBaseline = "top";
-            for (let x = Math.floor(view.left / xStep) * xStep; x < view.right; x += xStep) {
+            for (let x = Math.floor(viewExtents.left / xStep) * xStep; x < viewExtents.right; x += xStep) {
                 if (Math.abs(x) > 1e-9) {
                     ctx.fillText(x.toPrecision(2).replace(/\.0+$/, ''), worldToScreen(x, 0).x, origin.y + 8);
                 }
@@ -620,7 +723,7 @@
 
             ctx.textAlign = "right";
             ctx.textBaseline = "middle";
-            for (let y = Math.floor(view.bottom / yStep) * yStep; y < view.top; y += yStep) {
+            for (let y = Math.floor(viewExtents.bottom / yStep) * yStep; y < viewExtents.top; y += yStep) {
                  if (Math.abs(y) > 1e-9) {
                     ctx.fillText(y.toPrecision(2).replace(/\.0+$/, ''), origin.x - 8, worldToScreen(0, y).y);
                 }
@@ -641,14 +744,14 @@
             ctx.shadowBlur = 15;
             ctx.beginPath();
             
-            const step = 1 / zoom;
-            const startX = viewCenter.x - (dom.canvas.width / 2) / zoom;
-            const endX = viewCenter.x + (dom.canvas.width / 2) / zoom;
-
+            const rect = dom.canvas.getBoundingClientRect();
+            const step = 1; // 1 pixel en pantalla
+            
             let firstPoint = true;
             try {
                 const node = math.parse(funcStr);
-                for (let x = startX; x < endX; x += step) {
+                for (let sx = 0; sx < rect.width; sx += step) {
+                    const x = screenToWorld(sx, 0).x;
                     const y = node.evaluate({x: x});
                     if (isNaN(y) || !isFinite(y)) {
                         firstPoint = true; continue;
@@ -672,16 +775,16 @@
             ctx.strokeStyle = errorColor;
             ctx.lineWidth = 2;
             
-            const step = 2 / zoom;
-            const startX = viewCenter.x - (dom.canvas.width / 2) / zoom;
-            const endX = viewCenter.x + (dom.canvas.width / 2) / zoom;
+            const rect = dom.canvas.getBoundingClientRect();
+            const step = 2; // 2 pixeles
             
             const originalNode = math.parse(currentFunction);
             const taylorNode = math.parse(taylorPolynomial);
             
             const errorPoints = [];
 
-            for (let x = startX; x < endX; x += step) {
+            for (let sx = 0; sx < rect.width; sx += step) {
+                 const x = screenToWorld(sx, 0).x;
                 try {
                     const originalY = originalNode.evaluate({x: x});
                     const taylorY = taylorNode.evaluate({x: x});
@@ -714,14 +817,32 @@
 
         // --- Utilidades ---
         function worldToScreen(wx, wy) {
-            const sx = (wx - viewCenter.x) * zoom + dom.canvas.width / 2;
-            const sy = -(wy - viewCenter.y) * zoom + dom.canvas.height / 2;
+            const rect = dom.canvas.getBoundingClientRect();
+            const sx = (wx - view.centerX) * view.zoomX + rect.width / 2;
+            const sy = -(wy - view.centerY) * view.zoomY + rect.height / 2;
             return { x: sx, y: sy };
         }
 
+        function screenToWorld(sx, sy) {
+            const rect = dom.canvas.getBoundingClientRect();
+            const wx = (sx - rect.width / 2) / view.zoomX + view.centerX;
+            const wy = -(sy - rect.height / 2) / view.zoomY + view.centerY;
+            return { x: wx, y: wy };
+        }
+
+        // MODIFICADO: Muestra la fórmula de libro si aplica
         function showFormulaModal() {
             dom.modalFunctionName.textContent = currentFunction;
             dom.expandedTerms.textContent = `$$ f(x) \\approx ${taylorPolynomialLatex || ''} $$`;
+
+            const textbookFormula = textbookFormulas[currentFunction];
+            if (textbookFormula && expansionPoint === 0) {
+                dom.textbookFormulaContent.innerHTML = textbookFormula;
+                dom.textbookFormulaSection.style.display = 'block';
+            } else {
+                dom.textbookFormulaSection.style.display = 'none';
+            }
+
             dom.formulaModal.classList.add('active');
             if (window.MathJax) {
                 MathJax.typesetPromise([dom.formulaModal])
