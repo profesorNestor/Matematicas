@@ -3,1526 +3,2387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Triángulos Avanzada 📐✨</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>TriangleForge Ultra ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* Estilos Generales del Cuerpo */
+        :root {
+            /* Tema Slate Dark (Elegante y profesional) */
+            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            --success-gradient: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+            
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-accent: #38bdf8;
+            
+            --glass-bg: rgba(30, 41, 59, 0.8);
+            --glass-border: rgba(148, 163, 184, 0.2);
+            --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            
+            --border-radius: 12px;
+            --border-radius-lg: 20px;
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+        }
+
+        [data-theme="cyber"] {
+            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+            --secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --text-accent: #38bdf8;
+        }
+
+        [data-theme="ocean"] {
+            --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
+            --secondary-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            --bg-primary: #0c1625;
+            --bg-secondary: #1e2a3a;
+            --bg-tertiary: #2d3e50;
+            --text-accent: #67e8f9;
+        }
+
+        [data-theme="forest"] {
+            --primary-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
+            --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --bg-primary: #0c1f17;
+            --bg-secondary: #1e3a2e;
+            --bg-tertiary: #2d5a47;
+            --text-accent: #6ee7b7;
+        }
+
+        [data-theme="midnight"] {
+            --primary-gradient: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+            --secondary-gradient: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
+            --bg-primary: #1a0b2e;
+            --bg-secondary: #2d1b4e;
+            --bg-tertiary: #44337a;
+            --text-accent: #c4b5fd;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', sans-serif; /* Fuente principal */
-            overscroll-behavior-y: contain; /* Evita el "pull-to-refresh" en móviles */
-            display: flex; /* Para pie de página pegajoso */
-            flex-direction: column; /* Para pie de página pegajoso */
-            min-height: 100vh; /* Para pie de página pegajoso */
-            transition: background-color 0.3s ease, color 0.3s ease; /* Transición suave para el tema */
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+            position: relative;
         }
 
-        /* Contenedor principal para pie de página pegajoso */
-        .main-content-wrapper {
-            flex-grow: 1;
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: var(--bg-primary);
         }
 
-        /* Estilos para los grupos de entrada (select + input) */
-        .input-group {
+        .bg-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .bg-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            opacity: 0.1;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .bg-shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .bg-shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 60%;
+            right: 10%;
+            animation-delay: 2s;
+        }
+
+        .bg-shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            bottom: 10%;
+            left: 50%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(10deg); }
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: var(--spacing-md);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+            position: relative;
+        }
+
+        .header h1 {
+            font-size: clamp(2rem, 5vw, 4rem);
+            font-weight: 800;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: var(--spacing-sm);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.5)); }
+            to { filter: drop-shadow(0 0 30px rgba(118, 75, 162, 0.7)); }
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .theme-control {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+            flex-wrap: wrap;
+        }
+
+        .theme-btn {
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border: none;
+            border-radius: var(--border-radius);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+            font-weight: 500;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
+        .theme-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--glass-shadow);
+            border-color: var(--text-accent);
+            background: rgba(59, 130, 246, 0.1);
+        }
+
+        .theme-btn.active {
+            background: var(--primary-gradient);
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: var(--spacing-lg);
+        }
+
+        @media (min-width: 1024px) {
+            .app-grid {
+                grid-template-columns: 400px 1fr;
+            }
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--glass-border);
+            padding: var(--spacing-lg);
+            box-shadow: var(--glass-shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: var(--primary-gradient);
+            opacity: 0.6;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        .input-panel h2 {
+            font-size: 1.5rem;
+            margin-bottom: var(--spacing-md);
             display: flex;
             align-items: center;
-            gap: 0.5rem; /* Espacio entre select e input */
+            gap: var(--spacing-xs);
         }
-        .input-group select,
-        .input-group input[type="number"] {
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid #D1D5DB; /* Borde gris claro */
-            background-color: white;
-            color: #111827; /* Texto oscuro */
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
-        }
-        .input-group select:focus,
-        .input-group input[type="number"]:focus {
-            outline: none;
-            border-color: #3B82F6; /* Borde azul al enfocar */
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); /* Sombra azul al enfocar */
-        }
-        .input-group select { flex-basis: 40%; } /* Distribución de espacio */
-        .input-group input[type="number"] { flex-basis: 60%; }
 
-        /* Estilos base para botones */
-        .btn {
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
+        .input-group {
+            margin-bottom: var(--spacing-md);
+            position: relative;
+        }
+
+        .input-row {
+            display: flex;
+            gap: var(--spacing-sm);
+            align-items: center;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .input-label {
             font-weight: 600;
-            transition: background-color 0.2s ease-in-out, transform 0.1s ease;
+            color: var(--text-accent);
+            min-width: 60px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .custom-select, .custom-input {
+            flex: 1;
+            padding: var(--spacing-sm);
+            border: none;
+            border-radius: var(--border-radius);
+            background: rgba(30, 41, 59, 0.8);
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .custom-select:focus, .custom-input:focus {
+            outline: none;
+            border-color: var(--text-accent);
+            background: rgba(30, 41, 59, 0.9);
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
+            color: white;
+        }
+
+        .custom-input[type="number"] {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+        }
+
+        .custom-select option {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: none;
+        }
+
+        .btn {
+            padding: var(--spacing-sm) var(--spacing-lg);
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
             cursor: pointer;
-            display: inline-flex; /* Para alinear iconos y texto */
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem; /* Espacio entre icono y texto en botón */
+            gap: var(--spacing-xs);
+            text-decoration: none;
+            font-size: 1rem;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         }
-        .btn:active {
-            transform: scale(0.98); /* Efecto de clic */
-        }
+
         .btn-primary {
-            background-color: #3B82F6; /* Azul primario */
+            background: var(--primary-gradient);
             color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
-        .btn-primary:hover { background-color: #2563EB; } /* Azul más oscuro al pasar el ratón */
+
         .btn-secondary {
-            background-color: #6B7280; /* Gris secundario */
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--text-accent);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .calculate-btn {
+            width: 100%;
+            font-size: 1.1rem;
+            padding: var(--spacing-md);
+            margin-top: var(--spacing-md);
+            background: var(--primary-gradient);
             color: white;
-        }
-        .btn-secondary:hover { background-color: #4B5563; } /* Gris más oscuro al pasar el ratón */
-
-        /* Estilo para las tarjetas de contenido */
-        .card {
-            background-color: white;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            transition: background-color 0.3s ease, border-color 0.3s ease;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        /* Estilo del Lienzo del Triángulo */
+        .calculate-btn:hover {
+            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.6);
+            transform: translateY(-3px);
+        }
+
+        .visualization-panel {
+            min-height: 600px;
+        }
+
+        .visualization-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md);
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+        }
+
+        .canvas-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            height: 70vh;
+            min-height: 500px;
+            width: 100%;
+        }
+
         #triangleCanvas {
             width: 100%;
-            height: 350px; /* Altura fija inicial, puede ajustarse */
-            border-radius: 0.5rem; /* Redondeo aplicado directamente al canvas */
-            cursor: grab; /* Cursor para indicar que se puede arrastrar */
-            touch-action: none; /* Deshabilita acciones táctiles por defecto del navegador (scroll, zoom) */
-            border: 2px solid #374151; 
+            height: 100%;
+            cursor: grab;
+            transition: all 0.3s ease;
+            display: block;
         }
-        #triangleCanvas:active { cursor: grabbing; } /* Cursor al arrastrar */
 
-        /* Estilos para el Modal de Mensajes */
+        #triangleCanvas:active {
+            cursor: grabbing;
+        }
+
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-lg);
+        }
+
+        .control-section {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-md);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .control-section h3 {
+            color: var(--text-accent);
+            margin-bottom: var(--spacing-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-xs);
+        }
+
+        .custom-checkbox {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs);
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .custom-checkbox:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .custom-checkbox input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: var(--text-accent);
+        }
+
+        .custom-checkbox .emoji {
+            font-size: 1.2rem;
+            min-width: 24px;
+        }
+
+        .results-panel {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--border-radius);
+            padding: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-sm);
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(10px);
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        .result-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--text-primary);
+            background: rgba(56, 189, 248, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .zoom-controls {
+            position: absolute;
+            top: var(--spacing-md);
+            right: var(--spacing-md);
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-xs);
+        }
+
+        .zoom-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: none;
+            background: var(--glass-bg);
+            backdrop-filter: blur(15px);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            font-size: 1rem;
+        }
+
+        .zoom-btn:hover {
+            background: var(--primary-gradient);
+            transform: scale(1.1);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+            color: white;
+        }
+
         .modal {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(0, 0, 0, 0.6); /* Fondo oscuro semitransparente */
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             z-index: 1000;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
+            transition: all 0.3s ease;
         }
-        .modal.active { /* Clase para mostrar el modal */
+
+        .modal.active {
             opacity: 1;
             visibility: visible;
         }
+
         .modal-content {
-            background-color: white;
-            padding: 2rem;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: var(--border-radius-lg);
+            border: 1px solid var(--glass-border);
+            padding: var(--spacing-xl);
+            max-width: 500px;
             width: 90%;
-            max-width: 450px; /* Ancho máximo del modal */
             text-align: center;
+            transform: scale(0.7);
+            transition: transform 0.3s ease;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
         }
 
-        /* Estilos para el Modo Oscuro */
-        .dark body {
-            background-color: #111827; /* Fondo oscuro principal */
-            color: #F3F4F6; /* Texto claro */
-        }
-        .dark .card {
-            background-color: #1F2937; /* Fondo oscuro para tarjetas */
-            border-color: #374151; /* Borde oscuro */
-        }
-        .dark .input-group select,
-        .dark .input-group input[type="number"],
-        .dark #precisionSelect {
-            background-color: #374151; /* Fondo oscuro para inputs */
-            color: #F3F4F6; /* Texto claro en inputs */
-            border-color: #4B5563; /* Borde oscuro para inputs */
-        }
-        .dark .modal-content { background-color: #1F2937; } /* Fondo oscuro para modal */
-        .dark #triangleCanvas {
-             border: 2px solid #4B5563; 
-        }
-        .dark .text-gray-600 { color: #9CA3AF; } /* Ajuste de grises para modo oscuro */
-        .dark .text-gray-800 { color: #E5E7EB; }
-        .dark .hover\:bg-gray-200:hover { background-color: #374151; } /* Hover para botón de tema */
-
-        /* Estilos para Checkboxes con Emojis */
-        .emoji-checkbox-label {
-            display: inline-flex; /* Alinea el checkbox, emoji y el texto */
-            align-items: center;
-            cursor: pointer;
-            font-size: 0.9rem;
-            padding: 0.3rem 0.5rem;
-            border-radius: 0.3rem;
-            transition: background-color 0.2s ease;
-        }
-        .emoji-checkbox-label:hover {
-            background-color: rgba(59, 130, 246, 0.1); /* Fondo azulado claro al pasar el ratón */
-        }
-        .dark .emoji-checkbox-label:hover {
-            background-color: rgba(59, 130, 246, 0.2);
-        }
-        .emoji-checkbox-label input[type="checkbox"] {
-            /* Checkbox nativo ahora visible */
-            margin-right: 0.3rem; /* Espacio entre el checkbox nativo y el emoji */
-            opacity: 1;
-            position: static;
-            width: auto;
-            height: auto;
-        }
-        .emoji-checkbox-label .emoji-icon {
-            font-size: 1.2em; /* Tamaño del emoji */
-            margin-right: 0.4rem; /* Espacio entre emoji y texto (después del emoji) */
-            display: inline-block;
-            width: 1.3em; /* Ancho fijo para alinear */
-            text-align: center;
-            font-family: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif; /* Fuentes emoji */
+        .modal.active .modal-content {
+            transform: scale(1);
         }
 
-        /* Estilos para el pie de página */
-        footer {
-            border-top: 1px solid #e5e7eb; /* Línea divisoria sutil */
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-md);
+            color: var(--text-primary);
         }
-        .dark footer {
-            border-top-color: #374151; /* Línea divisoria en modo oscuro */
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: var(--spacing-sm);
+            }
+
+            .header h1 {
+                font-size: 2.5rem;
+            }
+
+            .input-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .input-label {
+                min-width: auto;
+                margin-bottom: var(--spacing-xs);
+            }
+
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .checkbox-group {
+                grid-template-columns: 1fr;
+            }
+
+            .canvas-container {
+                height: 50vh;
+                min-height: 350px;
+            }
+
+            .zoom-controls {
+                position: relative;
+                top: auto;
+                right: auto;
+                flex-direction: row;
+                justify-content: center;
+                margin-top: var(--spacing-md);
+            }
+
+            .zoom-btn {
+                width: 40px;
+                height: 40px;
+            }
+
+            .theme-control {
+                gap: var(--spacing-xs);
+            }
+
+            .theme-btn {
+                font-size: 0.8rem;
+                padding: 0.4rem 0.8rem;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-in-left {
+            animation: slideInLeft 0.6s ease-out;
+        }
+
+        @keyframes slideInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .slide-in-right {
+            animation: slideInRight 0.6s ease-out;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
     </style>
 </head>
-<body class="bg-gray-100 text-gray-800"> <div class="main-content-wrapper w-full flex flex-col items-center p-4">
-        <div class="w-full max-w-3xl space-y-6">
-            <header class="flex justify-between items-center mb-6 mt-4">
-                <h1 class="text-3xl font-bold text-blue-600 dark:text-blue-400">
-                    Calculadora de Triángulos Avanzada 📐✨
-                </h1>
-                <button id="themeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" aria-label="Cambiar tema">
-                    <svg id="themeIconSun" class="w-6 h-6 text-gray-700 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-                    <svg id="themeIconMoon" class="w-6 h-6 text-gray-700 dark:text-gray-300 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-                </button>
-            </header>
+<body>
+    <div class="animated-bg">
+        <div class="bg-shapes">
+            <div class="bg-shape"></div>
+            <div class="bg-shape"></div>
+            <div class="bg-shape"></div>
+        </div>
+    </div>
 
-            <div class="card">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-300">Ingresar Datos del Triángulo 📝</h2>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                    Ingresa tres valores distintos (al menos un lado). Los ángulos se ingresan en grados.
-                </p>
-                <div id="inputsContainer" class="space-y-3 mb-4"></div>
-                <button id="calculateButton" class="btn btn-primary w-full">
-                    <span class="text-lg">🧮</span> Calcular y Dibujar
+    <div class="main-container">
+        <header class="header fade-in">
+            <h1><i class="fas fa-triangle"></i> TriangleForge Ultra</h1>
+            <p>Calculadora de triángulos de nueva generación con visualización avanzada</p>
+            
+            <div class="theme-control">
+                <button class="theme-btn active" data-theme="cyber">
+                    <i class="fas fa-rocket"></i> Cyber
+                </button>
+                <button class="theme-btn" data-theme="ocean">
+                    <i class="fas fa-water"></i> Ocean
+                </button>
+                <button class="theme-btn" data-theme="forest">
+                    <i class="fas fa-tree"></i> Forest
+                </button>
+                <button class="theme-btn" data-theme="midnight">
+                    <i class="fas fa-moon"></i> Midnight
                 </button>
             </div>
+        </header>
 
-            <div id="messageModal" class="modal">
-                <div class="modal-content">
-                    <h3 id="modalTitle" class="text-lg font-semibold mb-3">📢 Mensaje</h3>
-                    <p id="modalMessage" class="text-sm mb-6"></p>
-                    <button id="closeModalButton" class="btn btn-primary">Entendido 👍</button>
+        <div class="app-grid">
+            <div class="glass-card input-panel slide-in-left">
+                <h2><i class="fas fa-cogs"></i> Configuración del Triángulo</h2>
+                
+                <div class="input-group">
+                    <div class="input-row">
+                        <div class="input-label">Dato 1:</div>
+                        <select class="custom-select" id="inputType0">
+                            <option value="sideA">Lado a</option>
+                            <option value="sideB">Lado b</option>
+                            <option value="sideC">Lado c</option>
+                            <option value="angleA">Ángulo A (°)</option>
+                            <option value="angleB">Ángulo B (°)</option>
+                            <option value="angleC">Ángulo C (°)</option>
+                        </select>
+                        <input type="number" class="custom-input" id="inputValue0" placeholder="Valor" step="any">
+                    </div>
+                    
+                    <div class="input-row">
+                        <div class="input-label">Dato 2:</div>
+                        <select class="custom-select" id="inputType1">
+                            <option value="sideA">Lado a</option>
+                            <option value="sideB" selected>Lado b</option>
+                            <option value="sideC">Lado c</option>
+                            <option value="angleA">Ángulo A (°)</option>
+                            <option value="angleB">Ángulo B (°)</option>
+                            <option value="angleC">Ángulo C (°)</option>
+                        </select>
+                        <input type="number" class="custom-input" id="inputValue1" placeholder="Valor" step="any">
+                    </div>
+                    
+                    <div class="input-row">
+                        <div class="input-label">Dato 3:</div>
+                        <select class="custom-select" id="inputType2">
+                            <option value="sideA">Lado a</option>
+                            <option value="sideB">Lado b</option>
+                            <option value="sideC" selected>Lado c</option>
+                            <option value="angleA">Ángulo A (°)</option>
+                            <option value="angleB">Ángulo B (°)</option>
+                            <option value="angleC">Ángulo C (°)</option>
+                        </select>
+                        <input type="number" class="custom-input" id="inputValue2" placeholder="Valor" step="any">
+                    </div>
+                </div>
+
+                <button class="btn btn-primary calculate-btn" id="calculateButton">
+                    <i class="fas fa-calculator"></i> Calcular y Visualizar
+                </button>
+
+                <div class="results-panel" id="resultsPanel" style="display: none;">
+                    <h3><i class="fas fa-chart-line"></i> Resultados</h3>
+                    <div class="results-grid">
+                        <div class="result-item">
+                            <span class="result-label">Lado a:</span>
+                            <span class="result-value" id="resLadoA">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Lado b:</span>
+                            <span class="result-value" id="resLadoB">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Lado c:</span>
+                            <span class="result-value" id="resLadoC">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Ángulo A:</span>
+                            <span class="result-value" id="resAnguloA">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Ángulo B:</span>
+                            <span class="result-value" id="resAnguloB">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Ángulo C:</span>
+                            <span class="result-value" id="resAnguloC">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Perímetro:</span>
+                            <span class="result-value" id="resPerimetro">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Área:</span>
+                            <span class="result-value" id="resArea">-</span>
+                        </div>
+                        <div class="result-item">
+                            <span class="result-label">Tipo:</span>
+                            <span class="result-value" id="resTipoTriangulo">-</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div id="resultsCard" class="card hidden">
-                <h2 class="text-xl font-semibold mb-4 text-gray-700 dark:text-gray-300">Resultados y Visualización 📊</h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <h3 class="text-lg font-medium mb-2 text-blue-600 dark:text-blue-400">📏 Dimensiones</h3>
-                        <ul class="space-y-1 text-sm">
-                            <li>Lado a: <span id="resLadoA" class="font-semibold"></span></li>
-                            <li>Lado b: <span id="resLadoB" class="font-semibold"></span></li>
-                            <li>Lado c: <span id="resLadoC" class="font-semibold"></span></li>
-                            <li>Ángulo A: <span id="resAnguloA" class="font-semibold"></span>°</li>
-                            <li>Ángulo B: <span id="resAnguloB" class="font-semibold"></span>°</li>
-                            <li>Ángulo C: <span id="resAnguloC" class="font-semibold"></span>°</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 class="text-lg font-medium mb-2 text-green-600 dark:text-green-400">📐 Propiedades</h3>
-                        <ul class="space-y-1 text-sm">
-                            <li>Perímetro: <span id="resPerimetro" class="font-semibold"></span></li>
-                            <li>Área: <span id="resArea" class="font-semibold"></span></li>
-                            <li id="resInradiusContainer" class="hidden">Radio Inscrito (r): <span id="resInradius" class="font-semibold"></span></li>
-                            <li id="resCircumradiusContainer" class="hidden">Radio Circunscrito (R): <span id="resCircumradius" class="font-semibold"></span></li>
-                            <li>Tipo: <span id="resTipoTriangulo" class="font-semibold"></span></li>
-                        </ul>
-                    </div>
-                </div>
-                 <div class="mb-6">
-                    <label for="precisionSelect" class="block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300">🔢 Precisión Decimal:</label>
-                    <select id="precisionSelect" class="w-full p-2 rounded-md border border-gray-300 focus:ring-blue-500 focus:border-blue-500">
-                        <option value="0">0 decimales</option>
-                        <option value="1">1 decimal</option>
-                        <option value="2" selected>2 decimales</option>
-                        <option value="3">3 decimales</option>
-                        <option value="4">4 decimales</option>
-                        <option value="5">5 decimales</option>
-                        <option value="6">6 decimales</option>
-                    </select>
-                </div>
-
-                <div class="mb-6">
-                    <h3 class="text-lg font-medium mb-3 text-purple-600 dark:text-purple-400">✨ Elementos Notables y Construcciones</h3>
-                    <div class="grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-3">
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkGrid" class="custom-checkbox"> <span class="emoji-icon"></span>Cuadrícula</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkLabels" class="custom-checkbox" checked> <span class="emoji-icon"></span>Etiquetas</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkAngles" class="custom-checkbox" checked> <span class="emoji-icon"></span>Val. Ángulos</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkMedians" class="custom-checkbox"> <span class="emoji-icon" data-emoji="🔵"></span>Medianas</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkAltitudes" class="custom-checkbox"> <span class="emoji-icon" data-emoji="🟩"></span>Alturas</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkAngleBisectors" class="custom-checkbox"> <span class="emoji-icon" data-emoji="🔺"></span>Bisectrices (Áng.)</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkPerpBisectors" class="custom-checkbox"> <span class="emoji-icon" data-emoji="🔶"></span>Mediatrices (Lad.)</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkCentroid" class="custom-checkbox"> <span class="emoji-icon" data-emoji="🌀"></span>Baricentro (G)</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkOrthocenter" class="custom-checkbox"> <span class="emoji-icon" data-emoji="✳️"></span>Ortocentro (H)</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkIncenter" class="custom-checkbox"> <span class="emoji-icon" data-emoji="⭐"></span>Incentro (I)</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkCircumcenter" class="custom-checkbox"> <span class="emoji-icon" data-emoji="📍"></span>Circuncentro (O)</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkInscribedCircle" class="custom-checkbox"> <span class="emoji-icon" data-emoji="⭕"></span>Circ. Inscrita</label>
-                        <label class="emoji-checkbox-label"><input type="checkbox" id="chkCircumscribedCircle" class="custom-checkbox"> <span class="emoji-icon" data-emoji="🟣"></span>Circ. Circunscrita</label>
+            <div class="glass-card visualization-panel slide-in-right">
+                <div class="visualization-header">
+                    <h2><i class="fas fa-eye"></i> Visualización Avanzada</h2>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <label style="color: var(--text-secondary);">Precisión:</label>
+                        <select class="custom-select" id="precisionSelect" style="width: auto;">
+                            <option value="0">0 decimales</option>
+                            <option value="1">1 decimal</option>
+                            <option value="2" selected>2 decimales</option>
+                            <option value="3">3 decimales</option>
+                            <option value="4">4 decimales</option>
+                            <option value="5">5 decimales</option>
+                        </select>
                     </div>
                 </div>
 
-                <h3 class="text-lg font-medium mb-2 text-indigo-600 dark:text-indigo-400">🖼️ Visualización del Triángulo</h3>
-                <div class="bg-gray-200 dark:bg-gray-700 relative mb-2">
+                <div class="canvas-container">
                     <canvas id="triangleCanvas"></canvas>
+                    
+                    <div class="zoom-controls">
+                        <button class="zoom-btn" id="zoomInButton" title="Acercar">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                        <button class="zoom-btn" id="zoomOutButton" title="Alejar">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <button class="zoom-btn" id="resetViewButton" title="Reiniciar vista">
+                            <i class="fas fa-home"></i>
+                        </button>
+                        <button class="zoom-btn" id="exportButton" title="Exportar imagen">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
                 </div>
-                 <div class="flex flex-wrap gap-2 justify-center mb-4">
-                    <button id="zoomInButton" class="btn btn-secondary text-sm py-2 px-3"><span class="text-lg">➕</span> Zoom +</button>
-                    <button id="zoomOutButton" class="btn btn-secondary text-sm py-2 px-3"><span class="text-lg">➖</span> Zoom -</button>
-                    <button id="resetViewButton" class="btn btn-secondary text-sm py-2 px-3"><span class="text-lg">🏠</span> Rest. Vista</button>
+
+                <div class="controls-grid">
+                    <div class="control-section">
+                        <h3><i class="fas fa-layer-group"></i> Elementos Básicos</h3>
+                        <div class="checkbox-group">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkGrid">
+                                <span class="emoji">⬜</span>
+                                <span>Cuadrícula</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkLabels" checked>
+                                <span class="emoji">🏷️</span>
+                                <span>Etiquetas</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkAngles" checked>
+                                <span class="emoji">📐</span>
+                                <span>Val. Ángulos</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-section">
+                        <h3><i class="fas fa-vector-square"></i> Elementos Notables</h3>
+                        <div class="checkbox-group">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkMedians">
+                                <span class="emoji">🔵</span>
+                                <span>Medianas</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkAltitudes">
+                                <span class="emoji">🟩</span>
+                                <span>Alturas</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkAngleBisectors">
+                                <span class="emoji">🔺</span>
+                                <span>Bisectrices (Áng.)</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkPerpBisectors">
+                                <span class="emoji">🔶</span>
+                                <span>Mediatrices (Lad.)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-section">
+                        <h3><i class="fas fa-bullseye"></i> Puntos Especiales</h3>
+                        <div class="checkbox-group">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkCentroid">
+                                <span class="emoji">🌀</span>
+                                <span>Baricentro (G)</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkOrthocenter">
+                                <span class="emoji">✳️</span>
+                                <span>Ortocentro (H)</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkIncenter">
+                                <span class="emoji">⭐</span>
+                                <span>Incentro (I)</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkCircumcenter">
+                                <span class="emoji">📍</span>
+                                <span>Circuncentro (O)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="control-section">
+                        <h3><i class="fas fa-circle"></i> Círculos</h3>
+                        <div class="checkbox-group">
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkInscribedCircle">
+                                <span class="emoji">⭕</span>
+                                <span>Circ. Inscrita</span>
+                            </label>
+                            <label class="custom-checkbox">
+                                <input type="checkbox" id="chkCircumscribedCircle">
+                                <span class="emoji">🟣</span>
+                                <span>Circ. Circunscrita</span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
-                <button id="exportButton" class="btn btn-secondary w-full">
-                    <span class="text-lg">💾</span> Exportar Imagen
-                </button>
             </div>
         </div>
     </div>
 
-    <footer class="w-full text-center p-6 mt-10">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-            Autor: MSc. Néstor Fabio Montoya Palacios
-        </p>
-        <p class="text-xs text-gray-500 dark:text-gray-500 mt-1">
-            Calculadora de Triángulos Avanzada &copy; <span id="currentYear"></span>
-        </p>
-    </footer>
+    <div class="modal" id="messageModal">
+        <div class="modal-content">
+            <h3 class="modal-title" id="modalTitle">Mensaje</h3>
+            <p id="modalMessage"></p>
+            <button class="btn btn-primary" id="closeModalButton">
+                <i class="fas fa-check"></i> Entendido
+            </button>
+        </div>
+    </div>
 
     <script>
-    // --- 🌐 CONSTANTES GLOBALES Y ESTADO DE LA APLICACIÓN ---
-    const PI = Math.PI;
-    const EPSILON = 1e-9; 
-    let G_isDarkModeActive = false; 
+        // Constantes y variables globales
+        const PI = Math.PI;
+        const EPSILON = 1e-9;
+        
+        let currentTriangle = null;
+        let calculatedElements = {};
+        let scaleFactor = 1.0;
+        let panOffset = { x: 0, y: 0 };
+        let isPanning = false;
+        let lastPanPosition = { x: 0, y: 0 };
+        let lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 };
 
-    // --- 🔗 REFERENCIAS A ELEMENTOS DEL DOM ---
-    const inputsContainer = document.getElementById('inputsContainer');
-    const calculateButton = document.getElementById('calculateButton');
-    const resultsCard = document.getElementById('resultsCard');
-    const canvas = document.getElementById('triangleCanvas');
-    const ctx = canvas.getContext('2d');
-    const precisionSelect = document.getElementById('precisionSelect');
-    const exportButton = document.getElementById('exportButton');
-    const themeToggle = document.getElementById('themeToggle');
-    const themeIconSun = document.getElementById('themeIconSun');
-    const themeIconMoon = document.getElementById('themeIconMoon');
-    const currentYearSpan = document.getElementById('currentYear');
-    const messageModal = document.getElementById('messageModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalMessage = document.getElementById('modalMessage');
-    const closeModalButton = document.getElementById('closeModalButton');
-    const resLadoA = document.getElementById('resLadoA');
-    const resLadoB = document.getElementById('resLadoB');
-    const resLadoC = document.getElementById('resLadoC');
-    const resAnguloA = document.getElementById('resAnguloA');
-    const resAnguloB = document.getElementById('resAnguloB');
-    const resAnguloC = document.getElementById('resAnguloC');
-    const resPerimetro = document.getElementById('resPerimetro');
-    const resArea = document.getElementById('resArea');
-    const resInradiusContainer = document.getElementById('resInradiusContainer');
-    const resInradius = document.getElementById('resInradius');
-    const resCircumradiusContainer = document.getElementById('resCircumradiusContainer');
-    const resCircumradius = document.getElementById('resCircumradius');
-    const resTipoTriangulo = document.getElementById('resTipoTriangulo');
-    const chkElements = {
-        grid: document.getElementById('chkGrid'),
-        labels: document.getElementById('chkLabels'),
-        angles: document.getElementById('chkAngles'),
-        medians: document.getElementById('chkMedians'),
-        altitudes: document.getElementById('chkAltitudes'),
-        angleBisectors: document.getElementById('chkAngleBisectors'),
-        perpBisectors: document.getElementById('chkPerpBisectors'),
-        centroid: document.getElementById('chkCentroid'),
-        orthocenter: document.getElementById('chkOrthocenter'),
-        incenter: document.getElementById('chkIncenter'),
-        circumcenter: document.getElementById('chkCircumcenter'),
-        inscribedCircle: document.getElementById('chkInscribedCircle'),
-        circumscribedCircle: document.getElementById('chkCircumscribedCircle'),
-    };
-    const zoomInButton = document.getElementById('zoomInButton');
-    const zoomOutButton = document.getElementById('zoomOutButton');
-    const resetViewButton = document.getElementById('resetViewButton');
-
-    let currentTriangle = null; 
-    let calculatedElements = {}; 
-    let scaleFactor = 1.0; 
-    let panOffset = { x: 0, y: 0 }; 
-    let isPanning = false; 
-    let lastPanPosition = { x: 0, y: 0 }; 
-    let lastPinchDistance = 0; 
-    let lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 }; 
-
-    const drawOptions = {
-        grid: false, labels: true, angles: true, 
-        medians: false, altitudes: false, angleBisectors: false, perpBisectors: false,
-        centroid: false, orthocenter: false, incenter: false, circumcenter: false,
-        inscribedCircle: false, circumscribedCircle: false
-    };
-    
-    const toRadians = (degrees) => degrees * PI / 180;
-    const toDegrees = (radians) => radians * 180 / PI;
-    const formatNumber = (num) => {
-        if (typeof num !== 'number' || isNaN(num)) return 'N/A';
-        const precision = parseInt(precisionSelect.value);
-        return num.toFixed(precision);
-    };
-    function intersectLines(p1, p2, p3, p4) {
-        if (!p1 || !p2 || !p3 || !p4) return null;
-        const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
-        if (Math.abs(den) < EPSILON) return null; 
-        const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
-        return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
-    }
-    function distance(p1, p2) {
-        if (!p1 || !p2) return 0;
-        return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
-    }
-    function isFinitePoint(p) {
-        return p && isFinite(p.x) && isFinite(p.y);
-    }
-
-    function showModal(title, message, isError = true) {
-        modalTitle.textContent = title;
-        modalMessage.innerHTML = message; 
-        modalTitle.className = isError ? 'text-lg font-semibold mb-3 text-red-600 dark:text-red-400' : 'text-lg font-semibold mb-3 text-blue-600 dark:text-blue-400';
-        messageModal.classList.add('active');
-    }
-    closeModalButton.addEventListener('click', () => messageModal.classList.remove('active'));
-    function createInputGroup(index) {
-        const groupDiv = document.createElement('div');
-        groupDiv.className = 'input-group';
-        groupDiv.innerHTML = `
-            <select id="inputType${index}" class="flex-grow dark:bg-gray-700 dark:border-gray-600 dark:text-white" aria-label="Tipo de entrada ${index + 1}">
-                <option value="sideA">Lado a</option>
-                <option value="sideB">Lado b</option>
-                <option value="sideC">Lado c</option>
-                <option value="angleA">Ángulo A (°)</option>
-                <option value="angleB">Ángulo B (°)</option>
-                <option value="angleC">Ángulo C (°)</option>
-            </select>
-            <input type="number" id="inputValue${index}" placeholder="Valor" step="any" class="w-full dark:bg-gray-700 dark:border-gray-600 dark:text-white" aria-label="Valor de entrada ${index + 1}">
-        `;
-        inputsContainer.appendChild(groupDiv);
-    }
-    for (let i = 0; i < 3; i++) createInputGroup(i);
-    function setupEmojiCheckboxes() {
-        document.querySelectorAll('.emoji-checkbox-label').forEach(label => {
-            const checkbox = label.querySelector('input[type="checkbox"]');
-            const emojiSpan = label.querySelector('.emoji-icon');
-            const specificEmoji = emojiSpan.dataset.emoji; 
-
-            function updateEmoji() {
-                if (specificEmoji) { 
-                    emojiSpan.textContent = specificEmoji;
-                } else { 
-                    emojiSpan.textContent = checkbox.checked ? '☑️' : '⬜';
-                }
-            }
-            checkbox.addEventListener('change', updateEmoji);
-            updateEmoji(); 
-        });
-    }
-
-    // AJUSTE: Añadido parámetro isUserInitiated a handleCalculate
-    function handleCalculate(isUserInitiated = true) {
-        currentTriangle = null;
-        calculatedElements = {};
-        resultsCard.classList.add('hidden');
-        resInradiusContainer.classList.add('hidden');
-        resCircumradiusContainer.classList.add('hidden');
-
-        const inputs = [];
-        let sideCount = 0;
-        const definedTypes = new Set(); 
-
-        for (let i = 0; i < 3; i++) {
-            const typeElement = document.getElementById(`inputType${i}`);
-            const valueElement = document.getElementById(`inputValue${i}`);
-            const type = typeElement.value;
-            const valueStr = valueElement.value.trim();
-
-            if (valueStr === '') {
-                if (isUserInitiated) showModal('Error de Entrada 🚫', `Por favor, completa el campo de valor para la entrada ${i + 1}.`);
-                valueElement.focus();
-                return;
-            }
-            const value = parseFloat(valueStr);
-
-            if (isNaN(value)) {
-                if (isUserInitiated) showModal('Error de Entrada 🚫', `El valor para '${type}' debe ser un número.`);
-                valueElement.focus();
-                return;
-            }
-            if (type.startsWith('angle') && (value <= EPSILON || value >= 180 - EPSILON)) {
-                if (isUserInitiated) showModal('Error de Entrada 🚫', `El ángulo '${type}' debe estar estrictamente entre 0 y 180 grados.`);
-                valueElement.focus();
-                return;
-            }
-            if (type.startsWith('side') && value <= EPSILON) {
-                if (isUserInitiated) showModal('Error de Entrada 🚫', `El lado '${type}' debe ser un número positivo.`);
-                valueElement.focus();
-                return;
-            }
-            if (definedTypes.has(type)) {
-                if (isUserInitiated) showModal('Error de Entrada 🚫', `El tipo '${type}' ha sido ingresado más de una vez. Usa tipos distintos.`);
-                typeElement.focus();
-                return;
-            }
-
-            definedTypes.add(type);
-            inputs.push({ type, value });
-            if (type.startsWith('side')) sideCount++;
-        }
-
-        if (inputs.length !== 3) { 
-            if (isUserInitiated) showModal('Error de Entrada 🚫', 'Se requieren exactamente tres valores de entrada.');
-            return;
-        }
-        if (sideCount === 0) {
-            if (isUserInitiated) showModal('Error de Entrada 🚫', 'Debes ingresar al menos un lado para definir el triángulo.');
-            return;
-        }
-
-        let { sA, sB, sC, angA, angB, angC } = parseTriangleInputs(inputs);
-
-        try {
-            // AJUSTE: Pasar isUserInitiated a solveTriangleLogic
-            const solution = solveTriangleLogic(sA, sB, sC, angA, angB, angC, isUserInitiated);
-            currentTriangle = solution; 
-            calculateSpecialGeometricElements();
-            displayTriangleResults(solution);
-            resultsCard.classList.remove('hidden');
-            updateLastCalculatedGeometry(); 
-            requestAnimationFrame(drawTriangleOnCanvas); 
-        } catch (error) {
-            if (isUserInitiated) showModal('Error de Cálculo 🤯', error.message);
-            else console.error("Error en cálculo inicial:", error.message); // Log para errores en cálculo inicial
-            currentTriangle = null; 
-            resultsCard.classList.add('hidden');
-            if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height); 
-        }
-    }
-    function parseTriangleInputs(inputs) {
-        let sA_val, sB_val, sC_val, angA_rad, angB_rad, angC_rad;
-        inputs.forEach(input => {
-            switch (input.type) {
-                case 'sideA': sA_val = input.value; break;
-                case 'sideB': sB_val = input.value; break;
-                case 'sideC': sC_val = input.value; break;
-                case 'angleA': angA_rad = toRadians(input.value); break;
-                case 'angleB': angB_rad = toRadians(input.value); break;
-                case 'angleC': angC_rad = toRadians(input.value); break;
-            }
-        });
-        return { sA: sA_val, sB: sB_val, sC: sC_val, angA: angA_rad, angB: angB_rad, angC: angC_rad };
-    }
-    // AJUSTE: Añadido parámetro isUserInitiated a solveTriangleLogic
-    function solveTriangleLogic(a_in, b_in, c_in, A_in, B_in, C_in, isUserInitiated = true) {
-        let a = a_in, b = b_in, c = c_in, A = A_in, B = B_in, C = C_in;
-        const known = {
-            sides: (a !== undefined) + (b !== undefined) + (c !== undefined),
-            angles: (A !== undefined) + (B !== undefined) + (C !== undefined)
+        const drawOptions = {
+            grid: false,
+            labels: true,
+            angles: true,
+            medians: false,
+            altitudes: false,
+            angleBisectors: false,
+            perpBisectors: false,
+            centroid: false,
+            orthocenter: false,
+            incenter: false,
+            circumcenter: false,
+            inscribedCircle: false,
+            circumscribedCircle: false
         };
-        let ssaWarning = null; 
 
-        if (known.angles === 2) {
-            if (A === undefined) A = PI - B - C;
-            else if (B === undefined) B = PI - A - C;
-            else C = PI - A - B;
+        // Referencias DOM
+        const canvas = document.getElementById('triangleCanvas');
+        const ctx = canvas.getContext('2d');
+        const calculateButton = document.getElementById('calculateButton');
+        const resultsPanel = document.getElementById('resultsPanel');
+        const precisionSelect = document.getElementById('precisionSelect');
+        const modal = document.getElementById('messageModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalMessage = document.getElementById('modalMessage');
+        const closeModalButton = document.getElementById('closeModalButton');
 
-            if (A <= EPSILON || B <= EPSILON || C <= EPSILON || A >= PI - EPSILON || B >= PI - EPSILON || C >= PI - EPSILON) {
-                throw new Error("Los ángulos (dados o calculados) no forman un triángulo válido.");
-            }
-            if (known.sides === 1) { 
-                if (Math.sin(A) < EPSILON || Math.sin(B) < EPSILON || Math.sin(C) < EPSILON) throw new Error("División por seno de cero en Ley de Senos.");
-                if (a !== undefined) {
-                    b = a * Math.sin(B) / Math.sin(A);
-                    c = a * Math.sin(C) / Math.sin(A);
-                } else if (b !== undefined) {
-                    a = b * Math.sin(A) / Math.sin(B);
-                    c = b * Math.sin(C) / Math.sin(B);
-                } else { 
-                    a = c * Math.sin(A) / Math.sin(C);
-                    b = c * Math.sin(B) / Math.sin(C);
+        // Funciones utilitarias
+        const toRadians = (degrees) => degrees * PI / 180;
+        const toDegrees = (radians) => radians * 180 / PI;
+        
+        const formatNumber = (num) => {
+            if (typeof num !== 'number' || isNaN(num)) return 'N/A';
+            const precision = parseInt(precisionSelect.value);
+            return num.toFixed(precision);
+        };
+
+        const distance = (p1, p2) => {
+            if (!p1 || !p2) return 0;
+            return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+        };
+
+        const intersectLines = (p1, p2, p3, p4) => {
+            if (!p1 || !p2 || !p3 || !p4) return null;
+            const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+            if (Math.abs(den) < EPSILON) return null;
+            const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
+            return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+        };
+
+        const isFinitePoint = (p) => {
+            return p && isFinite(p.x) && isFinite(p.y);
+        };
+
+        // Gestión de modal
+        const showModal = (title, message, isError = false) => {
+            modalTitle.textContent = title;
+            modalMessage.innerHTML = message;
+            modalTitle.style.color = isError ? '#ff6b6b' : '#4facfe';
+            modal.classList.add('active');
+        };
+
+        closeModalButton.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        // Gestión de temas
+        const themeButtons = document.querySelectorAll('.theme-btn');
+        
+        themeButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                themeButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                document.documentElement.setAttribute('data-theme', btn.dataset.theme);
+                if (currentTriangle) {
+                    requestAnimationFrame(drawTriangleOnCanvas);
                 }
-            } else {
-                 throw new Error("Se necesitan al menos 3 datos, incluyendo un lado, si se dan 2 ángulos.");
-            }
-        }
-        else if (known.sides === 3) {
-            if (a + b <= c + EPSILON || a + c <= b + EPSILON || b + c <= a + EPSILON) {
-                throw new Error("Desigualdad triangular no cumplida para los lados dados (SSS).");
-            }
-            let cosA_val = (b * b + c * c - a * a) / (2 * b * c);
-            let cosB_val = (a * a + c * c - b * b) / (2 * a * c);
-            if (cosA_val > 1 + EPSILON || cosA_val < -1 - EPSILON || cosB_val > 1 + EPSILON || cosB_val < -1 - EPSILON) {
-                 throw new Error("Valor de coseno fuera de rango [-1, 1] al aplicar Ley de Cosenos (SSS).");
-            }
-            A = Math.acos(Math.max(-1, Math.min(1, cosA_val)));
-            B = Math.acos(Math.max(-1, Math.min(1, cosB_val)));
-            C = PI - A - B;
-        }
-        else if (known.sides === 2 && known.angles === 1) {
-            if ((A !== undefined && b !== undefined && c !== undefined)) { 
-                if (A <= EPSILON || A >= PI - EPSILON) throw new Error("Ángulo A en SAS debe ser > 0 y < 180.");
-                a = Math.sqrt(b * b + c * c - 2 * b * c * Math.cos(A));
-                if (a <= EPSILON) throw new Error("Lado 'a' calculado en SAS no es positivo.");
-                let sinB_val = b * Math.sin(A) / a;
-                if (sinB_val > 1 + EPSILON || sinB_val < -(1 + EPSILON)) throw new Error("sin(B) fuera de rango en SAS.");
-                B = Math.asin(Math.max(-1, Math.min(1, sinB_val)));
-                C = PI - A - B;
-            } else if ((B !== undefined && a !== undefined && c !== undefined)) { 
-                if (B <= EPSILON || B >= PI - EPSILON) throw new Error("Ángulo B en SAS debe ser > 0 y < 180.");
-                b = Math.sqrt(a * a + c * c - 2 * a * c * Math.cos(B));
-                if (b <= EPSILON) throw new Error("Lado 'b' calculado en SAS no es positivo.");
-                let sinA_val = a * Math.sin(B) / b;
-                if (sinA_val > 1 + EPSILON || sinA_val < -(1 + EPSILON)) throw new Error("sin(A) fuera de rango en SAS.");
-                A = Math.asin(Math.max(-1, Math.min(1, sinA_val)));
-                C = PI - B - A;
-            } else if ((C !== undefined && a !== undefined && b !== undefined)) { 
-                if (C <= EPSILON || C >= PI - EPSILON) throw new Error("Ángulo C en SAS debe ser > 0 y < 180.");
-                c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(C));
-                if (c <= EPSILON) throw new Error("Lado 'c' calculado en SAS no es positivo.");
-                let sinA_val = a * Math.sin(C) / c;
-                 if (sinA_val > 1 + EPSILON || sinA_val < -(1 + EPSILON)) throw new Error("sin(A) fuera de rango en SAS.");
-                A = Math.asin(Math.max(-1, Math.min(1, sinA_val)));
-                B = PI - C - A;
-            }
-            else {
-                let sOp, sAdj, kAng, angAdj_calc, angRem_calc, sRem_calc; 
-                let nameAngAdj = "", nameAngRem = "", nameSideRem = "";
+            });
+        });
 
-                if (A_in !== undefined && a_in !== undefined && b_in !== undefined) { kAng = A_in; sOp = a_in; sAdj = b_in; nameAngAdj = "B"; nameAngRem = "C"; nameSideRem = "c"; }
-                else if (A_in !== undefined && a_in !== undefined && c_in !== undefined) { kAng = A_in; sOp = a_in; sAdj = c_in; nameAngAdj = "C"; nameAngRem = "B"; nameSideRem = "b"; }
-                else if (B_in !== undefined && b_in !== undefined && a_in !== undefined) { kAng = B_in; sOp = b_in; sAdj = a_in; nameAngAdj = "A"; nameAngRem = "C"; nameSideRem = "c"; }
-                else if (B_in !== undefined && b_in !== undefined && c_in !== undefined) { kAng = B_in; sOp = b_in; sAdj = c_in; nameAngAdj = "C"; nameAngRem = "A"; nameSideRem = "a"; }
-                else if (C_in !== undefined && c_in !== undefined && a_in !== undefined) { kAng = C_in; sOp = c_in; sAdj = a_in; nameAngAdj = "A"; nameAngRem = "B"; nameSideRem = "b"; }
-                else if (C_in !== undefined && c_in !== undefined && b_in !== undefined) { kAng = C_in; sOp = c_in; sAdj = b_in; nameAngAdj = "B"; nameAngRem = "A"; nameSideRem = "a"; }
-                else { throw new Error("Configuración de datos SSA inválida o no reconocida."); }
-
-                if (kAng <= EPSILON || kAng >= PI - EPSILON) throw new Error(`Ángulo conocido en SSA (${toDegrees(kAng).toFixed(1)}°) debe ser > 0 y < 180.`);
-                let sin_angAdj = sAdj * Math.sin(kAng) / sOp;
-
-                if (sin_angAdj > 1 + EPSILON) throw new Error(`No hay solución en SSA (lado opuesto ${sOp.toFixed(2)} demasiado corto). sin(${nameAngAdj}) = ${sin_angAdj.toFixed(4)} > 1.`);
-                if (sin_angAdj < -(1 + EPSILON) ) throw new Error(`Error en SSA: sin(${nameAngAdj}) = ${sin_angAdj.toFixed(4)} < -1.`); 
-                
-                sin_angAdj = Math.max(-1, Math.min(1, sin_angAdj)); 
-                let angAdj_calc_acute = Math.asin(sin_angAdj);
-                let angAdj_calc_obtuse = PI - angAdj_calc_acute;
-
-                const altura = sAdj * Math.sin(kAng);
-                let solutions = [];
-
-                // Solución 1 (ángulo adyacente agudo)
-                let temp_A1 = (nameAngAdj === "A" ? angAdj_calc_acute : (A_in !== undefined ? A_in : undefined));
-                let temp_B1 = (nameAngAdj === "B" ? angAdj_calc_acute : (B_in !== undefined ? B_in : undefined));
-                let temp_C1 = (nameAngAdj === "C" ? angAdj_calc_acute : (C_in !== undefined ? C_in : undefined));
-
-                if (A_in === kAng) temp_A1 = kAng; else if (B_in === kAng) temp_B1 = kAng; else if (C_in === kAng) temp_C1 = kAng;
-
-
-                if (temp_A1 !== undefined && temp_B1 !== undefined && temp_C1 === undefined) temp_C1 = PI - temp_A1 - temp_B1;
-                else if (temp_A1 !== undefined && temp_C1 !== undefined && temp_B1 === undefined) temp_B1 = PI - temp_A1 - temp_C1;
-                else if (temp_B1 !== undefined && temp_C1 !== undefined && temp_A1 === undefined) temp_A1 = PI - temp_B1 - temp_C1;
-
-
-                if (temp_A1 > EPSILON && temp_B1 > EPSILON && temp_C1 > EPSILON && temp_A1 < PI - EPSILON && temp_B1 < PI - EPSILON && temp_C1 < PI - EPSILON) {
-                    sRem_calc = sOp * Math.sin( (nameAngRem === "A" ? temp_A1 : (nameAngRem === "B" ? temp_B1 : temp_C1)) ) / Math.sin(kAng);
-                    if (sRem_calc > EPSILON) solutions.push({ angAdj: angAdj_calc_acute, angRem: (nameAngRem === "A" ? temp_A1 : (nameAngRem === "B" ? temp_B1 : temp_C1)), sRem: sRem_calc, type: "agudo" });
+        // Lógica de cálculo
+        const parseTriangleInputs = (inputs) => {
+            let sA_val, sB_val, sC_val, angA_rad, angB_rad, angC_rad;
+            inputs.forEach(input => {
+                switch (input.type) {
+                    case 'sideA': sA_val = input.value; break;
+                    case 'sideB': sB_val = input.value; break;
+                    case 'sideC': sC_val = input.value; break;
+                    case 'angleA': angA_rad = toRadians(input.value); break;
+                    case 'angleB': angB_rad = toRadians(input.value); break;
+                    case 'angleC': angC_rad = toRadians(input.value); break;
                 }
-                
-                // Solución 2 (ángulo adyacente obtuso) - solo si es ambiguo
-                if (kAng < PI / 2 - EPSILON && sOp < sAdj - EPSILON && sOp > altura + EPSILON) { 
-                    let temp_A2 = (nameAngAdj === "A" ? angAdj_calc_obtuse : (A_in !== undefined ? A_in : undefined));
-                    let temp_B2 = (nameAngAdj === "B" ? angAdj_calc_obtuse : (B_in !== undefined ? B_in : undefined));
-                    let temp_C2 = (nameAngAdj === "C" ? angAdj_calc_obtuse : (C_in !== undefined ? C_in : undefined));
+            });
+            return { sA: sA_val, sB: sB_val, sC: sC_val, angA: angA_rad, angB: angB_rad, angC: angC_rad };
+        };
 
-                    if (A_in === kAng) temp_A2 = kAng; else if (B_in === kAng) temp_B2 = kAng; else if (C_in === kAng) temp_C2 = kAng;
+        const solveTriangleLogic = (a_in, b_in, c_in, A_in, B_in, C_in) => {
+            let a = a_in, b = b_in, c = c_in, A = A_in, B = B_in, C = C_in;
+            
+            const known = {
+                sides: (a !== undefined) + (b !== undefined) + (c !== undefined),
+                angles: (A !== undefined) + (B !== undefined) + (C !== undefined)
+            };
 
-                    if (temp_A2 !== undefined && temp_B2 !== undefined && temp_C2 === undefined) temp_C2 = PI - temp_A2 - temp_B2;
-                    else if (temp_A2 !== undefined && temp_C2 !== undefined && temp_B2 === undefined) temp_B2 = PI - temp_A2 - temp_C2;
-                    else if (temp_B2 !== undefined && temp_C2 !== undefined && temp_A2 === undefined) temp_A2 = PI - temp_B2 - temp_C2;
-                    
-                    if (temp_A2 > EPSILON && temp_B2 > EPSILON && temp_C2 > EPSILON && temp_A2 < PI - EPSILON && temp_B2 < PI - EPSILON && temp_C2 < PI - EPSILON) {
-                         sRem_calc = sOp * Math.sin( (nameAngRem === "A" ? temp_A2 : (nameAngRem === "B" ? temp_B2 : temp_C2)) ) / Math.sin(kAng);
-                        if (sRem_calc > EPSILON) solutions.push({ angAdj: angAdj_calc_obtuse, angRem: (nameAngRem === "A" ? temp_A2 : (nameAngRem === "B" ? temp_B2 : temp_C2)), sRem: sRem_calc, type: "obtuso" });
+            // Caso: 2 ángulos conocidos
+            if (known.angles === 2) {
+                if (A === undefined) A = PI - B - C;
+                else if (B === undefined) B = PI - A - C;
+                else C = PI - A - B;
+
+                if (A <= EPSILON || B <= EPSILON || C <= EPSILON || 
+                    A >= PI - EPSILON || B >= PI - EPSILON || C >= PI - EPSILON) {
+                    throw new Error("Los ángulos no forman un triángulo válido.");
+                }
+
+                if (known.sides === 1) {
+                    if (Math.sin(A) < EPSILON || Math.sin(B) < EPSILON || Math.sin(C) < EPSILON) {
+                        throw new Error("División por seno de cero en Ley de Senos.");
                     }
-                } else if (Math.abs(sOp - altura) < EPSILON && sOp >= altura - EPSILON) { 
-                    // Solución única (triángulo rectángulo)
-                }
-
-
-                if (solutions.length === 0) {
-                    throw new Error(`No hay solución válida en SSA. Lado opuesto ${sOp.toFixed(2)}, altura ${altura.toFixed(2)}, sin(${nameAngAdj})=${sin_angAdj.toFixed(4)}.`);
-                }
-
-                let chosenSolution = solutions[0];
-                if (solutions.length > 1) { 
-                    ssaWarning = `Advertencia SSA ⚠️: Caso ambiguo detectado. Se muestra la solución con ${nameAngAdj} agudo (${toDegrees(solutions[0].angAdj).toFixed(1)}°). Otra solución: ${nameAngAdj} ≈ ${toDegrees(solutions[1].angAdj).toFixed(1)}°.`;
-                    chosenSolution = solutions.find(sol => sol.type === "agudo") || solutions[0]; 
-                }
-                
-                angAdj_calc = chosenSolution.angAdj;
-                angRem_calc = chosenSolution.angRem;
-                sRem_calc = chosenSolution.sRem;
-
-                if (A_in === kAng) { A = kAng; a = sOp; if (b_in === sAdj) { B = angAdj_calc; C = angRem_calc; c = sRem_calc; } else { C = angAdj_calc; B = angRem_calc; b = sRem_calc; } }
-                else if (B_in === kAng) { B = kAng; b = sOp; if (a_in === sAdj) { A = angAdj_calc; C = angRem_calc; c = sRem_calc; } else { C = angAdj_calc; A = angRem_calc; a = sRem_calc; } }
-                else { C = kAng; c = sOp; if (a_in === sAdj) { A = angAdj_calc; B = angRem_calc; b = sRem_calc; } else { B = angAdj_calc; A = angRem_calc; a = sRem_calc; } }
-            }
-        } else {
-            throw new Error("Datos insuficientes o combinación no válida para resolver el triángulo.");
-        }
-
-        if (a <= EPSILON || b <= EPSILON || c <= EPSILON || A <= EPSILON || B <= EPSILON || C <= EPSILON || isNaN(A) || isNaN(B) || isNaN(C) || A >= PI-EPSILON || B >= PI-EPSILON || C >= PI-EPSILON ) {
-            throw new Error("Resultado final inválido: algún lado o ángulo es no positivo, >= 180° o NaN.");
-        }
-        if (Math.abs(A + B + C - PI) > 1e-5) { 
-            throw new Error(`Error de consistencia: los ángulos calculados no suman 180°. Suma: ${toDegrees(A + B + C).toFixed(1)}°`);
-        }
-        if (a + b <= c + EPSILON || a + c <= b + EPSILON || b + c <= a + EPSILON) {
-            throw new Error("Error de consistencia: los lados calculados no cumplen la desigualdad triangular.");
-        }
-        
-        if(isUserInitiated) {
-            if (ssaWarning) {
-                showModal("Advertencia SSA ⚠️", ssaWarning, false); 
-            } else {
-                 showModal('Cálculo Exitoso 🎉', 'El triángulo ha sido calculado y dibujado.', false); 
-            }
-        }
-
-        return { a, b, c, A_rad: A, B_rad: B, C_rad: C };
-    }
-
-    /** Calcula coordenadas de vértices y otros elementos geométricos. */
-    function calculateSpecialGeometricElements() {
-        if (!currentTriangle) return;
-        const { a, b, c, A_rad, B_rad, C_rad } = currentTriangle;
-        const vertices = { 
-            pA: { x: 0, y: 0 },
-            pB: { x: c, y: 0 },
-            pC: { x: b * Math.cos(A_rad), y: b * Math.sin(A_rad) }
-        };
-        calculatedElements.vertices = vertices;
-        const {pA, pB, pC} = vertices;
-
-
-        calculatedElements.midpoints = {
-            midAB: { x: (pA.x + pB.x) / 2, y: (pA.y + pB.y) / 2 },
-            midBC: { x: (pB.x + pC.x) / 2, y: (pB.y + pC.y) / 2 },
-            midCA: { x: (pC.x + pA.x) / 2, y: (pC.y + pA.y) / 2 }
-        };
-
-        calculatedElements.medians = [
-            { p1: pA, p2: calculatedElements.midpoints.midBC },
-            { p1: pB, p2: calculatedElements.midpoints.midCA },
-            { p1: pC, p2: calculatedElements.midpoints.midAB }
-        ];
-        calculatedElements.centroid = { x: (pA.x + pB.x + pC.x) / 3, y: (pA.y + pB.y + pC.y) / 3 };
-
-        const perimeter = a + b + c;
-        if (perimeter > EPSILON) {
-            calculatedElements.incenter = { 
-                x: (a * pA.x + b * pB.x + c * pC.x) / perimeter,
-                y: (a * pA.y + b * pB.y + c * pC.y) / perimeter
-            };
-            calculatedElements.angleBisectors = [
-                { p1: pA, p2: calculatedElements.incenter },
-                { p1: pB, p2: calculatedElements.incenter },
-                { p1: pC, p2: calculatedElements.incenter }
-            ];
-            const s = perimeter / 2; 
-            const areaHeron = Math.sqrt(Math.max(0, s * (s - a) * (s - b) * (s - c))); 
-            calculatedElements.inradius = (perimeter > EPSILON) ? (2 * areaHeron) / perimeter : 0;
-        }
-
-        // Mediatrices (usando la función mejorada)
-        function getPerpendicularLineImproved(sideP1, sideP2, midPt, characteristicSize) {
-            const dx_side = sideP2.x - sideP1.x;
-            const dy_side = sideP2.y - sideP1.y;
-            const length_side = Math.sqrt(dx_side * dx_side + dy_side * dy_side);
-
-            if (length_side < EPSILON) {
-                return { p1: { x: midPt.x - characteristicSize, y: midPt.y }, p2: { x: midPt.x + characteristicSize, y: midPt.y }};
-            }
-
-            const perpX_unit = -dy_side / length_side; 
-            const perpY_unit = dx_side / length_side;  
-            const extension = Math.max(characteristicSize * 2.0, 150 / (scaleFactor * lastCalculatedGeometry.scaleToFit || 1) ); 
-
-
-            return {
-                p1: { x: midPt.x - perpX_unit * extension, y: midPt.y - perpY_unit * extension },
-                p2: { x: midPt.x + perpX_unit * extension, y: midPt.y + perpY_unit * extension }
-            };
-        }
-        const characteristicSizeForMediatrix = Math.max(a, b, c, EPSILON);
-        const pb_AB_data = getPerpendicularLineImproved(pA, pB, calculatedElements.midpoints.midAB, characteristicSizeForMediatrix);
-        const pb_BC_data = getPerpendicularLineImproved(pB, pC, calculatedElements.midpoints.midBC, characteristicSizeForMediatrix);
-        const pb_CA_data = getPerpendicularLineImproved(pC, pA, calculatedElements.midpoints.midCA, characteristicSizeForMediatrix);
-        calculatedElements.perpBisectorsData = [pb_AB_data, pb_BC_data, pb_CA_data].filter(pb => pb !== null);
-        
-        // Circuncentro Robusto
-        function calculateCircumcenterRobust(p1, p2, p3) {
-            const D = 2 * (p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y));
-            if (Math.abs(D) < EPSILON) return null; 
-
-            const p1_sq = p1.x * p1.x + p1.y * p1.y;
-            const p2_sq = p2.x * p2.x + p2.y * p2.y;
-            const p3_sq = p3.x * p3.x + p3.y * p3.y;
-
-            const ux = (p1_sq * (p2.y - p3.y) + p2_sq * (p3.y - p1.y) + p3_sq * (p1.y - p2.y)) / D;
-            const uy = (p1_sq * (p3.x - p2.x) + p2_sq * (p1.x - p3.x) + p3_sq * (p2.x - p1.x)) / D;
-            return { x: ux, y: uy };
-        }
-        calculatedElements.circumcenter = calculateCircumcenterRobust(pA, pB, pC);
-
-        if (!isFinitePoint(calculatedElements.circumcenter) && calculatedElements.perpBisectorsData.length >=2) { 
-             if (calculatedElements.perpBisectorsData[0] && calculatedElements.perpBisectorsData[1]) {
-                calculatedElements.circumcenter = intersectLines(
-                    calculatedElements.perpBisectorsData[0].p1, calculatedElements.perpBisectorsData[0].p2,
-                    calculatedElements.perpBisectorsData[1].p1, calculatedElements.perpBisectorsData[1].p2
-                );
-            }
-        }
-        if (calculatedElements.circumcenter && isFinitePoint(calculatedElements.circumcenter)) {
-            calculatedElements.circumradius = distance(calculatedElements.circumcenter, pA);
-        } else {
-            calculatedElements.circumcenter = null; 
-            calculatedElements.circumradius = 0;
-        }
-
-        // Alturas (usando la función corregida)
-        function calculateAltitudeCorrect(vertex, sideP1, sideP2) {    
-            const A_line = sideP2.y - sideP1.y;    
-            const B_line = sideP1.x - sideP2.x;    
-            const C_line = sideP2.x * sideP1.y - sideP1.x * sideP2.y;        
-            const denominator = A_line * A_line + B_line * B_line;    
-            if (denominator < EPSILON) return { p1: vertex, p2: sideP1 };      
-            const foot_x = (B_line * (B_line * vertex.x - A_line * vertex.y) - A_line * C_line) / denominator;    
-            const foot_y = (A_line * (-B_line * vertex.x + A_line * vertex.y) - B_line * C_line) / denominator;        
-            return { p1: vertex, p2: { x: foot_x, y: foot_y } };
-        }
-        const altA = calculateAltitudeCorrect(pA, pB, pC);
-        const altB = calculateAltitudeCorrect(pB, pC, pA);
-        const altC = calculateAltitudeCorrect(pC, pA, pB);
-        calculatedElements.altitudes = [altA, altB, altC];
-        
-        // Ortocentro Robusto
-        function calculateOrthocenterRobust(vertices, altitudes, angles) {
-            const { pA, pB, pC } = vertices;
-            const { A_rad, B_rad, C_rad } = angles;
-
-            if (Math.abs(A_rad - PI/2) < EPSILON*10) return { ...pA };
-            if (Math.abs(B_rad - PI/2) < EPSILON*10) return { ...pB };
-            if (Math.abs(C_rad - PI/2) < EPSILON*10) return { ...pC };
-
-            const combinations = [
-                [altitudes[0], altitudes[1]],
-                [altitudes[0], altitudes[2]],
-                [altitudes[1], altitudes[2]]
-            ];
-            for (const [alt1, alt2] of combinations) {
-                if (alt1 && alt2 && alt1.p1 && alt1.p2 && alt2.p1 && alt2.p2) { 
-                    const H = intersectLines(alt1.p1, alt1.p2, alt2.p1, alt2.p2);
-                    if (H && isFinitePoint(H)) return H;
+                    
+                    if (a !== undefined) {
+                        b = a * Math.sin(B) / Math.sin(A);
+                        c = a * Math.sin(C) / Math.sin(A);
+                    } else if (b !== undefined) {
+                        a = b * Math.sin(A) / Math.sin(B);
+                        c = b * Math.sin(C) / Math.sin(B);
+                    } else {
+                        a = c * Math.sin(A) / Math.sin(C);
+                        b = c * Math.sin(B) / Math.sin(C);
+                    }
                 }
             }
-            return null; 
-        }
-        calculatedElements.orthocenter = calculateOrthocenterRobust(vertices, calculatedElements.altitudes, {A_rad, B_rad, C_rad});
-    }
-
-    function displayTriangleResults(triangle) {
-        resLadoA.textContent = formatNumber(triangle.a);
-        resLadoB.textContent = formatNumber(triangle.b);
-        resLadoC.textContent = formatNumber(triangle.c);
-        resAnguloA.textContent = formatNumber(toDegrees(triangle.A_rad));
-        resAnguloB.textContent = formatNumber(toDegrees(triangle.B_rad));
-        resAnguloC.textContent = formatNumber(toDegrees(triangle.C_rad));
-
-        const perimeterVal = triangle.a + triangle.b + triangle.c;
-        const s = perimeterVal / 2; 
-        let areaVal;
-        const heronRadicand = s * (s - triangle.a) * (s - triangle.b) * (s - triangle.c);
-        if (heronRadicand < 0 && Math.abs(heronRadicand) < EPSILON * 100) { 
-            areaVal = 0;
-        } else if (heronRadicand < 0) { 
-             console.warn("Heron radicand negativo:", heronRadicand);
-             areaVal = 0; 
-        }
-        else {
-            areaVal = Math.sqrt(heronRadicand);
-        }
-        resPerimetro.textContent = formatNumber(perimeterVal);
-        resArea.textContent = formatNumber(areaVal);
-
-        if (calculatedElements.incenter && calculatedElements.inradius && calculatedElements.inradius > EPSILON) {
-            resInradius.textContent = formatNumber(calculatedElements.inradius);
-            resInradiusContainer.classList.remove('hidden');
-        } else {
-            resInradiusContainer.classList.add('hidden');
-        }
-        if (calculatedElements.circumcenter && calculatedElements.circumradius && calculatedElements.circumradius > EPSILON && isFinitePoint(calculatedElements.circumcenter)) {
-            resCircumradius.textContent = formatNumber(calculatedElements.circumradius);
-            resCircumradiusContainer.classList.remove('hidden');
-        } else {
-            resCircumradiusContainer.classList.add('hidden');
-        }
-        resTipoTriangulo.textContent = determineTriangleType(triangle.a, triangle.b, triangle.c, triangle.A_rad, triangle.B_rad, triangle.C_rad);
-    }
-    function determineTriangleType(a, b, c, A_rad, B_rad, C_rad) {
-        let typeBySide = "";
-        if (Math.abs(a - b) < EPSILON && Math.abs(b - c) < EPSILON) typeBySide = "Equilátero";
-        else if (Math.abs(a - b) < EPSILON || Math.abs(b - c) < EPSILON || Math.abs(a - c) < EPSILON) typeBySide = "Isósceles";
-        else typeBySide = "Escaleno";
-
-        let typeByAngle = "";
-        const ninetyDeg = PI / 2;
-        if (Math.abs(A_rad - ninetyDeg) < EPSILON || Math.abs(B_rad - ninetyDeg) < EPSILON || Math.abs(C_rad - ninetyDeg) < EPSILON) typeByAngle = "Rectángulo";
-        else if (A_rad > ninetyDeg - EPSILON || B_rad > ninetyDeg - EPSILON || C_rad > ninetyDeg - EPSILON) typeByAngle = "Obtusángulo";
-        else typeByAngle = "Acutángulo";
-        
-        return `${typeBySide} y ${typeByAngle}`;
-    }
-
-    /** 
-    * Dibuja el triángulo y los elementos seleccionados en el lienzo CORREGIDO
-    * Maneja correctamente factores de extensión y visualización para todos los tipos de triángulos
-    */
-    function drawTriangleOnCanvas() {
-        if (!currentTriangle || !calculatedElements.vertices) {
-            return;
-        }
-
-        const { a, b, c, A_rad, B_rad, C_rad } = currentTriangle;
-        const { vertices, midpoints, medians, centroid, altitudes, orthocenter,
-                angleBisectors, incenter, inradius, perpBisectorsData, circumcenter, circumradius
-            } = calculatedElements;
-        
-        if (!vertices || !vertices.pA || !vertices.pB || !vertices.pC) {
-            console.error("DRAW: Vértices no definidos en calculatedElements.");
-            return;
-        }
-        const pA = vertices.pA, pB = vertices.pB, pC = vertices.pC;
-
-        // === CONFIGURACIÓN DEL CANVAS ===
-        const dpr = window.devicePixelRatio || 1;
-        const rect = canvas.getBoundingClientRect();
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        
-        ctx.fillStyle = '#000000'; 
-        ctx.fillRect(0, 0, canvas.width, canvas.height); 
-
-        ctx.save(); 
-        ctx.scale(dpr, dpr); 
-
-        // === CONFIGURACIÓN DE ESCALADO Y CENTRADO ===
-        const { minX, minY, width: triWidth, height: triHeight, scaleToFit } = lastCalculatedGeometry;
-        
-        let currentDisplayScale = scaleToFit * scaleFactor;
-        if (!isFinite(currentDisplayScale) || currentDisplayScale <= EPSILON) {
-            currentDisplayScale = 1; 
-        }
-        
-        const triangleCenterX = minX + triWidth / 2;
-        const triangleCenterY = minY + triHeight / 2;
-
-        ctx.translate(rect.width / 2 + panOffset.x, rect.height / 2 + panOffset.y); 
-        ctx.scale(currentDisplayScale, currentDisplayScale); 
-        ctx.translate(-triangleCenterX, -triangleCenterY); 
-
-        // === CÁLCULO DE TAMAÑOS ADAPTATIVOS ===
-        const triangleSize = Math.max(a, b, c, triWidth > EPSILON ? triWidth : 1, triHeight > EPSILON ? triHeight : 1);
-        
-        const baseLineWidth = Math.max(0.6 / currentDisplayScale, triangleSize * 0.006); 
-        const thinLineWidth = Math.max(0.4 / currentDisplayScale, triangleSize * 0.004); 
-        const thickLineWidth = Math.max(1.0 / currentDisplayScale, triangleSize * 0.010); 
-        
-        const pointRadius = Math.max(0.8 / currentDisplayScale, triangleSize * 0.012); 
-        const specialPointRadius = Math.max(1.2 / currentDisplayScale, triangleSize * 0.020); 
-        const centerPointRadius = Math.max(1.5 / currentDisplayScale, triangleSize * 0.025); 
-        
-        const angleArcRadius = Math.max(1.8 / currentDisplayScale, triangleSize * 0.06); 
-
-        // === CONFIGURACIÓN DE FUENTES ADAPTATIVAS ===
-        const TARGET_FONT_PX_ON_SCREEN = 12; 
-        const MIN_FONT_PX_ON_SCREEN = 8;  
-        const MAX_FONT_PX_ON_SCREEN = 18; 
-
-        let labelFontSizeInWorldUnits = TARGET_FONT_PX_ON_SCREEN / currentDisplayScale;
-        
-        const currentFontSizeOnScreen = labelFontSizeInWorldUnits * currentDisplayScale;
-        if (currentFontSizeOnScreen < MIN_FONT_PX_ON_SCREEN) {
-            labelFontSizeInWorldUnits = MIN_FONT_PX_ON_SCREEN / currentDisplayScale;
-        } else if (currentFontSizeOnScreen > MAX_FONT_PX_ON_SCREEN) {
-            labelFontSizeInWorldUnits = MAX_FONT_PX_ON_SCREEN / currentDisplayScale;
-        }
-        labelFontSizeInWorldUnits = Math.min(labelFontSizeInWorldUnits, triangleSize * 0.10); 
-        labelFontSizeInWorldUnits = Math.max(EPSILON * 25, labelFontSizeInWorldUnits); 
-
-        const vtxLabelOffset = labelFontSizeInWorldUnits * 2.5; 
-        const sideLabelDist = labelFontSizeInWorldUnits * 2.2;  
-        const angleLabelOffset = labelFontSizeInWorldUnits * 1.8; 
-
-        // === PALETA DE COLORES MEJORADA ===
-        const colors = { 
-            triangleStroke: G_isDarkModeActive ? '#ECEFF4' : '#2E3440', 
-            triangleFill: G_isDarkModeActive ? 'rgba(76, 86, 106, 0.3)' : 'rgba(216, 222, 233, 0.3)', 
-            grid: G_isDarkModeActive ? '#4C566A' : '#E5E9F0', 
-            label: '#FFFFFF', 
-            median: '#D08770',      
-            altitude: '#A3BE8C',     
-            angleBisector: '#B48EAD',
-            perpBisector: '#88C0D0', 
-            centroid: '#D08770',     
-            orthocenter: '#BF616A',  
-            incenter: '#EBCB8B',     
-            circumcenter: '#5E81AC', 
-            inscribedCircle: '#EBCB8B',      
-            circumscribedCircle: '#5E81AC',  
-            angleArcs: ['#EBCB8B', '#A3BE8C', '#B48EAD'] 
-        };
-        
-        // === FUNCIÓN DE DIBUJO DE LÍNEAS MEJORADA ===
-        function drawLine(p1, p2, color, lineWidth = thinLineWidth, dash = [], extendFactor = 1, opacity = 1.0) {
-            if (!p1 || !p2 || !isFinitePoint(p1) || !isFinitePoint(p2)) return;
-            
-            let p1e = { ...p1 }, p2e = { ...p2 };
-            const originalLength = distance(p1, p2);
-
-            if (originalLength < EPSILON && Math.abs(extendFactor - 1.0) < EPSILON) return; 
-
-            if (extendFactor > 1.0 + EPSILON) {
-                const baseExtensionLength = (originalLength < triangleSize * 0.05 && originalLength > EPSILON) ? (triangleSize * 0.5) : originalLength; 
-                const extensionLength = baseExtensionLength * (extendFactor - 1.0); 
-                
-                let ux = 0, uy = 0;
-                if (originalLength > EPSILON) {
-                    ux = (p2.x - p1.x) / originalLength;
-                    uy = (p2.y - p1.y) / originalLength;
-                } else { 
-                    ux = 1; uy = 0; 
+            // Caso: 3 lados conocidos (SSS)
+            else if (known.sides === 3) {
+                if (a + b <= c + EPSILON || a + c <= b + EPSILON || b + c <= a + EPSILON) {
+                    throw new Error("Desigualdad triangular no cumplida (SSS).");
                 }
                 
-                p1e = { x: p1.x - ux * extensionLength, y: p1.y - uy * extensionLength };
-                p2e = { x: p2.x + ux * extensionLength, y: p2.y + uy * extensionLength };
+                const cosA_val = (b * b + c * c - a * a) / (2 * b * c);
+                const cosB_val = (a * a + c * c - b * b) / (2 * a * c);
+                
+                A = Math.acos(Math.max(-1, Math.min(1, cosA_val)));
+                B = Math.acos(Math.max(-1, Math.min(1, cosB_val)));
+                C = PI - A - B;
             }
-            
-            const originalAlpha = ctx.globalAlpha;
-            ctx.globalAlpha = opacity;
-            
-            ctx.beginPath(); 
-            ctx.moveTo(p1e.x, p1e.y); 
-            ctx.lineTo(p2e.x, p2e.y);
-            ctx.strokeStyle = color; 
-            ctx.lineWidth = lineWidth;
-            
-            const scaledDash = dash.map(d => Math.max(1.0 / currentDisplayScale, d / currentDisplayScale));
-            ctx.setLineDash(scaledDash); 
-            ctx.stroke(); 
-            ctx.setLineDash([]); 
-            
-            ctx.globalAlpha = originalAlpha;
-        }
-
-        // === FUNCIÓN DE DIBUJO DE PUNTOS MEJORADA ===
-        function drawPoint(p, color, radius = pointRadius, label = null, labelColor = null, emphasis = false) {
-            if (!p || !isFinitePoint(p)) return; 
-            
-            const actualRadius = emphasis ? centerPointRadius : radius;
-            const strokeWidth = emphasis ? thinLineWidth : 0;
-            
-            ctx.beginPath(); 
-            ctx.arc(p.x, p.y, actualRadius, 0, 2 * PI);
-            ctx.fillStyle = color; 
-            ctx.fill();
-            
-            if (emphasis) {
-                ctx.strokeStyle = G_isDarkModeActive ? '#FFFFFF' : '#000000';
-                ctx.lineWidth = strokeWidth;
-                ctx.stroke();
-            }
-            
-            if (label && drawOptions.labels) { 
-                ctx.fillStyle = labelColor || colors.label; 
-                ctx.font = `bold ${labelFontSizeInWorldUnits * 0.95}px Arial`; 
-                ctx.textAlign = "center"; 
-                ctx.textBaseline = "bottom";
-                
-                const metrics = ctx.measureText(label);
-                const bgPadding = labelFontSizeInWorldUnits * 0.2;
-                const labelX = p.x;
-                const labelY = p.y - actualRadius - (labelFontSizeInWorldUnits * 0.4);
-                const bgX = labelX - metrics.width/2 - bgPadding;
-                const bgY = labelY - labelFontSizeInWorldUnits - bgPadding * 0.5; 
-                const bgW = metrics.width + 2 * bgPadding;
-                const bgH = labelFontSizeInWorldUnits + 2 * bgPadding;
-                
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                ctx.fillRect(bgX, bgY, bgW, bgH);
-                
-                ctx.fillStyle = labelColor || colors.label;
-                ctx.fillText(label, labelX, labelY); 
-            }
-        }
-        
-        // === FUNCIÓN DE DIBUJO DE CÍRCULOS MEJORADA ===
-        function drawCircle(center, radius, color, lineWidth = thinLineWidth, dash = [8, 4], opacity = 0.8) {
-            if (!center || !isFinitePoint(center) || !radius || radius < EPSILON) return; 
-            
-            const originalAlpha = ctx.globalAlpha;
-            ctx.globalAlpha = opacity;
-            
-            ctx.beginPath(); 
-            ctx.arc(center.x, center.y, radius, 0, 2 * PI);
-            ctx.strokeStyle = color; 
-            ctx.lineWidth = lineWidth;
-            
-            const scaledDash = dash.map(d => Math.max(1.0 / currentDisplayScale, d / currentDisplayScale));
-            ctx.setLineDash(scaledDash); 
-            ctx.stroke(); 
-            ctx.setLineDash([]);
-            
-            ctx.globalAlpha = originalAlpha;
-        }
-        
-        // === FUNCIÓN DE ARCOS DE ÁNGULOS MEJORADA ===
-        function drawAngleArc(vertex, p1, p2, radius, color, angleValueRad = null) { 
-            if (!vertex || !p1 || !p2 || !isFinitePoint(vertex) || !isFinitePoint(p1) || !isFinitePoint(p2)) return;
-            
-            const v1x = p1.x - vertex.x; 
-            const v1y = p1.y - vertex.y;
-            const v2x = p2.x - vertex.x; 
-            const v2y = p2.y - vertex.y;
-            
-            let ang1 = Math.atan2(v1y, v1x);
-            let ang2 = Math.atan2(v2y, v2x);
-            
-            if (angleValueRad && angleValueRad > PI - EPSILON) { 
-                 if (ang2 < ang1 && Math.abs(ang2-ang1) > PI) ang2 += 2 * PI; 
-            } else { 
-                 if (ang2 < ang1 && Math.abs(ang2-ang1) > PI) ang2 += 2 * PI;
-                 else if (ang1 < ang2 && (ang2-ang1) > PI && angleValueRad && angleValueRad < PI) { 
-                     [ang1, ang2] = [ang2, ang1]; 
-                     if (ang2 < ang1) ang2 += 2 * PI;
-                 }
-            }
-
-            const arcLineWidth = thinLineWidth; 
-            
-            ctx.beginPath();
-            ctx.arc(vertex.x, vertex.y, radius, ang1, ang2);
-            ctx.strokeStyle = color; 
-            ctx.lineWidth = arcLineWidth; 
-            ctx.stroke();
-            
-            if (drawOptions.angles && angleValueRad !== null && angleValueRad > EPSILON) {
-                const len_v1 = Math.sqrt(v1x*v1x + v1y*v1y);
-                const len_v2 = Math.sqrt(v2x*v2x + v2y*v2y);
-                let bisector_x = 0, bisector_y = 0;
-                
-                if (len_v1 > EPSILON && len_v2 > EPSILON) {
-                    bisector_x = (v1x / len_v1) + (v2x / len_v2);
-                    bisector_y = (v1y / len_v1) + (v2y / len_v2);
-                }
-                const len_bisector = Math.sqrt(bisector_x*bisector_x + bisector_y*bisector_y);
-                
-                if (len_bisector > EPSILON) {
-                    bisector_x /= len_bisector;
-                    bisector_y /= len_bisector;
-                } else { 
-                    bisector_x = -v1y / (len_v1 > EPSILON ? len_v1 : 1);
-                    bisector_y = v1x / (len_v1 > EPSILON ? len_v1 : 1);
-                }
-                
-                const textRadius = radius + angleLabelOffset; 
-                const textX = vertex.x + textRadius * bisector_x;
-                const textY = vertex.y + textRadius * bisector_y;
-                
-                const angleText = formatNumber(toDegrees(angleValueRad)) + "°";
-                ctx.font = `bold ${labelFontSizeInWorldUnits * 0.9}px Arial`;
-                const metrics = ctx.measureText(angleText);
-                
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-                const bgPadding = labelFontSizeInWorldUnits * 0.15;
-                ctx.fillRect(
-                    textX - metrics.width/2 - bgPadding, 
-                    textY - labelFontSizeInWorldUnits*0.9/2 - bgPadding, 
-                    metrics.width + 2 * bgPadding, 
-                    labelFontSizeInWorldUnits*0.9 + 2 * bgPadding
-                );
-                
-                ctx.fillStyle = colors.label; 
-                ctx.textAlign = "center"; 
-                ctx.textBaseline = "middle";
-                ctx.fillText(angleText, textX, textY);
-            }
-        }
-
-        // === DIBUJO DE CUADRÍCULA (OPCIONAL) ===
-        if (drawOptions.grid) {
-            const TARGET_GRID_CELLS_ON_SCREEN = 8; // AJUSTE: Menos celdas para cuadrícula más espaciada
-            let gridSizeWorld = Math.min(triWidth > EPSILON ? triWidth : Infinity, triHeight > EPSILON ? triHeight : Infinity) / TARGET_GRID_CELLS_ON_SCREEN;
-            
-            if (gridSizeWorld > EPSILON) {
-                const p = Math.pow(10, Math.floor(Math.log10(gridSizeWorld)));
-                gridSizeWorld = Math.round(gridSizeWorld / p) * p;
-                if (gridSizeWorld < triangleSize * 0.1) gridSizeWorld = triangleSize * 0.1; // AJUSTE: Tamaño mínimo de celda
-                if (gridSizeWorld < EPSILON * 10) gridSizeWorld = Math.max(EPSILON * 10, p / 10);
-            } else {
-                gridSizeWorld = Math.max(0.5, triangleSize * 0.1); // AJUSTE
-            }
-            
-            ctx.strokeStyle = colors.grid;
-            ctx.lineWidth = Math.max(0.15 / currentDisplayScale, triangleSize * 0.001); // AJUSTE: Grosor de cuadrícula muy fino
-            ctx.globalAlpha = 0.3; 
-            
-            const worldView = {
-                xMin: triangleCenterX - (rect.width / (2 * currentDisplayScale)), 
-                xMax: triangleCenterX + (rect.width / (2 * currentDisplayScale)),
-                yMin: triangleCenterY - (rect.height / (2 * currentDisplayScale)),
-                yMax: triangleCenterY + (rect.height / (2 * currentDisplayScale)),
-            };
-            
-            for (let x = Math.floor(worldView.xMin / gridSizeWorld) * gridSizeWorld; x < worldView.xMax; x += gridSizeWorld) {
-                drawLine({x: x, y: worldView.yMin}, {x: x, y: worldView.yMax}, colors.grid, ctx.lineWidth, [], 1, 1);
-            }
-            for (let y = Math.floor(worldView.yMin / gridSizeWorld) * gridSizeWorld; y < worldView.yMax; y += gridSizeWorld) {
-                drawLine({x: worldView.xMin, y: y}, {x: worldView.xMax, y: y}, colors.grid, ctx.lineWidth, [], 1, 1);
-            }
-            
-            ctx.globalAlpha = 1.0; 
-        }
-
-        // === PATRONES DE GUIONES Y FACTORES DE EXTENSIÓN ===
-        const patterns = { 
-            median: [7, 3.5],           
-            altitude: [6, 3],          
-            angleBisector: [7, 3, 2, 3], 
-            perpBisector: [8, 4],    
-            circle: [7, 3.5]            
-        };
-
-        const isObtuse = A_rad > PI/2 - EPSILON || B_rad > PI/2 - EPSILON || C_rad > PI/2 - EPSILON;
-        const isRight = Math.abs(A_rad - PI/2) < EPSILON*10 || Math.abs(B_rad - PI/2) < EPSILON*10 || Math.abs(C_rad - PI/2) < EPSILON*10;
-        
-        const factors = {
-            altitude: isObtuse ? 5.0 : (isRight ? 3.0 : 2.5),     
-            perpBisector: isObtuse ? 3.5 : 2.5,                   
-            angleBisector: 2.5,                                   
-            median: 1.0                                           
-        };
-
-        // === DIBUJO DE ELEMENTOS GEOMÉTRICOS ===
-        
-        if (drawOptions.medians && medians) {
-            medians.forEach(m => drawLine(m.p1, m.p2, colors.median, thinLineWidth, patterns.median, factors.median, 0.9));
-        }
-        if (drawOptions.centroid && centroid) {
-            drawPoint(centroid, colors.centroid, centerPointRadius, "G", colors.label, true);
-        }
-        
-        if (drawOptions.altitudes && altitudes) {
-            altitudes.forEach(alt => { 
-                if(alt && alt.p1 && alt.p2) {
-                    drawLine(alt.p1, alt.p2, colors.altitude, thinLineWidth, patterns.altitude, factors.altitude, 0.9);
-                }
-            });
-        }
-        if (drawOptions.orthocenter && orthocenter && isFinitePoint(orthocenter)) {
-            drawPoint(orthocenter, colors.orthocenter, centerPointRadius, "H", colors.label, true);
-        }
-        
-        if (drawOptions.angleBisectors && angleBisectors && incenter) {
-            angleBisectors.forEach(ab_data => { 
-                 if (ab_data && ab_data.p1 && ab_data.p2) {
-                     drawLine(ab_data.p1, ab_data.p2, colors.angleBisector, thinLineWidth, patterns.angleBisector, factors.angleBisector, 0.9);
-                 }
-            });
-        }
-        if (drawOptions.incenter && incenter) {
-            drawPoint(incenter, colors.incenter, centerPointRadius, "I", colors.label, true);
-        }
-        if (drawOptions.inscribedCircle && incenter && inradius > EPSILON) {
-            drawCircle(incenter, inradius, colors.inscribedCircle, thinLineWidth, patterns.circle, 0.8);
-        }
-        
-        if (drawOptions.perpBisectors && perpBisectorsData) {
-            perpBisectorsData.forEach(pbData => {
-                if (pbData && pbData.p1 && pbData.p2) {
-                    drawLine(pbData.p1, pbData.p2, colors.perpBisector, thinLineWidth, patterns.perpBisector, factors.perpBisector, 0.8);
-                }
-            });
-        }
-        if (drawOptions.circumcenter && circumcenter && isFinitePoint(circumcenter)) {
-            drawPoint(circumcenter, colors.circumcenter, centerPointRadius, "O", colors.label, true);
-        }
-        if (drawOptions.circumscribedCircle && circumcenter && circumradius > EPSILON && isFinitePoint(circumcenter)) {
-            drawCircle(circumcenter, circumradius, colors.circumscribedCircle, thinLineWidth, patterns.circle, 0.7);
-        }
-
-        // === DIBUJO DEL TRIÁNGULO PRINCIPAL ===
-        ctx.beginPath(); 
-        ctx.moveTo(pA.x, pA.y); 
-        ctx.lineTo(pB.x, pB.y); 
-        ctx.lineTo(pC.x, pC.y); 
-        ctx.closePath();
-        ctx.fillStyle = colors.triangleFill; 
-        ctx.fill();
-        ctx.strokeStyle = colors.triangleStroke; 
-        ctx.lineWidth = baseLineWidth; 
-        ctx.stroke();
-
-        // === ETIQUETAS Y VALORES ===
-        if (drawOptions.labels) {
-            ctx.fillStyle = colors.label; 
-            ctx.textAlign = "center";
-            const vtxFont = `bold ${labelFontSizeInWorldUnits}px Arial`; 
-            const sideValFont = `bold ${labelFontSizeInWorldUnits * 0.95}px Arial`; 
-            const Gx = centroid ? centroid.x : (pA.x + pB.x + pC.x) / 3; 
-            const Gy = centroid ? centroid.y : (pA.y + pB.y + pC.y) / 3;
-            
-            function positionVertexLabel(vertex, name) {
-                ctx.font = vtxFont; 
-                ctx.textBaseline = "middle";
-                let dirX = vertex.x - Gx, dirY = vertex.y - Gy;
-                let lenDir = Math.sqrt(dirX**2 + dirY**2);
-                
-                if (lenDir < EPSILON * 100) { 
-                    if (name === "A") { dirX = 0; dirY = -1; } 
-                    else if (name === "B") { dirX = 1; dirY = 0.1;} 
-                    else { dirX = -1; dirY = 0.1;}
+            // Caso: 2 lados y 1 ángulo (SAS o SSA)
+            else if (known.sides === 2 && known.angles === 1) {
+                // SAS cases
+                if (A !== undefined && b !== undefined && c !== undefined) {
+                    a = Math.sqrt(b * b + c * c - 2 * b * c * Math.cos(A));
+                    const sinB_val = b * Math.sin(A) / a;
+                    B = Math.asin(Math.max(-1, Math.min(1, sinB_val)));
+                    C = PI - A - B;
+                } else if (B !== undefined && a !== undefined && c !== undefined) {
+                    b = Math.sqrt(a * a + c * c - 2 * a * c * Math.cos(B));
+                    const sinA_val = a * Math.sin(B) / b;
+                    A = Math.asin(Math.max(-1, Math.min(1, sinA_val)));
+                    C = PI - B - A;
+                } else if (C !== undefined && a !== undefined && b !== undefined) {
+                    c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(C));
+                    const sinA_val = a * Math.sin(C) / c;
+                    A = Math.asin(Math.max(-1, Math.min(1, sinA_val)));
+                    B = PI - C - A;
                 } else {
-                    dirX /= lenDir; 
-                    dirY /= lenDir;
+                    // SSA case
+                    let knownAngle, oppositeSide, adjacentSide;
+                    
+                    if (A !== undefined && a !== undefined) {
+                        knownAngle = A;
+                        oppositeSide = a;
+                        adjacentSide = b !== undefined ? b : c;
+                    } else if (B !== undefined && b !== undefined) {
+                        knownAngle = B;
+                        oppositeSide = b;
+                        adjacentSide = a !== undefined ? a : c;
+                    } else if (C !== undefined && c !== undefined) {
+                        knownAngle = C;
+                        oppositeSide = c;
+                        adjacentSide = a !== undefined ? a : b;
+                    }
+                    
+                    const sinAdjacentAngle = adjacentSide * Math.sin(knownAngle) / oppositeSide;
+                    
+                    if (sinAdjacentAngle > 1 + EPSILON) {
+                        throw new Error("No hay solución en caso SSA.");
+                    }
+                    
+                    const adjacentAngle = Math.asin(Math.max(-1, Math.min(1, sinAdjacentAngle)));
+                    const remainingAngle = PI - knownAngle - adjacentAngle;
+                    const remainingSide = oppositeSide * Math.sin(remainingAngle) / Math.sin(knownAngle);
+                    
+                    // Asignar valores calculados
+                    if (A !== undefined && a !== undefined) {
+                        if (b !== undefined) {
+                            B = adjacentAngle;
+                            C = remainingAngle;
+                            c = remainingSide;
+                        } else {
+                            C = adjacentAngle;
+                            B = remainingAngle;
+                            b = remainingSide;
+                        }
+                    } else if (B !== undefined && b !== undefined) {
+                        if (a !== undefined) {
+                            A = adjacentAngle;
+                            C = remainingAngle;
+                            c = remainingSide;
+                        } else {
+                            C = adjacentAngle;
+                            A = remainingAngle;
+                            a = remainingSide;
+                        }
+                    } else if (C !== undefined && c !== undefined) {
+                        if (a !== undefined) {
+                            A = adjacentAngle;
+                            B = remainingAngle;
+                            b = remainingSide;
+                        } else {
+                            B = adjacentAngle;
+                            A = remainingAngle;
+                            a = remainingSide;
+                        }
+                    }
+                }
+            } else {
+                throw new Error("Datos insuficientes para resolver el triángulo.");
+            }
+
+            // Validación final
+            if (a <= EPSILON || b <= EPSILON || c <= EPSILON || 
+                A <= EPSILON || B <= EPSILON || C <= EPSILON ||
+                A >= PI - EPSILON || B >= PI - EPSILON || C >= PI - EPSILON) {
+                throw new Error("Resultado inválido: valores fuera de rango.");
+            }
+
+            if (Math.abs(A + B + C - PI) > 1e-5) {
+                throw new Error(`Los ángulos no suman 180°. Suma: ${toDegrees(A + B + C).toFixed(1)}°`);
+            }
+
+            return { a, b, c, A_rad: A, B_rad: B, C_rad: C };
+        };
+
+        // Cálculo de elementos geométricos
+        const calculateSpecialGeometricElements = () => {
+            if (!currentTriangle) return;
+            
+            const { a, b, c, A_rad, B_rad, C_rad } = currentTriangle;
+            
+            // Vértices del triángulo
+            const vertices = {
+                pA: { x: 0, y: 0 },
+                pB: { x: c, y: 0 },
+                pC: { x: b * Math.cos(A_rad), y: b * Math.sin(A_rad) }
+            };
+            calculatedElements.vertices = vertices;
+            
+            const { pA, pB, pC } = vertices;
+
+            // Puntos medios
+            calculatedElements.midpoints = {
+                midAB: { x: (pA.x + pB.x) / 2, y: (pA.y + pB.y) / 2 },
+                midBC: { x: (pB.x + pC.x) / 2, y: (pB.y + pC.y) / 2 },
+                midCA: { x: (pC.x + pA.x) / 2, y: (pC.y + pA.y) / 2 }
+            };
+
+            // Medianas
+            calculatedElements.medians = [
+                { p1: pA, p2: calculatedElements.midpoints.midBC },
+                { p1: pB, p2: calculatedElements.midpoints.midCA },
+                { p1: pC, p2: calculatedElements.midpoints.midAB }
+            ];
+
+            // Baricentro
+            calculatedElements.centroid = {
+                x: (pA.x + pB.x + pC.x) / 3,
+                y: (pA.y + pB.y + pC.y) / 3
+            };
+
+            // Incentro y radio inscrito
+            const perimeter = a + b + c;
+            if (perimeter > EPSILON) {
+                calculatedElements.incenter = {
+                    x: (a * pA.x + b * pB.x + c * pC.x) / perimeter,
+                    y: (a * pA.y + b * pB.y + c * pC.y) / perimeter
+                };
+                
+                const s = perimeter / 2;
+                const area = Math.sqrt(Math.max(0, s * (s - a) * (s - b) * (s - c)));
+                calculatedElements.inradius = (2 * area) / perimeter;
+
+                // Bisectrices de ángulos
+                calculatedElements.angleBisectors = [
+                    { p1: pA, p2: calculatedElements.incenter },
+                    { p1: pB, p2: calculatedElements.incenter },
+                    { p1: pC, p2: calculatedElements.incenter }
+                ];
+            }
+
+            // Alturas
+            const calculateAltitude = (vertex, sideP1, sideP2) => {
+                const A_line = sideP2.y - sideP1.y;
+                const B_line = sideP1.x - sideP2.x;
+                const C_line = sideP2.x * sideP1.y - sideP1.x * sideP2.y;
+                
+                const denominator = A_line * A_line + B_line * B_line;
+                if (denominator < EPSILON) return { p1: vertex, p2: sideP1 };
+                
+                const foot_x = (B_line * (B_line * vertex.x - A_line * vertex.y) - A_line * C_line) / denominator;
+                const foot_y = (A_line * (-B_line * vertex.x + A_line * vertex.y) - B_line * C_line) / denominator;
+                
+                return { p1: vertex, p2: { x: foot_x, y: foot_y } };
+            };
+
+            calculatedElements.altitudes = [
+                calculateAltitude(pA, pB, pC),
+                calculateAltitude(pB, pC, pA),
+                calculateAltitude(pC, pA, pB)
+            ];
+
+            // Ortocentro
+            if (calculatedElements.altitudes.length >= 2) {
+                calculatedElements.orthocenter = intersectLines(
+                    calculatedElements.altitudes[0].p1, calculatedElements.altitudes[0].p2,
+                    calculatedElements.altitudes[1].p1, calculatedElements.altitudes[1].p2
+                );
+            }
+
+            // Circuncentro y radio circunscrito
+            const calculateCircumcenter = (p1, p2, p3) => {
+                const D = 2 * (p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y));
+                if (Math.abs(D) < EPSILON) return null;
+
+                const p1_sq = p1.x * p1.x + p1.y * p1.y;
+                const p2_sq = p2.x * p2.x + p2.y * p2.y;
+                const p3_sq = p3.x * p3.x + p3.y * p3.y;
+
+                const ux = (p1_sq * (p2.y - p3.y) + p2_sq * (p3.y - p1.y) + p3_sq * (p1.y - p2.y)) / D;
+                const uy = (p1_sq * (p3.x - p2.x) + p2_sq * (p1.x - p3.x) + p3_sq * (p2.x - p1.x)) / D;
+                
+                return { x: ux, y: uy };
+            };
+
+            calculatedElements.circumcenter = calculateCircumcenter(pA, pB, pC);
+            if (calculatedElements.circumcenter && isFinitePoint(calculatedElements.circumcenter)) {
+                calculatedElements.circumradius = distance(calculatedElements.circumcenter, pA);
+            }
+
+            // Mediatrices
+            const getPerpendicularLine = (sideP1, sideP2, midPt, extension = 100) => {
+                const dx_side = sideP2.x - sideP1.x;
+                const dy_side = sideP2.y - sideP1.y;
+                const length_side = Math.sqrt(dx_side * dx_side + dy_side * dy_side);
+
+                if (length_side < EPSILON) {
+                    return { p1: { x: midPt.x - extension, y: midPt.y }, p2: { x: midPt.x + extension, y: midPt.y }};
+                }
+
+                const perpX_unit = -dy_side / length_side;
+                const perpY_unit = dx_side / length_side;
+
+                return {
+                    p1: { x: midPt.x - perpX_unit * extension, y: midPt.y - perpY_unit * extension },
+                    p2: { x: midPt.x + perpX_unit * extension, y: midPt.y + perpY_unit * extension }
+                };
+            };
+
+            calculatedElements.perpBisectorsData = [
+                getPerpendicularLine(pA, pB, calculatedElements.midpoints.midAB),
+                getPerpendicularLine(pB, pC, calculatedElements.midpoints.midBC),
+                getPerpendicularLine(pC, pA, calculatedElements.midpoints.midCA)
+            ];
+        };
+
+        // Función de actualización de geometría
+        const updateLastCalculatedGeometry = () => {
+            if (!currentTriangle || !calculatedElements.vertices) {
+                lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 };
+                return;
+            }
+
+            const { pA, pB, pC } = calculatedElements.vertices;
+            let allPoints = [pA, pB, pC];
+
+            // Agregar puntos especiales si están visibles
+            if (drawOptions.centroid && isFinitePoint(calculatedElements.centroid)) 
+                allPoints.push(calculatedElements.centroid);
+            if (drawOptions.orthocenter && isFinitePoint(calculatedElements.orthocenter)) 
+                allPoints.push(calculatedElements.orthocenter);
+            if (drawOptions.incenter && isFinitePoint(calculatedElements.incenter)) 
+                allPoints.push(calculatedElements.incenter);
+            if (drawOptions.circumcenter && isFinitePoint(calculatedElements.circumcenter)) 
+                allPoints.push(calculatedElements.circumcenter);
+
+            allPoints = allPoints.filter(pt => pt && isFinitePoint(pt));
+
+            if (allPoints.length === 0) {
+                lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 };
+                return;
+            }
+
+            const minX = Math.min(...allPoints.map(p => p.x));
+            const maxX = Math.max(...allPoints.map(p => p.x));
+            const minY = Math.min(...allPoints.map(p => p.y));
+            const maxY = Math.max(...allPoints.map(p => p.y));
+
+            const triWidth = maxX - minX;
+            const triHeight = maxY - minY;
+            const padding = 50;
+            const canvasRect = canvas.getBoundingClientRect();
+            const canvasDrawableWidth = canvasRect.width - 2 * padding;
+            const canvasDrawableHeight = canvasRect.height - 2 * padding;
+
+            let scaleToFitValue = 1;
+            if (triWidth > EPSILON && triHeight > EPSILON && canvasDrawableWidth > 0 && canvasDrawableHeight > 0) {
+                scaleToFitValue = Math.min(canvasDrawableWidth / triWidth, canvasDrawableHeight / triHeight) * 0.8;
+            }
+
+            if (!isFinite(scaleToFitValue) || scaleToFitValue <= EPSILON) {
+                scaleToFitValue = 1;
+            }
+
+            lastCalculatedGeometry = { minX, minY, width: triWidth, height: triHeight, scaleToFit: scaleToFitValue };
+        };
+
+        // Función de dibujo principal
+        const drawTriangleOnCanvas = () => {
+            if (!currentTriangle || !calculatedElements.vertices) return;
+
+            const { a, b, c, A_rad, B_rad, C_rad } = currentTriangle;
+            const { vertices, midpoints, medians, centroid, altitudes, orthocenter,
+                    angleBisectors, incenter, inradius, perpBisectorsData, circumcenter, circumradius } = calculatedElements;
+
+            if (!vertices || !vertices.pA || !vertices.pB || !vertices.pC) return;
+
+            const pA = vertices.pA, pB = vertices.pB, pC = vertices.pC;
+
+            // Configuración del canvas
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-primary') || '#0f0f23';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.save();
+            ctx.scale(dpr, dpr);
+
+            // Configuración de escalado y centrado
+            const { minX, minY, width: triWidth, height: triHeight, scaleToFit } = lastCalculatedGeometry;
+            
+            let currentDisplayScale = scaleToFit * scaleFactor;
+            if (!isFinite(currentDisplayScale) || currentDisplayScale <= EPSILON) {
+                currentDisplayScale = 1;
+            }
+
+            const triangleCenterX = minX + triWidth / 2;
+            const triangleCenterY = minY + triHeight / 2;
+
+            ctx.translate(rect.width / 2 + panOffset.x, rect.height / 2 + panOffset.y);
+            ctx.scale(currentDisplayScale, currentDisplayScale);
+            ctx.translate(-triangleCenterX, -triangleCenterY);
+
+            // Tamaños adaptativos
+            const triangleSize = Math.max(a, b, c, triWidth > EPSILON ? triWidth : 1, triHeight > EPSILON ? triHeight : 1);
+            const baseLineWidth = Math.max(1.5 / currentDisplayScale, triangleSize * 0.008);
+            const thinLineWidth = Math.max(1.0 / currentDisplayScale, triangleSize * 0.005);
+            const pointRadius = Math.max(2.0 / currentDisplayScale, triangleSize * 0.015);
+            const specialPointRadius = Math.max(3.0 / currentDisplayScale, triangleSize * 0.025);
+            const angleArcRadius = Math.max(8.0 / currentDisplayScale, triangleSize * 0.08);
+
+            // Configuración de fuentes - Mucho más pequeñas
+            const labelFontSize = Math.max(7 / currentDisplayScale, triangleSize * 0.04);
+            const vtxLabelOffset = labelFontSize * 0.8; // Muy pegados a los vértices
+            const sideLabelDist = labelFontSize * 2.5;
+            const angleLabelOffset = labelFontSize * 1.8;
+
+            // Colores elegantes y profesionales
+            const colors = {
+                triangleStroke: '#f8fafc',
+                triangleFill: 'rgba(59, 130, 246, 0.15)',
+                grid: 'rgba(148, 163, 184, 0.3)',
+                label: '#f8fafc',
+                median: '#ef4444',
+                altitude: '#10b981',
+                angleBisector: '#8b5cf6',
+                perpBisector: '#06b6d4',
+                centroid: '#f59e0b',
+                orthocenter: '#ec4899',
+                incenter: '#3b82f6',
+                circumcenter: '#8b5cf6',
+                inscribedCircle: '#06b6d4',
+                circumscribedCircle: '#a855f7',
+                angleArcs: ['#f59e0b', '#ef4444', '#3b82f6']
+            };
+
+            // Función de dibujo de líneas
+            const drawLine = (p1, p2, color, lineWidth = thinLineWidth, dash = [], extendFactor = 1, opacity = 1.0) => {
+                if (!p1 || !p2 || !isFinitePoint(p1) || !isFinitePoint(p2)) return;
+
+                let p1e = { ...p1 }, p2e = { ...p2 };
+
+                if (extendFactor > 1.0 + EPSILON) {
+                    const dx = p2.x - p1.x;
+                    const dy = p2.y - p1.y;
+                    const length = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (length > EPSILON) {
+                        const extension = (length * (extendFactor - 1.0)) / 2;
+                        const ux = dx / length;
+                        const uy = dy / length;
+                        
+                        p1e = { x: p1.x - ux * extension, y: p1.y - uy * extension };
+                        p2e = { x: p2.x + ux * extension, y: p2.y + uy * extension };
+                    }
+                }
+
+                const originalAlpha = ctx.globalAlpha;
+                ctx.globalAlpha = opacity;
+
+                ctx.beginPath();
+                ctx.moveTo(p1e.x, p1e.y);
+                ctx.lineTo(p2e.x, p2e.y);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
+                
+                if (dash.length > 0) {
+                    const scaledDash = dash.map(d => d / currentDisplayScale);
+                    ctx.setLineDash(scaledDash);
                 }
                 
-                const metrics = ctx.measureText(name);
-                const bgPadding = labelFontSizeInWorldUnits * 0.2;
-                const labelX = vertex.x + dirX * vtxLabelOffset;
-                const labelY = vertex.y + dirY * vtxLabelOffset;
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.globalAlpha = originalAlpha;
+            };
+
+            // Función de dibujo de puntos
+            const drawPoint = (p, color, radius = pointRadius, label = null, emphasis = false) => {
+                if (!p || !isFinitePoint(p)) return;
+
+                const actualRadius = emphasis ? specialPointRadius : radius;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, actualRadius, 0, 2 * PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+
+                if (emphasis) {
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = thinLineWidth;
+                    ctx.stroke();
+                }
+
+                if (label && drawOptions.labels) {
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.font = `bold ${labelFontSize * 0.9}px Inter`;
+                    const metrics = ctx.measureText(label);
+                    const padding = labelFontSize * 0.3;
+                    const labelX = p.x;
+                    const labelY = p.y - actualRadius - labelFontSize * 0.5;
+                    
+                    ctx.fillRect(
+                        labelX - metrics.width/2 - padding,
+                        labelY - labelFontSize * 0.9 - padding,
+                        metrics.width + 2 * padding,
+                        labelFontSize * 0.9 + 2 * padding
+                    );
+
+                    ctx.fillStyle = colors.label;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "top";
+                    ctx.fillText(label, labelX, labelY);
+                }
+            };
+
+            // Función de dibujo de círculos
+            const drawCircle = (center, radius, color, lineWidth = thinLineWidth, dash = [8, 4], opacity = 0.8) => {
+                if (!center || !isFinitePoint(center) || !radius || radius < EPSILON) return;
+
+                const originalAlpha = ctx.globalAlpha;
+                ctx.globalAlpha = opacity;
+
+                ctx.beginPath();
+                ctx.arc(center.x, center.y, radius, 0, 2 * PI);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = lineWidth;
                 
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                ctx.fillRect(
-                    labelX - metrics.width/2 - bgPadding, 
-                    labelY - labelFontSizeInWorldUnits/2 - bgPadding,
-                    metrics.width + 2 * bgPadding, 
-                    labelFontSizeInWorldUnits + 2 * bgPadding
-                );
-                
-                ctx.fillStyle = colors.label;
-                ctx.fillText(name, labelX, labelY);
-            }
-            
-            positionVertexLabel(pA, "A");
-            positionVertexLabel(pB, "B");
-            positionVertexLabel(pC, "C");
-            
-            ctx.font = sideValFont; 
-            function positionSideLabel(p1, p2, midPt, oppositeVtx, sideValueText) {
-                let normal_x = p1.y - p2.y; 
-                let normal_y = p2.x - p1.x;
-                let len_n = Math.sqrt(normal_x**2 + normal_y**2);
-                
-                if(len_n > EPSILON){ 
-                    normal_x /= len_n; 
-                    normal_y /= len_n; 
-                } else { 
-                    normal_x = 0; 
-                    normal_y = 1; 
-                } 
-                
-                let vecMidToOpp_x = oppositeVtx.x - midPt.x;
-                let vecMidToOpp_y = oppositeVtx.y - midPt.y;
-                let dotProd = normal_x * vecMidToOpp_x + normal_y * vecMidToOpp_y;
-                
-                if (dotProd > -EPSILON) { 
-                    normal_x *= -1; 
-                    normal_y *= -1;
+                if (dash.length > 0) {
+                    const scaledDash = dash.map(d => d / currentDisplayScale);
+                    ctx.setLineDash(scaledDash);
                 }
                 
-                const labelX = midPt.x + normal_x * sideLabelDist;
-                const labelY = midPt.y + normal_y * sideLabelDist;
-                
-                const metrics = ctx.measureText(sideValueText);
-                const bgPadding = labelFontSizeInWorldUnits * 0.15;
-                
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                ctx.fillRect(
-                    labelX - metrics.width/2 - bgPadding, 
-                    labelY - labelFontSizeInWorldUnits*0.95/2 - bgPadding, 
-                    metrics.width + 2 * bgPadding, 
-                    labelFontSizeInWorldUnits*0.95 + 2 * bgPadding
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.globalAlpha = originalAlpha;
+            };
+
+            // Función de dibujo de arcos de ángulos
+            const drawAngleArc = (vertex, p1, p2, radius, color, angleValueRad = null) => {
+                if (!vertex || !p1 || !p2 || !isFinitePoint(vertex) || !isFinitePoint(p1) || !isFinitePoint(p2)) return;
+
+                const v1x = p1.x - vertex.x;
+                const v1y = p1.y - vertex.y;
+                const v2x = p2.x - vertex.x;
+                const v2y = p2.y - vertex.y;
+
+                let ang1 = Math.atan2(v1y, v1x);
+                let ang2 = Math.atan2(v2y, v2x);
+
+                if (ang2 < ang1 && Math.abs(ang2 - ang1) > PI) ang2 += 2 * PI;
+
+                ctx.beginPath();
+                ctx.arc(vertex.x, vertex.y, radius, ang1, ang2);
+                ctx.strokeStyle = color;
+                ctx.lineWidth = thinLineWidth;
+                ctx.stroke();
+
+                if (drawOptions.angles && angleValueRad !== null && angleValueRad > EPSILON) {
+                    const len_v1 = Math.sqrt(v1x*v1x + v1y*v1y);
+                    const len_v2 = Math.sqrt(v2x*v2x + v2y*v2y);
+                    
+                    let bisector_x = 0, bisector_y = 0;
+                    if (len_v1 > EPSILON && len_v2 > EPSILON) {
+                        bisector_x = (v1x / len_v1) + (v2x / len_v2);
+                        bisector_y = (v1y / len_v1) + (v2y / len_v2);
+                    }
+                    
+                    const len_bisector = Math.sqrt(bisector_x*bisector_x + bisector_y*bisector_y);
+                    if (len_bisector > EPSILON) {
+                        bisector_x /= len_bisector;
+                        bisector_y /= len_bisector;
+                    }
+
+                    const textRadius = radius + angleLabelOffset;
+                    const textX = vertex.x + textRadius * bisector_x;
+                    const textY = vertex.y + textRadius * bisector_y;
+
+                    const angleText = formatNumber(toDegrees(angleValueRad)) + "°";
+                    ctx.font = `bold ${labelFontSize * 0.8}px Inter`;
+                    const metrics = ctx.measureText(angleText);
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    const padding = labelFontSize * 0.2;
+                    ctx.fillRect(
+                        textX - metrics.width/2 - padding,
+                        textY - labelFontSize*0.8/2 - padding,
+                        metrics.width + 2 * padding,
+                        labelFontSize*0.8 + 2 * padding
+                    );
+
+                    ctx.fillStyle = colors.label;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(angleText, textX, textY);
+                }
+            };
+
+            // Dibujo de cuadrícula
+            if (drawOptions.grid) {
+                const gridSize = Math.max(10, triangleSize * 0.1);
+                ctx.strokeStyle = colors.grid;
+                ctx.lineWidth = 0.5 / currentDisplayScale;
+                ctx.globalAlpha = 0.3;
+
+                const worldView = {
+                    xMin: triangleCenterX - (rect.width / (2 * currentDisplayScale)),
+                    xMax: triangleCenterX + (rect.width / (2 * currentDisplayScale)),
+                    yMin: triangleCenterY - (rect.height / (2 * currentDisplayScale)),
+                    yMax: triangleCenterY + (rect.height / (2 * currentDisplayScale)),
+                };
+
+                for (let x = Math.floor(worldView.xMin / gridSize) * gridSize; x < worldView.xMax; x += gridSize) {
+                    drawLine({x: x, y: worldView.yMin}, {x: x, y: worldView.yMax}, colors.grid, ctx.lineWidth, [], 1, 1);
+                }
+                for (let y = Math.floor(worldView.yMin / gridSize) * gridSize; y < worldView.yMax; y += gridSize) {
+                    drawLine({x: worldView.xMin, y: y}, {x: worldView.xMax, y: y}, colors.grid, ctx.lineWidth, [], 1, 1);
+                }
+
+                ctx.globalAlpha = 1.0;
+            }
+
+            // Dibujo de elementos geométricos
+            if (drawOptions.medians && medians) {
+                medians.forEach(m => drawLine(m.p1, m.p2, colors.median, thinLineWidth, [5, 3], 1, 0.9));
+            }
+            if (drawOptions.centroid && centroid) {
+                drawPoint(centroid, colors.centroid, specialPointRadius, "G", true);
+            }
+
+            if (drawOptions.altitudes && altitudes) {
+                altitudes.forEach(alt => {
+                    if (alt && alt.p1 && alt.p2) {
+                        drawLine(alt.p1, alt.p2, colors.altitude, thinLineWidth, [4, 2], 2.5, 0.9);
+                    }
+                });
+            }
+            if (drawOptions.orthocenter && orthocenter && isFinitePoint(orthocenter)) {
+                drawPoint(orthocenter, colors.orthocenter, specialPointRadius, "H", true);
+            }
+
+            if (drawOptions.angleBisectors && angleBisectors && incenter) {
+                angleBisectors.forEach(ab => {
+                    if (ab && ab.p1 && ab.p2) {
+                        drawLine(ab.p1, ab.p2, colors.angleBisector, thinLineWidth, [6, 2, 2, 2], 1.5, 0.9);
+                    }
+                });
+            }
+            if (drawOptions.incenter && incenter) {
+                drawPoint(incenter, colors.incenter, specialPointRadius, "I", true);
+            }
+            if (drawOptions.inscribedCircle && incenter && inradius > EPSILON) {
+                drawCircle(incenter, inradius, colors.inscribedCircle, thinLineWidth, [6, 3], 0.8);
+            }
+
+            if (drawOptions.perpBisectors && perpBisectorsData) {
+                perpBisectorsData.forEach(pb => {
+                    if (pb && pb.p1 && pb.p2) {
+                        drawLine(pb.p1, pb.p2, colors.perpBisector, thinLineWidth, [8, 4], 2.0, 0.8);
+                    }
+                });
+            }
+            if (drawOptions.circumcenter && circumcenter && isFinitePoint(circumcenter)) {
+                drawPoint(circumcenter, colors.circumcenter, specialPointRadius, "O", true);
+            }
+            if (drawOptions.circumscribedCircle && circumcenter && circumradius > EPSILON && isFinitePoint(circumcenter)) {
+                drawCircle(circumcenter, circumradius, colors.circumscribedCircle, thinLineWidth, [8, 4], 0.7);
+            }
+
+            // Dibujo del triángulo principal
+            ctx.beginPath();
+            ctx.moveTo(pA.x, pA.y);
+            ctx.lineTo(pB.x, pB.y);
+            ctx.lineTo(pC.x, pC.y);
+            ctx.closePath();
+            ctx.fillStyle = colors.triangleFill;
+            ctx.fill();
+            ctx.strokeStyle = colors.triangleStroke;
+            ctx.lineWidth = baseLineWidth;
+            ctx.stroke();
+
+            // Etiquetas y valores
+            if (drawOptions.labels) {
+                ctx.fillStyle = colors.label;
+                ctx.textAlign = "center";
+                const vtxFont = `bold ${labelFontSize}px Inter`;
+                const sideValFont = `bold ${labelFontSize * 0.9}px JetBrains Mono`;
+
+                const Gx = centroid ? centroid.x : (pA.x + pB.x + pC.x) / 3;
+                const Gy = centroid ? centroid.y : (pA.y + pB.y + pC.y) / 3;
+
+                // Etiquetas de vértices
+                const positionVertexLabel = (vertex, name) => {
+                    ctx.font = vtxFont;
+                    ctx.textBaseline = "middle";
+                    let dirX = vertex.x - Gx, dirY = vertex.y - Gy;
+                    let lenDir = Math.sqrt(dirX**2 + dirY**2);
+
+                    if (lenDir < EPSILON * 100) {
+                        if (name === "A") { dirX = 0; dirY = -1; }
+                        else if (name === "B") { dirX = 1; dirY = 0.1; }
+                        else { dirX = -1; dirY = 0.1; }
+                    } else {
+                        dirX /= lenDir;
+                        dirY /= lenDir;
+                    }
+
+                    const metrics = ctx.measureText(name);
+                    const padding = labelFontSize * 0.3;
+                    const labelX = vertex.x + dirX * vtxLabelOffset;
+                    const labelY = vertex.y + dirY * vtxLabelOffset;
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(
+                        labelX - metrics.width/2 - padding,
+                        labelY - labelFontSize/2 - padding,
+                        metrics.width + 2 * padding,
+                        labelFontSize + 2 * padding
+                    );
+
+                    ctx.fillStyle = colors.label;
+                    ctx.fillText(name, labelX, labelY);
+                };
+
+                positionVertexLabel(pA, "A");
+                positionVertexLabel(pB, "B");
+                positionVertexLabel(pC, "C");
+
+                // Etiquetas de lados
+                ctx.font = sideValFont;
+                const positionSideLabel = (p1, p2, midPt, oppositeVtx, sideValueText) => {
+                    let normal_x = p1.y - p2.y;
+                    let normal_y = p2.x - p1.x;
+                    let len_n = Math.sqrt(normal_x**2 + normal_y**2);
+
+                    if (len_n > EPSILON) {
+                        normal_x /= len_n;
+                        normal_y /= len_n;
+                    } else {
+                        normal_x = 0;
+                        normal_y = 1;
+                    }
+
+                    let vecMidToOpp_x = oppositeVtx.x - midPt.x;
+                    let vecMidToOpp_y = oppositeVtx.y - midPt.y;
+                    let dotProd = normal_x * vecMidToOpp_x + normal_y * vecMidToOpp_y;
+
+                    if (dotProd > -EPSILON) {
+                        normal_x *= -1;
+                        normal_y *= -1;
+                    }
+
+                    const labelX = midPt.x + normal_x * sideLabelDist;
+                    const labelY = midPt.y + normal_y * sideLabelDist;
+
+                    const metrics = ctx.measureText(sideValueText);
+                    const padding = labelFontSize * 0.2;
+
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                    ctx.fillRect(
+                        labelX - metrics.width/2 - padding,
+                        labelY - labelFontSize*0.9/2 - padding,
+                        metrics.width + 2 * padding,
+                        labelFontSize*0.9 + 2 * padding
+                    );
+
+                    ctx.fillStyle = colors.label;
+                    ctx.fillText(sideValueText, labelX, labelY);
+                };
+
+                if (midpoints) {
+                    positionSideLabel(pA, pB, midpoints.midAB, pC, `c = ${formatNumber(c)}`);
+                    positionSideLabel(pB, pC, midpoints.midBC, pA, `a = ${formatNumber(a)}`);
+                    positionSideLabel(pC, pA, midpoints.midCA, pB, `b = ${formatNumber(b)}`);
+                }
+            }
+
+            // Vértices del triángulo
+            drawPoint(pA, colors.triangleStroke, pointRadius);
+            drawPoint(pB, colors.triangleStroke, pointRadius);
+            drawPoint(pC, colors.triangleStroke, pointRadius);
+
+            // Arcos de ángulos
+            drawAngleArc(pA, pB, pC, angleArcRadius, colors.angleArcs[0], A_rad);
+            drawAngleArc(pB, pC, pA, angleArcRadius, colors.angleArcs[1], B_rad);
+            drawAngleArc(pC, pA, pB, angleArcRadius, colors.angleArcs[2], C_rad);
+
+            ctx.restore();
+        };
+
+        // Mostrar resultados
+        const displayTriangleResults = (triangle) => {
+            document.getElementById('resLadoA').textContent = formatNumber(triangle.a);
+            document.getElementById('resLadoB').textContent = formatNumber(triangle.b);
+            document.getElementById('resLadoC').textContent = formatNumber(triangle.c);
+            document.getElementById('resAnguloA').textContent = formatNumber(toDegrees(triangle.A_rad)) + '°';
+            document.getElementById('resAnguloB').textContent = formatNumber(toDegrees(triangle.B_rad)) + '°';
+            document.getElementById('resAnguloC').textContent = formatNumber(toDegrees(triangle.C_rad)) + '°';
+
+            const perimeterVal = triangle.a + triangle.b + triangle.c;
+            const s = perimeterVal / 2;
+            const areaVal = Math.sqrt(Math.max(0, s * (s - triangle.a) * (s - triangle.b) * (s - triangle.c)));
+
+            document.getElementById('resPerimetro').textContent = formatNumber(perimeterVal);
+            document.getElementById('resArea').textContent = formatNumber(areaVal);
+            document.getElementById('resTipoTriangulo').textContent = determineTriangleType(triangle.a, triangle.b, triangle.c, triangle.A_rad, triangle.B_rad, triangle.C_rad);
+        };
+
+        const determineTriangleType = (a, b, c, A_rad, B_rad, C_rad) => {
+            let typeBySide = "";
+            if (Math.abs(a - b) < EPSILON && Math.abs(b - c) < EPSILON) {
+                typeBySide = "Equilátero";
+            } else if (Math.abs(a - b) < EPSILON || Math.abs(b - c) < EPSILON || Math.abs(a - c) < EPSILON) {
+                typeBySide = "Isósceles";
+            } else {
+                typeBySide = "Escaleno";
+            }
+
+            let typeByAngle = "";
+            const ninetyDeg = PI / 2;
+            if (Math.abs(A_rad - ninetyDeg) < EPSILON || Math.abs(B_rad - ninetyDeg) < EPSILON || Math.abs(C_rad - ninetyDeg) < EPSILON) {
+                typeByAngle = "Rectángulo";
+            } else if (A_rad > ninetyDeg - EPSILON || B_rad > ninetyDeg - EPSILON || C_rad > ninetyDeg - EPSILON) {
+                typeByAngle = "Obtusángulo";
+            } else {
+                typeByAngle = "Acutángulo";
+            }
+
+            return `${typeBySide} y ${typeByAngle}`;
+        };
+
+        // Manejo de entrada principal
+        const handleCalculate = (isUserInitiated = true) => {
+            currentTriangle = null;
+            calculatedElements = {};
+            resultsPanel.style.display = 'none';
+
+            const inputs = [];
+            let sideCount = 0;
+            const definedTypes = new Set();
+
+            for (let i = 0; i < 3; i++) {
+                const typeElement = document.getElementById(`inputType${i}`);
+                const valueElement = document.getElementById(`inputValue${i}`);
+                const type = typeElement.value;
+                const valueStr = valueElement.value.trim();
+
+                if (valueStr === '') {
+                    if (isUserInitiated) showModal('Error de Entrada ❌', `Por favor, completa el campo de valor para la entrada ${i + 1}.`, true);
+                    valueElement.focus();
+                    return;
+                }
+
+                const value = parseFloat(valueStr);
+
+                if (isNaN(value)) {
+                    if (isUserInitiated) showModal('Error de Entrada ❌', `El valor para '${type}' debe ser un número.`, true);
+                    valueElement.focus();
+                    return;
+                }
+
+                if (type.startsWith('angle') && (value <= EPSILON || value >= 180 - EPSILON)) {
+                    if (isUserInitiated) showModal('Error de Entrada ❌', `El ángulo '${type}' debe estar entre 0 y 180 grados.`, true);
+                    valueElement.focus();
+                    return;
+                }
+
+                if (type.startsWith('side') && value <= EPSILON) {
+                    if (isUserInitiated) showModal('Error de Entrada ❌', `El lado '${type}' debe ser un número positivo.`, true);
+                    valueElement.focus();
+                    return;
+                }
+
+                if (definedTypes.has(type)) {
+                    if (isUserInitiated) showModal('Error de Entrada ❌', `El tipo '${type}' ha sido ingresado más de una vez. Usa tipos distintos.`, true);
+                    typeElement.focus();
+                    return;
+                }
+
+                definedTypes.add(type);
+                inputs.push({ type, value });
+                if (type.startsWith('side')) sideCount++;
+            }
+
+            if (inputs.length !== 3) {
+                if (isUserInitiated) showModal('Error de Entrada ❌', 'Se requieren exactamente tres valores de entrada.', true);
+                return;
+            }
+
+            if (sideCount === 0) {
+                if (isUserInitiated) showModal('Error de Entrada ❌', 'Debes ingresar al menos un lado para definir el triángulo.', true);
+                return;
+            }
+
+            let { sA, sB, sC, angA, angB, angC } = parseTriangleInputs(inputs);
+
+            try {
+                const solution = solveTriangleLogic(sA, sB, sC, angA, angB, angC);
+                currentTriangle = solution;
+                calculateSpecialGeometricElements();
+                displayTriangleResults(solution);
+                resultsPanel.style.display = 'block';
+                updateLastCalculatedGeometry();
+                requestAnimationFrame(drawTriangleOnCanvas);
+
+                if (isUserInitiated) {
+                    showModal('Cálculo Exitoso ✅', 'El triángulo ha sido calculado y visualizado correctamente.', false);
+                }
+            } catch (error) {
+                if (isUserInitiated) showModal('Error de Cálculo ❌', error.message, true);
+                currentTriangle = null;
+                resultsPanel.style.display = 'none';
+                if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        };
+
+        // Event listeners del canvas
+        let lastPinchDistance = 0;
+
+        canvas.addEventListener('mousedown', (e) => {
+            isPanning = true;
+            lastPanPosition = { x: e.clientX, y: e.clientY };
+            canvas.style.cursor = 'grabbing';
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isPanning = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mouseleave', () => {
+            isPanning = false;
+            canvas.style.cursor = 'grab';
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            if (!isPanning || !currentTriangle) return;
+            
+            const dx = e.clientX - lastPanPosition.x;
+            const dy = e.clientY - lastPanPosition.y;
+            panOffset.x += dx;
+            panOffset.y += dy;
+            lastPanPosition = { x: e.clientX, y: e.clientY };
+            requestAnimationFrame(drawTriangleOnCanvas);
+        });
+
+        canvas.addEventListener('wheel', (e) => {
+            if (!currentTriangle) return;
+            e.preventDefault();
+            
+            updateLastCalculatedGeometry();
+            const zoomIntensity = 0.1;
+            const direction = e.deltaY < 0 ? 1 : -1;
+            const oldScaleFactor = scaleFactor;
+            
+            scaleFactor *= (1 + direction * zoomIntensity);
+            scaleFactor = Math.max(0.1, Math.min(scaleFactor, 10));
+            
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            
+            const worldMouseX_before = (mouseX - (rect.width / 2 + panOffset.x)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2);
+            const worldMouseY_before = (mouseY - (rect.height / 2 + panOffset.y)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2);
+            
+            panOffset.x = mouseX - rect.width / 2 - (worldMouseX_before - (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor);
+            panOffset.y = mouseY - rect.height / 2 - (worldMouseY_before - (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor);
+            
+            requestAnimationFrame(drawTriangleOnCanvas);
+        });
+
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length === 1) {
+                isPanning = true;
+                lastPanPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            } else if (e.touches.length === 2) {
+                isPanning = false;
+                lastPinchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                updateLastCalculatedGeometry();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            isPanning = false;
+            lastPinchDistance = 0;
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            if (!currentTriangle) return;
+
+            if (e.touches.length === 1 && isPanning) {
+                const dx = e.touches[0].clientX - lastPanPosition.x;
+                const dy = e.touches[0].clientY - lastPanPosition.y;
+                panOffset.x += dx;
+                panOffset.y += dy;
+                lastPanPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            } else if (e.touches.length === 2) {
+                const currentPinchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
                 );
                 
-                ctx.fillStyle = colors.label;
-                ctx.fillText(sideValueText, labelX, labelY);
+                if (lastPinchDistance > 0) {
+                    const oldScaleFactor = scaleFactor;
+                    scaleFactor *= currentPinchDistance / lastPinchDistance;
+                    scaleFactor = Math.max(0.1, Math.min(scaleFactor, 10));
+                    
+                    const rect = canvas.getBoundingClientRect();
+                    const pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+                    const pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+                    
+                    const worldPinchX_before = (pinchCenterX - (rect.width / 2 + panOffset.x)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2);
+                    const worldPinchY_before = (pinchCenterY - (rect.height / 2 + panOffset.y)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2);
+                    
+                    panOffset.x = pinchCenterX - rect.width / 2 - (worldPinchX_before - (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor);
+                    panOffset.y = pinchCenterY - rect.height / 2 - (worldPinchY_before - (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor);
+                }
+                
+                lastPinchDistance = currentPinchDistance;
             }
             
-            if (midpoints) {
-                positionSideLabel(pA, pB, midpoints.midAB, pC, `c=${formatNumber(c)}`);
-                positionSideLabel(pB, pC, midpoints.midBC, pA, `a=${formatNumber(a)}`);
-                positionSideLabel(pC, pA, midpoints.midCA, pB, `b=${formatNumber(b)}`);
+            requestAnimationFrame(drawTriangleOnCanvas);
+        }, { passive: false });
+
+        // Event listeners principales
+        calculateButton.addEventListener('click', () => handleCalculate(true));
+
+        precisionSelect.addEventListener('change', () => {
+            if (currentTriangle) {
+                displayTriangleResults(currentTriangle);
+                requestAnimationFrame(drawTriangleOnCanvas);
             }
+        });
+
+        // Controles de elementos geométricos
+        const controlElements = {
+            grid: document.getElementById('chkGrid'),
+            labels: document.getElementById('chkLabels'),
+            angles: document.getElementById('chkAngles'),
+            medians: document.getElementById('chkMedians'),
+            altitudes: document.getElementById('chkAltitudes'),
+            angleBisectors: document.getElementById('chkAngleBisectors'),
+            perpBisectors: document.getElementById('chkPerpBisectors'),
+            centroid: document.getElementById('chkCentroid'),
+            orthocenter: document.getElementById('chkOrthocenter'),
+            incenter: document.getElementById('chkIncenter'),
+            circumcenter: document.getElementById('chkCircumcenter'),
+            inscribedCircle: document.getElementById('chkInscribedCircle'),
+            circumscribedCircle: document.getElementById('chkCircumscribedCircle')
+        };
+
+        Object.keys(controlElements).forEach(key => {
+            if (controlElements[key]) {
+                controlElements[key].addEventListener('change', (e) => {
+                    drawOptions[key] = e.target.checked;
+                    if (currentTriangle) {
+                        updateLastCalculatedGeometry();
+                        requestAnimationFrame(drawTriangleOnCanvas);
+                    }
+                });
+            }
+        });
+
+        // Botones de zoom y controles
+        const zoomInButton = document.getElementById('zoomInButton');
+        const zoomOutButton = document.getElementById('zoomOutButton');
+        const resetViewButton = document.getElementById('resetViewButton');
+        const exportButton = document.getElementById('exportButton');
+
+        zoomInButton.addEventListener('click', () => {
+            if (!currentTriangle) return;
+            scaleFactor *= 1.3;
+            scaleFactor = Math.min(scaleFactor, 10);
+            requestAnimationFrame(drawTriangleOnCanvas);
+        });
+
+        zoomOutButton.addEventListener('click', () => {
+            if (!currentTriangle) return;
+            scaleFactor /= 1.3;
+            scaleFactor = Math.max(0.1, scaleFactor);
+            requestAnimationFrame(drawTriangleOnCanvas);
+        });
+
+        resetViewButton.addEventListener('click', () => {
+            if (!currentTriangle) return;
+            scaleFactor = 1.0;
+            panOffset = { x: 0, y: 0 };
+            updateLastCalculatedGeometry();
+            requestAnimationFrame(drawTriangleOnCanvas);
+        });
+
+        exportButton.addEventListener('click', () => {
+            if (!currentTriangle) {
+                showModal('Error de Exportación ❌', 'No hay ningún triángulo dibujado para exportar.', true);
+                return;
+            }
+
+            try {
+                // Crear un canvas temporal con fondo blanco para la exportación
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = canvas.width;
+                tempCanvas.height = canvas.height;
+                const tempCtx = tempCanvas.getContext('2d');
+                
+                // Fondo blanco
+                tempCtx.fillStyle = '#ffffff';
+                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+                
+                // Copiar el contenido del canvas original
+                tempCtx.drawImage(canvas, 0, 0);
+                
+                const dataURL = tempCanvas.toDataURL('image/png');
+                const link = document.createElement('a');
+                link.download = `triangulo_${Date.now()}.png`;
+                link.href = dataURL;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showModal('Exportación Exitosa ✅', 'La imagen del triángulo ha sido descargada correctamente.', false);
+            } catch (e) {
+                showModal('Error de Exportación ❌', 'No se pudo exportar la imagen. Error: ' + e.message, true);
+                console.error("Error al exportar canvas:", e);
+            }
+        });
+
+        // Observer para redimensionamiento
+        const resizeObserver = new ResizeObserver(entries => {
+            for (let entry of entries) {
+                if (entry.target === canvas.parentElement || entry.target === canvas) {
+                    if (currentTriangle) {
+                        updateLastCalculatedGeometry();
+                        requestAnimationFrame(drawTriangleOnCanvas);
+                    }
+                }
+            }
+        });
+
+        if (canvas.parentElement) {
+            resizeObserver.observe(canvas.parentElement);
         }
+
+        // Efectos visuales mejorados
+        document.querySelectorAll('.btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const rect = btn.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                
+                const ripple = document.createElement('span');
+                ripple.style.position = 'absolute';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.style.width = '0';
+                ripple.style.height = '0';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.5)';
+                ripple.style.transform = 'translate(-50%, -50%)';
+                ripple.style.animation = 'ripple 0.6s linear';
+                ripple.style.pointerEvents = 'none';
+                
+                btn.style.position = 'relative';
+                btn.style.overflow = 'hidden';
+                btn.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+            });
+        });
+
+        // Añadir estilos CSS para el efecto ripple
+        const rippleStyle = document.createElement('style');
+        rippleStyle.textContent = `
+            @keyframes ripple {
+                to {
+                    width: 300px;
+                    height: 300px;
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(rippleStyle);
+
+        // Función de inicialización
+        const initializeApp = () => {
+            // Configurar valores por defecto
+            document.getElementById('inputType0').value = 'sideA';
+            document.getElementById('inputValue0').value = '3';
+            document.getElementById('inputType1').value = 'sideB';
+            document.getElementById('inputValue1').value = '4';
+            document.getElementById('inputType2').value = 'sideC';
+            document.getElementById('inputValue2').value = '5';
+
+            // Configurar canvas size inicial y responsive
+            const updateCanvasSize = () => {
+                const container = canvas.parentElement;
+                const rect = container.getBoundingClientRect();
+                
+                // Establecer el canvas al tamaño completo del contenedor
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                canvas.style.width = rect.width + 'px';
+                canvas.style.height = rect.height + 'px';
+                
+                // Redibujar si hay un triángulo
+                if (currentTriangle) {
+                    updateLastCalculatedGeometry();
+                    requestAnimationFrame(drawTriangleOnCanvas);
+                }
+            };
+            
+            updateCanvasSize();
+            window.addEventListener('resize', updateCanvasSize);
+
+            // Calcular triángulo ejemplo después de un breve delay
+            setTimeout(() => {
+                handleCalculate(false);
+            }, 500);
+
+            console.log('🚀 TriangleForge Ultra inicializado correctamente');
+        };
+
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+
+        // Función para crear efectos de partículas (bonus)
+        const createParticleEffect = (x, y) => {
+            const particles = [];
+            for (let i = 0; i < 10; i++) {
+                particles.push({
+                    x: x,
+                    y: y,
+                    vx: (Math.random() - 0.5) * 4,
+                    vy: (Math.random() - 0.5) * 4,
+                    life: 1.0,
+                    decay: 0.02 + Math.random() * 0.02
+                });
+            }
+            
+            const animateParticles = () => {
+                ctx.save();
+                particles.forEach((particle, index) => {
+                    if (particle.life <= 0) {
+                        particles.splice(index, 1);
+                        return;
+                    }
+                    
+                    particle.x += particle.vx;
+                    particle.y += particle.vy;
+                    particle.life -= particle.decay;
+                    
+                    ctx.globalAlpha = particle.life;
+                    ctx.fillStyle = '#64ffda';
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+                ctx.restore();
+                
+                if (particles.length > 0) {
+                    requestAnimationFrame(animateParticles);
+                }
+            };
+            
+            animateParticles();
+        };
+
+        // Easter egg: Konami code
+        let konamiCode = [];
+        const konamiSequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // ↑↑↓↓←→←→BA
         
-        // === VÉRTICES DEL TRIÁNGULO ===
-        drawPoint(pA, colors.triangleStroke, pointRadius);
-        drawPoint(pB, colors.triangleStroke, pointRadius);
-        drawPoint(pC, colors.triangleStroke, pointRadius);
+        document.addEventListener('keydown', (e) => {
+            konamiCode.push(e.keyCode);
+            if (konamiCode.length > 10) konamiCode.shift();
+            
+            if (konamiCode.join(',') === konamiSequence.join(',')) {
+                showModal('🎉 ¡Easter Egg Activado!', 
+                    '¡Felicidades! Has descubierto el código secreto.<br>' +
+                    '✨ TriangleForge Ultra - Edición Especial Activada ✨<br>' +
+                    '<small>Has desbloqueado efectos especiales...</small>',
+                    false
+                );
+                
+                // Cambiar a tema especial
+                document.documentElement.style.setProperty('--primary-gradient', 
+                    'linear-gradient(45deg, #ff0080, #00ff80, #8000ff, #ff8000, #0080ff)');
+                
+                // Efecto de confeti
+                for (let i = 0; i < 50; i++) {
+                    setTimeout(() => {
+                        createParticleEffect(
+                            Math.random() * window.innerWidth,
+                            Math.random() * window.innerHeight
+                        );
+                    }, i * 50);
+                }
+                
+                konamiCode = [];
+            }
+        });
 
-        // === ARCOS DE ÁNGULOS ===
-        drawAngleArc(pA, pB, pC, angleArcRadius, colors.angleArcs[0], A_rad); 
-        drawAngleArc(pB, pC, pA, angleArcRadius, colors.angleArcs[1], B_rad); 
-        drawAngleArc(pC, pA, pB, angleArcRadius, colors.angleArcs[2], C_rad); 
+        // Función de ayuda
+        const showHelpModal = () => {
+            const helpContent = `
+                <h3 style="color: var(--text-accent); margin-bottom: 1rem;">🚀 TriangleForge Ultra - Guía de Uso</h3>
+                <div style="text-align: left; line-height: 1.6;">
+                    <h4 style="color: var(--text-accent);">📝 Entrada de Datos:</h4>
+                    <ul style="margin-bottom: 1rem;">
+                        <li>Selecciona 3 valores diferentes del triángulo</li>
+                        <li>Incluye al menos un lado</li>
+                        <li>Los ángulos van en grados (0° - 180°)</li>
+                    </ul>
+                    
+                    <h4 style="color: var(--text-accent);">🎮 Controles de Visualización:</h4>
+                    <ul style="margin-bottom: 1rem;">
+                        <li><strong>Arrastrar:</strong> Mover la vista</li>
+                        <li><strong>Rueda del mouse:</strong> Zoom</li>
+                        <li><strong>Táctil:</strong> Pellizcar para zoom</li>
+                        <li><strong>Botones +/-:</strong> Zoom preciso</li>
+                    </ul>
+                    
+                    <h4 style="color: var(--text-accent);">✨ Elementos Especiales:</h4>
+                    <ul>
+                        <li><strong>G (Baricentro):</strong> Centro de masa</li>
+                        <li><strong>H (Ortocentro):</strong> Intersección de alturas</li>
+                        <li><strong>I (Incentro):</strong> Centro del círculo inscrito</li>
+                        <li><strong>O (Circuncentro):</strong> Centro del círculo circunscrito</li>
+                    </ul>
+                </div>
+            `;
+            
+            showModal('Ayuda - TriangleForge Ultra', helpContent, false);
+        };
 
-        ctx.restore(); 
-    }
+        // Agregar botón de ayuda
+        const helpButton = document.createElement('button');
+        helpButton.className = 'btn btn-secondary';
+        helpButton.innerHTML = '<i class="fas fa-question-circle"></i> Ayuda';
+        helpButton.style.position = 'fixed';
+        helpButton.style.bottom = '20px';
+        helpButton.style.right = '20px';
+        helpButton.style.zIndex = '999';
+        helpButton.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+        helpButton.addEventListener('click', showHelpModal);
+        document.body.appendChild(helpButton);
 
-
-    function updateLastCalculatedGeometry() {
-        if (!currentTriangle || !calculatedElements.vertices) {
-            lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 };
-            return;
-        }
-        const { pA, pB, pC } = calculatedElements.vertices;
-        let allPoints = [pA, pB, pC];
-
-        if(drawOptions.centroid && isFinitePoint(calculatedElements.centroid)) allPoints.push(calculatedElements.centroid);
-        if(drawOptions.orthocenter && isFinitePoint(calculatedElements.orthocenter)) allPoints.push(calculatedElements.orthocenter);
-        if(drawOptions.incenter && isFinitePoint(calculatedElements.incenter)) allPoints.push(calculatedElements.incenter);
-        if(drawOptions.circumcenter && isFinitePoint(calculatedElements.circumcenter)) allPoints.push(calculatedElements.circumcenter);
-
-        if(drawOptions.inscribedCircle && isFinitePoint(calculatedElements.incenter) && calculatedElements.inradius > EPSILON) {
-            allPoints.push({x: calculatedElements.incenter.x - calculatedElements.inradius, y: calculatedElements.incenter.y});
-            allPoints.push({x: calculatedElements.incenter.x + calculatedElements.inradius, y: calculatedElements.incenter.y});
-            allPoints.push({x: calculatedElements.incenter.x, y: calculatedElements.incenter.y - calculatedElements.inradius});
-            allPoints.push({x: calculatedElements.incenter.x, y: calculatedElements.incenter.y + calculatedElements.inradius});
-        }
-        if(drawOptions.circumscribedCircle && isFinitePoint(calculatedElements.circumcenter) && calculatedElements.circumradius > EPSILON) {
-            allPoints.push({x: calculatedElements.circumcenter.x - calculatedElements.circumradius, y: calculatedElements.circumcenter.y});
-            allPoints.push({x: calculatedElements.circumcenter.x + calculatedElements.circumradius, y: calculatedElements.circumcenter.y});
-            allPoints.push({x: calculatedElements.circumcenter.x, y: calculatedElements.circumcenter.y - calculatedElements.circumradius});
-            allPoints.push({x: calculatedElements.circumcenter.x, y: calculatedElements.circumcenter.y + calculatedElements.circumradius});
-        }
-        
-        allPoints = allPoints.filter(pt => pt && isFinitePoint(pt)); 
-
-        if(allPoints.length === 0) { 
-             lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 };
-            return;
-        }
-
-        const minX = Math.min(...allPoints.map(p => p.x));
-        const maxX = Math.max(...allPoints.map(p => p.x));
-        const minY = Math.min(...allPoints.map(p => p.y));
-        const maxY = Math.max(...allPoints.map(p => p.y));
-
-        const triWidth = maxX - minX;
-        const triHeight = maxY - minY;
-        const padding = 30; 
-        const canvasRect = canvas.getBoundingClientRect(); 
-        const canvasDrawableWidth = canvasRect.width - 2 * padding;
-        const canvasDrawableHeight = canvasRect.height - 2 * padding;
-        let scaleToFitValue = 1;
-        if (triWidth > EPSILON && triHeight > EPSILON && canvasDrawableWidth > 0 && canvasDrawableHeight > 0) {
-            scaleToFitValue = Math.min(canvasDrawableWidth / triWidth, canvasDrawableHeight / triHeight) * 0.90; 
-        } else if (triWidth > EPSILON && canvasDrawableWidth > 0) { 
-             scaleToFitValue = canvasDrawableWidth / triWidth * 0.90;
-        } else if (triHeight > EPSILON && canvasDrawableHeight > 0) { 
-            scaleToFitValue = canvasDrawableHeight / triHeight * 0.90;
-        }
-        if (!isFinite(scaleToFitValue) || scaleToFitValue <= EPSILON) {
-            scaleToFitValue = 1; 
-        }
-        lastCalculatedGeometry = { minX, minY, width: triWidth, height: triHeight, scaleToFit: scaleToFitValue };
-    }
-    canvas.addEventListener('mousedown', (e) => { isPanning = true; lastPanPosition = { x: e.clientX, y: e.clientY }; canvas.style.cursor = 'grabbing'; });
-    canvas.addEventListener('mouseup', () => { isPanning = false; canvas.style.cursor = 'grab'; });
-    canvas.addEventListener('mouseleave', () => { isPanning = false; canvas.style.cursor = 'grab'; });
-    canvas.addEventListener('mousemove', (e) => { if (!isPanning || !currentTriangle) return; const dx = e.clientX - lastPanPosition.x; const dy = e.clientY - lastPanPosition.y; panOffset.x += dx; panOffset.y += dy; lastPanPosition = { x: e.clientX, y: e.clientY }; requestAnimationFrame(drawTriangleOnCanvas); });
-    canvas.addEventListener('wheel', (e) => { if (!currentTriangle) return; e.preventDefault(); updateLastCalculatedGeometry(); const zoomIntensity = 0.1; const direction = e.deltaY < 0 ? 1 : -1; const oldScaleFactor = scaleFactor; scaleFactor *= (1 + direction * zoomIntensity); scaleFactor = Math.max(0.05, Math.min(scaleFactor, 50)); const rect = canvas.getBoundingClientRect(); const mouseX = e.clientX - rect.left; const mouseY = e.clientY - rect.top; const worldMouseX_before = (mouseX - (rect.width / 2 + panOffset.x)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2); const worldMouseY_before = (mouseY - (rect.height / 2 + panOffset.y)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2); panOffset.x = mouseX - rect.width / 2 - (worldMouseX_before - (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor); panOffset.y = mouseY - rect.height / 2 - (worldMouseY_before - (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor); requestAnimationFrame(drawTriangleOnCanvas); });
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); if (e.touches.length === 1) { isPanning = true; lastPanPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } else if (e.touches.length === 2) { isPanning = false; lastPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); updateLastCalculatedGeometry(); } }, { passive: false });
-    canvas.addEventListener('touchend', (e) => { e.preventDefault(); isPanning = false; lastPinchDistance = 0; }, { passive: false });
-    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); if (!currentTriangle) return; if (e.touches.length === 1 && isPanning) { const dx = e.touches[0].clientX - lastPanPosition.x; const dy = e.touches[0].clientY - lastPanPosition.y; panOffset.x += dx; panOffset.y += dy; lastPanPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } else if (e.touches.length === 2) { const currentPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (lastPinchDistance > 0) { const oldScaleFactor = scaleFactor; scaleFactor *= currentPinchDistance / lastPinchDistance; scaleFactor = Math.max(0.05, Math.min(scaleFactor, 50)); const rect = canvas.getBoundingClientRect(); const pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left; const pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top; const worldPinchX_before = (pinchCenterX - (rect.width / 2 + panOffset.x)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2); const worldPinchY_before = (pinchCenterY - (rect.height / 2 + panOffset.y)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2); panOffset.x = pinchCenterX - rect.width / 2 - (worldPinchX_before - (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor); panOffset.y = pinchCenterY - rect.height / 2 - (worldPinchY_before - (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor); } lastPinchDistance = currentPinchDistance; } requestAnimationFrame(drawTriangleOnCanvas); }, { passive: false });
-
-    calculateButton.addEventListener('click', () => handleCalculate(true)); 
-    precisionSelect.addEventListener('change', () => { if (currentTriangle) { displayTriangleResults(currentTriangle); requestAnimationFrame(drawTriangleOnCanvas); } });
-    exportButton.addEventListener('click', () => { if (!currentTriangle) { showModal('Error de Exportación 🚫', 'No hay ningún triángulo dibujado para exportar.'); return; } try { const dataURL = canvas.toDataURL('image/png'); const link = document.createElement('a'); link.download = 'triangulo_calculado.png'; link.href = dataURL; document.body.appendChild(link); link.click(); document.body.removeChild(link); showModal('Exportación Exitosa ✅', 'La imagen del triángulo ha sido descargada.', false); } catch (e) { showModal('Error de Exportación 🚫', 'No se pudo exportar la imagen. Error: ' + e.message); console.error("Error al exportar canvas:", e); } });
-    Object.keys(chkElements).forEach(key => { if (chkElements[key]) { chkElements[key].addEventListener('change', (e) => { drawOptions[key] = e.target.checked; if (currentTriangle) { updateLastCalculatedGeometry(); requestAnimationFrame(drawTriangleOnCanvas); } }); } });
-    zoomInButton.addEventListener('click', () => { if (!currentTriangle) return; scaleFactor *= 1.25; scaleFactor = Math.min(scaleFactor, 50); requestAnimationFrame(drawTriangleOnCanvas); });
-    zoomOutButton.addEventListener('click', () => { if (!currentTriangle) return; scaleFactor /= 1.25; scaleFactor = Math.max(0.05, scaleFactor); requestAnimationFrame(drawTriangleOnCanvas); });
-    resetViewButton.addEventListener('click', () => { if (!currentTriangle) return; scaleFactor = 1.0; panOffset = { x: 0, y: 0 }; updateLastCalculatedGeometry(); requestAnimationFrame(drawTriangleOnCanvas); });
-    
-    function updateThemeVisuals(isDark) { 
-        G_isDarkModeActive = isDark; 
-        if (isDark) { 
-            document.documentElement.classList.add('dark'); 
-            themeIconSun.classList.add('hidden'); 
-            themeIconMoon.classList.remove('hidden'); 
-        } else { 
-            document.documentElement.classList.remove('dark'); 
-            themeIconSun.classList.remove('hidden'); 
-            themeIconMoon.classList.add('hidden'); 
-        } 
-    }
-    function setInitialTheme() { 
-        const storedTheme = localStorage.getItem('theme'); 
-        let initialIsDark; 
-        if (storedTheme === 'light') { 
-            initialIsDark = false; 
-        } else if (storedTheme === 'dark') { 
-            initialIsDark = true; 
-        } else { 
-            initialIsDark = true; 
-        } 
-        updateThemeVisuals(initialIsDark); 
-    }
-    themeToggle.addEventListener('click', () => { 
-        const newIsDark = !document.documentElement.classList.contains('dark'); 
-        localStorage.setItem('theme', newIsDark ? 'dark' : 'light'); 
-        updateThemeVisuals(newIsDark); 
-        if (currentTriangle) requestAnimationFrame(drawTriangleOnCanvas); 
-    });
-
-    const resizeObserverInstance = new ResizeObserver(entries => { 
-        for (let entry of entries) { 
-            if (entry.target === canvas.parentElement || entry.target === canvas) { 
-                if (currentTriangle) { 
-                    updateLastCalculatedGeometry(); 
-                    requestAnimationFrame(drawTriangleOnCanvas); 
-                } 
-            } 
-        } 
-    });
-    if (canvas.parentElement) { resizeObserverInstance.observe(canvas.parentElement); }
-
-    function initializeApp() {
-        setInitialTheme(); 
-        setupEmojiCheckboxes(); 
-        currentYearSpan.textContent = new Date().getFullYear(); 
-        document.getElementById('inputType0').value = 'sideA'; document.getElementById('inputValue0').value = '3';
-        document.getElementById('inputType1').value = 'sideB'; document.getElementById('inputValue1').value = '4';
-        document.getElementById('inputType2').value = 'sideC'; document.getElementById('inputValue2').value = '5';
-        handleCalculate(false); 
-    }
-    document.addEventListener('DOMContentLoaded', initializeApp);
+        console.log('💡 Tip: Usa las flechas ↑↑↓↓←→←→ seguido de B y A para una sorpresa...');
 
     </script>
 </body>
