@@ -1200,8 +1200,13 @@
             const sidebar = document.getElementById('sidebar');
             const toggleIcon = document.getElementById('toggle-icon');
             
-            sidebar.classList.toggle('open');
-            sidebarOpen = sidebar.classList.contains('open');
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.toggle('open');
+                sidebarOpen = sidebar.classList.contains('open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                sidebarOpen = !sidebar.classList.contains('collapsed');
+            }
             
             if (sidebarOpen) {
                 toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
