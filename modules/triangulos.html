@@ -3,2425 +3,642 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TriangleForge Ultra ✨</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <title>TriangleForge Ultra v2 ✨ (Plotly Edition)</title>
+    
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500;700&display=swap" rel="stylesheet">
+
     <style>
+        /* Estilos base y configuración de temas de color */
         :root {
-            /* Tema Slate Dark (Elegante y profesional) */
-            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            --secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            --accent-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            --success-gradient: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
-            
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #cbd5e1;
-            --text-accent: #38bdf8;
-            
-            --glass-bg: rgba(30, 41, 59, 0.8);
+            --bg-primary: #0f172a; /* slate-900 */
+            --bg-secondary: #1e293b; /* slate-800 */
+            --bg-tertiary: #334155; /* slate-700 */
+            --text-primary: #f1f5f9; /* slate-100 */
+            --text-secondary: #94a3b8; /* slate-400 */
+            --accent-primary: #38bdf8; /* sky-400 */
+            --accent-gradient: linear-gradient(135deg, #38bdf8, #3b82f6);
+            --glass-bg: rgba(30, 41, 59, 0.7);
             --glass-border: rgba(148, 163, 184, 0.2);
-            --glass-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            
-            --border-radius: 12px;
-            --border-radius-lg: 20px;
-            --spacing-xs: 0.5rem;
-            --spacing-sm: 1rem;
-            --spacing-md: 1.5rem;
-            --spacing-lg: 2rem;
-            --spacing-xl: 3rem;
         }
-
-        [data-theme="cyber"] {
-            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-            --secondary-gradient: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --text-accent: #38bdf8;
-        }
-
         [data-theme="ocean"] {
-            --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-            --secondary-gradient: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            --bg-primary: #0c1625;
-            --bg-secondary: #1e2a3a;
-            --bg-tertiary: #2d3e50;
-            --text-accent: #67e8f9;
+            --bg-primary: #0c1625; --bg-secondary: #1e2a3a; --bg-tertiary: #2d3e50;
+            --text-accent: #67e8f9; --accent-gradient: linear-gradient(135deg, #0ea5e9, #0284c7);
         }
-
         [data-theme="forest"] {
-            --primary-gradient: linear-gradient(135deg, #059669 0%, #047857 100%);
-            --secondary-gradient: linear-gradient(135deg, #10b981 0%, #059669 100%);
-            --bg-primary: #0c1f17;
-            --bg-secondary: #1e3a2e;
-            --bg-tertiary: #2d5a47;
-            --text-accent: #6ee7b7;
+            --bg-primary: #0c1f17; --bg-secondary: #1e3a2e; --bg-tertiary: #2d5a47;
+            --text-accent: #6ee7b7; --accent-gradient: linear-gradient(135deg, #059669, #047857);
         }
-
         [data-theme="midnight"] {
-            --primary-gradient: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
-            --secondary-gradient: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
-            --bg-primary: #1a0b2e;
-            --bg-secondary: #2d1b4e;
-            --bg-tertiary: #44337a;
-            --text-accent: #c4b5fd;
+            --bg-primary: #1a0b2e; --bg-secondary: #2d1b4e; --bg-tertiary: #44337a;
+            --text-accent: #c4b5fd; --accent-gradient: linear-gradient(135deg, #7c3aed, #5b21b6);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Configuración de fuentes y fondo */
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-primary);
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-primary);
             color: var(--text-primary);
-            overflow-x: hidden;
-            min-height: 100vh;
-            position: relative;
+            transition: background-color 0.5s ease, color 0.5s ease;
         }
+        .font-mono { font-family: 'Fira Code', monospace; }
 
-        .animated-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: var(--bg-primary);
+        /* Estilos para componentes personalizados */
+        .glass-card {
+            background-color: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
         }
-
-        .bg-shapes {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .bg-shape {
-            position: absolute;
-            border-radius: 50%;
-            background: var(--primary-gradient);
-            opacity: 0.1;
-            animation: float 6s ease-in-out infinite;
-        }
-
-        .bg-shape:nth-child(1) {
-            width: 300px;
-            height: 300px;
-            top: 10%;
-            left: 10%;
-            animation-delay: 0s;
-        }
-
-        .bg-shape:nth-child(2) {
-            width: 200px;
-            height: 200px;
-            top: 60%;
-            right: 10%;
-            animation-delay: 2s;
-        }
-
-        .bg-shape:nth-child(3) {
-            width: 150px;
-            height: 150px;
-            bottom: 10%;
-            left: 50%;
-            animation-delay: 4s;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(10deg); }
-        }
-
-        .main-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: var(--spacing-md);
-            position: relative;
-            z-index: 1;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: var(--spacing-xl);
-            position: relative;
-        }
-
-        .header h1 {
-            font-size: clamp(2rem, 5vw, 4rem);
-            font-weight: 800;
-            background: var(--primary-gradient);
-            background-clip: text;
+        .glass-card:hover { box-shadow: 0 0 40px rgba(0,0,0,0.3); transform: translateY(-4px); }
+        .title-gradient {
+            background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            margin-bottom: var(--spacing-sm);
-            animation: glow 2s ease-in-out infinite alternate;
         }
-
-        @keyframes glow {
-            from { filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.5)); }
-            to { filter: drop-shadow(0 0 30px rgba(118, 75, 162, 0.7)); }
-        }
-
-        .header p {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            margin-bottom: var(--spacing-lg);
-        }
-
-        .theme-control {
-            display: flex;
-            justify-content: center;
-            gap: var(--spacing-sm);
-            margin-bottom: var(--spacing-lg);
-            flex-wrap: wrap;
-        }
-
-        .theme-btn {
-            padding: var(--spacing-xs) var(--spacing-sm);
-            border: none;
-            border-radius: var(--border-radius);
-            background: var(--glass-bg);
-            backdrop-filter: blur(10px);
+        .input-custom {
+            background-color: var(--bg-secondary);
             border: 1px solid var(--glass-border);
-            color: var(--text-primary);
-            cursor: pointer;
             transition: all 0.3s ease;
-            font-size: 0.9rem;
-            position: relative;
-            overflow: hidden;
-            font-weight: 500;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
         }
-
-        .theme-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--glass-shadow);
-            border-color: var(--text-accent);
-            background: rgba(59, 130, 246, 0.1);
+        .input-custom:focus {
+            background-color: var(--bg-tertiary);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px var(--accent-primary);
         }
-
-        .theme-btn.active {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
-        }
-
-        .app-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: var(--spacing-lg);
-        }
-
-        @media (min-width: 1024px) {
-            .app-grid {
-                grid-template-columns: 400px 1fr;
-            }
-        }
-
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-radius: var(--border-radius-lg);
-            border: 1px solid var(--glass-border);
-            padding: var(--spacing-lg);
-            box-shadow: var(--glass-shadow);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: var(--primary-gradient);
-            opacity: 0.6;
-        }
-
-        .glass-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px 0 rgba(31, 38, 135, 0.5);
-        }
-
-        .input-panel h2 {
-            font-size: 1.5rem;
-            margin-bottom: var(--spacing-md);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-        }
-
-        .input-group {
-            margin-bottom: var(--spacing-md);
-            position: relative;
-        }
-
-        .input-row {
-            display: flex;
-            gap: var(--spacing-sm);
-            align-items: center;
-            margin-bottom: var(--spacing-sm);
-        }
-
-        .input-label {
-            font-weight: 600;
-            color: var(--text-accent);
-            min-width: 60px;
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .custom-select, .custom-input {
-            flex: 1;
-            padding: var(--spacing-sm);
-            border: none;
-            border-radius: var(--border-radius);
-            background: rgba(30, 41, 59, 0.8);
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-        }
-
-        .custom-select:focus, .custom-input:focus {
-            outline: none;
-            border-color: var(--text-accent);
-            background: rgba(30, 41, 59, 0.9);
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
-            color: white;
-        }
-
-        .custom-input[type="number"] {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 500;
-        }
-
-        .custom-select option {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border: none;
-        }
-
-        .btn {
-            padding: var(--spacing-sm) var(--spacing-lg);
-            border: none;
-            border-radius: var(--border-radius);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: var(--spacing-xs);
-            text-decoration: none;
-            font-size: 1rem;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-        }
-
         .btn-primary {
-            background: var(--primary-gradient);
+            background: var(--accent-gradient);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(56, 189, 248, 0.3); }
+        .theme-btn.active {
+            background: var(--accent-gradient);
             color: white;
-            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            box-shadow: 0 2px 10px rgba(56, 189, 248, 0.2);
         }
-
-        .btn-secondary {
-            background: var(--glass-bg);
-            color: var(--text-primary);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
-        }
-
-        .btn-secondary:hover {
-            background: rgba(59, 130, 246, 0.1);
-            border-color: var(--text-accent);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .calculate-btn {
-            width: 100%;
-            font-size: 1.1rem;
-            padding: var(--spacing-md);
-            margin-top: var(--spacing-md);
-            background: var(--primary-gradient);
-            color: white;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .calculate-btn:hover {
-            box-shadow: 0 8px 30px rgba(59, 130, 246, 0.6);
-            transform: translateY(-3px);
-        }
-
-        .visualization-panel {
-            min-height: 600px;
-        }
-
-        .visualization-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: var(--spacing-md);
-            flex-wrap: wrap;
-            gap: var(--spacing-sm);
-        }
-
-        .canvas-container {
-            position: relative;
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: var(--border-radius);
-            overflow: hidden;
-            border: 1px solid var(--glass-border);
-            height: 70vh;
-            min-height: 500px;
-            width: 100%;
-        }
-
-        #triangleCanvas {
-            width: 100%;
-            height: 100%;
-            cursor: grab;
-            transition: all 0.3s ease;
-            display: block;
-        }
-
-        #triangleCanvas:active {
-            cursor: grabbing;
-        }
-
-        .controls-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: var(--spacing-md);
-            margin-top: var(--spacing-lg);
-        }
-
-        .control-section {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-md);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .control-section h3 {
-            color: var(--text-accent);
-            margin-bottom: var(--spacing-sm);
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-        }
-
-        .checkbox-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-xs);
-        }
-
-        .custom-checkbox {
-            display: flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-xs);
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .custom-checkbox:hover {
-            background: rgba(255, 255, 255, 0.05);
-        }
-
-        .custom-checkbox input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            accent-color: var(--text-accent);
-        }
-
-        .custom-checkbox .emoji {
-            font-size: 1.2rem;
-            min-width: 24px;
-        }
-
-        .results-panel {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: var(--border-radius);
-            padding: var(--spacing-lg);
-            margin-top: var(--spacing-lg);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .results-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: var(--spacing-md);
-        }
-
-        .result-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: var(--spacing-sm);
-            background: rgba(30, 41, 59, 0.6);
-            border-radius: var(--border-radius);
-            border: 1px solid var(--glass-border);
-            backdrop-filter: blur(10px);
-        }
-
-        .result-label {
-            font-weight: 500;
-            color: var(--text-secondary);
-        }
-
-        .result-value {
-            font-family: 'JetBrains Mono', monospace;
-            font-weight: 600;
-            color: var(--text-primary);
-            background: rgba(56, 189, 248, 0.1);
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            border: 1px solid rgba(56, 189, 248, 0.2);
-        }
-
-        .zoom-controls {
-            position: absolute;
-            top: var(--spacing-md);
-            right: var(--spacing-md);
-            display: flex;
-            flex-direction: column;
-            gap: var(--spacing-xs);
-        }
-
-        .zoom-btn {
-            width: 44px;
-            height: 44px;
-            border-radius: 50%;
-            border: none;
-            background: var(--glass-bg);
-            backdrop-filter: blur(15px);
-            color: var(--text-primary);
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--glass-border);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-            font-size: 1rem;
-        }
-
-        .zoom-btn:hover {
-            background: var(--primary-gradient);
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-            color: white;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .modal.active {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .modal-content {
-            background: rgba(30, 41, 59, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: var(--border-radius-lg);
-            border: 1px solid var(--glass-border);
-            padding: var(--spacing-xl);
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            transform: scale(0.7);
-            transition: transform 0.3s ease;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
-        }
-
-        .modal.active .modal-content {
-            transform: scale(1);
-        }
-
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: var(--spacing-md);
-            color: var(--text-primary);
-        }
-
-        @media (max-width: 768px) {
-            .main-container {
-                padding: var(--spacing-sm);
-            }
-
-            .header h1 {
-                font-size: 2.5rem;
-            }
-
-            .input-row {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .input-label {
-                min-width: auto;
-                margin-bottom: var(--spacing-xs);
-            }
-
-            .controls-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .checkbox-group {
-                grid-template-columns: 1fr;
-            }
-
-            .canvas-container {
-                height: 50vh;
-                min-height: 350px;
-            }
-
-            .zoom-controls {
-                position: relative;
-                top: auto;
-                right: auto;
-                flex-direction: row;
-                justify-content: center;
-                margin-top: var(--spacing-md);
-            }
-
-            .zoom-btn {
-                width: 40px;
-                height: 40px;
-            }
-
-            .theme-control {
-                gap: var(--spacing-xs);
-            }
-
-            .theme-btn {
-                font-size: 0.8rem;
-                padding: 0.4rem 0.8rem;
-            }
-        }
-
-        .fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .slide-in-left {
-            animation: slideInLeft 0.6s ease-out;
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .slide-in-right {
-            animation: slideInRight 0.6s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
+        .custom-checkbox:checked { background-color: var(--accent-primary); }
+        
+        /* Animaciones */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+        .fade-in-delay-1 { animation: fadeIn 0.8s ease-out 0.2s forwards; opacity: 0; }
+        .fade-in-delay-2 { animation: fadeIn 0.8s ease-out 0.4s forwards; opacity: 0; }
     </style>
 </head>
-<body>
-    <div class="animated-bg">
-        <div class="bg-shapes">
-            <div class="bg-shape"></div>
-            <div class="bg-shape"></div>
-            <div class="bg-shape"></div>
-        </div>
-    </div>
+<body class="min-h-screen overflow-x-hidden">
 
-    <div class="main-container">
-        <header class="header fade-in">
-            <h1><i class="fas fa-triangle"></i> TriangleForge Ultra</h1>
-            <p>Calculadora de triángulos de nueva generación con visualización avanzada</p>
-            
-            <div class="theme-control">
-                <button class="theme-btn active" data-theme="cyber">
-                    <i class="fas fa-rocket"></i> Cyber
-                </button>
-                <button class="theme-btn" data-theme="ocean">
-                    <i class="fas fa-water"></i> Ocean
-                </button>
-                <button class="theme-btn" data-theme="forest">
-                    <i class="fas fa-tree"></i> Forest
-                </button>
-                <button class="theme-btn" data-theme="midnight">
-                    <i class="fas fa-moon"></i> Midnight
-                </button>
+    <!-- Contenedor Principal -->
+    <div class="container mx-auto p-4 md:p-8">
+        
+        <!-- Encabezado -->
+        <header class="text-center mb-8 fade-in">
+            <h1 class="text-4xl md:text-6xl font-extrabold title-gradient mb-2">
+                📐 TriangleForge Ultra
+            </h1>
+            <p class="text-lg text-text-secondary">Calculadora y visualizador de triángulos con tecnología Plotly.js</p>
+            <div id="theme-switcher" class="flex justify-center gap-2 mt-6">
+                <button class="theme-btn px-4 py-2 rounded-lg text-sm font-semibold glass-card active" data-theme="default"><i class="fa-solid fa-rocket mr-2"></i>Cyber</button>
+                <button class="theme-btn px-4 py-2 rounded-lg text-sm font-semibold glass-card" data-theme="ocean"><i class="fa-solid fa-water mr-2"></i>Ocean</button>
+                <button class="theme-btn px-4 py-2 rounded-lg text-sm font-semibold glass-card" data-theme="forest"><i class="fa-solid fa-tree mr-2"></i>Forest</button>
+                <button class="theme-btn px-4 py-2 rounded-lg text-sm font-semibold glass-card" data-theme="midnight"><i class="fa-solid fa-moon mr-2"></i>Midnight</button>
             </div>
         </header>
 
-        <div class="app-grid">
-            <div class="glass-card input-panel slide-in-left">
-                <h2><i class="fas fa-cogs"></i> Configuración del Triángulo</h2>
-                
-                <div class="input-group">
-                    <div class="input-row">
-                        <div class="input-label">Dato 1:</div>
-                        <select class="custom-select" id="inputType0">
-                            <option value="sideA">Lado a</option>
-                            <option value="sideB">Lado b</option>
-                            <option value="sideC">Lado c</option>
-                            <option value="angleA">Ángulo A (°)</option>
-                            <option value="angleB">Ángulo B (°)</option>
-                            <option value="angleC">Ángulo C (°)</option>
-                        </select>
-                        <input type="number" class="custom-input" id="inputValue0" placeholder="Valor" step="any">
+        <!-- Grid Principal de la App -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+            <!-- Panel de Controles (Izquierda) -->
+            <div class="lg:col-span-4 space-y-6">
+                <!-- Panel de Entradas -->
+                <div class="glass-card p-6 rounded-2xl fade-in-delay-1">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-3"><i class="fa-solid fa-sliders text-2xl" style="color: var(--accent-primary);"></i>Configuración</h2>
+                    <div id="input-container" class="space-y-4">
+                        <!-- Las entradas se generan dinámicamente aquí -->
                     </div>
-                    
-                    <div class="input-row">
-                        <div class="input-label">Dato 2:</div>
-                        <select class="custom-select" id="inputType1">
-                            <option value="sideA">Lado a</option>
-                            <option value="sideB" selected>Lado b</option>
-                            <option value="sideC">Lado c</option>
-                            <option value="angleA">Ángulo A (°)</option>
-                            <option value="angleB">Ángulo B (°)</option>
-                            <option value="angleC">Ángulo C (°)</option>
-                        </select>
-                        <input type="number" class="custom-input" id="inputValue1" placeholder="Valor" step="any">
-                    </div>
-                    
-                    <div class="input-row">
-                        <div class="input-label">Dato 3:</div>
-                        <select class="custom-select" id="inputType2">
-                            <option value="sideA">Lado a</option>
-                            <option value="sideB">Lado b</option>
-                            <option value="sideC" selected>Lado c</option>
-                            <option value="angleA">Ángulo A (°)</option>
-                            <option value="angleB">Ángulo B (°)</option>
-                            <option value="angleC">Ángulo C (°)</option>
-                        </select>
-                        <input type="number" class="custom-input" id="inputValue2" placeholder="Valor" step="any">
-                    </div>
+                    <button id="calculateButton" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg mt-6 text-lg flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-calculator"></i> Calcular y Dibujar
+                    </button>
                 </div>
 
-                <button class="btn btn-primary calculate-btn" id="calculateButton">
-                    <i class="fas fa-calculator"></i> Calcular y Visualizar
-                </button>
-
-                <div class="results-panel" id="resultsPanel" style="display: none;">
-                    <h3><i class="fas fa-chart-line"></i> Resultados</h3>
-                    <div class="results-grid">
-                        <div class="result-item">
-                            <span class="result-label">Lado a:</span>
-                            <span class="result-value" id="resLadoA">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Lado b:</span>
-                            <span class="result-value" id="resLadoB">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Lado c:</span>
-                            <span class="result-value" id="resLadoC">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Ángulo A:</span>
-                            <span class="result-value" id="resAnguloA">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Ángulo B:</span>
-                            <span class="result-value" id="resAnguloB">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Ángulo C:</span>
-                            <span class="result-value" id="resAnguloC">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Perímetro:</span>
-                            <span class="result-value" id="resPerimetro">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Área:</span>
-                            <span class="result-value" id="resArea">-</span>
-                        </div>
-                        <div class="result-item">
-                            <span class="result-label">Tipo:</span>
-                            <span class="result-value" id="resTipoTriangulo">-</span>
-                        </div>
+                <!-- Panel de Resultados -->
+                <div id="resultsPanel" class="glass-card p-6 rounded-2xl fade-in-delay-1" style="display: none;">
+                    <h2 class="text-2xl font-bold mb-4 flex items-center gap-3"><i class="fa-solid fa-chart-line text-2xl" style="color: var(--accent-primary);"></i>Resultados</h2>
+                    <div id="results-grid" class="grid grid-cols-2 gap-4 text-sm">
+                        <!-- Los resultados se generan dinámicamente aquí -->
                     </div>
                 </div>
             </div>
 
-            <div class="glass-card visualization-panel slide-in-right">
-                <div class="visualization-header">
-                    <h2><i class="fas fa-eye"></i> Visualización Avanzada</h2>
-                    <div style="display: flex; gap: 10px; align-items: center;">
-                        <label style="color: var(--text-secondary);">Precisión:</label>
-                        <select class="custom-select" id="precisionSelect" style="width: auto;">
+            <!-- Panel de Visualización (Derecha) -->
+            <div class="lg:col-span-8 glass-card p-6 rounded-2xl fade-in-delay-2">
+                <div class="flex flex-wrap justify-between items-center mb-4 gap-4">
+                    <h2 class="text-2xl font-bold flex items-center gap-3"><i class="fa-solid fa-eye text-2xl" style="color: var(--accent-primary);"></i>Visualización Plotly</h2>
+                    <div class="flex items-center gap-2">
+                        <label for="precisionSelect" class="text-sm font-medium text-text-secondary">Precisión:</label>
+                        <select id="precisionSelect" class="input-custom rounded-md px-2 py-1 text-sm">
+                            <option value="2">2 decimales</option>
                             <option value="0">0 decimales</option>
                             <option value="1">1 decimal</option>
-                            <option value="2" selected>2 decimales</option>
                             <option value="3">3 decimales</option>
                             <option value="4">4 decimales</option>
-                            <option value="5">5 decimales</option>
                         </select>
                     </div>
                 </div>
-
-                <div class="canvas-container">
-                    <canvas id="triangleCanvas"></canvas>
-                    
-                    <div class="zoom-controls">
-                        <button class="zoom-btn" id="zoomInButton" title="Acercar">
-                            <i class="fas fa-plus"></i>
-                        </button>
-                        <button class="zoom-btn" id="zoomOutButton" title="Alejar">
-                            <i class="fas fa-minus"></i>
-                        </button>
-                        <button class="zoom-btn" id="resetViewButton" title="Reiniciar vista">
-                            <i class="fas fa-home"></i>
-                        </button>
-                        <button class="zoom-btn" id="exportButton" title="Exportar imagen">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="controls-grid">
-                    <div class="control-section">
-                        <h3><i class="fas fa-layer-group"></i> Elementos Básicos</h3>
-                        <div class="checkbox-group">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkGrid">
-                                <span class="emoji">⬜</span>
-                                <span>Cuadrícula</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkLabels" checked>
-                                <span class="emoji">🏷️</span>
-                                <span>Etiquetas</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkAngles" checked>
-                                <span class="emoji">📐</span>
-                                <span>Val. Ángulos</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="control-section">
-                        <h3><i class="fas fa-vector-square"></i> Elementos Notables</h3>
-                        <div class="checkbox-group">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkMedians">
-                                <span class="emoji">🔵</span>
-                                <span>Medianas</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkAltitudes">
-                                <span class="emoji">🟩</span>
-                                <span>Alturas</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkAngleBisectors">
-                                <span class="emoji">🔺</span>
-                                <span>Bisectrices (Áng.)</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkPerpBisectors">
-                                <span class="emoji">🔶</span>
-                                <span>Mediatrices (Lad.)</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="control-section">
-                        <h3><i class="fas fa-bullseye"></i> Puntos Especiales</h3>
-                        <div class="checkbox-group">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkCentroid">
-                                <span class="emoji">🌀</span>
-                                <span>Baricentro (G)</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkOrthocenter">
-                                <span class="emoji">✳️</span>
-                                <span>Ortocentro (H)</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkIncenter">
-                                <span class="emoji">⭐</span>
-                                <span>Incentro (I)</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkCircumcenter">
-                                <span class="emoji">📍</span>
-                                <span>Circuncentro (O)</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="control-section">
-                        <h3><i class="fas fa-circle"></i> Círculos</h3>
-                        <div class="checkbox-group">
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkInscribedCircle">
-                                <span class="emoji">⭕</span>
-                                <span>Circ. Inscrita</span>
-                            </label>
-                            <label class="custom-checkbox">
-                                <input type="checkbox" id="chkCircumscribedCircle">
-                                <span class="emoji">🟣</span>
-                                <span>Circ. Circunscrita</span>
-                            </label>
-                        </div>
-                    </div>
+                <div id="plotly-container" class="w-full h-[50vh] min-h-[400px] lg:h-[70vh] lg:min-h-[600px] bg-black/20 rounded-lg"></div>
+                
+                <!-- Controles de Visualización -->
+                <div class="controls-grid grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mt-6 text-sm">
+                    <!-- Las opciones de visualización se generan aquí -->
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="modal" id="messageModal">
-        <div class="modal-content">
-            <h3 class="modal-title" id="modalTitle">Mensaje</h3>
-            <p id="modalMessage"></p>
-            <button class="btn btn-primary" id="closeModalButton">
-                <i class="fas fa-check"></i> Entendido
-            </button>
+    <!-- Modal para Mensajes -->
+    <div id="messageModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div class="glass-card max-w-sm w-full p-6 rounded-2xl text-center border-2" id="modal-card">
+            <h3 id="modalTitle" class="text-2xl font-bold mb-2"></h3>
+            <p id="modalMessage" class="text-text-secondary mb-6"></p>
+            <button id="closeModalButton" class="btn-primary text-white font-bold py-2 px-6 rounded-lg">Entendido</button>
         </div>
     </div>
 
-    <script>
-        // Constantes y variables globales
-        const PI = Math.PI;
-        const EPSILON = 1e-9;
-        
-        let currentTriangle = null;
-        let calculatedElements = {};
-        let scaleFactor = 1.0;
-        let panOffset = { x: 0, y: 0 };
-        let isPanning = false;
-        let lastPanPosition = { x: 0, y: 0 };
-        let lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 };
+<script>
+document.addEventListener('DOMContentLoaded', () => {
 
-        const drawOptions = {
-            grid: false,
-            labels: true,
-            angles: true,
-            medians: false,
-            altitudes: false,
-            angleBisectors: false,
-            perpBisectors: false,
-            centroid: false,
-            orthocenter: false,
-            incenter: false,
-            circumcenter: false,
-            inscribedCircle: false,
-            circumscribedCircle: false
+    // --- CONSTANTES Y ESTADO GLOBAL ---
+    const PI = Math.PI;
+    const EPSILON = 1e-9;
+    let currentTriangle = null;
+    let calculatedElements = {};
+    let currentPlotRange = null; 
+    
+    const drawOptions = {
+        grid: false, labels: true, angles: true, medians: false, altitudes: false,
+        angleBisectors: false, perpBisectors: false, centroid: false, orthocenter: false,
+        incenter: false, circumcenter: false, inscribedCircle: false, circumscribedCircle: false,
+        eulerLine: false // ADD: Euler line option
+    };
+
+    // --- REFERENCIAS AL DOM ---
+    const dom = {
+        inputContainer: document.getElementById('input-container'),
+        calculateButton: document.getElementById('calculateButton'),
+        resultsPanel: document.getElementById('resultsPanel'),
+        resultsGrid: document.getElementById('results-grid'),
+        plotlyContainer: document.getElementById('plotly-container'),
+        precisionSelect: document.getElementById('precisionSelect'),
+        themeSwitcher: document.getElementById('theme-switcher'),
+        modal: document.getElementById('messageModal'),
+        modalCard: document.getElementById('modal-card'),
+        modalTitle: document.getElementById('modalTitle'),
+        modalMessage: document.getElementById('modalMessage'),
+        closeModalButton: document.getElementById('closeModalButton'),
+    };
+
+    // --- FUNCIONES UTILITARIAS ---
+    const toRadians = (deg) => deg * PI / 180;
+    const toDegrees = (rad) => rad * 180 / PI;
+    const formatNumber = (num) => {
+        if (typeof num !== 'number' || isNaN(num)) return 'N/A';
+        const precision = parseInt(dom.precisionSelect.value);
+        return num.toFixed(precision);
+    };
+    const distance = (p1, p2) => Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+    const intersectLines = (p1, p2, p3, p4) => {
+        if (!p1 || !p2 || !p3 || !p4) return null;
+        const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+        if (Math.abs(den) < EPSILON) return null;
+        const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
+        return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+    };
+    const isFinitePoint = (p) => p && isFinite(p.x) && isFinite(p.y);
+    
+    const extendLine = (p1, p2, factor = 10) => {
+        if (!isFinitePoint(p1) || !isFinitePoint(p2)) return { start: p1, end: p2 };
+        const dx = p2.x - p1.x;
+        const dy = p2.y - p1.y;
+        const start = { x: p1.x - dx * factor, y: p1.y - dy * factor };
+        const end = { x: p2.x + dx * factor, y: p2.y + dy * factor };
+        return { start, end };
+    };
+
+    // --- GESTIÓN DEL MODAL ---
+    const showModal = (title, message, isError = false) => {
+        dom.modalTitle.textContent = title;
+        dom.modalMessage.innerHTML = message;
+        dom.modalCard.style.borderColor = isError ? '#f87171' : '#38bdf8';
+        dom.modal.classList.remove('opacity-0', 'pointer-events-none');
+    };
+    dom.closeModalButton.addEventListener('click', () => dom.modal.classList.add('opacity-0', 'pointer-events-none'));
+
+    // --- LÓGICA DE CÁLCULO DEL TRIÁNGULO ---
+    const solveTriangleLogic = (a_in, b_in, c_in, A_in, B_in, C_in) => {
+        let a = a_in, b = b_in, c = c_in, A = A_in, B = B_in, C = C_in;
+        const known = {
+            sides: (a !== undefined) + (b !== undefined) + (c !== undefined),
+            angles: (A !== undefined) + (B !== undefined) + (C !== undefined)
         };
 
-        // Referencias DOM
-        const canvas = document.getElementById('triangleCanvas');
-        const ctx = canvas.getContext('2d');
-        const calculateButton = document.getElementById('calculateButton');
-        const resultsPanel = document.getElementById('resultsPanel');
-        const precisionSelect = document.getElementById('precisionSelect');
-        const modal = document.getElementById('messageModal');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalMessage = document.getElementById('modalMessage');
-        const closeModalButton = document.getElementById('closeModalButton');
-
-        // Funciones utilitarias
-        const toRadians = (degrees) => degrees * PI / 180;
-        const toDegrees = (radians) => radians * 180 / PI;
-        
-        const formatNumber = (num) => {
-            if (typeof num !== 'number' || isNaN(num)) return 'N/A';
-            const precision = parseInt(precisionSelect.value);
-            return num.toFixed(precision);
-        };
-
-        const distance = (p1, p2) => {
-            if (!p1 || !p2) return 0;
-            return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
-        };
-
-        const intersectLines = (p1, p2, p3, p4) => {
-            if (!p1 || !p2 || !p3 || !p4) return null;
-            const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
-            if (Math.abs(den) < EPSILON) return null;
-            const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
-            return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
-        };
-
-        const isFinitePoint = (p) => {
-            return p && isFinite(p.x) && isFinite(p.y);
-        };
-
-        // Gestión de modal
-        const showModal = (title, message, isError = false) => {
-            modalTitle.textContent = title;
-            modalMessage.innerHTML = message;
-            modalTitle.style.color = isError ? '#ff6b6b' : '#4facfe';
-            modal.classList.add('active');
-        };
-
-        closeModalButton.addEventListener('click', () => {
-            modal.classList.remove('active');
-        });
-
-        // Gestión de temas - Con redibujado forzado
-        const themeButtons = document.querySelectorAll('.theme-btn');
-        
-        themeButtons.forEach(btn => {
-            btn.addEventListener('click', () => {
-                themeButtons.forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                document.documentElement.setAttribute('data-theme', btn.dataset.theme);
-                if (currentTriangle) {
-                    // Forzar redibujado completo
-                    setTimeout(() => {
-                        updateLastCalculatedGeometry();
-                        requestAnimationFrame(drawTriangleOnCanvas);
-                    }, 50);
-                }
-            });
-        });
-
-        // Lógica de cálculo
-        const parseTriangleInputs = (inputs) => {
-            let sA_val, sB_val, sC_val, angA_rad, angB_rad, angC_rad;
-            inputs.forEach(input => {
-                switch (input.type) {
-                    case 'sideA': sA_val = input.value; break;
-                    case 'sideB': sB_val = input.value; break;
-                    case 'sideC': sC_val = input.value; break;
-                    case 'angleA': angA_rad = toRadians(input.value); break;
-                    case 'angleB': angB_rad = toRadians(input.value); break;
-                    case 'angleC': angC_rad = toRadians(input.value); break;
-                }
-            });
-            return { sA: sA_val, sB: sB_val, sC: sC_val, angA: angA_rad, angB: angB_rad, angC: angC_rad };
-        };
-
-        const solveTriangleLogic = (a_in, b_in, c_in, A_in, B_in, C_in) => {
-            let a = a_in, b = b_in, c = c_in, A = A_in, B = B_in, C = C_in;
-            
-            const known = {
-                sides: (a !== undefined) + (b !== undefined) + (c !== undefined),
-                angles: (A !== undefined) + (B !== undefined) + (C !== undefined)
-            };
-
-            // Caso: 2 ángulos conocidos
-            if (known.angles === 2) {
-                if (A === undefined) A = PI - B - C;
-                else if (B === undefined) B = PI - A - C;
-                else C = PI - A - B;
-
-                if (A <= EPSILON || B <= EPSILON || C <= EPSILON || 
-                    A >= PI - EPSILON || B >= PI - EPSILON || C >= PI - EPSILON) {
-                    throw new Error("Los ángulos no forman un triángulo válido.");
-                }
-
-                if (known.sides === 1) {
-                    if (Math.sin(A) < EPSILON || Math.sin(B) < EPSILON || Math.sin(C) < EPSILON) {
-                        throw new Error("División por seno de cero en Ley de Senos.");
-                    }
-                    
-                    if (a !== undefined) {
-                        b = a * Math.sin(B) / Math.sin(A);
-                        c = a * Math.sin(C) / Math.sin(A);
-                    } else if (b !== undefined) {
-                        a = b * Math.sin(A) / Math.sin(B);
-                        c = b * Math.sin(C) / Math.sin(B);
-                    } else {
-                        a = c * Math.sin(A) / Math.sin(C);
-                        b = c * Math.sin(B) / Math.sin(C);
-                    }
-                }
+        if (known.angles === 2) {
+            if (A === undefined) A = PI - B - C; else if (B === undefined) B = PI - A - C; else C = PI - A - B;
+            if (A <= EPSILON || B <= EPSILON || C <= EPSILON) throw new Error("Los ángulos no forman un triángulo válido.");
+            if (known.sides === 1) {
+                if (Math.sin(A) < EPSILON || Math.sin(B) < EPSILON || Math.sin(C) < EPSILON) throw new Error("División por seno de cero.");
+                if (a !== undefined) { b = a * Math.sin(B) / Math.sin(A); c = a * Math.sin(C) / Math.sin(A); } 
+                else if (b !== undefined) { a = b * Math.sin(A) / Math.sin(B); c = b * Math.sin(C) / Math.sin(B); } 
+                else { a = c * Math.sin(A) / Math.sin(C); b = c * Math.sin(B) / Math.sin(C); }
             }
-            // Caso: 3 lados conocidos (SSS)
-            else if (known.sides === 3) {
-                if (a + b <= c + EPSILON || a + c <= b + EPSILON || b + c <= a + EPSILON) {
-                    throw new Error("Desigualdad triangular no cumplida (SSS).");
-                }
-                
-                const cosA_val = (b * b + c * c - a * a) / (2 * b * c);
-                const cosB_val = (a * a + c * c - b * b) / (2 * a * c);
-                
-                A = Math.acos(Math.max(-1, Math.min(1, cosA_val)));
-                B = Math.acos(Math.max(-1, Math.min(1, cosB_val)));
-                C = PI - A - B;
-            }
-            // Caso: 2 lados y 1 ángulo (SAS o SSA)
-            else if (known.sides === 2 && known.angles === 1) {
-                // SAS cases
-                if (A !== undefined && b !== undefined && c !== undefined) {
-                    a = Math.sqrt(b * b + c * c - 2 * b * c * Math.cos(A));
-                    const sinB_val = b * Math.sin(A) / a;
-                    B = Math.asin(Math.max(-1, Math.min(1, sinB_val)));
-                    C = PI - A - B;
-                } else if (B !== undefined && a !== undefined && c !== undefined) {
-                    b = Math.sqrt(a * a + c * c - 2 * a * c * Math.cos(B));
-                    const sinA_val = a * Math.sin(B) / b;
-                    A = Math.asin(Math.max(-1, Math.min(1, sinA_val)));
-                    C = PI - B - A;
-                } else if (C !== undefined && a !== undefined && b !== undefined) {
-                    c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(C));
-                    const sinA_val = a * Math.sin(C) / c;
-                    A = Math.asin(Math.max(-1, Math.min(1, sinA_val)));
-                    B = PI - C - A;
-                } else {
-                    // SSA case
-                    let knownAngle, oppositeSide, adjacentSide;
-                    
-                    if (A !== undefined && a !== undefined) {
-                        knownAngle = A;
-                        oppositeSide = a;
-                        adjacentSide = b !== undefined ? b : c;
-                    } else if (B !== undefined && b !== undefined) {
-                        knownAngle = B;
-                        oppositeSide = b;
-                        adjacentSide = a !== undefined ? a : c;
-                    } else if (C !== undefined && c !== undefined) {
-                        knownAngle = C;
-                        oppositeSide = c;
-                        adjacentSide = a !== undefined ? a : b;
-                    }
-                    
-                    const sinAdjacentAngle = adjacentSide * Math.sin(knownAngle) / oppositeSide;
-                    
-                    if (sinAdjacentAngle > 1 + EPSILON) {
-                        throw new Error("No hay solución en caso SSA.");
-                    }
-                    
-                    const adjacentAngle = Math.asin(Math.max(-1, Math.min(1, sinAdjacentAngle)));
-                    const remainingAngle = PI - knownAngle - adjacentAngle;
-                    const remainingSide = oppositeSide * Math.sin(remainingAngle) / Math.sin(knownAngle);
-                    
-                    // Asignar valores calculados
-                    if (A !== undefined && a !== undefined) {
-                        if (b !== undefined) {
-                            B = adjacentAngle;
-                            C = remainingAngle;
-                            c = remainingSide;
-                        } else {
-                            C = adjacentAngle;
-                            B = remainingAngle;
-                            b = remainingSide;
-                        }
-                    } else if (B !== undefined && b !== undefined) {
-                        if (a !== undefined) {
-                            A = adjacentAngle;
-                            C = remainingAngle;
-                            c = remainingSide;
-                        } else {
-                            C = adjacentAngle;
-                            A = remainingAngle;
-                            a = remainingSide;
-                        }
-                    } else if (C !== undefined && c !== undefined) {
-                        if (a !== undefined) {
-                            A = adjacentAngle;
-                            B = remainingAngle;
-                            b = remainingSide;
-                        } else {
-                            B = adjacentAngle;
-                            A = remainingAngle;
-                            a = remainingSide;
-                        }
-                    }
-                }
+        } else if (known.sides === 3) {
+            if (a + b <= c + EPSILON || a + c <= b + EPSILON || b + c <= a + EPSILON) throw new Error("Desigualdad triangular no cumplida (SSS).");
+            A = Math.acos(Math.max(-1, Math.min(1, (b * b + c * c - a * a) / (2 * b * c))));
+            B = Math.acos(Math.max(-1, Math.min(1, (a * a + c * c - b * b) / (2 * a * c))));
+            C = PI - A - B;
+        } else if (known.sides === 2 && known.angles === 1) {
+            if (A !== undefined && b !== undefined && c !== undefined) {
+                a = Math.sqrt(b * b + c * c - 2 * b * c * Math.cos(A)); B = Math.asin(Math.max(-1, Math.min(1, b * Math.sin(A) / a))); C = PI - A - B;
+            } else if (B !== undefined && a !== undefined && c !== undefined) {
+                b = Math.sqrt(a * a + c * c - 2 * a * c * Math.cos(B)); A = Math.asin(Math.max(-1, Math.min(1, a * Math.sin(B) / b))); C = PI - B - A;
+            } else if (C !== undefined && a !== undefined && b !== undefined) {
+                c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(C)); A = Math.asin(Math.max(-1, Math.min(1, a * Math.sin(C) / c))); B = PI - C - A;
             } else {
-                throw new Error("Datos insuficientes para resolver el triángulo.");
+                let kA, oS, aS;
+                if (A !== undefined && a !== undefined) { kA = A; oS = a; aS = b !== undefined ? b : c; } 
+                else if (B !== undefined && b !== undefined) { kA = B; oS = b; aS = a !== undefined ? a : c; } 
+                else { kA = C; oS = c; aS = a !== undefined ? a : b; }
+                const sinAdjA = aS * Math.sin(kA) / oS;
+                if (sinAdjA > 1 + EPSILON) throw new Error("No hay solución en caso SSA (lado opuesto muy corto).");
+                const adjA = Math.asin(Math.max(-1, Math.min(1, sinAdjA)));
+                const remA = PI - kA - adjA;
+                const remS = oS * Math.sin(remA) / Math.sin(kA);
+                if (A !== undefined && a !== undefined) { if (b !== undefined) { B = adjA; C = remA; c = remS; } else { C = adjA; B = remA; b = remS; } } 
+                else if (B !== undefined && b !== undefined) { if (a !== undefined) { A = adjA; C = remA; c = remS; } else { C = adjA; A = remA; a = remS; } } 
+                else { if (a !== undefined) { A = adjA; B = remA; b = remS; } else { B = adjA; A = remA; a = remS; } }
             }
+        } else { throw new Error("Datos insuficientes para resolver el triángulo."); }
 
-            // Validación final
-            if (a <= EPSILON || b <= EPSILON || c <= EPSILON || 
-                A <= EPSILON || B <= EPSILON || C <= EPSILON ||
-                A >= PI - EPSILON || B >= PI - EPSILON || C >= PI - EPSILON) {
-                throw new Error("Resultado inválido: valores fuera de rango.");
-            }
+        if (a <= EPSILON || b <= EPSILON || c <= EPSILON || A <= EPSILON || B <= EPSILON || C <= EPSILON || Math.abs(A + B + C - PI) > 1e-5) {
+            throw new Error("Resultado inválido. Los valores no forman un triángulo real.");
+        }
+        return { a, b, c, A_rad: A, B_rad: B, C_rad: C };
+    };
 
-            if (Math.abs(A + B + C - PI) > 1e-5) {
-                throw new Error(`Los ángulos no suman 180°. Suma: ${toDegrees(A + B + C).toFixed(1)}°`);
-            }
+    // --- CÁLCULO DE ELEMENTOS GEOMÉTRICOS ---
+    const calculateSpecialGeometricElements = () => {
+        if (!currentTriangle) return;
+        const { a, b, c, A_rad } = currentTriangle;
+        const vertices = { pA: { x: 0, y: 0 }, pB: { x: c, y: 0 }, pC: { x: b * Math.cos(A_rad), y: b * Math.sin(A_rad) } };
+        calculatedElements.vertices = vertices;
+        const { pA, pB, pC } = vertices;
+        const perimeter = a + b + c;
+        const s = perimeter / 2;
+        const area = Math.sqrt(Math.max(0, s * (s - a) * (s - b) * (s - c)));
 
-            return { a, b, c, A_rad: A, B_rad: B, C_rad: C };
+        calculatedElements.midpoints = {
+            midAB: { x: (pA.x + pB.x) / 2, y: (pA.y + pB.y) / 2 },
+            midBC: { x: (pB.x + pC.x) / 2, y: (pB.y + pC.y) / 2 },
+            midCA: { x: (pC.x + pA.x) / 2, y: (pC.y + pA.y) / 2 }
+        };
+        calculatedElements.centroid = { x: (pA.x + pB.x + pC.x) / 3, y: (pA.y + pB.y + pC.y) / 3 };
+        calculatedElements.incenter = { x: (a * pA.x + b * pB.x + c * pC.x) / perimeter, y: (a * pA.y + b * pB.y + c * pC.y) / perimeter };
+        calculatedElements.inradius = (2 * area) / perimeter;
+        
+        const D = 2 * (pA.x * (pB.y - pC.y) + pB.x * (pC.y - pA.y) + pC.x * (pA.y - pB.y));
+        calculatedElements.circumcenter = Math.abs(D) < EPSILON ? null : {
+            x: ((pA.x*pA.x + pA.y*pA.y) * (pB.y - pC.y) + (pB.x*pB.x + pB.y*pB.y) * (pC.y - pA.y) + (pC.x*pC.x + pC.y*pC.y) * (pA.y - pB.y)) / D,
+            y: ((pA.x*pA.x + pA.y*pA.y) * (pC.x - pB.x) + (pB.x*pB.x + pB.y*pB.y) * (pA.x - pC.x) + (pC.x*pC.x + pC.y*pC.y) * (pB.x - pA.x)) / D
+        };
+        calculatedElements.circumradius = calculatedElements.circumcenter ? distance(calculatedElements.circumcenter, pA) : 0;
+        
+        const altA_foot = intersectLines(pB, pC, pA, {x: pA.x + pC.y - pB.y, y: pA.y + pB.x - pC.x});
+        const altB_foot = intersectLines(pA, pC, pB, {x: pB.x + pC.y - pA.y, y: pB.y + pA.x - pC.x});
+        calculatedElements.altitudes = [{p1:pA, p2:altA_foot}, {p1:pB, p2:altB_foot}];
+        calculatedElements.orthocenter = intersectLines(pA, altA_foot, pB, altB_foot);
+    };
+
+    // --- LÓGICA DE DIBUJO CON PLOTLY ---
+    const drawTriangleWithPlotly = () => {
+        if (!currentTriangle) {
+            Plotly.purge(dom.plotlyContainer);
+            return;
+        }
+        
+        const { a, b, c, A_rad, B_rad, C_rad } = currentTriangle;
+        const { vertices, midpoints, centroid, orthocenter, incenter, circumcenter, inradius, circumradius, altitudes } = calculatedElements;
+        const { pA, pB, pC } = vertices;
+
+        let traces = [];
+        let annotations = [];
+        
+        const colors = {
+            triangleFill: 'rgba(56, 189, 248, 0.2)', triangleLine: 'rgb(56, 189, 248)',
+            median: '#ef4444', altitude: '#10b981', angleBisector: '#8b5cf6', perpBisector: '#eab308',
+            centroid: '#f59e0b', orthocenter: '#ec4899', incenter: '#3b82f6', circumcenter: '#a855f7',
+            inscribedCircle: '#06b6d4', circumscribedCircle: '#c084fc', text: '#f1f5f9',
+            angleArcA: 'rgb(245, 158, 11)', // amber-500
+            angleArcB: 'rgb(239, 68, 68)',  // red-500
+            angleArcC: 'rgb(99, 102, 241)',  // indigo-500
+            eulerLine: 'rgb(226, 232, 240)' // slate-200
         };
 
-        // Cálculo de elementos geométricos
-        const calculateSpecialGeometricElements = () => {
-            if (!currentTriangle) return;
-            
-            const { a, b, c, A_rad, B_rad, C_rad } = currentTriangle;
-            
-            // Vértices del triángulo
-            const vertices = {
-                pA: { x: 0, y: 0 },
-                pB: { x: c, y: 0 },
-                pC: { x: b * Math.cos(A_rad), y: b * Math.sin(A_rad) }
+        if (!currentPlotRange) {
+            const allX = [pA.x, pB.x, pC.x];
+            const allY = [pA.y, pB.y, pC.y];
+            const minX = Math.min(...allX);
+            const maxX = Math.max(...allX);
+            const minY = Math.min(...allY);
+            const maxY = Math.max(...allY);
+            const paddingX = (maxX - minX) * 0.25;
+            const paddingY = (maxY - minY) * 0.25;
+
+            currentPlotRange = {
+                x: [minX - paddingX, maxX + paddingX],
+                y: [minY - paddingY, maxY + paddingY]
             };
-            calculatedElements.vertices = vertices;
-            
-            const { pA, pB, pC } = vertices;
+        }
 
-            // Puntos medios
-            calculatedElements.midpoints = {
-                midAB: { x: (pA.x + pB.x) / 2, y: (pA.y + pB.y) / 2 },
-                midBC: { x: (pB.x + pC.x) / 2, y: (pB.y + pC.y) / 2 },
-                midCA: { x: (pC.x + pA.x) / 2, y: (pC.y + pA.y) / 2 }
-            };
-
-            // Medianas
-            calculatedElements.medians = [
-                { p1: pA, p2: calculatedElements.midpoints.midBC },
-                { p1: pB, p2: calculatedElements.midpoints.midCA },
-                { p1: pC, p2: calculatedElements.midpoints.midAB }
-            ];
-
-            // Baricentro
-            calculatedElements.centroid = {
-                x: (pA.x + pB.x + pC.x) / 3,
-                y: (pA.y + pB.y + pC.y) / 3
-            };
-
-            // Incentro y radio inscrito
-            const perimeter = a + b + c;
-            if (perimeter > EPSILON) {
-                calculatedElements.incenter = {
-                    x: (a * pA.x + b * pB.x + c * pC.x) / perimeter,
-                    y: (a * pA.y + b * pB.y + c * pC.y) / perimeter
-                };
-                
-                const s = perimeter / 2;
-                const area = Math.sqrt(Math.max(0, s * (s - a) * (s - b) * (s - c)));
-                calculatedElements.inradius = (2 * area) / perimeter;
-
-                // Bisectrices de ángulos
-                calculatedElements.angleBisectors = [
-                    { p1: pA, p2: calculatedElements.incenter },
-                    { p1: pB, p2: calculatedElements.incenter },
-                    { p1: pC, p2: calculatedElements.incenter }
-                ];
+        const createAngleArcTrace = (vertex, p_start_leg, p_end_leg, radius, color, visible) => {
+            if (!isFinitePoint(vertex) || !isFinitePoint(p_start_leg) || !isFinitePoint(p_end_leg) || !isFinite(radius) || radius <= 0) {
+                return null;
             }
 
-            // Alturas
-            const calculateAltitude = (vertex, sideP1, sideP2) => {
-                const A_line = sideP2.y - sideP1.y;
-                const B_line = sideP1.x - sideP2.x;
-                const C_line = sideP2.x * sideP1.y - sideP1.x * sideP2.y;
-                
-                const denominator = A_line * A_line + B_line * B_line;
-                if (denominator < EPSILON) return { p1: vertex, p2: sideP1 };
-                
-                const foot_x = (B_line * (B_line * vertex.x - A_line * vertex.y) - A_line * C_line) / denominator;
-                const foot_y = (A_line * (-B_line * vertex.x + A_line * vertex.y) - B_line * C_line) / denominator;
-                
-                return { p1: vertex, p2: { x: foot_x, y: foot_y } };
-            };
+            const v_start = { x: p_start_leg.x - vertex.x, y: p_start_leg.y - vertex.y };
+            const v_end = { x: p_end_leg.x - vertex.x, y: p_end_leg.y - vertex.y };
 
-            calculatedElements.altitudes = [
-                calculateAltitude(pA, pB, pC),
-                calculateAltitude(pB, pC, pA),
-                calculateAltitude(pC, pA, pB)
-            ];
+            const angle_start = Math.atan2(v_start.y, v_start.x);
+            
+            const dot = v_start.x * v_end.x + v_start.y * v_end.y;
+            const mag_start = Math.sqrt(v_start.x**2 + v_start.y**2);
+            const mag_end = Math.sqrt(v_end.x**2 + v_end.y**2);
+            const internal_angle_rad = Math.acos(dot / (mag_start * mag_end));
 
-            // Ortocentro
-            if (calculatedElements.altitudes.length >= 2) {
-                calculatedElements.orthocenter = intersectLines(
-                    calculatedElements.altitudes[0].p1, calculatedElements.altitudes[0].p2,
-                    calculatedElements.altitudes[1].p1, calculatedElements.altitudes[1].p2
-                );
+            const cross_product_z = v_start.x * v_end.y - v_start.y * v_end.x;
+            const sweep_direction = Math.sign(cross_product_z);
+
+            const num_points = 20;
+            const arc_angles = [];
+            for (let i = 0; i <= num_points; i++) {
+                const angle = angle_start + (sweep_direction * internal_angle_rad * i) / num_points;
+                arc_angles.push(angle);
             }
 
-            // Circuncentro y radio circunscrito
-            const calculateCircumcenter = (p1, p2, p3) => {
-                const D = 2 * (p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y));
-                if (Math.abs(D) < EPSILON) return null;
+            const arc_x = arc_angles.map(a => vertex.x + radius * Math.cos(a));
+            const arc_y = arc_angles.map(a => vertex.y + radius * Math.sin(a));
 
-                const p1_sq = p1.x * p1.x + p1.y * p1.y;
-                const p2_sq = p2.x * p2.x + p2.y * p2.y;
-                const p3_sq = p3.x * p3.x + p3.y * p3.y;
-
-                const ux = (p1_sq * (p2.y - p3.y) + p2_sq * (p3.y - p1.y) + p3_sq * (p1.y - p2.y)) / D;
-                const uy = (p1_sq * (p3.x - p2.x) + p2_sq * (p1.x - p3.x) + p3_sq * (p2.x - p1.x)) / D;
-                
-                return { x: ux, y: uy };
+            return {
+                x: arc_x,
+                y: arc_y,
+                mode: 'lines',
+                line: { color: color, width: 2.5 },
+                hoverinfo: 'none',
+                showlegend: false,
+                visible: visible
             };
+        }
+        
+        if (drawOptions.angles) {
+            const arcRadius = Math.min(a, b, c) * 0.23;
+            traces.push(createAngleArcTrace(pA, pB, pC, arcRadius, colors.angleArcA, drawOptions.angles));
+            traces.push(createAngleArcTrace(pB, pC, pA, arcRadius, colors.angleArcB, drawOptions.angles));
+            traces.push(createAngleArcTrace(pC, pA, pB, arcRadius, colors.angleArcC, drawOptions.angles));
+        }
 
-            calculatedElements.circumcenter = calculateCircumcenter(pA, pB, pC);
-            if (calculatedElements.circumcenter && isFinitePoint(calculatedElements.circumcenter)) {
-                calculatedElements.circumradius = distance(calculatedElements.circumcenter, pA);
-            }
+        const createCircleTrace = (center, radius, color, name, visible) => {
+            if (!isFinitePoint(center) || !radius || radius < EPSILON) return null;
+            const theta = Array.from({length: 101}, (_, i) => 2 * PI * i / 100);
+            return { x: theta.map(t => center.x + radius * Math.cos(t)), y: theta.map(t => center.y + radius * Math.sin(t)), mode: 'lines', name, visible, line: { color, width: 2, dash: 'dash' }, hoverinfo: 'none' };
+        };
 
-            // Mediatrices
-            const getPerpendicularLine = (sideP1, sideP2, midPt, extension = 100) => {
-                const dx_side = sideP2.x - sideP1.x;
-                const dy_side = sideP2.y - sideP1.y;
-                const length_side = Math.sqrt(dx_side * dx_side + dy_side * dy_side);
+        traces.push({ x: [pA.x, pB.x, pC.x, pA.x], y: [pA.y, pB.y, pC.y, pA.y], type: 'scatter', mode: 'lines', name: 'Triángulo', fill: 'toself', fillcolor: colors.triangleFill, line: { color: colors.triangleLine, width: 3 }, hoverinfo: 'none' });
+        
+        const addExtendedLineTrace = (p1, p2, name, color, visible) => {
+            if (!isFinitePoint(p1) || !isFinitePoint(p2)) return;
+            const line = extendLine(p1, p2);
+            traces.push({ x: [line.start.x, line.end.x], y: [line.start.y, line.end.y], mode: 'lines', name, visible, line: { color, width: 2, dash: 'dot' }, hoverinfo: 'none' });
+        };
+        
+        addExtendedLineTrace(pA, midpoints.midBC, 'Mediana A', colors.median, drawOptions.medians);
+        addExtendedLineTrace(pB, midpoints.midCA, 'Mediana B', colors.median, drawOptions.medians);
+        addExtendedLineTrace(pC, midpoints.midAB, 'Mediana C', colors.median, drawOptions.medians);
+        addExtendedLineTrace(pA, altitudes[0].p2, 'Altura A', colors.altitude, drawOptions.altitudes);
+        addExtendedLineTrace(pB, altitudes[1].p2, 'Altura B', colors.altitude, drawOptions.altitudes);
+        addExtendedLineTrace(pA, incenter, 'Bisectriz A', colors.angleBisector, drawOptions.angleBisectors);
+        addExtendedLineTrace(pB, incenter, 'Bisectriz B', colors.angleBisector, drawOptions.angleBisectors);
+        addExtendedLineTrace(pC, incenter, 'Bisectriz C', colors.angleBisector, drawOptions.angleBisectors);
+        addExtendedLineTrace(midpoints.midAB, circumcenter, 'Mediatriz AB', colors.perpBisector, drawOptions.perpBisectors);
+        addExtendedLineTrace(midpoints.midBC, circumcenter, 'Mediatriz BC', colors.perpBisector, drawOptions.perpBisectors);
+        addExtendedLineTrace(midpoints.midCA, circumcenter, 'Mediatriz CA', colors.perpBisector, drawOptions.perpBisectors);
+        
+        addExtendedLineTrace(orthocenter, circumcenter, 'Recta de Euler', colors.eulerLine, drawOptions.eulerLine);
 
-                if (length_side < EPSILON) {
-                    return { p1: { x: midPt.x - extension, y: midPt.y }, p2: { x: midPt.x + extension, y: midPt.y }};
+        traces.push(createCircleTrace(incenter, inradius, colors.inscribedCircle, 'Círculo Inscrito', drawOptions.inscribedCircle));
+        traces.push(createCircleTrace(circumcenter, circumradius, colors.circumscribedCircle, 'Círculo Circunscrito', drawOptions.circumscribedCircle));
+
+        const createPointTrace = (p, name, color, visible) => isFinitePoint(p) ? { x: [p.x], y: [p.y], mode: 'markers', name, visible, marker: { color, size: 12, symbol: 'diamond' }, hoverinfo: 'x+y+name' } : null;
+        traces.push(createPointTrace(centroid, 'Baricentro (G)', colors.centroid, drawOptions.centroid));
+        traces.push(createPointTrace(orthocenter, 'Ortocentro (H)', colors.orthocenter, drawOptions.orthocenter));
+        traces.push(createPointTrace(incenter, 'Incentro (I)', colors.incenter, drawOptions.incenter));
+        traces.push(createPointTrace(circumcenter, 'Circuncentro (O)', colors.circumcenter, drawOptions.circumcenter));
+        
+        if (drawOptions.labels) {
+            const labelOffset = Math.max(a,b,c) * 0.08;
+            annotations.push({ x: pA.x, y: pA.y, text: 'A', showarrow: true, arrowhead: 0, ax: -labelOffset, ay: -labelOffset, font: { color: colors.text, size: 16 } });
+            annotations.push({ x: pB.x, y: pB.y, text: 'B', showarrow: true, arrowhead: 0, ax: labelOffset, ay: -labelOffset, font: { color: colors.text, size: 16 } });
+            annotations.push({ x: pC.x, y: pC.y, text: 'C', showarrow: true, arrowhead: 0, ax: 0, ay: labelOffset, font: { color: colors.text, size: 16 } });
+            annotations.push({ x: midpoints.midBC.x, y: midpoints.midBC.y, text: `a=${formatNumber(a)}`, showarrow: false, xanchor: 'left', font: { color: colors.text } });
+            annotations.push({ x: midpoints.midCA.x, y: midpoints.midCA.y, text: `b=${formatNumber(b)}`, showarrow: false, xanchor: 'right', font: { color: colors.text } });
+            annotations.push({ x: midpoints.midAB.x, y: midpoints.midAB.y, text: `c=${formatNumber(c)}`, showarrow: false, yanchor: 'top', ay: -5, font: { color: colors.text } });
+        }
+        
+        // FIX: Reworked angle label positioning to be robust and closer to the arcs.
+        if (drawOptions.angles) {
+            const angleLabelRadius = Math.min(a, b, c) * 0.3; // Adjusted radius for labels
+
+            const getAngleLabelPosition = (vertex, p1, p2, radius) => {
+                const v1 = { x: p1.x - vertex.x, y: p1.y - vertex.y };
+                const v2 = { x: p2.x - vertex.x, y: p2.y - vertex.y };
+
+                const mag1 = Math.sqrt(v1.x**2 + v1.y**2);
+                const mag2 = Math.sqrt(v2.x**2 + v2.y**2);
+
+                if (mag1 === 0 || mag2 === 0) return vertex;
+
+                const nv1 = { x: v1.x / mag1, y: v1.y / mag1 };
+                const nv2 = { x: v2.x / mag2, y: v2.y / mag2 };
+
+                const bisector = { x: nv1.x + nv2.x, y: nv1.y + nv2.y };
+                const mag_bisector = Math.sqrt(bisector.x**2 + bisector.y**2);
+                
+                if (mag_bisector === 0) return vertex;
+
+                const n_bisector = { x: bisector.x / mag_bisector, y: bisector.y / mag_bisector };
+                
+                const cross_product_z = v1.x * v2.y - v1.y * v2.x;
+                if (cross_product_z < 0) {
+                    n_bisector.x *= -1;
+                    n_bisector.y *= -1;
                 }
-
-                const perpX_unit = -dy_side / length_side;
-                const perpY_unit = dx_side / length_side;
-
+                
                 return {
-                    p1: { x: midPt.x - perpX_unit * extension, y: midPt.y - perpY_unit * extension },
-                    p2: { x: midPt.x + perpX_unit * extension, y: midPt.y + perpY_unit * extension }
+                    x: vertex.x + n_bisector.x * radius,
+                    y: vertex.y + n_bisector.y * radius
                 };
             };
 
-            calculatedElements.perpBisectorsData = [
-                getPerpendicularLine(pA, pB, calculatedElements.midpoints.midAB),
-                getPerpendicularLine(pB, pC, calculatedElements.midpoints.midBC),
-                getPerpendicularLine(pC, pA, calculatedElements.midpoints.midCA)
-            ];
-        };
-
-        // Función de actualización de geometría
-        const updateLastCalculatedGeometry = () => {
-            if (!currentTriangle || !calculatedElements.vertices) {
-                lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 };
-                return;
-            }
-
-            const { pA, pB, pC } = calculatedElements.vertices;
-            let allPoints = [pA, pB, pC];
-
-            // Agregar puntos especiales si están visibles
-            if (drawOptions.centroid && isFinitePoint(calculatedElements.centroid)) 
-                allPoints.push(calculatedElements.centroid);
-            if (drawOptions.orthocenter && isFinitePoint(calculatedElements.orthocenter)) 
-                allPoints.push(calculatedElements.orthocenter);
-            if (drawOptions.incenter && isFinitePoint(calculatedElements.incenter)) 
-                allPoints.push(calculatedElements.incenter);
-            if (drawOptions.circumcenter && isFinitePoint(calculatedElements.circumcenter)) 
-                allPoints.push(calculatedElements.circumcenter);
-
-            allPoints = allPoints.filter(pt => pt && isFinitePoint(pt));
-
-            if (allPoints.length === 0) {
-                lastCalculatedGeometry = { minX: 0, minY: 0, width: 0, height: 0, scaleToFit: 1 };
-                return;
-            }
-
-            const minX = Math.min(...allPoints.map(p => p.x));
-            const maxX = Math.max(...allPoints.map(p => p.x));
-            const minY = Math.min(...allPoints.map(p => p.y));
-            const maxY = Math.max(...allPoints.map(p => p.y));
-
-            const triWidth = maxX - minX;
-            const triHeight = maxY - minY;
-            const padding = 50;
-            const canvasRect = canvas.getBoundingClientRect();
-            const canvasDrawableWidth = canvasRect.width - 2 * padding;
-            const canvasDrawableHeight = canvasRect.height - 2 * padding;
-
-            let scaleToFitValue = 1;
-            if (triWidth > EPSILON && triHeight > EPSILON && canvasDrawableWidth > 0 && canvasDrawableHeight > 0) {
-                scaleToFitValue = Math.min(canvasDrawableWidth / triWidth, canvasDrawableHeight / triHeight) * 0.8;
-            }
-
-            if (!isFinite(scaleToFitValue) || scaleToFitValue <= EPSILON) {
-                scaleToFitValue = 1;
-            }
-
-            lastCalculatedGeometry = { minX, minY, width: triWidth, height: triHeight, scaleToFit: scaleToFitValue };
-        };
-
-        // Función de dibujo principal
-        const drawTriangleOnCanvas = () => {
-            if (!currentTriangle || !calculatedElements.vertices) return;
-
-            const { a, b, c, A_rad, B_rad, C_rad } = currentTriangle;
-            const { vertices, midpoints, medians, centroid, altitudes, orthocenter,
-                    angleBisectors, incenter, inradius, perpBisectorsData, circumcenter, circumradius } = calculatedElements;
-
-            if (!vertices || !vertices.pA || !vertices.pB || !vertices.pC) return;
-
-            const pA = vertices.pA, pB = vertices.pB, pC = vertices.pC;
-
-            // Configuración del canvas
-            const dpr = window.devicePixelRatio || 1;
-            const rect = canvas.getBoundingClientRect();
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-
-            ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg-primary') || '#0f0f23';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.save();
-            ctx.scale(dpr, dpr);
-
-            // Configuración de escalado y centrado
-            const { minX, minY, width: triWidth, height: triHeight, scaleToFit } = lastCalculatedGeometry;
-            
-            let currentDisplayScale = scaleToFit * scaleFactor;
-            if (!isFinite(currentDisplayScale) || currentDisplayScale <= EPSILON) {
-                currentDisplayScale = 1;
-            }
-
-            const triangleCenterX = minX + triWidth / 2;
-            const triangleCenterY = minY + triHeight / 2;
-
-            ctx.translate(rect.width / 2 + panOffset.x, rect.height / 2 + panOffset.y);
-            ctx.scale(currentDisplayScale, currentDisplayScale);
-            ctx.translate(-triangleCenterX, -triangleCenterY);
-
-            // Tamaños adaptativos
-            const triangleSize = Math.max(a, b, c, triWidth > EPSILON ? triWidth : 1, triHeight > EPSILON ? triHeight : 1);
-            const baseLineWidth = Math.max(1.5 / currentDisplayScale, triangleSize * 0.008);
-            const thinLineWidth = Math.max(1.0 / currentDisplayScale, triangleSize * 0.005);
-            const pointRadius = Math.max(2.0 / currentDisplayScale, triangleSize * 0.015);
-            const specialPointRadius = Math.max(3.0 / currentDisplayScale, triangleSize * 0.025);
-            const angleArcRadius = Math.max(8.0 / currentDisplayScale, triangleSize * 0.08);
-
-            // Configuración de fuentes - Mucho más pequeñas
-            const labelFontSize = Math.max(7 / currentDisplayScale, triangleSize * 0.04);
-            const vtxLabelOffset = labelFontSize * 0.8; // Muy pegados a los vértices
-            const sideLabelDist = labelFontSize * 2.5;
-            const angleLabelOffset = labelFontSize * 1.8;
-
-            // Colores elegantes y profesionales
-            const colors = {
-                triangleStroke: '#f8fafc',
-                triangleFill: 'rgba(59, 130, 246, 0.15)',
-                grid: 'rgba(148, 163, 184, 0.3)',
-                label: '#f8fafc',
-                median: '#ef4444',
-                altitude: '#10b981',
-                angleBisector: '#8b5cf6',
-                perpBisector: '#06b6d4',
-                centroid: '#f59e0b',
-                orthocenter: '#ec4899',
-                incenter: '#3b82f6',
-                circumcenter: '#8b5cf6',
-                inscribedCircle: '#06b6d4',
-                circumscribedCircle: '#a855f7',
-                angleArcs: ['#f59e0b', '#ef4444', '#3b82f6']
-            };
-
-            // Función de dibujo de líneas
-            const drawLine = (p1, p2, color, lineWidth = thinLineWidth, dash = [], extendFactor = 1, opacity = 1.0) => {
-                if (!p1 || !p2 || !isFinitePoint(p1) || !isFinitePoint(p2)) return;
-
-                let p1e = { ...p1 }, p2e = { ...p2 };
-
-                if (extendFactor > 1.0 + EPSILON) {
-                    const dx = p2.x - p1.x;
-                    const dy = p2.y - p1.y;
-                    const length = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (length > EPSILON) {
-                        const extension = (length * (extendFactor - 1.0)) / 2;
-                        const ux = dx / length;
-                        const uy = dy / length;
-                        
-                        p1e = { x: p1.x - ux * extension, y: p1.y - uy * extension };
-                        p2e = { x: p2.x + ux * extension, y: p2.y + uy * extension };
-                    }
-                }
-
-                const originalAlpha = ctx.globalAlpha;
-                ctx.globalAlpha = opacity;
-
-                ctx.beginPath();
-                ctx.moveTo(p1e.x, p1e.y);
-                ctx.lineTo(p2e.x, p2e.y);
-                ctx.strokeStyle = color;
-                ctx.lineWidth = lineWidth;
-                
-                if (dash.length > 0) {
-                    const scaledDash = dash.map(d => d / currentDisplayScale);
-                    ctx.setLineDash(scaledDash);
-                }
-                
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.globalAlpha = originalAlpha;
-            };
-
-            // Función de dibujo de puntos mejorada
-            const drawPoint = (p, color, radius = pointRadius, label = null, emphasis = false) => {
-                if (!p || !isFinitePoint(p)) return;
-
-                const actualRadius = emphasis ? specialPointRadius : radius;
-
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, actualRadius, 0, 2 * PI);
-                ctx.fillStyle = color;
-                ctx.fill();
-
-                if (emphasis) {
-                    ctx.strokeStyle = '#ffffff';
-                    ctx.lineWidth = thinLineWidth;
-                    ctx.stroke();
-                }
-
-                if (label && drawOptions.labels) {
-                    const metrics = ctx.measureText(label);
-                    const padding = labelFontSize * 0.3;
-                    const labelX = p.x;
-                    const labelY = p.y - actualRadius - labelFontSize * 0.5;
-                    
-                    // Configurar fuente antes de dibujar
-                    ctx.font = `bold ${labelFontSize * 0.9}px Inter`;
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "top";
-                    
-                    // Dibujar fondo
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.fillRect(
-                        labelX - metrics.width/2 - padding,
-                        labelY - labelFontSize * 0.9 - padding,
-                        metrics.width + 2 * padding,
-                        labelFontSize * 0.9 + 2 * padding
-                    );
-
-                    // Dibujar texto
-                    ctx.fillStyle = colors.label;
-                    ctx.fillText(label, labelX, labelY);
-                }
-            };
-
-            // Función de dibujo de círculos
-            const drawCircle = (center, radius, color, lineWidth = thinLineWidth, dash = [8, 4], opacity = 0.8) => {
-                if (!center || !isFinitePoint(center) || !radius || radius < EPSILON) return;
-
-                const originalAlpha = ctx.globalAlpha;
-                ctx.globalAlpha = opacity;
-
-                ctx.beginPath();
-                ctx.arc(center.x, center.y, radius, 0, 2 * PI);
-                ctx.strokeStyle = color;
-                ctx.lineWidth = lineWidth;
-                
-                if (dash.length > 0) {
-                    const scaledDash = dash.map(d => d / currentDisplayScale);
-                    ctx.setLineDash(scaledDash);
-                }
-                
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.globalAlpha = originalAlpha;
-            };
-
-            // Función de dibujo de arcos de ángulos - Corregida
-            const drawAngleArc = (vertex, p1, p2, radius, color, angleValueRad = null) => {
-                if (!vertex || !p1 || !p2 || !isFinitePoint(vertex) || !isFinitePoint(p1) || !isFinitePoint(p2)) return;
-
-                const v1x = p1.x - vertex.x;
-                const v1y = p1.y - vertex.y;
-                const v2x = p2.x - vertex.x;
-                const v2y = p2.y - vertex.y;
-
-                let ang1 = Math.atan2(v1y, v1x);
-                let ang2 = Math.atan2(v2y, v2x);
-
-                if (ang2 < ang1 && Math.abs(ang2 - ang1) > PI) ang2 += 2 * PI;
-
-                ctx.beginPath();
-                ctx.arc(vertex.x, vertex.y, radius, ang1, ang2);
-                ctx.strokeStyle = color;
-                ctx.lineWidth = thinLineWidth;
-                ctx.stroke();
-
-                if (drawOptions.angles && angleValueRad !== null && angleValueRad > EPSILON) {
-                    const len_v1 = Math.sqrt(v1x*v1x + v1y*v1y);
-                    const len_v2 = Math.sqrt(v2x*v2x + v2y*v2y);
-                    
-                    let bisector_x = 0, bisector_y = 0;
-                    if (len_v1 > EPSILON && len_v2 > EPSILON) {
-                        bisector_x = (v1x / len_v1) + (v2x / len_v2);
-                        bisector_y = (v1y / len_v1) + (v2y / len_v2);
-                    }
-                    
-                    const len_bisector = Math.sqrt(bisector_x*bisector_x + bisector_y*bisector_y);
-                    if (len_bisector > EPSILON) {
-                        bisector_x /= len_bisector;
-                        bisector_y /= len_bisector;
-                    }
-
-                    const textRadius = radius + angleLabelOffset;
-                    const textX = vertex.x + textRadius * bisector_x;
-                    const textY = vertex.y + textRadius * bisector_y;
-
-                    const angleText = formatNumber(toDegrees(angleValueRad)) + "°";
-                    
-                    // Configurar fuente y medidas
-                    ctx.font = `bold ${labelFontSize * 0.8}px Inter`;
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    const metrics = ctx.measureText(angleText);
-                    const padding = labelFontSize * 0.2;
-
-                    // Dibujar fondo
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.fillRect(
-                        textX - metrics.width/2 - padding,
-                        textY - labelFontSize*0.8/2 - padding,
-                        metrics.width + 2 * padding,
-                        labelFontSize*0.8 + 2 * padding
-                    );
-
-                    // Dibujar texto
-                    ctx.fillStyle = colors.label;
-                    ctx.fillText(angleText, textX, textY);
-                }
-            };
-
-            // Dibujo de cuadrícula
-            if (drawOptions.grid) {
-                const gridSize = Math.max(10, triangleSize * 0.1);
-                ctx.strokeStyle = colors.grid;
-                ctx.lineWidth = 0.5 / currentDisplayScale;
-                ctx.globalAlpha = 0.3;
-
-                const worldView = {
-                    xMin: triangleCenterX - (rect.width / (2 * currentDisplayScale)),
-                    xMax: triangleCenterX + (rect.width / (2 * currentDisplayScale)),
-                    yMin: triangleCenterY - (rect.height / (2 * currentDisplayScale)),
-                    yMax: triangleCenterY + (rect.height / (2 * currentDisplayScale)),
-                };
-
-                for (let x = Math.floor(worldView.xMin / gridSize) * gridSize; x < worldView.xMax; x += gridSize) {
-                    drawLine({x: x, y: worldView.yMin}, {x: x, y: worldView.yMax}, colors.grid, ctx.lineWidth, [], 1, 1);
-                }
-                for (let y = Math.floor(worldView.yMin / gridSize) * gridSize; y < worldView.yMax; y += gridSize) {
-                    drawLine({x: worldView.xMin, y: y}, {x: worldView.xMax, y: y}, colors.grid, ctx.lineWidth, [], 1, 1);
-                }
-
-                ctx.globalAlpha = 1.0;
-            }
-
-            // Dibujo de elementos geométricos
-            if (drawOptions.medians && medians) {
-                medians.forEach(m => drawLine(m.p1, m.p2, colors.median, thinLineWidth, [5, 3], 1, 0.9));
-            }
-            if (drawOptions.centroid && centroid) {
-                drawPoint(centroid, colors.centroid, specialPointRadius, "G", true);
-            }
-
-            if (drawOptions.altitudes && altitudes) {
-                altitudes.forEach(alt => {
-                    if (alt && alt.p1 && alt.p2) {
-                        drawLine(alt.p1, alt.p2, colors.altitude, thinLineWidth, [4, 2], 2.5, 0.9);
-                    }
-                });
-            }
-            if (drawOptions.orthocenter && orthocenter && isFinitePoint(orthocenter)) {
-                drawPoint(orthocenter, colors.orthocenter, specialPointRadius, "H", true);
-            }
-
-            if (drawOptions.angleBisectors && angleBisectors && incenter) {
-                angleBisectors.forEach(ab => {
-                    if (ab && ab.p1 && ab.p2) {
-                        drawLine(ab.p1, ab.p2, colors.angleBisector, thinLineWidth, [6, 2, 2, 2], 1.5, 0.9);
-                    }
-                });
-            }
-            if (drawOptions.incenter && incenter) {
-                drawPoint(incenter, colors.incenter, specialPointRadius, "I", true);
-            }
-            if (drawOptions.inscribedCircle && incenter && inradius > EPSILON) {
-                drawCircle(incenter, inradius, colors.inscribedCircle, thinLineWidth, [6, 3], 0.8);
-            }
-
-            if (drawOptions.perpBisectors && perpBisectorsData) {
-                perpBisectorsData.forEach(pb => {
-                    if (pb && pb.p1 && pb.p2) {
-                        drawLine(pb.p1, pb.p2, colors.perpBisector, thinLineWidth, [8, 4], 2.0, 0.8);
-                    }
-                });
-            }
-            if (drawOptions.circumcenter && circumcenter && isFinitePoint(circumcenter)) {
-                drawPoint(circumcenter, colors.circumcenter, specialPointRadius, "O", true);
-            }
-            if (drawOptions.circumscribedCircle && circumcenter && circumradius > EPSILON && isFinitePoint(circumcenter)) {
-                drawCircle(circumcenter, circumradius, colors.circumscribedCircle, thinLineWidth, [8, 4], 0.7);
-            }
-
-            // Dibujo del triángulo principal
-            ctx.beginPath();
-            ctx.moveTo(pA.x, pA.y);
-            ctx.lineTo(pB.x, pB.y);
-            ctx.lineTo(pC.x, pC.y);
-            ctx.closePath();
-            ctx.fillStyle = colors.triangleFill;
-            ctx.fill();
-            ctx.strokeStyle = colors.triangleStroke;
-            ctx.lineWidth = baseLineWidth;
-            ctx.stroke();
-
-            // Etiquetas y valores
-            if (drawOptions.labels) {
-                const vtxFont = `bold ${labelFontSize}px Inter`;
-                const sideValFont = `bold ${labelFontSize * 0.9}px JetBrains Mono`;
-
-                const Gx = centroid ? centroid.x : (pA.x + pB.x + pC.x) / 3;
-                const Gy = centroid ? centroid.y : (pA.y + pB.y + pC.y) / 3;
-
-                // Etiquetas de vértices - Corregidas
-                const positionVertexLabel = (vertex, name) => {
-                    let dirX = vertex.x - Gx, dirY = vertex.y - Gy;
-                    let lenDir = Math.sqrt(dirX**2 + dirY**2);
-
-                    if (lenDir < EPSILON * 100) {
-                        if (name === "A") { dirX = 0; dirY = -1; }
-                        else if (name === "B") { dirX = 1; dirY = 0.1; }
-                        else { dirX = -1; dirY = 0.1; }
-                    } else {
-                        dirX /= lenDir;
-                        dirY /= lenDir;
-                    }
-
-                    const labelX = vertex.x + dirX * vtxLabelOffset;
-                    const labelY = vertex.y + dirY * vtxLabelOffset;
-
-                    // Configurar fuente y medidas
-                    ctx.font = vtxFont;
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    const metrics = ctx.measureText(name);
-                    const padding = labelFontSize * 0.3;
-
-                    // Dibujar fondo
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.fillRect(
-                        labelX - metrics.width/2 - padding,
-                        labelY - labelFontSize/2 - padding,
-                        metrics.width + 2 * padding,
-                        labelFontSize + 2 * padding
-                    );
-
-                    // Dibujar texto
-                    ctx.fillStyle = colors.label;
-                    ctx.fillText(name, labelX, labelY);
-                };
-
-                positionVertexLabel(pA, "A");
-                positionVertexLabel(pB, "B");
-                positionVertexLabel(pC, "C");
-
-                // Etiquetas de lados - Corregidas
-                const positionSideLabel = (p1, p2, midPt, oppositeVtx, sideValueText) => {
-                    let normal_x = p1.y - p2.y;
-                    let normal_y = p2.x - p1.x;
-                    let len_n = Math.sqrt(normal_x**2 + normal_y**2);
-
-                    if (len_n > EPSILON) {
-                        normal_x /= len_n;
-                        normal_y /= len_n;
-                    } else {
-                        normal_x = 0;
-                        normal_y = 1;
-                    }
-
-                    let vecMidToOpp_x = oppositeVtx.x - midPt.x;
-                    let vecMidToOpp_y = oppositeVtx.y - midPt.y;
-                    let dotProd = normal_x * vecMidToOpp_x + normal_y * vecMidToOpp_y;
-
-                    if (dotProd > -EPSILON) {
-                        normal_x *= -1;
-                        normal_y *= -1;
-                    }
-
-                    const labelX = midPt.x + normal_x * sideLabelDist;
-                    const labelY = midPt.y + normal_y * sideLabelDist;
-
-                    // Configurar fuente y medidas
-                    // Configurar valores por defecto y metricas
-                ctx.save();
-                ctx.font = sideValFont;
-                ctx.restore();
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
-                    const metrics = ctx.measureText(sideValueText);
-                    const padding = labelFontSize * 0.2;
-
-                    // Dibujar fondo
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.fillRect(
-                        labelX - metrics.width/2 - padding,
-                        labelY - labelFontSize*0.9/2 - padding,
-                        metrics.width + 2 * padding,
-                        labelFontSize*0.9 + 2 * padding
-                    );
-
-                    // Dibujar texto
-                    ctx.fillStyle = colors.label;
-                    ctx.fillText(sideValueText, labelX, labelY);
-                };
-
-                if (midpoints) {
-                    positionSideLabel(pA, pB, midpoints.midAB, pC, `c = ${formatNumber(c)}`);
-                    positionSideLabel(pB, pC, midpoints.midBC, pA, `a = ${formatNumber(a)}`);
-                    positionSideLabel(pC, pA, midpoints.midCA, pB, `b = ${formatNumber(b)}`);
-                }
-            }
-
-            // Vértices del triángulo
-            drawPoint(pA, colors.triangleStroke, pointRadius);
-            drawPoint(pB, colors.triangleStroke, pointRadius);
-            drawPoint(pC, colors.triangleStroke, pointRadius);
-
-            // Arcos de ángulos
-            drawAngleArc(pA, pB, pC, angleArcRadius, colors.angleArcs[0], A_rad);
-            drawAngleArc(pB, pC, pA, angleArcRadius, colors.angleArcs[1], B_rad);
-            drawAngleArc(pC, pA, pB, angleArcRadius, colors.angleArcs[2], C_rad);
-
-            ctx.restore();
-        };
-
-        // Mostrar resultados
-        const displayTriangleResults = (triangle) => {
-            document.getElementById('resLadoA').textContent = formatNumber(triangle.a);
-            document.getElementById('resLadoB').textContent = formatNumber(triangle.b);
-            document.getElementById('resLadoC').textContent = formatNumber(triangle.c);
-            document.getElementById('resAnguloA').textContent = formatNumber(toDegrees(triangle.A_rad)) + '°';
-            document.getElementById('resAnguloB').textContent = formatNumber(toDegrees(triangle.B_rad)) + '°';
-            document.getElementById('resAnguloC').textContent = formatNumber(toDegrees(triangle.C_rad)) + '°';
-
-            const perimeterVal = triangle.a + triangle.b + triangle.c;
-            const s = perimeterVal / 2;
-            const areaVal = Math.sqrt(Math.max(0, s * (s - triangle.a) * (s - triangle.b) * (s - triangle.c)));
-
-            document.getElementById('resPerimetro').textContent = formatNumber(perimeterVal);
-            document.getElementById('resArea').textContent = formatNumber(areaVal);
-            document.getElementById('resTipoTriangulo').textContent = determineTriangleType(triangle.a, triangle.b, triangle.c, triangle.A_rad, triangle.B_rad, triangle.C_rad);
-        };
-
-        const determineTriangleType = (a, b, c, A_rad, B_rad, C_rad) => {
-            let typeBySide = "";
-            if (Math.abs(a - b) < EPSILON && Math.abs(b - c) < EPSILON) {
-                typeBySide = "Equilátero";
-            } else if (Math.abs(a - b) < EPSILON || Math.abs(b - c) < EPSILON || Math.abs(a - c) < EPSILON) {
-                typeBySide = "Isósceles";
-            } else {
-                typeBySide = "Escaleno";
-            }
-
-            let typeByAngle = "";
-            const ninetyDeg = PI / 2;
-            if (Math.abs(A_rad - ninetyDeg) < EPSILON || Math.abs(B_rad - ninetyDeg) < EPSILON || Math.abs(C_rad - ninetyDeg) < EPSILON) {
-                typeByAngle = "Rectángulo";
-            } else if (A_rad > ninetyDeg - EPSILON || B_rad > ninetyDeg - EPSILON || C_rad > ninetyDeg - EPSILON) {
-                typeByAngle = "Obtusángulo";
-            } else {
-                typeByAngle = "Acutángulo";
-            }
-
-            return `${typeBySide} y ${typeByAngle}`;
-        };
-
-        // Manejo de entrada principal
-        const handleCalculate = (isUserInitiated = true) => {
-            currentTriangle = null;
-            calculatedElements = {};
-            resultsPanel.style.display = 'none';
-
-            const inputs = [];
-            let sideCount = 0;
-            const definedTypes = new Set();
-
-            for (let i = 0; i < 3; i++) {
-                const typeElement = document.getElementById(`inputType${i}`);
-                const valueElement = document.getElementById(`inputValue${i}`);
-                const type = typeElement.value;
-                const valueStr = valueElement.value.trim();
-
-                if (valueStr === '') {
-                    if (isUserInitiated) showModal('Error de Entrada ❌', `Por favor, completa el campo de valor para la entrada ${i + 1}.`, true);
-                    valueElement.focus();
-                    return;
-                }
-
-                const value = parseFloat(valueStr);
-
-                if (isNaN(value)) {
-                    if (isUserInitiated) showModal('Error de Entrada ❌', `El valor para '${type}' debe ser un número.`, true);
-                    valueElement.focus();
-                    return;
-                }
-
-                if (type.startsWith('angle') && (value <= EPSILON || value >= 180 - EPSILON)) {
-                    if (isUserInitiated) showModal('Error de Entrada ❌', `El ángulo '${type}' debe estar entre 0 y 180 grados.`, true);
-                    valueElement.focus();
-                    return;
-                }
-
-                if (type.startsWith('side') && value <= EPSILON) {
-                    if (isUserInitiated) showModal('Error de Entrada ❌', `El lado '${type}' debe ser un número positivo.`, true);
-                    valueElement.focus();
-                    return;
-                }
-
-                if (definedTypes.has(type)) {
-                    if (isUserInitiated) showModal('Error de Entrada ❌', `El tipo '${type}' ha sido ingresado más de una vez. Usa tipos distintos.`, true);
-                    typeElement.focus();
-                    return;
-                }
-
-                definedTypes.add(type);
-                inputs.push({ type, value });
-                if (type.startsWith('side')) sideCount++;
-            }
-
-            if (inputs.length !== 3) {
-                if (isUserInitiated) showModal('Error de Entrada ❌', 'Se requieren exactamente tres valores de entrada.', true);
-                return;
-            }
-
-            if (sideCount === 0) {
-                if (isUserInitiated) showModal('Error de Entrada ❌', 'Debes ingresar al menos un lado para definir el triángulo.', true);
-                return;
-            }
-
-            let { sA, sB, sC, angA, angB, angC } = parseTriangleInputs(inputs);
-
-            try {
-                const solution = solveTriangleLogic(sA, sB, sC, angA, angB, angC);
-                currentTriangle = solution;
-                calculateSpecialGeometricElements();
-                displayTriangleResults(solution);
-                resultsPanel.style.display = 'block';
-                updateLastCalculatedGeometry();
-                
-                // Forzar redibujado múltiple para asegurar renderización
-                requestAnimationFrame(() => {
-                    drawTriangleOnCanvas();
-                    setTimeout(() => {
-                        drawTriangleOnCanvas();
-                    }, 100);
-                });
-
-                if (isUserInitiated) {
-                    showModal('Cálculo Exitoso ✅', 'El triángulo ha sido calculado y visualizado correctamente.', false);
-                }
-            } catch (error) {
-                if (isUserInitiated) showModal('Error de Cálculo ❌', error.message, true);
-                currentTriangle = null;
-                resultsPanel.style.display = 'none';
-                if (ctx && canvas) ctx.clearRect(0, 0, canvas.width, canvas.height);
-            }
-        };
-
-        // Event listeners del canvas
-        let lastPinchDistance = 0;
-
-        canvas.addEventListener('mousedown', (e) => {
-            isPanning = true;
-            lastPanPosition = { x: e.clientX, y: e.clientY };
-            canvas.style.cursor = 'grabbing';
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            isPanning = false;
-            canvas.style.cursor = 'grab';
-        });
-
-        canvas.addEventListener('mouseleave', () => {
-            isPanning = false;
-            canvas.style.cursor = 'grab';
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            if (!isPanning || !currentTriangle) return;
-            
-            const dx = e.clientX - lastPanPosition.x;
-            const dy = e.clientY - lastPanPosition.y;
-            panOffset.x += dx;
-            panOffset.y += dy;
-            lastPanPosition = { x: e.clientX, y: e.clientY };
-            requestAnimationFrame(drawTriangleOnCanvas);
-        });
-
-        canvas.addEventListener('wheel', (e) => {
-            if (!currentTriangle) return;
-            e.preventDefault();
-            
-            updateLastCalculatedGeometry();
-            const zoomIntensity = 0.1;
-            const direction = e.deltaY < 0 ? 1 : -1;
-            const oldScaleFactor = scaleFactor;
-            
-            scaleFactor *= (1 + direction * zoomIntensity);
-            scaleFactor = Math.max(0.1, Math.min(scaleFactor, 10));
-            
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            
-            const worldMouseX_before = (mouseX - (rect.width / 2 + panOffset.x)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2);
-            const worldMouseY_before = (mouseY - (rect.height / 2 + panOffset.y)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2);
-            
-            panOffset.x = mouseX - rect.width / 2 - (worldMouseX_before - (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor);
-            panOffset.y = mouseY - rect.height / 2 - (worldMouseY_before - (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor);
-            
-            requestAnimationFrame(drawTriangleOnCanvas);
-        });
-
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (e.touches.length === 1) {
-                isPanning = true;
-                lastPanPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            } else if (e.touches.length === 2) {
-                isPanning = false;
-                lastPinchDistance = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                updateLastCalculatedGeometry();
-            }
-        }, { passive: false });
-
-        canvas.addEventListener('touchend', (e) => {
-            e.preventDefault();
-            isPanning = false;
-            lastPinchDistance = 0;
-        }, { passive: false });
-
-        canvas.addEventListener('touchmove', (e) => {
-            e.preventDefault();
-            if (!currentTriangle) return;
-
-            if (e.touches.length === 1 && isPanning) {
-                const dx = e.touches[0].clientX - lastPanPosition.x;
-                const dy = e.touches[0].clientY - lastPanPosition.y;
-                panOffset.x += dx;
-                panOffset.y += dy;
-                lastPanPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-            } else if (e.touches.length === 2) {
-                const currentPinchDistance = Math.hypot(
-                    e.touches[0].clientX - e.touches[1].clientX,
-                    e.touches[0].clientY - e.touches[1].clientY
-                );
-                
-                if (lastPinchDistance > 0) {
-                    const oldScaleFactor = scaleFactor;
-                    scaleFactor *= currentPinchDistance / lastPinchDistance;
-                    scaleFactor = Math.max(0.1, Math.min(scaleFactor, 10));
-                    
-                    const rect = canvas.getBoundingClientRect();
-                    const pinchCenterX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-                    const pinchCenterY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-                    
-                    const worldPinchX_before = (pinchCenterX - (rect.width / 2 + panOffset.x)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2);
-                    const worldPinchY_before = (pinchCenterY - (rect.height / 2 + panOffset.y)) / (lastCalculatedGeometry.scaleToFit * oldScaleFactor) + (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2);
-                    
-                    panOffset.x = pinchCenterX - rect.width / 2 - (worldPinchX_before - (lastCalculatedGeometry.minX + lastCalculatedGeometry.width / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor);
-                    panOffset.y = pinchCenterY - rect.height / 2 - (worldPinchY_before - (lastCalculatedGeometry.minY + lastCalculatedGeometry.height / 2)) * (lastCalculatedGeometry.scaleToFit * scaleFactor);
-                }
-                
-                lastPinchDistance = currentPinchDistance;
-            }
-            
-            requestAnimationFrame(drawTriangleOnCanvas);
-        }, { passive: false });
-
-        // Event listeners principales
-        calculateButton.addEventListener('click', () => handleCalculate(true));
-
-        precisionSelect.addEventListener('change', () => {
-            if (currentTriangle) {
-                displayTriangleResults(currentTriangle);
-                requestAnimationFrame(drawTriangleOnCanvas);
-            }
-        });
-
-        // Controles de elementos geométricos
-        const controlElements = {
-            grid: document.getElementById('chkGrid'),
-            labels: document.getElementById('chkLabels'),
-            angles: document.getElementById('chkAngles'),
-            medians: document.getElementById('chkMedians'),
-            altitudes: document.getElementById('chkAltitudes'),
-            angleBisectors: document.getElementById('chkAngleBisectors'),
-            perpBisectors: document.getElementById('chkPerpBisectors'),
-            centroid: document.getElementById('chkCentroid'),
-            orthocenter: document.getElementById('chkOrthocenter'),
-            incenter: document.getElementById('chkIncenter'),
-            circumcenter: document.getElementById('chkCircumcenter'),
-            inscribedCircle: document.getElementById('chkInscribedCircle'),
-            circumscribedCircle: document.getElementById('chkCircumscribedCircle')
-        };
-
-        Object.keys(controlElements).forEach(key => {
-            if (controlElements[key]) {
-                controlElements[key].addEventListener('change', (e) => {
-                    drawOptions[key] = e.target.checked;
-                    if (currentTriangle) {
-                        updateLastCalculatedGeometry();
-                        requestAnimationFrame(drawTriangleOnCanvas);
-                    }
-                });
-            }
-        });
-
-        // Botones de zoom y controles
-        const zoomInButton = document.getElementById('zoomInButton');
-        const zoomOutButton = document.getElementById('zoomOutButton');
-        const resetViewButton = document.getElementById('resetViewButton');
-        const exportButton = document.getElementById('exportButton');
-
-        zoomInButton.addEventListener('click', () => {
-            if (!currentTriangle) return;
-            scaleFactor *= 1.3;
-            scaleFactor = Math.min(scaleFactor, 10);
-            requestAnimationFrame(drawTriangleOnCanvas);
-        });
-
-        zoomOutButton.addEventListener('click', () => {
-            if (!currentTriangle) return;
-            scaleFactor /= 1.3;
-            scaleFactor = Math.max(0.1, scaleFactor);
-            requestAnimationFrame(drawTriangleOnCanvas);
-        });
-
-        resetViewButton.addEventListener('click', () => {
-            if (!currentTriangle) return;
-            scaleFactor = 1.0;
-            panOffset = { x: 0, y: 0 };
-            updateLastCalculatedGeometry();
-            requestAnimationFrame(drawTriangleOnCanvas);
-        });
-
-        exportButton.addEventListener('click', () => {
-            if (!currentTriangle) {
-                showModal('Error de Exportación ❌', 'No hay ningún triángulo dibujado para exportar.', true);
-                return;
-            }
-
-            try {
-                // Crear un canvas temporal con fondo blanco para la exportación
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = canvas.width;
-                tempCanvas.height = canvas.height;
-                const tempCtx = tempCanvas.getContext('2d');
-                
-                // Fondo blanco
-                tempCtx.fillStyle = '#ffffff';
-                tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-                
-                // Copiar el contenido del canvas original
-                tempCtx.drawImage(canvas, 0, 0);
-                
-                const dataURL = tempCanvas.toDataURL('image/png');
-                const link = document.createElement('a');
-                link.download = `triangulo_${Date.now()}.png`;
-                link.href = dataURL;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                
-                showModal('Exportación Exitosa ✅', 'La imagen del triángulo ha sido descargada correctamente.', false);
-            } catch (e) {
-                showModal('Error de Exportación ❌', 'No se pudo exportar la imagen. Error: ' + e.message, true);
-                console.error("Error al exportar canvas:", e);
-            }
-        });
-
-        // Observer para redimensionamiento
-        const resizeObserver = new ResizeObserver(entries => {
-            for (let entry of entries) {
-                if (entry.target === canvas.parentElement || entry.target === canvas) {
-                    if (currentTriangle) {
-                        updateLastCalculatedGeometry();
-                        requestAnimationFrame(drawTriangleOnCanvas);
-                    }
-                }
-            }
-        });
-
-        if (canvas.parentElement) {
-            resizeObserver.observe(canvas.parentElement);
+            const posA = getAngleLabelPosition(pA, pB, pC, angleLabelRadius);
+            const posB = getAngleLabelPosition(pB, pC, pA, angleLabelRadius);
+            const posC = getAngleLabelPosition(pC, pA, pB, angleLabelRadius);
+
+            annotations.push({ ...posA, text: `${formatNumber(toDegrees(A_rad))}°`, showarrow: false, font: { color: colors.text } });
+            annotations.push({ ...posB, text: `${formatNumber(toDegrees(B_rad))}°`, showarrow: false, font: { color: colors.text } });
+            annotations.push({ ...posC, text: `${formatNumber(toDegrees(C_rad))}°`, showarrow: false, font: { color: colors.text } });
         }
-
-        // Efectos visuales mejorados
-        document.querySelectorAll('.btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const rect = btn.getBoundingClientRect();
-                const x = e.clientX - rect.left;
-                const y = e.clientY - rect.top;
-                
-                const ripple = document.createElement('span');
-                ripple.style.position = 'absolute';
-                ripple.style.left = x + 'px';
-                ripple.style.top = y + 'px';
-                ripple.style.width = '0';
-                ripple.style.height = '0';
-                ripple.style.borderRadius = '50%';
-                ripple.style.background = 'rgba(255, 255, 255, 0.5)';
-                ripple.style.transform = 'translate(-50%, -50%)';
-                ripple.style.animation = 'ripple 0.6s linear';
-                ripple.style.pointerEvents = 'none';
-                
-                btn.style.position = 'relative';
-                btn.style.overflow = 'hidden';
-                btn.appendChild(ripple);
-                
-                setTimeout(() => {
-                    ripple.remove();
-                }, 600);
-            });
-        });
-
-        // Añadir estilos CSS para el efecto ripple
-        const rippleStyle = document.createElement('style');
-        rippleStyle.textContent = `
-            @keyframes ripple {
-                to {
-                    width: 300px;
-                    height: 300px;
-                    opacity: 0;
-                }
-            }
-        `;
-        document.head.appendChild(rippleStyle);
-
-        // Función de inicialización
-        const initializeApp = () => {
-            // Configurar valores por defecto
-            document.getElementById('inputType0').value = 'sideA';
-            document.getElementById('inputValue0').value = '3';
-            document.getElementById('inputType1').value = 'sideB';
-            document.getElementById('inputValue1').value = '4';
-            document.getElementById('inputType2').value = 'sideC';
-            document.getElementById('inputValue2').value = '5';
-
-            // Configurar canvas size inicial y responsive
-            const updateCanvasSize = () => {
-                const container = canvas.parentElement;
-                const rect = container.getBoundingClientRect();
-                
-                // Establecer el canvas al tamaño completo del contenedor
-                canvas.width = rect.width;
-                canvas.height = rect.height;
-                canvas.style.width = rect.width + 'px';
-                canvas.style.height = rect.height + 'px';
-                
-                // Redibujar si hay un triángulo
-                if (currentTriangle) {
-                    updateLastCalculatedGeometry();
-                    requestAnimationFrame(drawTriangleOnCanvas);
-                }
-            };
-            
-            updateCanvasSize();
-            window.addEventListener('resize', updateCanvasSize);
-
-            // Calcular triángulo ejemplo después de un breve delay
-            setTimeout(() => {
-                handleCalculate(false);
-                // Redibujado adicional para asegurar renderización
-                setTimeout(() => {
-                    if (currentTriangle) {
-                        updateLastCalculatedGeometry();
-                        drawTriangleOnCanvas();
-                    }
-                }, 200);
-            }, 500);
-
-            console.log('🚀 TriangleForge Ultra inicializado correctamente');
-        };
-
-        // Inicializar cuando el DOM esté listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
-        } else {
-            initializeApp();
-        }
-
-        // Función para crear efectos de partículas (bonus)
-        const createParticleEffect = (x, y) => {
-            const particles = [];
-            for (let i = 0; i < 10; i++) {
-                particles.push({
-                    x: x,
-                    y: y,
-                    vx: (Math.random() - 0.5) * 4,
-                    vy: (Math.random() - 0.5) * 4,
-                    life: 1.0,
-                    decay: 0.02 + Math.random() * 0.02
-                });
-            }
-            
-            const animateParticles = () => {
-                ctx.save();
-                particles.forEach((particle, index) => {
-                    if (particle.life <= 0) {
-                        particles.splice(index, 1);
-                        return;
-                    }
-                    
-                    particle.x += particle.vx;
-                    particle.y += particle.vy;
-                    particle.life -= particle.decay;
-                    
-                    ctx.globalAlpha = particle.life;
-                    ctx.fillStyle = '#64ffda';
-                    ctx.beginPath();
-                    ctx.arc(particle.x, particle.y, 2, 0, Math.PI * 2);
-                    ctx.fill();
-                });
-                ctx.restore();
-                
-                if (particles.length > 0) {
-                    requestAnimationFrame(animateParticles);
-                }
-            };
-            
-            animateParticles();
-        };
-
-        // Easter egg: Konami code
-        let konamiCode = [];
-        const konamiSequence = [38, 38, 40, 40, 37, 39, 37, 39, 66, 65]; // ↑↑↓↓←→←→BA
         
-        document.addEventListener('keydown', (e) => {
-            konamiCode.push(e.keyCode);
-            if (konamiCode.length > 10) konamiCode.shift();
-            
-            if (konamiCode.join(',') === konamiSequence.join(',')) {
-                showModal('🎉 ¡Easter Egg Activado!', 
-                    '¡Felicidades! Has descubierto el código secreto.<br>' +
-                    '✨ TriangleForge Ultra - Edición Especial Activada ✨<br>' +
-                    '<small>Has desbloqueado efectos especiales...</small>',
-                    false
-                );
-                
-                // Cambiar a tema especial
-                document.documentElement.style.setProperty('--primary-gradient', 
-                    'linear-gradient(45deg, #ff0080, #00ff80, #8000ff, #ff8000, #0080ff)');
-                
-                // Efecto de confeti
-                for (let i = 0; i < 50; i++) {
-                    setTimeout(() => {
-                        createParticleEffect(
-                            Math.random() * window.innerWidth,
-                            Math.random() * window.innerHeight
-                        );
-                    }, i * 50);
-                }
-                
-                konamiCode = [];
+        const layout = {
+            showlegend: false,
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            xaxis: { showgrid: drawOptions.grid, zeroline: false, visible: false, gridcolor: '#475569', range: currentPlotRange.x },
+            yaxis: { showgrid: drawOptions.grid, zeroline: false, visible: false, gridcolor: '#475569', scaleanchor: "x", scaleratio: 1, range: currentPlotRange.y },
+            margin: { t: 20, b: 20, l: 20, r: 20 },
+            annotations: annotations,
+            shapes: [], 
+            hovermode: 'closest'
+        };
+
+        Plotly.react(dom.plotlyContainer, traces.filter(t => t), layout, { responsive: true, displaylogo: false });
+    };
+    
+    // --- ACTUALIZACIÓN DE UI ---
+    const displayTriangleResults = () => {
+        const { a, b, c, A_rad, B_rad, C_rad } = currentTriangle;
+        const perimeter = a + b + c;
+        const s = perimeter / 2;
+        const area = Math.sqrt(Math.max(0, s * (s - a) * (s - b) * (s - c)));
+        const typeBySide = Math.abs(a-b)<EPSILON && Math.abs(b-c)<EPSILON ? "Equilátero" : (Math.abs(a-b)<EPSILON || Math.abs(b-c)<EPSILON || Math.abs(a-c)<EPSILON ? "Isósceles" : "Escaleno");
+        const ninety = PI/2;
+        const typeByAngle = Math.abs(A_rad-ninety)<EPSILON || Math.abs(B_rad-ninety)<EPSILON || Math.abs(C_rad-ninety)<EPSILON ? "Rectángulo" : (A_rad>ninety || B_rad>ninety || C_rad>ninety ? "Obtusángulo" : "Acutángulo");
+
+        const results = {
+            'Lado a': formatNumber(a), 'Lado b': formatNumber(b), 'Lado c': formatNumber(c),
+            'Ángulo A': `${formatNumber(toDegrees(A_rad))}°`, 'Ángulo B': `${formatNumber(toDegrees(B_rad))}°`, 'Ángulo C': `${formatNumber(toDegrees(C_rad))}°`,
+            'Perímetro': formatNumber(perimeter), 'Área': formatNumber(area), 'Tipo': `${typeBySide} ${typeByAngle}`
+        };
+        
+        dom.resultsGrid.innerHTML = Object.entries(results).map(([label, value]) => `
+            <div class="flex justify-between items-center bg-black/20 p-2 rounded-md">
+                <span class="text-text-secondary">${label}:</span>
+                <span class="font-mono font-bold text-white">${value}</span>
+            </div>
+        `).join('');
+        dom.resultsPanel.style.display = 'block';
+    };
+
+    // --- MANEJO DE EVENTOS ---
+    const handleCalculate = () => {
+        currentPlotRange = null; 
+
+        const inputs = Array.from(document.querySelectorAll('.input-group')).map(group => ({
+            type: group.querySelector('select').value,
+            value: parseFloat(group.querySelector('input').value)
+        }));
+
+        if (inputs.some(i => isNaN(i.value))) {
+            return showModal('Error de Entrada', 'Todos los campos deben tener valores numéricos válidos.', true);
+        }
+        if (new Set(inputs.map(i => i.type)).size < 3) {
+            return showModal('Error de Entrada', 'Debe seleccionar tres tipos de datos diferentes.', true);
+        }
+        if (inputs.filter(i => i.type.startsWith('side')).length === 0) {
+            return showModal('Error de Entrada', 'Debe proporcionar al menos un lado.', true);
+        }
+
+        const params = {};
+        inputs.forEach(i => {
+            params[i.type] = i.type.startsWith('angle') ? toRadians(i.value) : i.value;
+        });
+
+        try {
+            currentTriangle = solveTriangleLogic(params.sideA, params.sideB, params.sideC, params.angleA, params.angleB, params.angleC);
+            calculateSpecialGeometricElements();
+            displayTriangleResults();
+            drawTriangleWithPlotly();
+            showModal('Cálculo Exitoso', 'El triángulo ha sido calculado y visualizado.');
+        } catch (error) {
+            currentTriangle = null;
+            Plotly.purge(dom.plotlyContainer);
+            dom.resultsPanel.style.display = 'none';
+            showModal('Error de Cálculo', error.message, true);
+        }
+    };
+
+    dom.calculateButton.addEventListener('click', handleCalculate);
+    dom.precisionSelect.addEventListener('change', () => {
+        if (currentTriangle) {
+            displayTriangleResults();
+            drawTriangleWithPlotly();
+        }
+    });
+    dom.themeSwitcher.addEventListener('click', (e) => {
+        const button = e.target.closest('.theme-btn');
+        if (button) {
+            document.documentElement.dataset.theme = button.dataset.theme;
+            dom.themeSwitcher.querySelector('.active').classList.remove('active');
+            button.classList.add('active');
+        }
+    });
+
+    // --- INICIALIZACIÓN ---
+    const initializeApp = () => {
+        const inputFields = [
+            { id: 0, type: 'sideA', value: 3 }, { id: 1, type: 'sideB', value: 4 }, { id: 2, type: 'sideC', value: 5 }
+        ];
+        const options = [
+            { value: 'sideA', text: 'Lado a' }, { value: 'sideB', text: 'Lado b' }, { value: 'sideC', text: 'Lado c' },
+            { value: 'angleA', text: 'Ángulo A (°)' }, { value: 'angleB', text: 'Ángulo B (°)' }, { value: 'angleC', text: 'Ángulo C (°)' }
+        ];
+        dom.inputContainer.innerHTML = inputFields.map(field => `
+            <div class="input-group grid grid-cols-3 gap-2 items-center">
+                <select class="col-span-2 input-custom w-full rounded-md px-3 py-2 text-white" data-id="${field.id}">
+                    ${options.map(opt => `<option value="${opt.value}" ${opt.value === field.type ? 'selected' : ''}>${opt.text}</option>`).join('')}
+                </select>
+                <input type="number" value="${field.value}" step="any" placeholder="Valor" class="col-span-1 input-custom w-full rounded-md px-3 py-2 text-white font-mono text-right">
+            </div>
+        `).join('');
+
+        const vizOptions = [
+            { id: 'grid', icon: 'fa-border-all', label: 'Cuadrícula' }, { id: 'labels', icon: 'fa-tags', label: 'Etiquetas' }, { id: 'angles', icon: 'fa-ruler-combined', label: 'Val. Ángulos' },
+            { id: 'medians', icon: 'fa-ruler-horizontal', label: 'Medianas' }, { id: 'altitudes', icon: 'fa-ruler-vertical', label: 'Alturas' }, { id: 'angleBisectors', icon: 'fa-divide', label: 'Bisectrices' }, { id: 'perpBisectors', icon: 'fa-vector-square', label: 'Mediatrices' },
+            { id: 'centroid', icon: 'fa-bullseye', label: 'Baricentro (G)' }, { id: 'orthocenter', icon: 'fa-crosshairs', label: 'Ortocentro (H)' }, { id: 'incenter', icon: 'fa-star-of-life', label: 'Incentro (I)' }, { id: 'circumcenter', icon: 'fa-circle-dot', label: 'Circuncentro (O)' },
+            { id: 'inscribedCircle', icon: 'fa-circle', label: 'C. Inscrito' }, { id: 'circumscribedCircle', icon: 'fa-circle-notch', label: 'C. Circunscrito' },
+            { id: 'eulerLine', icon: 'fa-infinity', label: 'Recta de Euler' } // ADD: Euler line checkbox
+        ];
+        document.querySelector('.controls-grid').innerHTML = vizOptions.map(opt => `
+            <label class="flex items-center gap-2 cursor-pointer p-2 rounded-md hover:bg-white/10 transition-colors">
+                <input type="checkbox" id="chk-${opt.id}" data-key="${opt.id}" class="custom-checkbox h-4 w-4 rounded bg-slate-700 border-slate-600 text-sky-400 focus:ring-sky-500" ${drawOptions[opt.id] ? 'checked' : ''}>
+                <i class="fa-solid ${opt.icon} w-4 text-center" style="color: var(--accent-primary);"></i>
+                <span>${opt.label}</span>
+            </label>
+        `).join('');
+
+        document.querySelector('.controls-grid').addEventListener('change', (e) => {
+            if (e.target.type === 'checkbox') {
+                drawOptions[e.target.dataset.key] = e.target.checked;
+                if (currentTriangle) drawTriangleWithPlotly();
             }
         });
 
-        // Función de ayuda
-        const showHelpModal = () => {
-            const helpContent = `
-                <h3 style="color: var(--text-accent); margin-bottom: 1rem;">🚀 TriangleForge Ultra - Guía de Uso</h3>
-                <div style="text-align: left; line-height: 1.6;">
-                    <h4 style="color: var(--text-accent);">📝 Entrada de Datos:</h4>
-                    <ul style="margin-bottom: 1rem;">
-                        <li>Selecciona 3 valores diferentes del triángulo</li>
-                        <li>Incluye al menos un lado</li>
-                        <li>Los ángulos van en grados (0° - 180°)</li>
-                    </ul>
-                    
-                    <h4 style="color: var(--text-accent);">🎮 Controles de Visualización:</h4>
-                    <ul style="margin-bottom: 1rem;">
-                        <li><strong>Arrastrar:</strong> Mover la vista</li>
-                        <li><strong>Rueda del mouse:</strong> Zoom</li>
-                        <li><strong>Táctil:</strong> Pellizcar para zoom</li>
-                        <li><strong>Botones +/-:</strong> Zoom preciso</li>
-                    </ul>
-                    
-                    <h4 style="color: var(--text-accent);">✨ Elementos Especiales:</h4>
-                    <ul>
-                        <li><strong>G (Baricentro):</strong> Centro de masa</li>
-                        <li><strong>H (Ortocentro):</strong> Intersección de alturas</li>
-                        <li><strong>I (Incentro):</strong> Centro del círculo inscrito</li>
-                        <li><strong>O (Circuncentro):</strong> Centro del círculo circunscrito</li>
-                    </ul>
-                </div>
-            `;
-            
-            showModal('Ayuda - TriangleForge Ultra', helpContent, false);
-        };
+        handleCalculate();
+    };
 
-        // Agregar botón de ayuda
-        const helpButton = document.createElement('button');
-        helpButton.className = 'btn btn-secondary';
-        helpButton.innerHTML = '<i class="fas fa-question-circle"></i> Ayuda';
-        helpButton.style.position = 'fixed';
-        helpButton.style.bottom = '20px';
-        helpButton.style.right = '20px';
-        helpButton.style.zIndex = '999';
-        helpButton.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
-        helpButton.addEventListener('click', showHelpModal);
-        document.body.appendChild(helpButton);
+    initializeApp();
+});
+</script>
 
-        console.log('💡 Tip: Usa las flechas ↑↑↓↓←→←→ seguido de B y A para una sorpresa...');
-
-    </script>
 </body>
 </html>
