@@ -50,7 +50,8 @@
             position: relative;
             z-index: 1;
             display: grid;
-            grid-template-columns: 420px 1fr;
+            /* CAMBIO: Panel de control más estrecho para un gráfico más grande */
+            grid-template-columns: 380px 1fr;
             gap: 1.5rem;
             height: 100vh;
             padding: 1.5rem;
@@ -362,7 +363,7 @@
                 <div class="collapsible-content">
                     <div class="color-control">
                         <label>Función Original</label>
-                        <input type="color" id="original-color-picker" class="modern-color-picker" value="#f43f5e">
+                        <input type="color" id="original-color-picker" class="modern-color-picker" value="#ffc700">
                     </div>
                     <div class="color-control">
                         <label>Serie de Fourier</label>
@@ -547,7 +548,21 @@
 
         const ctx = dom.canvas.getContext('2d');
         let coefficients = { a0: 0, an: [], bn: [] };
-        let view = { zoom: 50, offsetX: 0, offsetY: 0, isDragging: false, lastX: 0, lastY: 0 };
+        
+        // CAMBIO: Objeto de vista actualizado para escalado de ejes
+        let view = {
+            zoomX: 50,
+            zoomY: 50,
+            offsetX: 0,
+            offsetY: 0,
+            isDragging: false,
+            isScaling: false,
+            scalingAxis: 'none', // 'x', 'y', or 'none'
+            hoveringAxis: 'none', // 'x', 'y', or 'none'
+            lastX: 0,
+            lastY: 0
+        };
+
         let redrawQueued = false;
         let currentFunctionType = 'normal';
         let originalFunctionColor = dom.originalColorPicker.value;
@@ -567,18 +582,20 @@
             dom.canvas.height = rect.height * dpr;
             dom.canvas.style.width = `${rect.width}px`;
             dom.canvas.style.height = `${rect.height}px`;
-            ctx.scale(dpr, dpr);
         }
 
         function addEventListeners() {
-            window.addEventListener('resize', setupMainCanvas);
+            window.addEventListener('resize', () => {
+                setupMainCanvas();
+                requestRedraw();
+            });
+            
             dom.calculateButton.addEventListener('click', handleCalculation);
             dom.termsSlider.addEventListener('input', () => {
                 dom.termsValue.textContent = dom.termsSlider.value;
                 requestRedraw();
             });
 
-            // Collapsible panels
             document.querySelectorAll('.collapsible-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const content = header.nextElementSibling;
@@ -589,7 +606,6 @@
                 });
             });
 
-            // Color Pickers
             dom.originalColorPicker.addEventListener('input', (e) => {
                 originalFunctionColor = e.target.value;
                 requestRedraw();
@@ -599,7 +615,6 @@
                 requestRedraw();
             });
 
-            // Function type selector
             dom.functionTypeSelector.addEventListener('click', (e) => {
                 if (e.target.matches('.type-btn')) {
                     currentFunctionType = e.target.dataset.type;
@@ -612,34 +627,103 @@
                 }
             });
 
-            // Canvas interaction
+            // CAMBIO: Eventos de ratón actualizados para paneo, zoom y escalado de ejes
             dom.canvas.addEventListener('mousedown', e => {
-                view.isDragging = true;
+                if (view.hoveringAxis !== 'none') {
+                    view.isScaling = true;
+                    view.scalingAxis = view.hoveringAxis;
+                    view.isDragging = false;
+                } else {
+                    view.isDragging = true;
+                    view.isScaling = false;
+                }
                 view.lastX = e.offsetX;
                 view.lastY = e.offsetY;
-                dom.canvas.style.cursor = 'grabbing';
             });
+
             dom.canvas.addEventListener('mousemove', e => {
-                if (view.isDragging) {
-                    const dx = e.offsetX - view.lastX;
-                    const dy = e.offsetY - view.lastY;
-                    view.offsetX += dx / view.zoom;
-                    view.offsetY -= dy / view.zoom;
-                    view.lastX = e.offsetX;
-                    view.lastY = e.offsetY;
+                const AXIS_HOVER_THRESHOLD = 10;
+                const logicalMouseX = e.offsetX;
+                const logicalMouseY = e.offsetY;
+
+                if (view.isScaling) {
+                    const worldCoords = screenToWorld(logicalMouseX, logicalMouseY);
+                    const dx = logicalMouseX - view.lastX;
+                    const dy = logicalMouseY - view.lastY;
+
+                    if (view.scalingAxis === 'x') { // Escalar eje X (arrastre horizontal)
+                        const scaleFactor = 1 - (dx * 0.01);
+                        view.zoomX *= scaleFactor;
+                        dom.canvas.style.cursor = 'ew-resize';
+                    } else if (view.scalingAxis === 'y') { // Escalar eje Y (arrastre vertical)
+                        const scaleFactor = 1 - (dy * 0.01);
+                        view.zoomY *= scaleFactor;
+                        dom.canvas.style.cursor = 'ns-resize';
+                    }
+                    
+                    const newWorldCoords = screenToWorld(logicalMouseX, logicalMouseY);
+                    view.offsetX += worldCoords.x - newWorldCoords.x;
+                    view.offsetY += worldCoords.y - newWorldCoords.y;
+
+                    view.lastX = logicalMouseX;
+                    view.lastY = logicalMouseY;
                     requestRedraw();
+
+                } else if (view.isDragging) {
+                    const dx = logicalMouseX - view.lastX;
+                    const dy = logicalMouseY - view.lastY;
+                    view.offsetX += dx / view.zoomX;
+                    view.offsetY -= dy / view.zoomY;
+                    view.lastX = logicalMouseX;
+                    view.lastY = logicalMouseY;
+                    dom.canvas.style.cursor = 'grabbing';
+                    requestRedraw();
+                } else {
+                    const origin = worldToScreen(0, 0);
+                    if (Math.abs(logicalMouseY - origin.y) < AXIS_HOVER_THRESHOLD) {
+                        view.hoveringAxis = 'x';
+                        dom.canvas.style.cursor = 'ew-resize';
+                    } else if (Math.abs(logicalMouseX - origin.x) < AXIS_HOVER_THRESHOLD) {
+                        view.hoveringAxis = 'y';
+                        dom.canvas.style.cursor = 'ns-resize';
+                    } else {
+                        view.hoveringAxis = 'none';
+                        dom.canvas.style.cursor = 'grab';
+                    }
                 }
             });
-            dom.canvas.addEventListener('mouseup', () => { view.isDragging = false; dom.canvas.style.cursor = 'grab'; });
-            dom.canvas.addEventListener('mouseleave', () => { view.isDragging = false; dom.canvas.style.cursor = 'grab'; });
+            
+            dom.canvas.addEventListener('mouseup', () => {
+                view.isDragging = false;
+                view.isScaling = false;
+                view.scalingAxis = 'none';
+            });
+
+            dom.canvas.addEventListener('mouseleave', () => {
+                view.isDragging = false;
+                view.isScaling = false;
+                view.scalingAxis = 'none';
+                view.hoveringAxis = 'none';
+                dom.canvas.style.cursor = 'grab';
+            });
+
             dom.canvas.addEventListener('wheel', e => {
                 e.preventDefault();
+                const logicalMouseX = e.offsetX;
+                const logicalMouseY = e.offsetY;
+                const worldCoords = screenToWorld(logicalMouseX, logicalMouseY);
+                
                 const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-                view.zoom *= zoomFactor;
+                view.zoomX *= zoomFactor;
+                view.zoomY *= zoomFactor;
+
+                const newWorldCoords = screenToWorld(logicalMouseX, logicalMouseY);
+                view.offsetX += worldCoords.x - newWorldCoords.x;
+                view.offsetY += worldCoords.y - newWorldCoords.y;
+
                 requestRedraw();
             });
             
-            // Modal
             dom.showFormulasBtn.addEventListener('click', () => dom.formulasModal.classList.add('active'));
             dom.closeFormulasModal.addEventListener('click', () => dom.formulasModal.classList.remove('active'));
             dom.formulasModal.addEventListener('click', e => {
@@ -647,7 +731,6 @@
             });
         }
         
-        // --- Calculation Logic ---
         async function handleCalculation() {
             dom.loadingModal.classList.add('active');
             dom.statusContainer.textContent = "Calculando coeficientes...";
@@ -739,7 +822,6 @@
             return sum * h;
         }
         
-        // --- Drawing Logic ---
         function requestRedraw() {
             if (!redrawQueued) {
                 redrawQueued = true;
@@ -753,19 +835,22 @@
         function drawScene() {
             const dpr = window.devicePixelRatio || 1;
             const { width, height } = dom.canvas;
+
             ctx.save();
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.clearRect(0, 0, width, height);
-            ctx.restore();
+            ctx.scale(dpr, dpr);
 
             drawGrid();
-            
+
             if (coefficients.an.length > 0) {
                 const funcData = getFunctionDataFromDOM();
                 const evalFunc = createEvalFunction(funcData);
                 drawFunction(evalFunc, originalFunctionColor, 3.5);
                 drawFunction(fourierSeries, fourierSeriesColor, 2.5);
             }
+
+            ctx.restore();
         }
         
         function getFunctionDataFromDOM() {
@@ -796,7 +881,7 @@
             }
         }
 
-
+        // CAMBIO: Lógica de la cuadrícula actualizada para usar zoomX y zoomY
         function drawGrid() {
             const { width, height } = dom.canvas;
             const dpr = window.devicePixelRatio || 1;
@@ -807,10 +892,10 @@
             const { x: xMax, y: yMin } = screenToWorld(w, h);
 
             ctx.strokeStyle = "rgba(56, 189, 248, 0.15)";
-            ctx.lineWidth = 1 / dpr;
+            ctx.lineWidth = 1;
             
-            const xStep = Math.pow(10, Math.floor(Math.log10(w / view.zoom)) - 1) * 5;
-            const yStep = Math.pow(10, Math.floor(Math.log10(h / view.zoom)) - 1) * 5;
+            const xStep = Math.pow(10, Math.floor(Math.log10(w / view.zoomX)) - 1) * 5;
+            const yStep = Math.pow(10, Math.floor(Math.log10(h / view.zoomY)) - 1) * 5;
 
             for (let i = Math.floor(xMin / xStep) * xStep; i <= xMax; i += xStep) {
                 const sx = worldToScreen(i, 0).x;
@@ -827,17 +912,15 @@
                 ctx.stroke();
             }
 
-            // Axes
-            ctx.strokeStyle = "rgba(226, 232, 240, 0.8)"; // Intense white for axes
-            ctx.lineWidth = 2 / dpr;
+            ctx.strokeStyle = "rgba(226, 232, 240, 0.8)";
+            ctx.lineWidth = 2;
             const origin = worldToScreen(0, 0);
             ctx.beginPath();
             ctx.moveTo(0, origin.y); ctx.lineTo(w, origin.y);
             ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, h);
             ctx.stroke();
             
-            // Labels
-            ctx.fillStyle = "rgba(226, 232, 240, 0.9)"; // Intense white for labels
+            ctx.fillStyle = "rgba(226, 232, 240, 0.9)";
             ctx.font = `${12}px Inter`;
             
             ctx.textAlign = 'center';
@@ -889,7 +972,7 @@
                 } catch (e) { firstPoint = true; }
             }
             ctx.stroke();
-            ctx.shadowBlur = 0; // Reset shadow
+            ctx.shadowBlur = 0;
         }
         
         function fourierSeries(x) {
@@ -904,16 +987,15 @@
             return sum;
         }
 
-        // --- UI Update ---
         function displayCoefficients() {
             let html = '';
             html += `<div class="p-2 rounded-lg bg-black/20"><strong>a₀ =</strong> <span class="font-mono text-accent-primary">${coefficients.a0.toFixed(5)}</span></div>`;
-            for (let i = 0; i < 10; i++) { // Display first 10
+            for (let i = 0; i < 10; i++) {
                 if (coefficients.an[i] === undefined) break;
                 html += `<div class="p-2 mt-2 rounded-lg bg-black/20 grid grid-cols-2 gap-2">
-                            <div><strong>a<sub>${i+1}</sub> =</strong> <span class="font-mono text-accent-primary">${coefficients.an[i].toFixed(5)}</span></div>
-                            <div><strong>b<sub>${i+1}</sub> =</strong> <span class="font-mono text-accent-primary">${coefficients.bn[i].toFixed(5)}</span></div>
-                         </div>`;
+                                 <div><strong>a<sub>${i+1}</sub> =</strong> <span class="font-mono text-accent-primary">${coefficients.an[i].toFixed(5)}</span></div>
+                                 <div><strong>b<sub>${i+1}</sub> =</strong> <span class="font-mono text-accent-primary">${coefficients.bn[i].toFixed(5)}</span></div>
+                               </div>`;
             }
             dom.coefficientsContainer.innerHTML = html;
         }
@@ -926,12 +1008,12 @@
             if (funcData.type === 'normal') {
                 funcDefHTML = `f(x) = ${funcData.funcStr}`;
                 calcHTML = `<p>\\[ a_0 = \\frac{1}{${L_str}} \\int_{${funcData.start.toFixed(3)}}^{${funcData.end.toFixed(3)}} (${funcData.funcStr}) \\,dx \\approx ${coefficients.a0.toFixed(5)} \\]</p>
-                            <p>Resultado simbólico para \\(a_n\\): \\( ${sym.an_sym} \\)</p>
-                            <p>Resultado simbólico para \\(b_n\\): \\( ${sym.bn_sym} \\)</p>`;
+                                <p>Resultado simbólico para \\(a_n\\): \\( ${sym.an_sym} \\)</p>
+                                <p>Resultado simbólico para \\(b_n\\): \\( ${sym.bn_sym} \\)</p>`;
             } else {
                 funcDefHTML = `f(x) = \\begin{cases} ${funcData.pieces[0].func} & \\text{si } ${funcData.pieces[0].start.toFixed(3)} \\le x < ${funcData.pieces[0].end.toFixed(3)} \\\\ ${funcData.pieces[1].func} & \\text{si } ${funcData.pieces[1].start.toFixed(3)} \\le x < ${funcData.pieces[1].end.toFixed(3)} \\end{cases}`;
                 calcHTML = `<p>\\[ a_n = ${sym.an_sym} \\]</p>
-                            <p>\\[ b_n = ${sym.bn_sym} \\]</p>`;
+                                <p>\\[ b_n = ${sym.bn_sym} \\]</p>`;
             }
             
             dom.formulasContent.innerHTML = `
@@ -964,21 +1046,25 @@
             return str + ' + \\dots';
         }
 
-        // --- Coordinate Transformation ---
+        // CAMBIO: Transformaciones de coordenadas actualizadas para usar zoomX y zoomY
         function worldToScreen(x, y) {
             const { width, height } = dom.canvas;
             const dpr = window.devicePixelRatio || 1;
+            const logicalWidth = width / dpr;
+            const logicalHeight = height / dpr;
             return { 
-                x: (width / dpr / 2) + (x + view.offsetX) * view.zoom, 
-                y: (height / dpr / 2) - (y - view.offsetY) * view.zoom 
+                x: (logicalWidth / 2) + (x + view.offsetX) * view.zoomX, 
+                y: (logicalHeight / 2) - (y - view.offsetY) * view.zoomY 
             };
         }
         function screenToWorld(sx, sy) {
             const { width, height } = dom.canvas;
             const dpr = window.devicePixelRatio || 1;
+            const logicalWidth = width / dpr;
+            const logicalHeight = height / dpr;
             return { 
-                x: (sx - width / dpr / 2) / view.zoom - view.offsetX,
-                y: (height / dpr / 2 - sy) / view.zoom + view.offsetY
+                x: (sx - logicalWidth / 2) / view.zoomX - view.offsetX,
+                y: (logicalHeight / 2 - sy) / view.zoomY + view.offsetY
             };
         }
 
