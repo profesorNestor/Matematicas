@@ -3,516 +3,320 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador Interactivo de Series de Taylor</title>
+    <title>Taylor Series Visualizer [v3.0]</title>
     
-    <!-- Tailwind CSS (para prototipado rápido de layout) -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Math.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-
-    <!-- MathJax for LaTeX Math Rendering -->
-    <script>
-        MathJax = {
-          tex: {
-            inlineMath: [['$', '$'], ['\\(', '\\)']],
-            displayMath: [['$$', '$$'], ['\\[', '\\]']]
-          },
-          svg: {
-            fontCache: 'global'
-          }
-        };
-    </script>
-    <script type="text/javascript" id="MathJax-script" async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
     
-    <!-- Google Fonts: Orbitron y Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
 
     <style>
-        /* --- Definición de Temas y Variables CSS --- */
-        :root, [data-theme="cyberpunk"] {
-            --bg-color: #0d0c1d;
-            --bg-gradient: radial-gradient(circle at 10% 20%, rgba(244, 63, 94, 0.15) 0%, transparent 40%),
-                           radial-gradient(circle at 90% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 40%);
-            --panel-bg: rgba(23, 22, 42, 0.7);
-            --panel-border: rgba(59, 130, 246, 0.3);
-            --glass-bg: rgba(59, 130, 246, 0.08);
-            --text-primary: #f0f2f5;
-            --text-secondary: #a8b2d1;
-            --accent-color: #3b82f6; /* Azul */
-            --accent-gradient: linear-gradient(135deg, #3b82f6, #60a5fa);
-            --highlight-color: #f43f5e; /* Rosa */
-            --highlight-gradient: linear-gradient(135deg, #f43f5e, #f9758a);
-            --neutral-color: #e5e7eb;
+        :root {
+            --bg-dark-space: #010413;
+            --bg-card: rgba(10, 25, 47, 0.75);
+            --bg-glass: rgba(10, 25, 47, 0.5);
+            --border-glow: rgba(0, 191, 255, 0.25);
+            --border-highlight: rgba(0, 255, 255, 0.8);
+            --text-primary: #E0E7FF;
+            --text-secondary: #8A99C1;
+            --cyan-glow: #00FFFF;
+            --magenta-glow: #FF00FF;
+            --lime-glow: #7FFF00;
+            --orange-glow: #FFD700;
+            --transition-speed: 0.4s;
         }
 
-        [data-theme="abismo"] {
-            --bg-color: #000000;
-            --bg-gradient: radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.1) 0%, transparent 50%);
-            --panel-bg: rgba(10, 10, 10, 0.7);
-            --panel-border: rgba(16, 185, 129, 0.4);
-            --glass-bg: rgba(16, 185, 129, 0.07);
-            --text-primary: #e5e7eb;
-            --text-secondary: #9ca3af;
-            --accent-color: #10b981; /* Verde Esmeralda */
-            --accent-gradient: linear-gradient(135deg, #10b981, #6ee7b7);
-            --highlight-color: #f59e0b; /* Ambar */
-            --highlight-gradient: linear-gradient(135deg, #f59e0b, #fbbf24);
-            --neutral-color: #d1d5db;
+        /* --- Estructura Base y Fondo --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
-        [data-theme="solaris"] {
-            --bg-color: #1a1a1a;
-            --bg-gradient: radial-gradient(circle at 20% 80%, rgba(251, 146, 60, 0.15) 0%, transparent 40%);
-            --panel-bg: rgba(30, 25, 20, 0.7);
-            --panel-border: rgba(251, 146, 60, 0.4);
-            --glass-bg: rgba(251, 146, 60, 0.08);
-            --text-primary: #fef3c7;
-            --text-secondary: #e7e5e4;
-            --accent-color: #fb923c; /* Naranja */
-            --accent-gradient: linear-gradient(135deg, #fb923c, #fdba74);
-            --highlight-color: #ef4444; /* Rojo */
-            --highlight-gradient: linear-gradient(135deg, #ef4444, #f87171);
-            --neutral-color: #fafaf9;
-        }
-        
-        [data-theme="esmeralda"] {
-            --bg-color: #051411;
-            --bg-gradient: radial-gradient(circle at 80% 20%, rgba(20, 184, 166, 0.1) 0%, transparent 40%);
-            --panel-bg: rgba(5, 28, 23, 0.7);
-            --panel-border: rgba(20, 184, 166, 0.4);
-            --glass-bg: rgba(20, 184, 166, 0.07);
-            --text-primary: #d1fae5;
-            --text-secondary: #a7f3d0;
-            --accent-color: #14b8a6; /* Teal */
-            --accent-gradient: linear-gradient(135deg, #14b8a6, #2dd4bf);
-            --highlight-color: #a3e635; /* Lima */
-            --highlight-gradient: linear-gradient(135deg, #a3e635, #bef264);
-            --neutral-color: #ecfdf5;
-        }
-
-        /* --- Estilos Base --- */
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-color);
-            background-image: var(--bg-gradient);
+            font-family: 'Rajdhani', sans-serif;
+            background-color: var(--bg-dark-space);
             color: var(--text-primary);
-            transition: background-color 0.5s ease;
-            overflow: hidden; /* Evitar scroll en el body */
-        }
-
-        .app-container {
-            display: grid;
-            grid-template-columns: 380px 1fr;
-            grid-template-rows: 50px 1fr; /* Header más pequeño, main area más grande */
-            grid-template-areas: "header header" "sidebar main";
             height: 100vh;
-            gap: 0.75rem;
-            padding: 0.75rem;
-        }
-
-        /* --- Header --- */
-        .header {
-            grid-area: header;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            width: 100vw;
+            overflow: hidden;
             position: relative;
         }
-        .main-title {
+
+        #app-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* --- Paneles Flotantes y UI --- */
+        .floating-panel {
+            position: absolute;
+            z-index: 10;
+            background: var(--bg-card);
+            backdrop-filter: blur(15px) saturate(180%);
+            border: 1px solid var(--border-glow);
+            border-radius: 16px;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+            transition: all var(--transition-speed) ease;
+        }
+
+        /* --- Panel de Control Principal --- */
+        #control-panel {
+            top: 20px;
+            left: 20px;
+            width: 380px;
+            padding: 1rem;
+            transform: translateX(0);
+        }
+        #control-panel.collapsed {
+            transform: translateX(calc(-100% + 60px));
+        }
+        .panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+        .panel-title {
             font-family: 'Orbitron', sans-serif;
-            font-size: 2rem; /* Título ligeramente más pequeño */
-            font-weight: 700;
-            color: var(--text-primary);
-            text-shadow: 0 0 10px var(--accent-color), 0 0 20px var(--accent-color);
-            transition: all 0.5s ease;
+            font-size: 1.5rem;
+            color: var(--cyan-glow);
+            text-shadow: 0 0 8px var(--cyan-glow);
+        }
+        .panel-toggle-icon {
+            width: 30px;
+            height: 30px;
+            transition: transform var(--transition-speed) ease;
+        }
+        #control-panel.collapsed .panel-toggle-icon {
+            transform: rotate(180deg);
+        }
+        .panel-content {
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-glow);
+            transition: opacity 0.3s, visibility 0.3s;
+        }
+        #control-panel.collapsed .panel-content {
+            opacity: 0;
+            visibility: hidden;
         }
 
-        /* --- Theme Selector --- */
-        .theme-selector {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            right: 10px;
-        }
-        .theme-selector-btn {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
+        /* --- Controles de la UI --- */
+        .input-group { margin-bottom: 1rem; }
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
             color: var(--text-secondary);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.3s ease;
-        }
-        .theme-selector-btn:hover {
-            border-color: var(--accent-color);
-            color: var(--text-primary);
-        }
-        .theme-preview {
-            width: 1rem;
-            height: 1rem;
-            border-radius: 50%;
-            background: var(--accent-gradient);
-        }
-        .theme-dropdown {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            margin-top: 0.5rem;
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            z-index: 100;
-            display: none;
-            backdrop-filter: blur(10px);
-        }
-        .theme-dropdown.active { display: block; }
-        .theme-option {
-            display: flex;
-            align-items: center;
-            padding: 0.5rem;
-            border-radius: 0.375rem;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
-        }
-        .theme-option:hover { background-color: var(--glass-bg); }
-
-        /* --- Paneles y Controles --- */
-        .sidebar, .section {
-            background: var(--panel-bg);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--panel-border);
-            border-radius: 1rem;
-            padding: 1.5rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-        .sidebar { grid-area: sidebar; overflow-y: auto; display: flex; flex-direction: column; }
-        .main-content { grid-area: main; display: flex; flex-direction: column; min-height: 0; }
-        .graph-container { flex-grow: 1; position: relative; }
-        #canvas { width: 100%; height: 100%; border-radius: 0.75rem; }
-
-        .section-title {
-            font-size: 1.25rem;
             font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 1rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--panel-border);
+            font-size: 0.9rem;
+            text-transform: uppercase;
         }
-
+        .futuristic-input, .modern-btn {
+            width: 100%;
+            padding: 10px 12px;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glow);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-family: 'Rajdhani', sans-serif;
+            font-size: 1rem;
+            transition: all var(--transition-speed) ease;
+            outline: none;
+        }
+        .futuristic-input:focus {
+            border-color: var(--border-highlight);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+            gap: 0.5rem;
+        }
         .preset-btn {
             padding: 0.5rem;
-            background: var(--glass-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 0.5rem;
+            background: var(--bg-glass);
+            border: 1px solid var(--border-glow);
             color: var(--text-secondary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-        .preset-btn:hover {
-            border-color: var(--accent-color);
-            color: var(--text-primary);
         }
         .preset-btn.active {
-            background: var(--accent-gradient);
-            border-color: transparent;
-            color: white;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            background: var(--cyan-glow);
+            color: var(--bg-dark-space);
+            border-color: var(--cyan-glow);
+            font-weight: 700;
         }
-
-        .modern-input, .modern-btn {
-            border-radius: 0.5rem;
-            border: 1px solid var(--panel-border);
-            background-color: var(--glass-bg);
-            color: var(--text-primary);
-            padding: 0.75rem;
-            transition: all 0.3s ease;
-        }
-        .modern-input:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            box-shadow: 0 0 0 3px var(--glass-bg);
-        }
-        .modern-btn {
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .btn-primary {
-            background: var(--accent-gradient);
-            border-color: transparent;
-            color: white;
-        }
-        .btn-primary:hover { filter: brightness(1.1); }
-        .btn-secondary { background: var(--highlight-gradient); border-color: transparent; color: white; }
-        .btn-secondary:hover { filter: brightness(1.1); }
         
-        /* --- Selector de Colores de Gráfica --- */
-        .color-picker-popup {
-            display: none;
-            position: absolute;
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 0.75rem;
-            padding: 1rem;
-            z-index: 100;
-            backdrop-filter: blur(10px);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        /* --- Controles de la Gráfica --- */
+        #plot-controls {
+            bottom: 20px;
+            right: 20px;
+            padding: 0.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .color-picker-popup.active { display: block; }
-        .color-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 0.5rem;
-        }
-        .color-swatch {
-            width: 1.75rem;
-            height: 1.75rem;
-            border-radius: 50%;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.2s ease;
-        }
-        .color-swatch:hover { transform: scale(1.1); }
-        .color-swatch.selected { border-color: var(--text-primary); }
-
-        /* --- Estilos de la Gráfica --- */
-        .legend {
-            position: absolute;
-            top: 1rem;
-            left: 1rem;
-            background: var(--panel-bg);
-            padding: 0.75rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--panel-border);
-            z-index: 10;
-            font-size: 0.8rem;
-        }
-        .legend-item { display: flex; align-items: center; margin-bottom: 0.25rem; }
-        .legend-color { width: 1rem; height: 0.25rem; margin-right: 0.5rem; border-radius: 2px; }
-
-        /* --- Controles de Navegación del Gráfico --- */
-        .plot-controls {
-            position: absolute;
-            bottom: 1rem;
-            right: 1rem;
+        .plot-controls-grid {
             display: grid;
             grid-template-areas:
                 ". up ."
                 "left center right"
                 ". down .";
             gap: 0.5rem;
-            background: var(--panel-bg);
-            padding: 0.75rem;
-            border-radius: 1rem;
-            border: 1px solid var(--panel-border);
-            backdrop-filter: blur(10px);
+            transition: all var(--transition-speed) ease;
+        }
+        #plot-controls.collapsed .plot-controls-grid {
+            opacity: 0;
+            visibility: hidden;
+            transform: scale(0.5);
+            height: 0;
         }
         .plot-btn {
-            width: 2.5rem;
-            height: 2.5rem;
+            width: 40px;
+            height: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: var(--glass-bg);
+            background: var(--bg-glass);
             border: 1px solid transparent;
             border-radius: 50%;
             color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
         .plot-btn:hover {
             color: var(--text-primary);
             border-color: var(--accent-color);
-            background: var(--accent-gradient);
+            background: var(--cyan-glow);
+            color: var(--bg-dark-space);
+            box-shadow: 0 0 10px var(--cyan-glow);
+        }
+        #plot-toggle-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-top: 0.5rem;
+        }
+        #plot-controls.collapsed #plot-toggle-btn {
+            margin-top: 0;
         }
         #pan-up { grid-area: up; }
         #pan-down { grid-area: down; }
         #pan-left { grid-area: left; }
         #pan-right { grid-area: right; }
-        #zoom-in { grid-area: center; border-radius: 0.5rem; }
-        #zoom-out { grid-area: center; border-radius: 0.5rem; }
-        .zoom-stack { grid-area: center; display: flex; flex-direction: column; gap: 0.5rem; }
         .center-stack { grid-area: center; display: flex; flex-direction: column; gap: 0.5rem; }
+        .center-stack .plot-btn { border-radius: 8px; }
 
+        /* --- Leyenda --- */
+        #legend {
+            top: 20px;
+            right: 20px;
+            padding: 0.75rem 1rem;
+        }
+        .legend-item { display: flex; align-items: center; }
+        .legend-item:not(:last-child) { margin-bottom: 0.5rem; }
+        .legend-color { width: 20px; height: 4px; margin-right: 8px; border-radius: 2px; }
 
-        /* --- Modal --- */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        .modal-content {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 1rem;
-            padding: 2rem;
-            width: 90vw;
-            max-width: 1100px; /* Ancho aumentado */
-            max-height: 90vh; /* Altura aumentada */
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-            transform: scale(0.95);
-            transition: transform 0.3s ease;
-        }
-        .modal-overlay.active .modal-content { transform: scale(1); }
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--accent-color);
-        }
-        .formula-section {
-            min-width: 0; /* Solución para overflow en flex/grid */
-        }
-        .formula-content {
-            font-size: 1.1rem; /* Aumentar tamaño para legibilidad */
-            line-height: 2;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 1.5rem;
-            border-radius: 0.5rem;
-            overflow-x: auto; /* Scroll horizontal */
-            white-space: nowrap; /* Evitar que la fórmula se rompa en varias líneas */
-        }
-
-        /* --- Layout Responsivo --- */
-        @media (max-width: 1200px) {
-            .app-container {
-                grid-template-columns: 1fr;
-                grid-template-rows: auto auto 1fr;
-                grid-template-areas: "header" "sidebar" "main";
-                height: auto;
+        /* --- Diseño Responsivo --- */
+        @media (max-width: 768px) {
+            #control-panel {
+                width: calc(100% - 40px);
+                max-height: calc(100% - 40px);
+                overflow-y: auto;
             }
-            .sidebar {
-                max-height: 50vh; /* Permitir que el sidebar sea más alto en tablets */
+            .panel-title { font-size: 1.2rem; }
+            #plot-controls {
+                bottom: 10px;
+                right: 10px;
+                padding: 0.5rem;
             }
+            .plot-btn, #plot-toggle-btn { width: 35px; height: 35px; }
+            #legend { top: 10px; right: 10px; padding: 0.5rem; }
         }
     </style>
 </head>
-<body data-theme="cyberpunk">
-    <div class="app-container">
-        <header class="header">
-            <h1 class="main-title">Visualizador de Series de Taylor</h1>
-            <div class="theme-selector">
-                <button class="theme-selector-btn" id="theme-btn">
-                    <div class="theme-preview" id="theme-preview-main"></div>
-                    <span id="theme-name">Cyberpunk</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-                </button>
-                <div class="theme-dropdown" id="theme-dropdown">
-                    <!-- Opciones de tema se inyectan aquí -->
-                </div>
-            </div>
-        </header>
+<body>
+    <div id="app-container">
+        <canvas id="canvas"></canvas>
 
-        <aside class="sidebar">
-            <div class="flex-grow overflow-y-auto pr-2">
-                <h2 class="section-title">Configuración</h2>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4">
-                    <button class="preset-btn active" data-func="sin(x)">sin(x)</button>
-                    <button class="preset-btn" data-func="cos(x)">cos(x)</button>
-                    <button class="preset-btn" data-func="exp(x)">e^x</button>
-                    <button class="preset-btn" data-func="log(x+1)">ln(x+1)</button>
-                </div>
-                <div class="space-y-4">
-                    <div>
-                        <label for="function-input" class="text-sm font-medium text-text-secondary mb-1 block">Función f(x)</label>
-                        <input type="text" id="function-input" class="modern-input w-full" value="sin(x)">
-                    </div>
-                    <div>
-                        <label for="expansion-point" class="text-sm font-medium text-text-secondary mb-1 block">Punto de Expansión (a) = <span id="point-value">0.0</span></label>
-                        <input type="range" id="expansion-point" class="w-full" min="-3" max="3" step="0.1" value="0">
-                    </div>
-                    <div>
-                        <label for="max-terms" class="text-sm font-medium text-text-secondary mb-1 block">Número de Términos</label>
-                        <input type="number" id="max-terms" class="modern-input w-full" value="7" min="1" max="15">
-                    </div>
-                    <div class="flex space-x-2">
-                        <button class="modern-btn btn-primary flex-1" onclick="calculateTaylor()">Calcular</button>
-                        <button class="modern-btn btn-secondary" onclick="showFormulaModal()">Ver Fórmula</button>
+        <!-- Panel de Control Flotante -->
+        <div id="control-panel" class="floating-panel">
+            <header class="panel-header" id="panel-header">
+                <h1 class="panel-title">CONTROLES</h1>
+                <svg id="panel-toggle-icon" class="panel-toggle-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18.75 19.5l-7.5-7.5 7.5-7.5m-6 15L5.25 12l7.5-7.5" /></svg>
+            </header>
+            <div class="panel-content">
+                <div class="input-group">
+                    <label class="input-label">Funciones Predefinidas</label>
+                    <div class="preset-grid">
+                        <button class="preset-btn active" data-func="sin(x)">sin(x)</button>
+                        <button class="preset-btn" data-func="cos(x)">cos(x)</button>
+                        <button class="preset-btn" data-func="exp(x)">e^x</button>
+                        <button class="preset-btn" data-func="log(x+1)">ln(x+1)</button>
                     </div>
                 </div>
-            </div>
-
-            <div class="flex-shrink-0 mt-4 pt-4 border-t border-panel-border">
-                 <h2 class="section-title">Colores de Gráfica</h2>
-                 <div class="relative">
-                     <button class="modern-btn w-full flex items-center justify-center gap-2" id="color-picker-btn">
-                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5A.75.75 0 0110 2zM5.05 3.55a.75.75 0 00-1.06 1.06l1.06-1.06zM14.95 3.55a.75.75 0 011.06 1.06l-1.06-1.06zM3.55 5.05a.75.75 0 011.06-1.06l-1.06 1.06zM16.45 5.05a.75.75 0 00-1.06-1.06l1.06 1.06zM2 10a.75.75 0 01.75-.75h1.5a.75.75 0 010 1.5h-1.5A.75.75 0 012 10zM15.25 10a.75.75 0 000-1.5h1.5a.75.75 0 000 1.5h-1.5zM5.05 16.45a.75.75 0 00-1.06-1.06l1.06 1.06zM14.95 16.45a.75.75 0 011.06-1.06l-1.06 1.06zM3.55 14.95a.75.75 0 011.06 1.06l-1.06-1.06zM16.45 14.95a.75.75 0 00-1.06 1.06l1.06 1.06zM10 15.25a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75zM10 4a6 6 0 100 12 6 6 0 000-12zM8.5 10a1.5 1.5 0 113 0 1.5 1.5 0 01-3 0z" /></svg>
-                         Personalizar Colores
-                     </button>
-                     <div class="color-picker-popup" id="color-picker-popup">
-                         <div class="mb-4">
-                             <label class="block text-sm font-medium text-text-secondary mb-2">Función Original</label>
-                             <div class="color-grid" id="original-color-grid"></div>
-                         </div>
-                         <div>
-                             <label class="block text-sm font-medium text-text-secondary mb-2">Serie de Taylor</label>
-                             <div class="color-grid" id="taylor-color-grid"></div>
-                         </div>
-                     </div>
-                 </div>
-            </div>
-        </aside>
-
-        <main class="main-content">
-            <div class="section flex-grow flex flex-col">
-                <div class="graph-container flex-grow">
-                    <canvas id="canvas"></canvas>
-                    <div class="legend">
-                        <div class="legend-item"><div id="legend-color-original" class="legend-color"></div>Función Original</div>
-                        <div class="legend-item"><div id="legend-color-taylor" class="legend-color"></div>Serie de Taylor</div>
-                    </div>
-                    <div class="plot-controls">
-                        <button id="pan-up" class="plot-btn">↑</button>
-                        <button id="pan-left" class="plot-btn">←</button>
-                        <div class="center-stack">
-                            <button id="zoom-in" class="plot-btn text-lg">+</button>
-                            <button id="reset-view" class="plot-btn">⌾</button>
-                            <button id="zoom-out" class="plot-btn text-lg">−</button>
+                <div class="input-group">
+                    <label for="function-input" class="input-label">Función f(x)</label>
+                    <input type="text" id="function-input" class="futuristic-input" value="sin(x)">
+                </div>
+                <div class="input-group">
+                    <label for="expansion-point" class="input-label">Punto de Expansión (a) = <span id="point-value">0.0</span></label>
+                    <input type="range" id="expansion-point" class="w-full" min="-3" max="3" step="0.1" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="max-terms" class="input-label">Número de Términos</label>
+                    <input type="number" id="max-terms" class="futuristic-input" value="7" min="1" max="15">
+                </div>
+                <div class="input-group">
+                    <label class="input-label">Colores de Gráfica</label>
+                    <div style="display: flex; justify-content: space-around;">
+                        <div>
+                            <label for="original-color-picker" class="input-label" style="font-size:0.8rem;">f(x)</label>
+                            <input type="color" id="original-color-picker" value="#FF00FF">
                         </div>
-                        <button id="pan-right" class="plot-btn">→</button>
-                        <button id="pan-down" class="plot-btn">↓</button>
+                        <div>
+                            <label for="taylor-color-picker" class="input-label" style="font-size:0.8rem;">Taylor</label>
+                            <input type="color" id="taylor-color-picker" value="#00FFFF">
+                        </div>
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
 
-    <!-- Modal de Fórmulas -->
-    <div class="modal-overlay" id="formula-modal">
-        <div class="modal-content">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="modal-title">Fórmula de Taylor</h2>
-                <button class="modern-btn" onclick="hideFormulaModal()">×</button>
-            </div>
-            <div class="space-y-4">
-                <div class="formula-section">
-                    <h3 class="font-semibold text-lg mb-2 text-text-secondary">Fórmula General</h3>
-                    <div class="formula-content">
-                        $$f(x) \approx \sum_{n=0}^{N} \frac{f^{(n)}(a)}{n!} (x-a)^n$$
-                    </div>
+        <!-- Leyenda -->
+        <div id="legend" class="floating-panel">
+            <div class="legend-item"><div id="legend-color-original" class="legend-color"></div>Función Original</div>
+            <div class="legend-item"><div id="legend-color-taylor" class="legend-color"></div>Serie de Taylor</div>
+        </div>
+
+        <!-- Controles de Navegación -->
+        <div id="plot-controls" class="floating-panel">
+            <div class="plot-controls-grid">
+                <button id="pan-up" class="plot-btn">↑</button>
+                <button id="pan-left" class="plot-btn">←</button>
+                <div class="center-stack">
+                    <button id="zoom-in" class="plot-btn">+</button>
+                    <button id="reset-view" class="plot-btn">⌾</button>
+                    <button id="zoom-out" class="plot-btn">−</button>
                 </div>
-                <div class="formula-section">
-                    <h3 class="font-semibold text-lg mb-2 text-text-secondary">Serie para <span id="modal-function-name"></span></h3>
-                    <div class="formula-content" id="expanded-terms"></div>
-                </div>
+                <button id="pan-right" class="plot-btn">→</button>
+                <button id="pan-down" class="plot-btn">↓</button>
             </div>
+            <button id="plot-toggle-btn" class="plot-btn">
+                <svg id="plot-toggle-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" style="width: 24px; height: 24px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" /></svg>
+            </button>
         </div>
     </div>
     
@@ -524,78 +328,54 @@
             expansionPointSlider: document.getElementById('expansion-point'),
             pointValue: document.getElementById('point-value'),
             maxTermsInput: document.getElementById('max-terms'),
-            themeBtn: document.getElementById('theme-btn'),
-            themeDropdown: document.getElementById('theme-dropdown'),
-            themeName: document.getElementById('theme-name'),
-            themePreviewMain: document.getElementById('theme-preview-main'),
-            formulaModal: document.getElementById('formula-modal'),
-            modalFunctionName: document.getElementById('modal-function-name'),
-            expandedTerms: document.getElementById('expanded-terms'),
-            colorPickerBtn: document.getElementById('color-picker-btn'),
-            colorPickerPopup: document.getElementById('color-picker-popup'),
-            originalColorGrid: document.getElementById('original-color-grid'),
-            taylorColorGrid: document.getElementById('taylor-color-grid'),
+            controlPanel: document.getElementById('control-panel'),
+            panelHeader: document.getElementById('panel-header'),
+            plotControls: document.getElementById('plot-controls'),
+            plotToggleBtn: document.getElementById('plot-toggle-btn'),
+            originalColorPicker: document.getElementById('original-color-picker'),
+            taylorColorPicker: document.getElementById('taylor-color-picker'),
             legendColorOriginal: document.getElementById('legend-color-original'),
             legendColorTaylor: document.getElementById('legend-color-taylor'),
-            panUp: document.getElementById('pan-up'),
-            panDown: document.getElementById('pan-down'),
-            panLeft: document.getElementById('pan-left'),
-            panRight: document.getElementById('pan-right'),
-            zoomIn: document.getElementById('zoom-in'),
-            zoomOut: document.getElementById('zoom-out'),
-            resetView: document.getElementById('reset-view'),
         };
         const ctx = dom.canvas.getContext('2d');
         let currentFunction = 'sin(x)';
         let expansionPoint = 0;
         let maxTerms = 7;
         let taylorPolynomial;
-        let taylorPolynomialLatex;
 
         let zoom = 50;
-        let panX = 0;
-        let panY = 0;
+        let viewCenter = { x: 0, y: 0 };
         let isDragging = false;
-        let lastMouseX, lastMouseY;
+        let lastMousePos = { x: 0, y: 0 };
+        let animationFrameId;
 
-        let originalFuncColor = '#f43f5e'; // default color
-        let taylorSeriesColor = '#3b82f6'; // default color
-
-        const themes = {
-            cyberpunk: { name: 'Cyberpunk', gradient: 'linear-gradient(135deg, #3b82f6, #f43f5e)' },
-            abismo: { name: 'Abismo', gradient: 'linear-gradient(135deg, #10b981, #f59e0b)' },
-            solaris: { name: 'Solaris', gradient: 'linear-gradient(135deg, #fb923c, #ef4444)' },
-            esmeralda: { name: 'Esmeralda', gradient: 'linear-gradient(135deg, #14b8a6, #a3e635)' },
-        };
-
-        const colorPalette = [
-            '#ef4444', '#f97316', '#f59e0b', '#eab308', '#84cc16', '#22c55e', '#10b981',
-            '#14b8a6', '#06b6d4', '#0ea5e9', '#3b82f6', '#6366f1', '#8b5cf6', '#a855f7',
-            '#d946ef', '#ec4899', '#f43f5e'
-        ];
+        let originalFuncColor = '#FF00FF';
+        let taylorSeriesColor = '#00FFFF';
 
         // --- Inicialización ---
         document.addEventListener('DOMContentLoaded', () => {
             setupCanvas();
             setupEventListeners();
-            setupThemeSelector();
-            setupColorPicker();
             calculateTaylor();
+            // Colapsar controles en móvil por defecto
+            if (window.innerWidth <= 768) {
+                dom.plotControls.classList.add('collapsed');
+            }
         });
         
         function setupCanvas() {
-            const container = dom.canvas.parentElement;
+            const container = document.getElementById('app-container');
             dom.canvas.width = container.clientWidth;
             dom.canvas.height = container.clientHeight;
             window.addEventListener('resize', () => {
-                const container = dom.canvas.parentElement;
                 dom.canvas.width = container.clientWidth;
                 dom.canvas.height = container.clientHeight;
-                draw();
+                requestDraw();
             });
         }
 
         function setupEventListeners() {
+            // Controles del panel
             document.querySelectorAll('.preset-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
                     document.querySelector('.preset-btn.active').classList.remove('active');
@@ -604,22 +384,45 @@
                     calculateTaylor();
                 });
             });
+            dom.functionInput.addEventListener('change', calculateTaylor);
             dom.expansionPointSlider.addEventListener('input', e => {
                 expansionPoint = parseFloat(e.target.value);
                 dom.pointValue.textContent = expansionPoint.toFixed(1);
                 calculateTaylor();
             });
-            dom.maxTermsInput.addEventListener('input', () => calculateTaylor());
-            
-            // Canvas Events
-            dom.canvas.addEventListener('mousedown', e => { isDragging = true; lastMouseX = e.clientX; lastMouseY = e.clientY; });
+            dom.maxTermsInput.addEventListener('input', calculateTaylor);
+
+            dom.panelHeader.addEventListener('click', () => {
+                dom.controlPanel.classList.toggle('collapsed');
+            });
+
+            dom.plotToggleBtn.addEventListener('click', () => {
+                dom.plotControls.classList.toggle('collapsed');
+            });
+
+            // Colores
+            dom.originalColorPicker.addEventListener('input', e => {
+                originalFuncColor = e.target.value;
+                updateLegendColors();
+                requestDraw();
+            });
+            dom.taylorColorPicker.addEventListener('input', e => {
+                taylorSeriesColor = e.target.value;
+                updateLegendColors();
+                requestDraw();
+            });
+            updateLegendColors();
+
+            // Eventos del Canvas
+            dom.canvas.addEventListener('mousedown', e => { isDragging = true; lastMousePos = { x: e.clientX, y: e.clientY }; });
             dom.canvas.addEventListener('mousemove', e => {
                 if (!isDragging) return;
-                panX += e.clientX - lastMouseX;
-                panY += e.clientY - lastMouseY;
-                lastMouseX = e.clientX;
-                lastMouseY = e.clientY;
-                draw();
+                const dx = e.clientX - lastMousePos.x;
+                const dy = e.clientY - lastMousePos.y;
+                lastMousePos = { x: e.clientX, y: e.clientY };
+                viewCenter.x -= dx / zoom;
+                viewCenter.y += dy / zoom;
+                requestDraw();
             });
             dom.canvas.addEventListener('mouseup', () => isDragging = false);
             dom.canvas.addEventListener('mouseleave', () => isDragging = false);
@@ -627,83 +430,22 @@
                 e.preventDefault();
                 const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
                 zoom *= zoomFactor;
-                draw();
+                requestDraw();
             });
 
-            // Plot Controls
-            dom.panUp.addEventListener('click', () => { panY += 50; draw(); });
-            dom.panDown.addEventListener('click', () => { panY -= 50; draw(); });
-            dom.panLeft.addEventListener('click', () => { panX += 50; draw(); });
-            dom.panRight.addEventListener('click', () => { panX -= 50; draw(); });
-            dom.zoomIn.addEventListener('click', () => { zoom *= 1.2; draw(); });
-            dom.zoomOut.addEventListener('click', () => { zoom *= 0.8; draw(); });
-            dom.resetView.addEventListener('click', () => { zoom = 50; panX = 0; panY = 0; draw(); });
-        }
-
-        function setupThemeSelector() {
-            dom.themeBtn.addEventListener('click', () => dom.themeDropdown.classList.toggle('active'));
-            const dropdownContent = Object.entries(themes).map(([id, {name, gradient}]) => `
-                <div class="theme-option" data-theme="${id}">
-                    <div class="theme-preview" style="background: ${gradient};"></div>
-                    <span class="ml-2">${name}</span>
-                </div>
-            `).join('');
-            dom.themeDropdown.innerHTML = dropdownContent;
-            document.querySelectorAll('.theme-option').forEach(option => {
-                option.addEventListener('click', () => {
-                    const themeId = option.dataset.theme;
-                    document.body.dataset.theme = themeId;
-                    dom.themeName.textContent = themes[themeId].name;
-                    dom.themePreviewMain.style.background = themes[themeId].gradient;
-                    dom.themeDropdown.classList.remove('active');
-                    // Update graph colors based on new theme
-                    originalFuncColor = getComputedStyle(document.body).getPropertyValue('--highlight-color').trim();
-                    taylorSeriesColor = getComputedStyle(document.body).getPropertyValue('--accent-color').trim();
-                    updateLegendColors();
-                    updateColorPickerSelection();
-                    draw();
-                });
-            });
-        }
-
-        function setupColorPicker() {
-            const createSwatches = (grid, type) => {
-                grid.innerHTML = '';
-                colorPalette.forEach(color => {
-                    const swatch = document.createElement('div');
-                    swatch.className = 'color-swatch';
-                    swatch.style.background = color;
-                    swatch.dataset.color = color;
-                    swatch.addEventListener('click', () => {
-                        if (type === 'original') {
-                            originalFuncColor = color;
-                        } else {
-                            taylorSeriesColor = color;
-                        }
-                        updateLegendColors();
-                        updateColorPickerSelection();
-                        draw();
-                    });
-                    grid.appendChild(swatch);
-                });
-            };
-
-            createSwatches(dom.originalColorGrid, 'original');
-            createSwatches(dom.taylorColorGrid, 'taylor');
-            
-            dom.colorPickerBtn.addEventListener('click', () => dom.colorPickerPopup.classList.toggle('active'));
-            updateLegendColors();
-            updateColorPickerSelection();
+            // Controles de Navegación
+            document.getElementById('pan-up').addEventListener('click', () => { viewCenter.y += 50 / zoom; requestDraw(); });
+            document.getElementById('pan-down').addEventListener('click', () => { viewCenter.y -= 50 / zoom; requestDraw(); });
+            document.getElementById('pan-left').addEventListener('click', () => { viewCenter.x -= 50 / zoom; requestDraw(); });
+            document.getElementById('pan-right').addEventListener('click', () => { viewCenter.x += 50 / zoom; requestDraw(); });
+            document.getElementById('zoom-in').addEventListener('click', () => { zoom *= 1.2; requestDraw(); });
+            document.getElementById('zoom-out').addEventListener('click', () => { zoom *= 0.8; requestDraw(); });
+            document.getElementById('reset-view').addEventListener('click', () => { zoom = 50; viewCenter = { x: 0, y: 0 }; requestDraw(); });
         }
         
         function updateLegendColors() {
             dom.legendColorOriginal.style.background = originalFuncColor;
             dom.legendColorTaylor.style.background = taylorSeriesColor;
-        }
-        
-        function updateColorPickerSelection() {
-            document.querySelectorAll('#original-color-grid .color-swatch').forEach(s => s.classList.toggle('selected', s.dataset.color === originalFuncColor));
-            document.querySelectorAll('#taylor-color-grid .color-swatch').forEach(s => s.classList.toggle('selected', s.dataset.color === taylorSeriesColor));
         }
 
         // --- Lógica de Cálculo ---
@@ -715,183 +457,144 @@
             try {
                 let node = math.parse(currentFunction);
                 const terms = [];
-                const latexTerms = [];
-                const scope = { x: expansionPoint };
-
                 for (let i = 0; i < maxTerms; i++) {
-                    const derivativeValue = node.evaluate(scope);
+                    const derivativeValue = node.evaluate({ x: expansionPoint });
                     const termCoeff = derivativeValue / math.factorial(i);
-
                     if (Math.abs(termCoeff) > 1e-10) {
-                        terms.push(`${termCoeff.toFixed(10)} * (x - ${expansionPoint})^${i}`);
-                        
-                        let sign = (termCoeff > 0) ? '+' : '-';
-                        const absCoeff = Math.abs(termCoeff);
-                        let coeffStr = absCoeff.toFixed(4);
-
-                        if (Math.abs(absCoeff - 1) < 1e-9 && i > 0) {
-                            coeffStr = '';
-                        }
-
-                        let xPart = '';
-                        if (i > 0) {
-                            const powerStr = (i > 1) ? `^{${i}}` : '';
-                            if (expansionPoint === 0) {
-                                xPart = `x${powerStr}`;
-                            } else {
-                                xPart = `(x ${expansionPoint > 0 ? '-' : '+'} ${Math.abs(expansionPoint)})${powerStr}`;
-                            }
-                        }
-                        
-                        if (latexTerms.length === 0 && sign === '+') {
-                            sign = '';
-                        } else {
-                            sign = ` ${sign} `;
-                        }
-                        
-                        if (i === 0) {
-                            latexTerms.push(`${termCoeff.toFixed(4)}`);
-                        } else {
-                            latexTerms.push(`${sign}${coeffStr}${xPart}`);
-                        }
+                        terms.push(`${termCoeff} * (x - ${expansionPoint})^${i}`);
                     }
                     node = math.derivative(node, 'x');
                 }
                 taylorPolynomial = terms.join(' + ') || '0';
-                
-                let finalLatexString = latexTerms.join('').trim();
-                if (finalLatexString.startsWith('+')) {
-                    finalLatexString = finalLatexString.substring(1).trim();
-                }
-                taylorPolynomialLatex = `f(x) \\approx ${finalLatexString}`;
-
-
             } catch (e) {
                 console.error("Error al calcular la serie de Taylor:", e);
                 taylorPolynomial = "0";
-                taylorPolynomialLatex = "\\text{Error en la función}";
             }
-            draw();
+            requestDraw();
         }
 
         // --- Lógica de Dibujo ---
-        function draw() {
+        function requestDraw() {
+            if (animationFrameId) cancelAnimationFrame(animationFrameId);
+            animationFrameId = requestAnimationFrame(drawScene);
+        }
+
+        function drawScene() {
             if (!ctx) return;
             ctx.clearRect(0, 0, dom.canvas.width, dom.canvas.height);
+            
             drawGridAndAxes();
-            drawFunction(currentFunction, originalFuncColor);
+            
             if (taylorPolynomial) {
-                drawFunction(taylorPolynomial, taylorSeriesColor);
+                drawFunction(taylorPolynomial, taylorSeriesColor, 2.5);
             }
+            drawFunction(currentFunction, originalFuncColor, 3);
         }
 
         function drawGridAndAxes() {
-            const width = dom.canvas.width;
-            const height = dom.canvas.height;
-            const originX = width / 2 + panX;
-            const originY = height / 2 + panY;
+            ctx.save();
+            const view = {
+                left: viewCenter.x - (dom.canvas.width / 2) / zoom,
+                right: viewCenter.x + (dom.canvas.width / 2) / zoom,
+                top: viewCenter.y + (dom.canvas.height / 2) / zoom,
+                bottom: viewCenter.y - (dom.canvas.height / 2) / zoom,
+            };
+
+            const xStep = Math.pow(10, Math.floor(Math.log10(view.right - view.left)) - 1);
+            const yStep = Math.pow(10, Math.floor(Math.log10(view.top - view.bottom)) - 1);
             
-            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--panel-border');
-            ctx.fillStyle = getComputedStyle(document.body).getPropertyValue('--text-secondary');
-            ctx.font = '12px Inter';
+            // Cuadrícula sutil
+            ctx.strokeStyle = 'rgba(0, 191, 255, 0.1)';
             ctx.lineWidth = 1;
+            
+            for (let x = Math.floor(view.left / xStep) * xStep; x < view.right; x += xStep) {
+                const screenX = worldToScreen(x, 0).x;
+                ctx.beginPath(); ctx.moveTo(screenX, 0); ctx.lineTo(screenX, dom.canvas.height); ctx.stroke();
+            }
+            for (let y = Math.floor(view.bottom / yStep) * yStep; y < view.top; y += yStep) {
+                const screenY = worldToScreen(0, y).y;
+                ctx.beginPath(); ctx.moveTo(0, screenY); ctx.lineTo(dom.canvas.width, screenY); ctx.stroke();
+            }
 
-            // Determinar espaciado de la cuadrícula basado en el zoom
-            const minGridSpacingPixels = 60;
-            let gridSpacingWorld = 1;
-            const powersOf10 = [0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10];
-            for (const p of powersOf10) {
-                if (p * zoom > minGridSpacingPixels) {
-                    gridSpacingWorld = p;
-                    break;
+            // Ejes principales y etiquetas (blancos e intensos)
+            const origin = worldToScreen(0, 0);
+            ctx.strokeStyle = '#FFFFFF';
+            ctx.fillStyle = '#FFFFFF';
+            ctx.lineWidth = 2;
+            ctx.font = "bold 14px Orbitron";
+
+            ctx.beginPath();
+            ctx.moveTo(0, origin.y); ctx.lineTo(dom.canvas.width, origin.y); // Eje X
+            ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, dom.canvas.height); // Y-axis
+            ctx.stroke();
+            
+            ctx.textAlign = "center";
+            ctx.textBaseline = "top";
+            for (let x = Math.floor(view.left / xStep) * xStep; x < view.right; x += xStep) {
+                if (Math.abs(x) > 1e-9) {
+                    const screenX = worldToScreen(x, 0).x;
+                    ctx.fillText(x.toPrecision(2).replace(/\.0+$/, ''), screenX, origin.y + 8);
                 }
             }
 
-            // Dibujar cuadrícula vertical y etiquetas
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-            for (let x = Math.floor(-originX / (gridSpacingWorld * zoom)) * gridSpacingWorld; x * zoom < width - originX; x += gridSpacingWorld) {
-                const screenX = originX + x * zoom;
-                ctx.beginPath();
-                ctx.moveTo(screenX, 0);
-                ctx.lineTo(screenX, height);
-                ctx.stroke();
-                ctx.fillText(x.toFixed(2), screenX, originY + 5);
-            }
-
-            // Dibujar cuadrícula horizontal y etiquetas
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'middle';
-            for (let y = Math.floor(-originY / (gridSpacingWorld * zoom)) * gridSpacingWorld; y * zoom < height - originY; y += gridSpacingWorld) {
-                const screenY = originY - y * zoom;
-                ctx.beginPath();
-                ctx.moveTo(0, screenY);
-                ctx.lineTo(width, screenY);
-                ctx.stroke();
-                if (Math.abs(y) > 1e-9) { // No dibujar etiqueta en el origen dos veces
-                    ctx.fillText(y.toFixed(2), originX - 5, screenY);
+            ctx.textAlign = "right";
+            ctx.textBaseline = "middle";
+            for (let y = Math.floor(view.bottom / yStep) * yStep; y < view.top; y += yStep) {
+                 if (Math.abs(y) > 1e-9) {
+                    const screenY = worldToScreen(0, y).y;
+                    ctx.fillText(y.toPrecision(2).replace(/\.0+$/, ''), origin.x - 8, screenY);
                 }
             }
             
-            // Ejes principales
-            ctx.strokeStyle = getComputedStyle(document.body).getPropertyValue('--text-secondary');
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(0, originY); ctx.lineTo(width, originY);
-            ctx.moveTo(originX, 0); ctx.lineTo(originX, height);
-            ctx.stroke();
+            ctx.textAlign = "right";
+            ctx.textBaseline = "top";
+            ctx.fillText("0", origin.x - 8, origin.y + 8);
+
+            ctx.restore();
         }
 
-        function drawFunction(func, color) {
+        function drawFunction(funcStr, color, lineWidth) {
+            ctx.save();
             ctx.strokeStyle = color;
-            ctx.lineWidth = 2.5; // Thicker lines
+            ctx.lineWidth = lineWidth;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 15;
             ctx.beginPath();
             
-            const width = dom.canvas.width;
-            const originX = width / 2 + panX;
-            const originY = dom.canvas.height / 2 + panY;
+            const step = 1 / zoom;
+            const startX = viewCenter.x - (dom.canvas.width / 2) / zoom;
+            const endX = viewCenter.x + (dom.canvas.width / 2) / zoom;
 
             let firstPoint = true;
-            for (let sx = 0; sx < width; sx++) {
-                const x = (sx - originX) / zoom;
-                try {
-                    const y = math.evaluate(func, {x: x});
-                    if (Number.isNaN(y) || !Number.isFinite(y)) {
-                        firstPoint = true;
-                        continue;
+            try {
+                const node = math.parse(funcStr);
+                for (let x = startX; x < endX; x += step) {
+                    const y = node.evaluate({x: x});
+                    if (isNaN(y) || !isFinite(y)) {
+                        firstPoint = true; continue;
                     }
-                    const sy = originY - y * zoom;
+                    const screenPos = worldToScreen(x, y);
                     if (firstPoint) {
-                        ctx.moveTo(sx, sy);
+                        ctx.moveTo(screenPos.x, screenPos.y);
                         firstPoint = false;
                     } else {
-                        ctx.lineTo(sx, sy);
+                        ctx.lineTo(screenPos.x, screenPos.y);
                     }
-                } catch (e) {
-                    firstPoint = true;
                 }
+            } catch (e) {
+                // No dibujar si la función es inválida
             }
             ctx.stroke();
-        }
-        
-        // --- Lógica del Modal ---
-        function showFormulaModal() {
-            dom.modalFunctionName.textContent = currentFunction;
-            if (taylorPolynomialLatex) {
-                dom.expandedTerms.textContent = `$$${taylorPolynomialLatex}$$`;
-            } else {
-                dom.expandedTerms.textContent = '$$ \\text{Calcula la serie primero} $$';
-            }
-            dom.formulaModal.classList.add('active');
-            if (window.MathJax) {
-                // Pedir a MathJax que renderice el contenido del modal
-                MathJax.typesetPromise([dom.expandedTerms]).catch((err) => console.log('MathJax typeset error:', err));
-            }
+            ctx.restore();
         }
 
-        function hideFormulaModal() {
-            dom.formulaModal.classList.remove('active');
+        // --- Utilidades ---
+        function worldToScreen(wx, wy) {
+            const sx = (wx - viewCenter.x) * zoom + dom.canvas.width / 2;
+            const sy = -(wy - viewCenter.y) * zoom + dom.canvas.height / 2;
+            return { x: sx, y: sy };
         }
+        
     </script>
 </body>
 </html>
