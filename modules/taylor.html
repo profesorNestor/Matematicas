@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Taylor Series Visualizer [v5.0]</title>
+    <title>Taylor Series Visualizer [v7.0 Final]</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
@@ -24,6 +24,7 @@
             --cyan-glow: #00FFFF;
             --magenta-glow: #FF00FF;
             --yellow-accent: #FFD60A;
+            --error-color: #FF4136;
             --transition-speed: 0.4s;
         }
 
@@ -108,11 +109,14 @@
         .panel-content {
             padding-top: 1rem;
             border-top: 1px solid var(--border-glow);
-            transition: opacity 0.3s, visibility 0.3s;
+            transition: opacity 0.3s, visibility 0.3s, max-height 0.4s ease;
+            max-height: 1000px; /* Altura para animación */
         }
         #control-panel.collapsed .panel-content {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
+            max-height: 0;
         }
 
         /* --- Controles de la UI --- */
@@ -169,6 +173,7 @@
         .legend-item { display: flex; align-items: center; }
         .legend-item:not(:last-child) { margin-bottom: 0.5rem; }
         .legend-color { width: 20px; height: 4px; margin-right: 8px; border-radius: 2px; }
+        #error-legend-item { display: none; }
 
         /* --- Modal de Fórmulas --- */
         #formula-modal {
@@ -231,7 +236,7 @@
         @media (max-width: 768px) {
             #control-panel {
                 width: calc(100% - 40px);
-                max-height: calc(100% - 90px);
+                max-height: calc(100% - 40px);
                 overflow-y: auto;
             }
             .panel-title { font-size: 1.2rem; }
@@ -284,6 +289,10 @@
                         </div>
                     </div>
                 </div>
+                 <div class="input-group" style="display: flex; align-items: center; justify-content: space-between;">
+                    <label for="show-error-toggle" class="input-label" style="margin-bottom: 0;">Mostrar Error</label>
+                    <input type="checkbox" id="show-error-toggle" />
+                </div>
                 <div class="input-group">
                     <button id="show-formula-btn" class="modern-btn">Ver Fórmula</button>
                 </div>
@@ -294,6 +303,7 @@
         <div id="legend" class="floating-panel">
             <div class="legend-item"><div id="legend-color-original" class="legend-color"></div>Función Original</div>
             <div class="legend-item"><div id="legend-color-taylor" class="legend-color"></div>Serie de Taylor</div>
+            <div class="legend-item" id="error-legend-item"><div class="legend-color" style="background: var(--error-color)"></div>Error Absoluto</div>
         </div>
 
         <!-- Modal de Fórmulas -->
@@ -305,11 +315,15 @@
                 </header>
                 <div class="formula-section">
                     <h3 class="input-label">Fórmula General</h3>
-                    <div class="formula-content">$$ f(x) \approx \sum_{n=0}^{N} \frac{f^{(n)}(a)}{n!} (x-a)^n $$</div>
+                    <div class="formula-content" id="general-formula-container">$$ f(x) \approx \sum_{n=0}^{N} \frac{f^{(n)}(a)}{n!} (x-a)^n $$</div>
                 </div>
                  <div class="formula-section">
                     <h3 class="input-label">Serie para <span id="modal-function-name"></span></h3>
                     <div class="formula-content" id="expanded-terms"></div>
+                </div>
+                <div class="formula-section">
+                    <h3 class="input-label">Término de Error (Residuo de Lagrange)</h3>
+                    <div class="formula-content" id="remainder-formula-container">$$ R_n(x) = \frac{f^{(n+1)}(c)}{(n+1)!} (x-a)^{n+1} $$</div>
                 </div>
             </div>
         </div>
@@ -325,6 +339,8 @@
             maxTermsInput: document.getElementById('max-terms'),
             controlPanel: document.getElementById('control-panel'),
             panelHeader: document.getElementById('panel-header'),
+            showErrorToggle: document.getElementById('show-error-toggle'),
+            errorLegendItem: document.getElementById('error-legend-item'),
             originalColorPicker: document.getElementById('original-color-picker'),
             taylorColorPicker: document.getElementById('taylor-color-picker'),
             legendColorOriginal: document.getElementById('legend-color-original'),
@@ -341,6 +357,7 @@
         let maxTerms = 7;
         let taylorPolynomial;
         let taylorPolynomialLatex;
+        let showError = false;
 
         let zoom = 50;
         let viewCenter = { x: 0, y: 0 };
@@ -351,6 +368,7 @@
 
         let originalFuncColor = '#FF00FF';
         let taylorSeriesColor = '#00FFFF';
+        const errorColor = getComputedStyle(document.documentElement).getPropertyValue('--error-color').trim();
 
         // --- Inicialización ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -395,7 +413,7 @@
                 dom.controlPanel.classList.toggle('collapsed');
             });
 
-            // Colores
+            // Colores y Error
             dom.originalColorPicker.addEventListener('input', e => {
                 originalFuncColor = e.target.value;
                 updateLegendColors();
@@ -404,6 +422,11 @@
             dom.taylorColorPicker.addEventListener('input', e => {
                 taylorSeriesColor = e.target.value;
                 updateLegendColors();
+                requestDraw();
+            });
+            dom.showErrorToggle.addEventListener('change', e => {
+                showError = e.target.checked;
+                dom.errorLegendItem.style.display = showError ? 'flex' : 'none';
                 requestDraw();
             });
             updateLegendColors();
@@ -533,6 +556,9 @@
             
             drawGridAndAxes();
             
+            if (showError && taylorPolynomial) {
+                drawErrorFunction();
+            }
             if (taylorPolynomial) {
                 drawFunction(taylorPolynomial, taylorSeriesColor, 2.5);
             }
@@ -548,26 +574,20 @@
                 bottom: viewCenter.y - (dom.canvas.height / 2) / zoom,
             };
 
-            const minPixelSpacing = 70; // Aumentado para más espacio en móviles
+            const minPixelSpacing = 70;
             let xStep = Math.pow(10, Math.floor(Math.log10(view.right - view.left)) - 1);
             while(xStep * zoom < minPixelSpacing) {
                 xStep *= 2;
-                if(xStep * zoom > minPixelSpacing * 2.5) {
-                    xStep /= 2.5;
-                    break;
-                }
+                if(xStep * zoom > minPixelSpacing * 2.5) { xStep /= 2.5; break; }
             }
 
             let yStep = Math.pow(10, Math.floor(Math.log10(view.top - view.bottom)) - 1);
              while(yStep * zoom < minPixelSpacing) {
                 yStep *= 2;
-                 if(yStep * zoom > minPixelSpacing * 2.5) {
-                    yStep /= 2.5;
-                    break;
-                }
+                 if(yStep * zoom > minPixelSpacing * 2.5) { yStep /= 2.5; break; }
             }
             
-            ctx.strokeStyle = 'rgba(0, 191, 255, 0.1)';
+            ctx.strokeStyle = 'rgba(0, 191, 255, 0.2)'; // Cuadrícula más intensa
             ctx.lineWidth = 1;
             
             for (let x = Math.floor(view.left / xStep) * xStep; x < view.right; x += xStep) {
@@ -645,6 +665,52 @@
             ctx.stroke();
             ctx.restore();
         }
+        
+        function drawErrorFunction() {
+            ctx.save();
+            ctx.fillStyle = errorColor.replace(')', ', 0.2)');
+            ctx.strokeStyle = errorColor;
+            ctx.lineWidth = 2;
+            
+            const step = 2 / zoom;
+            const startX = viewCenter.x - (dom.canvas.width / 2) / zoom;
+            const endX = viewCenter.x + (dom.canvas.width / 2) / zoom;
+            
+            const originalNode = math.parse(currentFunction);
+            const taylorNode = math.parse(taylorPolynomial);
+            
+            const errorPoints = [];
+
+            for (let x = startX; x < endX; x += step) {
+                try {
+                    const originalY = originalNode.evaluate({x: x});
+                    const taylorY = taylorNode.evaluate({x: x});
+                    const error = Math.abs(originalY - taylorY);
+                    if (!isNaN(error) && isFinite(error)) {
+                        errorPoints.push({x, y: error});
+                    }
+                } catch(e) {}
+            }
+            
+            ctx.beginPath();
+            const startPoint = worldToScreen(errorPoints[0]?.x || 0, 0);
+            ctx.moveTo(startPoint.x, startPoint.y);
+
+            for(const point of errorPoints) {
+                const screenPos = worldToScreen(point.x, point.y);
+                ctx.lineTo(screenPos.x, screenPos.y);
+            }
+            ctx.stroke();
+            
+            if(errorPoints.length > 1) {
+                const endPoint = worldToScreen(errorPoints[errorPoints.length - 1].x, 0);
+                ctx.lineTo(endPoint.x, endPoint.y);
+                ctx.closePath();
+                ctx.fill();
+            }
+
+            ctx.restore();
+        }
 
         // --- Utilidades ---
         function worldToScreen(wx, wy) {
@@ -658,7 +724,8 @@
             dom.expandedTerms.textContent = `$$ f(x) \\approx ${taylorPolynomialLatex || ''} $$`;
             dom.formulaModal.classList.add('active');
             if (window.MathJax) {
-                MathJax.typesetPromise([dom.expandedTerms]).catch((err) => console.error('MathJax error:', err));
+                MathJax.typesetPromise([dom.formulaModal])
+                .catch((err) => console.error('MathJax error:', err));
             }
         }
 
