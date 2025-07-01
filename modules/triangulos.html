@@ -177,6 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTriangle = null;
     let calculatedElements = {};
     let currentPlotRange = null; 
+    let plotlyListenerAttached = false;
     
     const drawOptions = {
         grid: false, labels: true, angles: true, medians: false, altitudes: false,
@@ -346,21 +347,26 @@ document.addEventListener('DOMContentLoaded', () => {
             eulerLine: 'rgb(226, 232, 240)' // slate-200
         };
 
-        if (!currentPlotRange) {
-            const allX = [pA.x, pB.x, pC.x];
-            const allY = [pA.y, pB.y, pC.y];
-            const minX = Math.min(...allX);
-            const maxX = Math.max(...allX);
-            const minY = Math.min(...allY);
-            const maxY = Math.max(...allY);
-            const paddingX = (maxX - minX) * 0.25;
-            const paddingY = (maxY - minY) * 0.25;
+        const layout = {
+            showlegend: false,
+            paper_bgcolor: 'rgba(0,0,0,0)',
+            plot_bgcolor: 'rgba(0,0,0,0)',
+            xaxis: { showgrid: drawOptions.grid, zeroline: false, visible: false, gridcolor: '#475569' },
+            yaxis: { showgrid: drawOptions.grid, zeroline: false, visible: false, gridcolor: '#475569', scaleanchor: "x", scaleratio: 1 },
+            margin: { t: 20, b: 20, l: 20, r: 20 },
+            annotations: [],
+            shapes: [],
+            hovermode: 'closest'
+        };
 
-            currentPlotRange = {
-                x: [minX - paddingX, maxX + paddingX],
-                y: [minY - paddingY, maxY + paddingY]
-            };
+        if (currentPlotRange) {
+            layout.xaxis.range = currentPlotRange.x;
+            layout.yaxis.range = currentPlotRange.y;
+        } else {
+            layout.xaxis.autorange = true;
+            layout.yaxis.autorange = true;
         }
+
 
         const createAngleArcTrace = (vertex, p_start_leg, p_end_leg, radius, color, visible) => {
             if (!isFinitePoint(vertex) || !isFinitePoint(p_start_leg) || !isFinitePoint(p_end_leg) || !isFinite(radius) || radius <= 0) {
@@ -498,19 +504,13 @@ document.addEventListener('DOMContentLoaded', () => {
             annotations.push({ ...posC, text: `${formatNumber(toDegrees(C_rad))}°`, showarrow: false, font: { color: colors.text } });
         }
         
-        const layout = {
-            showlegend: false,
-            paper_bgcolor: 'rgba(0,0,0,0)',
-            plot_bgcolor: 'rgba(0,0,0,0)',
-            xaxis: { showgrid: drawOptions.grid, zeroline: false, visible: false, gridcolor: '#475569', range: currentPlotRange.x },
-            yaxis: { showgrid: drawOptions.grid, zeroline: false, visible: false, gridcolor: '#475569', scaleanchor: "x", scaleratio: 1, range: currentPlotRange.y },
-            margin: { t: 20, b: 20, l: 20, r: 20 },
-            annotations: annotations,
-            shapes: [], 
-            hovermode: 'closest'
-        };
+        layout.annotations = annotations;
 
-        Plotly.react(dom.plotlyContainer, traces.filter(t => t), layout, { responsive: true, displaylogo: false });
+        Plotly.react(dom.plotlyContainer, traces.filter(t => t), layout, { 
+            responsive: true, 
+            displaylogo: false,
+            scrollZoom: true
+        });
     };
     
     // --- ACTUALIZACIÓN DE UI ---
@@ -592,79 +592,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // ADD: Touch event handlers for pan and zoom
-    let isTouching = false;
-    let lastTouch = { x: 0, y: 0, dist: 0 };
-
-    dom.plotlyContainer.addEventListener('touchstart', (e) => {
-        if (!currentPlotRange) return;
-        e.preventDefault();
-        isTouching = true;
-        if (e.touches.length === 1) {
-            lastTouch.x = e.touches[0].clientX;
-            lastTouch.y = e.touches[0].clientY;
-        } else if (e.touches.length === 2) {
-            lastTouch.dist = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-        }
-    }, { passive: false });
-
-    dom.plotlyContainer.addEventListener('touchmove', (e) => {
-        if (!isTouching || !currentPlotRange) return;
-        e.preventDefault();
-
-        const plotDiv = dom.plotlyContainer;
-        const currentXRange = currentPlotRange.x;
-        const currentYRange = currentPlotRange.y;
-        
-        if (e.touches.length === 1) { // Pan
-            const dx = e.touches[0].clientX - lastTouch.x;
-            const dy = e.touches[0].clientY - lastTouch.y;
-
-            const xScale = (currentXRange[1] - currentXRange[0]) / plotDiv.clientWidth;
-            const yScale = (currentYRange[1] - currentYRange[0]) / plotDiv.clientHeight;
-
-            currentPlotRange.x = [currentXRange[0] - dx * xScale, currentXRange[1] - dx * xScale];
-            currentPlotRange.y = [currentYRange[0] + dy * yScale, currentYRange[1] + dy * yScale];
-            
-            lastTouch.x = e.touches[0].clientX;
-            lastTouch.y = e.touches[0].clientY;
-
-        } else if (e.touches.length === 2) { // Zoom
-            const newDist = Math.hypot(
-                e.touches[0].clientX - e.touches[1].clientX,
-                e.touches[0].clientY - e.touches[1].clientY
-            );
-            const zoomFactor = lastTouch.dist / newDist;
-
-            const centerX = (currentXRange[0] + currentXRange[1]) / 2;
-            const centerY = (currentYRange[0] + currentYRange[1]) / 2;
-            const newWidth = (currentXRange[1] - currentXRange[0]) * zoomFactor;
-            const newHeight = (currentYRange[1] - currentYRange[0]) * zoomFactor;
-
-            currentPlotRange.x = [centerX - newWidth / 2, centerX + newWidth / 2];
-            currentPlotRange.y = [centerY - newHeight / 2, centerY + newHeight / 2];
-            
-            lastTouch.dist = newDist;
-        }
-
-        Plotly.relayout(plotDiv, {
-            'xaxis.range': currentPlotRange.x,
-            'yaxis.range': currentPlotRange.y
-        });
-
-    }, { passive: false });
-
-    dom.plotlyContainer.addEventListener('touchend', (e) => {
-        e.preventDefault();
-        if (e.touches.length === 0) {
-            isTouching = false;
-        }
-    }, { passive: false });
-
-
     // --- INICIALIZACIÓN ---
     const initializeApp = () => {
         const inputFields = [
@@ -706,6 +633,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         handleCalculate();
+
+        // FIX: Attach Plotly event listener after the first plot is created.
+        if (!plotlyListenerAttached) {
+            dom.plotlyContainer.on('plotly_relayout', (eventdata) => {
+                if (eventdata['xaxis.range[0]']) {
+                    currentPlotRange = {
+                        x: [eventdata['xaxis.range[0]'], eventdata['xaxis.range[1]']],
+                        y: [eventdata['yaxis.range[0]'], eventdata['yaxis.range[1]']]
+                    };
+                } else if (eventdata['xaxis.autorange']) {
+                    currentPlotRange = null;
+                }
+            });
+            plotlyListenerAttached = true;
+        }
     };
 
     initializeApp();
