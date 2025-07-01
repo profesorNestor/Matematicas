@@ -26,6 +26,7 @@
             --accent-glow: rgba(56, 189, 248, 0.5);
             --accent-glow-strong: rgba(56, 189, 248, 0.8);
             --accent-solid: #0ea5e9;
+            --accent-danger: #f43f5e;
             --shadow-color: rgba(0, 0, 0, 0.5);
             --input-bg: rgba(15, 23, 42, 0.7);
             --input-focus-ring: rgba(56, 189, 248, 0.5);
@@ -531,6 +532,7 @@
 
     // --- REGRESSION ANALYSIS SCRIPT ---
     document.addEventListener('DOMContentLoaded', () => {
+        // The zoom plugin is loaded via CDN and registers itself automatically.
         const dom = {
             modelSelector: document.getElementById('model-selector'),
             dataInput: document.getElementById('data-input'),
@@ -550,6 +552,15 @@
 
         let chartInstance = null;
         let regressionFunction = null;
+
+        const sampleDataSets = {
+            linear: `1\t2.1\n2\t3.9\n3\t6.2\n4\t7.8\n5\t10.1\n6\t11.8\n7\t14.3\n8\t15.9\n9\t18.1\n10\t20.2`,
+            quadratic: `1\t3.1\n2\t5.9\n3\t7.2\n4\t6.8\n5\t5.1\n6\t2.9\n7\t0.2\n8\t-3.1\n9\t-6.9\n10\t-11.2`,
+            cubic: `1\t2.5\n2\t-0.8\n3\t-1.5\n4\t1.2\n5\t8.5\n6\t21.8\n7\t42.7\n8\t72.6\n9\t112.9\n10\t165.2`,
+            exponential: `1\t1.65\n2\t2.72\n3\t4.48\n4\t7.39\n5\t12.18\n6\t20.09\n7\t33.12\n8\t54.60\n9\t90.02\n10\t148.41`,
+            logarithmic: `10\t2.3\n20\t3.0\n30\t3.4\n40\t3.7\n50\t3.9\n60\t4.1\n70\t4.25\n80\t4.38\n90\t4.5\n100\t4.6`,
+            potential: `1\t3.0\n2\t8.48\n3\t15.6\n4\t24.0\n5\t33.5\n6\t44.1\n7\t55.6\n8\t67.9\n9\t81.0\n10\t94.8`
+        };
 
         // --- Event Listeners ---
         dom.modelSelector.addEventListener('click', (e) => {
@@ -608,8 +619,8 @@
         }
         
         function loadSampleData() {
-            const sampleData = `1\t2.1\n2\t3.9\n3\t6.2\n4\t7.8\n5\t10.1\n6\t11.8\n7\t14.3\n8\t15.9\n9\t18.1\n10\t20.2`;
-            dom.dataInput.value = sampleData;
+            const modelType = document.querySelector('.model-card.active').dataset.model;
+            dom.dataInput.value = sampleDataSets[modelType] || sampleDataSets.linear;
             handleCalculation();
         }
 
@@ -809,11 +820,15 @@
                         label: 'Datos Originales',
                         data: dataPoints,
                         backgroundColor: 'rgba(56, 189, 248, 0.7)',
+                        pointRadius: 5,
+                        hoverRadius: 7,
+                        pointBorderColor: 'rgba(255,255,255,0.8)'
                     }, {
                         label: 'Curva de Regresión',
                         data: curvePoints,
                         type: 'line',
                         borderColor: '#f43f5e',
+                        borderWidth: 3,
                         backgroundColor: 'transparent',
                         pointRadius: 0,
                         tension: 0.1,
@@ -830,11 +845,31 @@
                 options: {
                     responsive: true, maintainAspectRatio: false,
                     scales: {
-                        x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(51, 65, 85, 0.5)' } },
-                        y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(51, 65, 85, 0.5)' } }
+                        x: { 
+                            title: { display: true, text: 'Variable Independiente (X)', color: '#94a3b8' },
+                            ticks: { color: '#cbd5e1', font: { weight: '500' } }, 
+                            grid: { color: 'rgba(51, 65, 85, 0.5)', borderColor: '#94a3b8' } 
+                        },
+                        y: { 
+                            title: { display: true, text: 'Variable Dependiente (Y)', color: '#94a3b8' },
+                            ticks: { color: '#cbd5e1', font: { weight: '500' } }, 
+                            grid: { color: 'rgba(51, 65, 85, 0.5)', borderColor: '#94a3b8' } 
+                        }
                     },
                     plugins: { 
-                        legend: { labels: { color: '#cbd5e1' } },
+                        legend: { labels: { color: '#e2e8f0', font: { size: 14 } } },
+                        tooltip: {
+                            enabled: true,
+                            backgroundColor: 'rgba(15, 23, 42, 0.8)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#cbd5e1',
+                            titleFont: { size: 14, weight: 'bold' },
+                            bodyFont: { size: 12 },
+                            padding: 12,
+                            cornerRadius: 10,
+                            borderColor: 'rgba(51, 65, 85, 0.5)',
+                            borderWidth: 1,
+                        },
                         zoom: {
                             pan: { enabled: true, mode: 'xy' },
                             zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
@@ -872,4 +907,4 @@
     });
     </script>
 </body>
-</ht
+</html>
