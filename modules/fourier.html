@@ -3,14 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador de Series de Fourier - Edición Cósmica</title>
+    <title>Visualizador de Series de Taylor y Maclaurin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
@@ -19,11 +17,9 @@
             --bg-dark: #020617;
             --bg-panel: rgba(15, 23, 42, 0.6);
             --glass-border: rgba(56, 189, 248, 0.2);
-            --glass-border-hover: rgba(56, 189, 248, 0.5);
             --text-primary: #e2e8f0;
             --text-secondary: #94a3b8;
             --accent-primary: #22d3ee;
-            --accent-secondary: #f43f5e;
             --accent-glow: rgba(34, 211, 238, 0.5);
             --shadow-color: rgba(0, 0, 0, 0.5);
         }
@@ -50,7 +46,6 @@
             position: relative;
             z-index: 1;
             display: grid;
-            /* CAMBIO: Panel de control más estrecho para un gráfico más grande */
             grid-template-columns: 380px 1fr;
             gap: 1.5rem;
             height: 100vh;
@@ -218,7 +213,7 @@
         }
 
         #formulas-content {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             line-height: 2.5;
             overflow: auto;
             padding-right: 1rem;
@@ -240,42 +235,6 @@
             animation: spin 1s linear infinite;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        .function-type-selector {
-            display: flex;
-            background: rgba(0,0,0,0.3);
-            border-radius: 12px;
-            padding: 4px;
-            margin-bottom: 1rem;
-        }
-        .type-btn {
-            flex: 1;
-            padding: 8px;
-            background: transparent;
-            border: none;
-            border-radius: 9px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .type-btn.active {
-            background: var(--accent-primary);
-            color: var(--bg-dark);
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-
-        .piecewise-container {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-        .piece-group {
-            padding: 1rem;
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            background: rgba(0,0,0,0.2);
-        }
 
         .collapsible-header {
             display: flex;
@@ -353,7 +312,7 @@
     <div class="app-container">
         <!-- Panel de Control (Izquierda) -->
         <aside class="glass-panel control-panel">
-            <h1 class="panel-title text-2xl">Visualizador de Fourier</h1>
+            <h1 class="panel-title text-2xl">Series de Taylor</h1>
             
             <div class="input-group">
                 <div class="collapsible-header">
@@ -366,61 +325,29 @@
                         <input type="color" id="original-color-picker" class="modern-color-picker" value="#ffc700">
                     </div>
                     <div class="color-control">
-                        <label>Serie de Fourier</label>
-                        <input type="color" id="fourier-color-picker" class="modern-color-picker" value="#22d3ee">
+                        <label>Polinomio de Taylor</label>
+                        <input type="color" id="series-color-picker" class="modern-color-picker" value="#22d3ee">
                     </div>
                 </div>
             </div>
             
-            <div class="function-type-selector">
-                <button class="type-btn active" data-type="normal">Normal</button>
-                <button class="type-btn" data-type="piecewise">A Trozos</button>
-            </div>
-
             <div id="normal-input-container">
                 <div class="input-group">
                     <label for="function-input" class="input-label">Función f(x)</label>
-                    <input type="text" class="modern-input" id="function-input" placeholder="Ej: x, sin(x), x^2" value="x">
+                    <input type="text" class="modern-input" id="function-input" placeholder="Ej: sin(x), exp(x), log(x+1)" value="sin(x)">
                 </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="input-group">
-                        <label for="period-start" class="input-label">Inicio del Período</label>
-                        <input type="number" class="modern-input" id="period-start" value="-3.14159" step="0.1">
-                    </div>
-                    <div class="input-group">
-                        <label for="period-end" class="input-label">Fin del Período</label>
-                        <input type="number" class="modern-input" id="period-end" value="3.14159" step="0.1">
-                    </div>
-                </div>
-            </div>
-
-            <div id="piecewise-input-container" class="hidden">
-                <div class="piecewise-container">
-                    <div class="piece-group">
-                        <label class="input-label">Trozo 1</label>
-                        <input type="text" class="modern-input mb-2" id="p1-func" value="-1">
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" class="modern-input" id="p1-start" value="-3.14159">
-                            <input type="number" class="modern-input" id="p1-end" value="0">
-                        </div>
-                    </div>
-                    <div class="piece-group">
-                        <label class="input-label">Trozo 2</label>
-                        <input type="text" class="modern-input mb-2" id="p2-func" value="1">
-                        <div class="grid grid-cols-2 gap-2">
-                            <input type="number" class="modern-input" id="p2-start" value="0">
-                            <input type="number" class="modern-input" id="p2-end" value="3.14159">
-                        </div>
-                    </div>
+                 <div class="input-group">
+                    <label for="expansion-point" class="input-label">Punto de Expansión (a)</label>
+                    <input type="number" class="modern-input" id="expansion-point" value="0" step="0.1">
                 </div>
             </div>
 
             <div class="input-group slider-group">
                 <div class="flex justify-between items-center mb-2">
-                    <label for="terms-slider" class="input-label mb-0">Número de Armónicos (N)</label>
-                    <span id="terms-value" class="font-bold text-lg text-accent-primary">10</span>
+                    <label for="terms-slider" class="input-label mb-0">Número de Términos (N)</label>
+                    <span id="terms-value" class="font-bold text-lg text-accent-primary">5</span>
                 </div>
-                <input type="range" min="1" max="50" value="10" class="slider" id="terms-slider">
+                <input type="range" min="0" max="20" value="5" class="slider" id="terms-slider">
             </div>
 
             <div class="flex gap-4 mt-2">
@@ -522,13 +449,12 @@
         initParticles();
     });
 
-    // --- FOURIER ANALYSIS SCRIPT ---
+    // --- TAYLOR SERIES SCRIPT ---
     document.addEventListener('DOMContentLoaded', () => {
         const dom = {
             canvas: document.getElementById('canvas'),
             functionInput: document.getElementById('function-input'),
-            periodStartInput: document.getElementById('period-start'),
-            periodEndInput: document.getElementById('period-end'),
+            expansionPointInput: document.getElementById('expansion-point'),
             termsSlider: document.getElementById('terms-slider'),
             termsValue: document.getElementById('terms-value'),
             calculateButton: document.getElementById('calculate-button'),
@@ -539,34 +465,22 @@
             loadingModal: document.getElementById('loading-modal'),
             statusContainer: document.getElementById('status-container'),
             coefficientsContainer: document.getElementById('coefficients-container'),
-            functionTypeSelector: document.querySelector('.function-type-selector'),
-            normalInputContainer: document.getElementById('normal-input-container'),
-            piecewiseInputContainer: document.getElementById('piecewise-input-container'),
             originalColorPicker: document.getElementById('original-color-picker'),
-            fourierColorPicker: document.getElementById('fourier-color-picker'),
+            seriesColorPicker: document.getElementById('series-color-picker'),
         };
 
         const ctx = dom.canvas.getContext('2d');
-        let coefficients = { a0: 0, an: [], bn: [] };
+        let taylorData = []; // Almacenará { derivative: string, value: number, coeff: number }
         
-        // CAMBIO: Objeto de vista actualizado para escalado de ejes
         let view = {
-            zoomX: 50,
-            zoomY: 50,
-            offsetX: 0,
-            offsetY: 0,
-            isDragging: false,
-            isScaling: false,
-            scalingAxis: 'none', // 'x', 'y', or 'none'
-            hoveringAxis: 'none', // 'x', 'y', or 'none'
-            lastX: 0,
-            lastY: 0
+            zoomX: 50, zoomY: 50, offsetX: 0, offsetY: 0,
+            isDragging: false, isScaling: false, scalingAxis: 'none',
+            hoveringAxis: 'none', lastX: 0, lastY: 0
         };
 
         let redrawQueued = false;
-        let currentFunctionType = 'normal';
         let originalFunctionColor = dom.originalColorPicker.value;
-        let fourierSeriesColor = dom.fourierColorPicker.value;
+        let seriesColor = dom.seriesColorPicker.value;
 
         // --- Initialization ---
         function initialize() {
@@ -610,24 +524,12 @@
                 originalFunctionColor = e.target.value;
                 requestRedraw();
             });
-            dom.fourierColorPicker.addEventListener('input', (e) => {
-                fourierSeriesColor = e.target.value;
+            dom.seriesColorPicker.addEventListener('input', (e) => {
+                seriesColor = e.target.value;
                 requestRedraw();
             });
 
-            dom.functionTypeSelector.addEventListener('click', (e) => {
-                if (e.target.matches('.type-btn')) {
-                    currentFunctionType = e.target.dataset.type;
-                    document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
-                    e.target.classList.add('active');
-                    
-                    const isNormal = currentFunctionType === 'normal';
-                    dom.normalInputContainer.classList.toggle('hidden', !isNormal);
-                    dom.piecewiseInputContainer.classList.toggle('hidden', isNormal);
-                }
-            });
-
-            // CAMBIO: Eventos de ratón actualizados para paneo, zoom y escalado de ejes
+            // Eventos del Canvas para interactividad
             dom.canvas.addEventListener('mousedown', e => {
                 if (view.hoveringAxis !== 'none') {
                     view.isScaling = true;
@@ -651,11 +553,11 @@
                     const dx = logicalMouseX - view.lastX;
                     const dy = logicalMouseY - view.lastY;
 
-                    if (view.scalingAxis === 'x') { // Escalar eje X (arrastre horizontal)
+                    if (view.scalingAxis === 'x') {
                         const scaleFactor = 1 - (dx * 0.01);
                         view.zoomX *= scaleFactor;
                         dom.canvas.style.cursor = 'ew-resize';
-                    } else if (view.scalingAxis === 'y') { // Escalar eje Y (arrastre vertical)
+                    } else if (view.scalingAxis === 'y') {
                         const scaleFactor = 1 - (dy * 0.01);
                         view.zoomY *= scaleFactor;
                         dom.canvas.style.cursor = 'ns-resize';
@@ -693,34 +595,18 @@
                 }
             });
             
-            dom.canvas.addEventListener('mouseup', () => {
-                view.isDragging = false;
-                view.isScaling = false;
-                view.scalingAxis = 'none';
-            });
-
-            dom.canvas.addEventListener('mouseleave', () => {
-                view.isDragging = false;
-                view.isScaling = false;
-                view.scalingAxis = 'none';
-                view.hoveringAxis = 'none';
-                dom.canvas.style.cursor = 'grab';
-            });
+            dom.canvas.addEventListener('mouseup', () => { view.isDragging = false; view.isScaling = false; });
+            dom.canvas.addEventListener('mouseleave', () => { view.isDragging = false; view.isScaling = false; dom.canvas.style.cursor = 'grab'; });
 
             dom.canvas.addEventListener('wheel', e => {
                 e.preventDefault();
-                const logicalMouseX = e.offsetX;
-                const logicalMouseY = e.offsetY;
-                const worldCoords = screenToWorld(logicalMouseX, logicalMouseY);
-                
+                const worldCoords = screenToWorld(e.offsetX, e.offsetY);
                 const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
                 view.zoomX *= zoomFactor;
                 view.zoomY *= zoomFactor;
-
-                const newWorldCoords = screenToWorld(logicalMouseX, logicalMouseY);
+                const newWorldCoords = screenToWorld(e.offsetX, e.offsetY);
                 view.offsetX += worldCoords.x - newWorldCoords.x;
                 view.offsetY += worldCoords.y - newWorldCoords.y;
-
                 requestRedraw();
             });
             
@@ -731,95 +617,61 @@
             });
         }
         
+        function factorial(n) {
+            if (n === 0 || n === 1) return 1;
+            let result = 1;
+            for (let i = 2; i <= n; i++) {
+                result *= i;
+            }
+            return result;
+        }
+
         async function handleCalculation() {
             dom.loadingModal.classList.add('active');
-            dom.statusContainer.textContent = "Calculando coeficientes...";
+            dom.statusContainer.textContent = "Calculando derivadas...";
             await new Promise(resolve => setTimeout(resolve, 50));
 
             try {
-                let funcData = getFunctionDataFromDOM();
-                const T = funcData.end - funcData.start;
-                const L = T / 2;
-                const maxTerms = 50;
+                const funcStr = dom.functionInput.value;
+                const a = parseFloat(dom.expansionPointInput.value);
+                const maxTerms = 20;
                 
-                const evalFunc = createEvalFunction(funcData);
-                const symData = await getSymbolicFormulas(funcData, L);
+                taylorData = [];
+                let currentDerivative = funcStr;
 
-                coefficients.a0 = (1 / L) * numericalIntegration(evalFunc, funcData.start, funcData.end);
-                coefficients.an = [];
-                coefficients.bn = [];
+                for (let n = 0; n <= maxTerms; n++) {
+                    // Evaluar la derivada en el punto 'a'
+                    const derivativeValue = math.evaluate(currentDerivative.toString(), {x: a, pi: Math.PI, e: Math.E});
+                    
+                    // Calcular el coeficiente de Taylor
+                    const coeff = derivativeValue / factorial(n);
+                    
+                    taylorData.push({
+                        derivative: nerdamer(currentDerivative).toTeX(),
+                        value: derivativeValue,
+                        coeff: coeff
+                    });
 
-                for (let n = 1; n <= maxTerms; n++) {
-                    coefficients.an.push((1 / L) * numericalIntegration(x => evalFunc(x) * Math.cos(n * Math.PI * x / L), funcData.start, funcData.end));
-                    coefficients.bn.push((1 / L) * numericalIntegration(x => evalFunc(x) * Math.sin(n * Math.PI * x / L), funcData.start, funcData.end));
+                    // Calcular la siguiente derivada para la próxima iteración
+                    if (n < maxTerms) {
+                       currentDerivative = nerdamer.diff(currentDerivative, 'x').toString();
+                    }
                 }
                 
                 displayCoefficients();
-                updateFormulasDisplay(funcData, T, L, symData);
+                updateFormulasDisplay(funcStr, a);
                 dom.showFormulasBtn.style.display = 'flex';
                 dom.statusContainer.textContent = "Cálculo completado.";
                 requestRedraw();
 
             } catch (error) {
                 console.error("Calculation Error:", error);
-                dom.statusContainer.textContent = "Error en la función ingresada.";
+                dom.statusContainer.textContent = "Error en la función o el punto.";
+                taylorData = [];
+                requestRedraw();
             } finally {
                 dom.loadingModal.classList.remove('active');
             }
-        }
-        
-        function createEvalFunction(funcData) {
-            if (funcData.type === 'normal') {
-                return (x) => math.evaluate(funcData.funcStr, { x, pi: Math.PI, e: Math.E });
-            } else {
-                return (x) => {
-                    for (const piece of funcData.pieces) {
-                        if (x >= piece.start && x < piece.end) {
-                            return math.evaluate(piece.func, { x, pi: Math.PI, e: Math.E });
-                        }
-                    }
-                    return 0;
-                };
-            }
-        }
-
-        async function getSymbolicFormulas(funcData, L) {
-            try {
-                nerdamer.set('integration_depth', 40);
-                if (funcData.type === 'normal') {
-                    const { funcStr, start, end } = funcData;
-                    return {
-                        a0_sym: nerdamer.defint(`(1/${L}) * (${funcStr})`, 'x', start, end).toTeX(),
-                        an_sym: nerdamer.defint(`(1/${L}) * (${funcStr}) * cos(n*pi*x/${L})`, 'x', start, end).toTeX(),
-                        bn_sym: nerdamer.defint(`(1/${L}) * (${funcStr}) * sin(n*pi*x/${L})`, 'x', start, end).toTeX(),
-                    };
-                } else {
-                    let a0_sym = '', an_sym = '', bn_sym = '';
-                    funcData.pieces.forEach((p, i) => {
-                        if (i > 0) { a0_sym += '+'; an_sym += '+'; bn_sym += '+'; }
-                        a0_sym += `\\int_{${p.start}}^{${p.end}} (${p.func}) \\,dx`;
-                        an_sym += `\\int_{${p.start}}^{${p.end}} (${p.func}) \\cos(\\frac{n\\pi x}{${L.toFixed(3)}}) \\,dx`;
-                        bn_sym += `\\int_{${p.start}}^{${p.end}} (${p.func}) \\sin(\\frac{n\\pi x}{${L.toFixed(3)}}) \\,dx`;
-                    });
-                    return {
-                        a0_sym: `\\frac{1}{${L.toFixed(3)}} \\left[ ${a0_sym} \\right]`,
-                        an_sym: `\\frac{1}{${L.toFixed(3)}} \\left[ ${an_sym} \\right]`,
-                        bn_sym: `\\frac{1}{${L.toFixed(3)}} \\left[ ${bn_sym} \\right]`,
-                    };
-                }
-            } catch (e) {
-                console.warn("Symbolic integration failed.", e);
-                return { a0_sym: "\\text{Cálculo Numérico}", an_sym: "\\text{Cálculo Numérico}", bn_sym: "\\text{Cálculo Numérico}" };
-            }
-        }
-
-        function numericalIntegration(fn, a, b, n = 1000) {
-            const h = (b - a) / n;
-            let sum = 0.5 * (fn(a) + fn(b));
-            for (let i = 1; i < n; i++) {
-                sum += fn(a + i * h);
-            }
-            return sum * h;
         }
         
         function requestRedraw() {
@@ -843,45 +695,16 @@
 
             drawGrid();
 
-            if (coefficients.an.length > 0) {
-                const funcData = getFunctionDataFromDOM();
-                const evalFunc = createEvalFunction(funcData);
+            if (taylorData.length > 0) {
+                const funcStr = dom.functionInput.value;
+                const evalFunc = (x) => math.evaluate(funcStr, { x, pi: Math.PI, e: Math.E });
                 drawFunction(evalFunc, originalFunctionColor, 3.5);
-                drawFunction(fourierSeries, fourierSeriesColor, 2.5);
+                drawFunction(taylorPolynomial, seriesColor, 2.5);
             }
 
             ctx.restore();
         }
-        
-        function getFunctionDataFromDOM() {
-            if (currentFunctionType === 'normal') {
-                return {
-                    type: 'normal',
-                    funcStr: dom.functionInput.value,
-                    start: parseFloat(dom.periodStartInput.value),
-                    end: parseFloat(dom.periodEndInput.value),
-                };
-            } else {
-                const p1 = {
-                    func: document.getElementById('p1-func').value,
-                    start: parseFloat(document.getElementById('p1-start').value),
-                    end: parseFloat(document.getElementById('p1-end').value),
-                };
-                const p2 = {
-                    func: document.getElementById('p2-func').value,
-                    start: parseFloat(document.getElementById('p2-start').value),
-                    end: parseFloat(document.getElementById('p2-end').value),
-                };
-                return {
-                    type: 'piecewise',
-                    pieces: [p1, p2],
-                    start: Math.min(p1.start, p2.start),
-                    end: Math.max(p1.end, p2.end),
-                };
-            }
-        }
 
-        // CAMBIO: Lógica de la cuadrícula actualizada para usar zoomX y zoomY
         function drawGrid() {
             const { width, height } = dom.canvas;
             const dpr = window.devicePixelRatio || 1;
@@ -899,17 +722,11 @@
 
             for (let i = Math.floor(xMin / xStep) * xStep; i <= xMax; i += xStep) {
                 const sx = worldToScreen(i, 0).x;
-                ctx.beginPath();
-                ctx.moveTo(sx, 0);
-                ctx.lineTo(sx, h);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, h); ctx.stroke();
             }
             for (let i = Math.floor(yMin / yStep) * yStep; i <= yMax; i += yStep) {
                 const sy = worldToScreen(0, i).y;
-                ctx.beginPath();
-                ctx.moveTo(0, sy);
-                ctx.lineTo(w, sy);
-                ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(w, sy); ctx.stroke();
             }
 
             ctx.strokeStyle = "rgba(226, 232, 240, 0.8)";
@@ -922,13 +739,11 @@
             
             ctx.fillStyle = "rgba(226, 232, 240, 0.9)";
             ctx.font = `${12}px Inter`;
-            
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
             for (let i = Math.floor(xMin / xStep) * xStep; i <= xMax; i += xStep) {
                 if (Math.abs(i) < 1e-9) continue;
-                const sx = worldToScreen(i, 0).x;
-                ctx.fillText(i.toPrecision(2), sx, origin.y + 5);
+                ctx.fillText(i.toPrecision(2), worldToScreen(i, 0).x, origin.y + 5);
             }
             
             ctx.textAlign = 'right';
@@ -966,105 +781,124 @@
                         } else {
                             ctx.lineTo(x, y);
                         }
-                    } else {
-                        firstPoint = true;
-                    }
+                    } else { firstPoint = true; }
                 } catch (e) { firstPoint = true; }
             }
             ctx.stroke();
             ctx.shadowBlur = 0;
         }
         
-        function fourierSeries(x) {
-            const funcData = getFunctionDataFromDOM();
-            const L = (funcData.end - funcData.start) / 2;
+        function taylorPolynomial(x) {
+            const a = parseFloat(dom.expansionPointInput.value);
             const N = parseInt(dom.termsSlider.value);
-            let sum = coefficients.a0 / 2;
-            for (let n = 1; n <= N; n++) {
-                sum += coefficients.an[n - 1] * Math.cos(n * Math.PI * x / L);
-                sum += coefficients.bn[n - 1] * Math.sin(n * Math.PI * x / L);
+            let sum = 0;
+            for (let n = 0; n <= N; n++) {
+                if(taylorData[n] && isFinite(taylorData[n].coeff)) {
+                    sum += taylorData[n].coeff * Math.pow(x - a, n);
+                }
             }
             return sum;
         }
 
         function displayCoefficients() {
             let html = '';
-            html += `<div class="p-2 rounded-lg bg-black/20"><strong>a₀ =</strong> <span class="font-mono text-accent-primary">${coefficients.a0.toFixed(5)}</span></div>`;
+            const a = parseFloat(dom.expansionPointInput.value);
             for (let i = 0; i < 10; i++) {
-                if (coefficients.an[i] === undefined) break;
-                html += `<div class="p-2 mt-2 rounded-lg bg-black/20 grid grid-cols-2 gap-2">
-                                 <div><strong>a<sub>${i+1}</sub> =</strong> <span class="font-mono text-accent-primary">${coefficients.an[i].toFixed(5)}</span></div>
-                                 <div><strong>b<sub>${i+1}</sub> =</strong> <span class="font-mono text-accent-primary">${coefficients.bn[i].toFixed(5)}</span></div>
-                               </div>`;
+                if (!taylorData[i]) break;
+                const data = taylorData[i];
+                let derivativeSymbol = i === 0 ? `f(${a})` : `f^{(${i})}(${a})`;
+                html += `<div class="p-2 mt-2 rounded-lg bg-black/20">
+                            <div><strong>${derivativeSymbol} =</strong> <span class="font-mono text-accent-primary">${data.value.toFixed(4)}</span></div>
+                            <div><strong>c<sub>${i}</sub> =</strong> <span class="font-mono text-accent-primary">${data.coeff.toFixed(4)}</span></div>
+                         </div>`;
             }
             dom.coefficientsContainer.innerHTML = html;
         }
         
-        function updateFormulasDisplay(funcData, T, L, sym) {
-            const L_str = L.toFixed(3);
-            let funcDefHTML = '';
-            let calcHTML = '';
+        function updateFormulasDisplay(funcStr, a) {
+            const seriesType = a === 0 ? "Maclaurin" : "Taylor";
+            const a_str = a.toString();
 
-            if (funcData.type === 'normal') {
-                funcDefHTML = `f(x) = ${funcData.funcStr}`;
-                calcHTML = `<p>\\[ a_0 = \\frac{1}{${L_str}} \\int_{${funcData.start.toFixed(3)}}^{${funcData.end.toFixed(3)}} (${funcData.funcStr}) \\,dx \\approx ${coefficients.a0.toFixed(5)} \\]</p>
-                                <p>Resultado simbólico para \\(a_n\\): \\( ${sym.an_sym} \\)</p>
-                                <p>Resultado simbólico para \\(b_n\\): \\( ${sym.bn_sym} \\)</p>`;
-            } else {
-                funcDefHTML = `f(x) = \\begin{cases} ${funcData.pieces[0].func} & \\text{si } ${funcData.pieces[0].start.toFixed(3)} \\le x < ${funcData.pieces[0].end.toFixed(3)} \\\\ ${funcData.pieces[1].func} & \\text{si } ${funcData.pieces[1].start.toFixed(3)} \\le x < ${funcData.pieces[1].end.toFixed(3)} \\end{cases}`;
-                calcHTML = `<p>\\[ a_n = ${sym.an_sym} \\]</p>
-                                <p>\\[ b_n = ${sym.bn_sym} \\]</p>`;
-            }
-            
             dom.formulasContent.innerHTML = `
-                <h3>Definiciones Generales</h3>
-                <p>\\[ f(x) \\approx \\frac{a_0}{2} + \\sum_{n=1}^{\\infty} \\left( a_n \\cos\\left(\\frac{n\\pi x}{L}\\right) + b_n \\sin\\left(\\frac{n\\pi x}{L}\\right) \\right) \\]</p>
-                <p>\\[ a_n = \\frac{1}{L} \\int_{-L}^{L} f(x) \\cos\\left(\\frac{n\\pi x}{L}\\right) \\,dx \\quad , \\quad b_n = \\frac{1}{L} \\int_{-L}^{L} f(x) \\sin\\left(\\frac{n\\pi x}{L}\\right) \\,dx \\]</p>
+                <h3>Definición General (Serie de ${seriesType})</h3>
+                <p>\\[ P(x) = \\sum_{n=0}^{\\infty} \\frac{f^{(n)}(a)}{n!}(x-a)^n \\]</p>
+                <p>\\[ P(x) = f(a) + f'(a)(x-a) + \\frac{f''(a)}{2!}(x-a)^2 + \\dots \\]</p>
                 
-                <h3>Cálculo para ${funcDefHTML}</h3>
-                ${calcHTML}
+                <h3>Cálculo para <span class="text-accent-primary">f(x) = ${funcStr}</span> en <span class="text-accent-primary">a = ${a_str}</span></h3>
+                <div id="derivative-calcs"></div>
 
-                <h3>Serie Resultante (Primeros Términos)</h3>
-                <p>\\[ f(x) \\approx ${(coefficients.a0 / 2).toFixed(4)} 
-                    ${generateSeriesString(L_str)}
-                \\]</p>
+                <h3>Polinomio Resultante (N = ${dom.termsSlider.value})</h3>
+                <p>\\[ P_{${dom.termsSlider.value}}(x) \\approx ${generateSeriesString(a_str)} \\]</p>
             `;
+
+            let derivativeCalcsHTML = '';
+            for(let n=0; n<=3; n++) {
+                if(!taylorData[n]) break;
+                let derivSymbol = n === 0 ? `f(x)` : `f^{(${n})}(x)`;
+                let evalSymbol = n === 0 ? `f(${a_str})` : `f^{(${n})}(${a_str})`;
+                derivativeCalcsHTML += `<p>\\[ ${derivSymbol} = ${taylorData[n].derivative} \\quad \\Rightarrow \\quad ${evalSymbol} = ${taylorData[n].value.toFixed(5)} \\]</p>`;
+            }
+            document.getElementById('derivative-calcs').innerHTML = derivativeCalcsHTML;
+
             if (window.MathJax) {
                 MathJax.typesetPromise([dom.formulasContent]).catch(err => console.error('MathJax Error:', err));
             }
         }
         
-        function generateSeriesString(L_str) {
+        function generateSeriesString(a_str) {
             let str = '';
-            for (let n = 1; n <= 3; n++) {
-                if (coefficients.an[n-1] === undefined) break;
-                const an = coefficients.an[n-1];
-                const bn = coefficients.bn[n-1];
-                if (Math.abs(an) > 1e-4) str += ` ${an > 0 ? '+' : ''} ${an.toFixed(4)} \\cos(\\frac{${n}\\pi x}{${L_str}})`;
-                if (Math.abs(bn) > 1e-4) str += ` ${bn > 0 ? '+' : ''} ${bn.toFixed(4)} \\sin(\\frac{${n}\\pi x}{${L_str}})`;
+            const N = parseInt(dom.termsSlider.value);
+            for (let n = 0; n <= N; n++) {
+                if (!taylorData[n]) break;
+                const coeff = taylorData[n].coeff;
+
+                if (Math.abs(coeff) > 1e-6) {
+                    let termStr = '';
+                    // Signo
+                    if (n > 0) {
+                        termStr += coeff > 0 ? ' + ' : ' - ';
+                    } else if (coeff < 0) {
+                        termStr += ' - ';
+                    }
+                    
+                    // Coeficiente
+                    const absCoeff = Math.abs(coeff);
+                    if (n === 0 || Math.abs(absCoeff - 1) > 1e-6) {
+                        termStr += absCoeff.toFixed(4);
+                    }
+                    
+                    // Parte (x-a)^n
+                    if (n > 0) {
+                        if (a_str === '0') {
+                             termStr += `x`;
+                        } else {
+                             termStr += `(x - ${a_str})`;
+                        }
+                       
+                        if (n > 1) {
+                            termStr += `^${n}`;
+                        }
+                    }
+                    str += termStr;
+                }
             }
-            return str + ' + \\dots';
+            return str.length > 0 ? str : "0";
         }
 
-        // CAMBIO: Transformaciones de coordenadas actualizadas para usar zoomX y zoomY
         function worldToScreen(x, y) {
             const { width, height } = dom.canvas;
             const dpr = window.devicePixelRatio || 1;
-            const logicalWidth = width / dpr;
-            const logicalHeight = height / dpr;
             return { 
-                x: (logicalWidth / 2) + (x + view.offsetX) * view.zoomX, 
-                y: (logicalHeight / 2) - (y - view.offsetY) * view.zoomY 
+                x: (width / dpr / 2) + (x + view.offsetX) * view.zoomX, 
+                y: (height / dpr / 2) - (y - view.offsetY) * view.zoomY 
             };
         }
         function screenToWorld(sx, sy) {
             const { width, height } = dom.canvas;
             const dpr = window.devicePixelRatio || 1;
-            const logicalWidth = width / dpr;
-            const logicalHeight = height / dpr;
             return { 
-                x: (sx - logicalWidth / 2) / view.zoomX - view.offsetX,
-                y: (logicalHeight / 2 - sy) / view.zoomY + view.offsetY
+                x: (sx - width / dpr / 2) / view.zoomX - view.offsetX,
+                y: (height / dpr / 2 - sy) / view.zoomY + view.offsetY
             };
         }
 
