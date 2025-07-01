@@ -335,7 +335,8 @@
 
         .coord-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            /* --- MODIFICADO: Cambiado a una columna para apilar los controles --- */
+            grid-template-columns: 1fr;
             gap: 1rem;
             margin-bottom: 1.5rem;
         }
@@ -1202,11 +1203,10 @@
             
             if (window.innerWidth <= 1024) {
                 sidebar.classList.toggle('open');
-                sidebarOpen = sidebar.classList.contains('open');
             } else {
                 sidebar.classList.toggle('collapsed');
-                sidebarOpen = !sidebar.classList.contains('collapsed');
             }
+            sidebarOpen = sidebar.classList.contains('open') || !sidebar.classList.contains('collapsed');
             
             if (sidebarOpen) {
                 toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
