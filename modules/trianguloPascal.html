@@ -129,17 +129,19 @@
             animation: move-stars 50s linear infinite;
         }
 
-        /* --- Control Panel & Responsiveness --- */
+        /* --- Control Panel & Responsiveness (MODIFIED) --- */
         #control-panel {
             background: var(--panel-bg); backdrop-filter: blur(12px); border: 1px solid var(--panel-border);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.5s ease, border-color 0.5s ease;
-            transform: translateX(0);
+            transform: translateX(-110%); /* MODIFIED: Start hidden by default on all screens */
+            z-index: 40; /* Lower z-index so toggle button can be on top */
         }
-        @media (max-width: 1024px) {
-            #control-panel { transform: translateX(-110%); z-index: 50; }
-            #control-panel.open { transform: translateX(0); }
-            #app-container { padding-left: 1rem; }
-            #menu-toggle { display: flex; }
+        #control-panel.open {
+            transform: translateX(0); /* MODIFIED: This class will now show the panel */
+        }
+        #app-container {
+             /* MODIFIED: The padding will be toggled by JS, adding a transition here for smoothness */
+            transition: padding-left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         /* --- General Component Styling --- */
@@ -215,7 +217,7 @@
         }
     </style>
 </head>
-<body class="bg-gray-900 overflow-hidden h-screen w-screen">
+<body class="bg-gray-900 overflow-hidden h-screen w-screen" data-theme="cosmic">
 
     <!-- Animated Background -->
     <div class="stars"></div><div class="stars2"></div><div class="stars3"></div>
@@ -224,7 +226,7 @@
     <div id="app-wrapper" class="h-full w-full flex">
         
         <!-- Control Panel (Sidebar) -->
-        <aside id="control-panel" class="fixed left-4 top-4 bottom-4 w-80 lg:w-96 rounded-2xl p-6 z-20 overflow-y-auto flex flex-col space-y-6 shadow-2xl">
+        <aside id="control-panel" class="fixed left-4 top-4 bottom-4 w-80 lg:w-96 rounded-2xl p-6 flex flex-col space-y-6 shadow-2xl overflow-y-auto">
             <!-- Header -->
             <div class="text-center flex-shrink-0">
                 <h1 class="text-3xl font-bold mb-1 bg-gradient-to-r from-white via-purple-300 to-pink-300 bg-clip-text text-transparent">Triángulo de Pascal</h1>
@@ -306,15 +308,18 @@
         </aside>
 
         <!-- Main Content Area -->
-        <main id="app-container" class="flex-1 h-full overflow-hidden p-4 lg:pl-96 transition-all duration-300">
+        <!-- MODIFIED: Removed lg:pl-96 from class list. It will be added by JS. -->
+        <main id="app-container" class="flex-1 h-full overflow-hidden p-4">
             <div id="triangle-viewport" class="w-full h-full overflow-auto flex items-center justify-center">
                 <div id="triangle-container" class="flex flex-col items-center py-8 transition-transform duration-300"></div>
             </div>
         </main>
         
-        <!-- Mobile Menu Toggle Button -->
-        <button id="menu-toggle" class="control-button fixed top-4 left-4 z-30 w-12 h-12 items-center justify-center rounded-full hidden lg:hidden">
-             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+        <!-- Menu Toggle Button -->
+        <!-- MODIFIED: Removed 'hidden' and 'lg:hidden' to make it always visible. Added higher z-index. -->
+        <button id="menu-toggle" class="control-button fixed top-4 left-4 z-50 w-12 h-12 flex items-center justify-center rounded-full">
+             <svg id="menu-open-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+             <svg id="menu-close-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
 
         <!-- Animation Progress Indicator -->
@@ -325,7 +330,7 @@
     </div>
     
     <!-- Formulas Modal -->
-    <div id="formulas-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden">
+    <div id="formulas-modal" class="fixed inset-0 z-[60] items-center justify-center p-4 hidden">
         <div class="absolute inset-0" id="modal-overlay"></div>
         <div id="modal-content" class="relative w-full max-w-4xl max-h-[90vh] rounded-2xl p-6 shadow-2xl flex flex-col">
             <div class="flex items-center justify-between mb-4 flex-shrink-0">
@@ -368,7 +373,10 @@
             const dom = {
                 body: document.body,
                 controlPanel: document.getElementById('control-panel'),
+                appContainer: document.getElementById('app-container'), // Added for easier access
                 menuToggle: document.getElementById('menu-toggle'),
+                menuOpenIcon: document.getElementById('menu-open-icon'),
+                menuCloseIcon: document.getElementById('menu-close-icon'),
                 rowsSlider: document.getElementById('rows-slider'),
                 rowsValue: document.getElementById('rows-value'),
                 speedSlider: document.getElementById('speed-slider'),
@@ -512,7 +520,6 @@
 
                 const coefficients = state.pascalTriangle[n];
 
-                // Generate Binomial Expansion with Combinatorics
                 const binomialTerms = coefficients.map((_, k) => {
                     const aPower = n - k;
                     const bPower = k;
@@ -523,23 +530,18 @@
                 });
                 dom.binomialFormula.textContent = `$(a+b)^{${n}} = ${binomialTerms.join(' + ')}$`;
                 
-                // Generate Binomial Expansion with Calculated Coefficients
                 const calculatedBinomialTerms = coefficients.map((coeff, k) => {
                     const aPower = n - k;
                     const bPower = k;
                     let coeffStr = (coeff > 1) ? coeff.toLocaleString() : '';
                     if (coeff === 1 && aPower === 0 && bPower === 0) coeffStr = '1';
-                    
                     let aStr = aPower > 0 ? (aPower === 1 ? 'a' : `a^{${aPower}}`) : '';
                     let bStr = bPower > 0 ? (bPower === 1 ? 'b' : `b^{${bPower}}`) : '';
-                    
                     if (coeff === 1 && (aStr || bStr)) coeffStr = '';
-                    
                     return `${coeffStr}${aStr}${bStr}`;
                 });
                 dom.binomialFormulaCalculated.textContent = `$(a+b)^{${n}} = ${calculatedBinomialTerms.join(' + ')}$`;
 
-                // Generate Combinatorics List
                 let formulasHtml = '';
                 for(let i = 0; i < state.rows; i++) {
                     for(let j = 0; j <= i; j++) {
@@ -549,10 +551,9 @@
                 }
                 dom.formulasList.innerHTML = formulasHtml;
                 
-                // Show modal and render math
                 dom.formulasModal.classList.remove('hidden');
                 dom.formulasModal.classList.add('flex');
-                setTimeout(() => dom.formulasModal.classList.add('open'), 10);
+                setTimeout(() => dom.modalContent.parentElement.classList.add('open'), 10);
                 
                 if (window.MathJax) {
                     MathJax.typesetPromise([dom.modalContent]).catch((err) => console.log('MathJax Error: ', err));
@@ -593,6 +594,18 @@
                     dom.animationProgressBar.style.width = `${((state.currentRow + 1) / state.rows) * 100}%`;
                 }
             };
+
+            // --- MODIFIED: Panel Toggle Logic ---
+            const togglePanel = () => {
+                const isOpen = dom.controlPanel.classList.toggle('open');
+                dom.menuOpenIcon.classList.toggle('hidden', isOpen);
+                dom.menuCloseIcon.classList.toggle('hidden', !isOpen);
+
+                // On large screens, adjust padding of the main container
+                if (window.innerWidth >= 1024) {
+                    dom.appContainer.style.paddingLeft = isOpen ? '25rem' : '1rem'; // 24rem width + 1rem padding
+                }
+            };
             
             // --- Event Listeners ---
             dom.rowsSlider.addEventListener('input', (e) => { state.rows = parseInt(e.target.value); resetAnimation(); generatePascalTriangle(); updateUI(); });
@@ -603,8 +616,10 @@
             dom.zoomInBtn.addEventListener('click', () => { state.zoom = Math.min(2, state.zoom + 0.1); updateUI(); });
             dom.zoomOutBtn.addEventListener('click', () => { state.zoom = Math.max(0.3, state.zoom - 0.1); updateUI(); });
             dom.gridBtn.addEventListener('click', () => { state.showGridLines = !state.showGridLines; updateUI(); });
-            dom.menuToggle.addEventListener('click', () => dom.controlPanel.classList.toggle('open'));
             
+            // MODIFIED: This is the updated click handler for the menu toggle.
+            dom.menuToggle.addEventListener('click', togglePanel);
+
             // Modal Listeners
             dom.openFormulasBtn.addEventListener('click', openFormulasModal);
             dom.closeModalBtn.addEventListener('click', closeFormulasModal);
@@ -612,6 +627,11 @@
 
             // --- Initialization ---
             const init = () => {
+                // Open the panel by default on larger screens for better initial experience
+                if (window.innerWidth >= 1024) {
+                    togglePanel();
+                }
+                
                 Object.entries(themes).forEach(([key, themeData]) => {
                     const button = document.createElement('button');
                     button.dataset.theme = key;
