@@ -1033,7 +1033,7 @@
             modal.classList.remove('active');
         });
 
-        // Gestión de temas
+        // Gestión de temas - Con redibujado forzado
         const themeButtons = document.querySelectorAll('.theme-btn');
         
         themeButtons.forEach(btn => {
@@ -1042,7 +1042,11 @@
                 btn.classList.add('active');
                 document.documentElement.setAttribute('data-theme', btn.dataset.theme);
                 if (currentTriangle) {
-                    requestAnimationFrame(drawTriangleOnCanvas);
+                    // Forzar redibujado completo
+                    setTimeout(() => {
+                        updateLastCalculatedGeometry();
+                        requestAnimationFrame(drawTriangleOnCanvas);
+                    }, 50);
                 }
             });
         });
@@ -1503,7 +1507,7 @@
                 ctx.globalAlpha = originalAlpha;
             };
 
-            // Función de dibujo de puntos
+            // Función de dibujo de puntos mejorada
             const drawPoint = (p, color, radius = pointRadius, label = null, emphasis = false) => {
                 if (!p || !isFinitePoint(p)) return;
 
@@ -1521,13 +1525,18 @@
                 }
 
                 if (label && drawOptions.labels) {
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
-                    ctx.font = `bold ${labelFontSize * 0.9}px Inter`;
                     const metrics = ctx.measureText(label);
                     const padding = labelFontSize * 0.3;
                     const labelX = p.x;
                     const labelY = p.y - actualRadius - labelFontSize * 0.5;
                     
+                    // Configurar fuente antes de dibujar
+                    ctx.font = `bold ${labelFontSize * 0.9}px Inter`;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "top";
+                    
+                    // Dibujar fondo
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
                     ctx.fillRect(
                         labelX - metrics.width/2 - padding,
                         labelY - labelFontSize * 0.9 - padding,
@@ -1535,9 +1544,8 @@
                         labelFontSize * 0.9 + 2 * padding
                     );
 
+                    // Dibujar texto
                     ctx.fillStyle = colors.label;
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "top";
                     ctx.fillText(label, labelX, labelY);
                 }
             };
@@ -1564,7 +1572,7 @@
                 ctx.globalAlpha = originalAlpha;
             };
 
-            // Función de dibujo de arcos de ángulos
+            // Función de dibujo de arcos de ángulos - Corregida
             const drawAngleArc = (vertex, p1, p2, radius, color, angleValueRad = null) => {
                 if (!vertex || !p1 || !p2 || !isFinitePoint(vertex) || !isFinitePoint(p1) || !isFinitePoint(p2)) return;
 
@@ -1605,11 +1613,16 @@
                     const textY = vertex.y + textRadius * bisector_y;
 
                     const angleText = formatNumber(toDegrees(angleValueRad)) + "°";
+                    
+                    // Configurar fuente y medidas
                     ctx.font = `bold ${labelFontSize * 0.8}px Inter`;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
                     const metrics = ctx.measureText(angleText);
-
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
                     const padding = labelFontSize * 0.2;
+
+                    // Dibujar fondo
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
                     ctx.fillRect(
                         textX - metrics.width/2 - padding,
                         textY - labelFontSize*0.8/2 - padding,
@@ -1617,9 +1630,8 @@
                         labelFontSize*0.8 + 2 * padding
                     );
 
+                    // Dibujar texto
                     ctx.fillStyle = colors.label;
-                    ctx.textAlign = "center";
-                    ctx.textBaseline = "middle";
                     ctx.fillText(angleText, textX, textY);
                 }
             };
@@ -1709,18 +1721,14 @@
 
             // Etiquetas y valores
             if (drawOptions.labels) {
-                ctx.fillStyle = colors.label;
-                ctx.textAlign = "center";
                 const vtxFont = `bold ${labelFontSize}px Inter`;
                 const sideValFont = `bold ${labelFontSize * 0.9}px JetBrains Mono`;
 
                 const Gx = centroid ? centroid.x : (pA.x + pB.x + pC.x) / 3;
                 const Gy = centroid ? centroid.y : (pA.y + pB.y + pC.y) / 3;
 
-                // Etiquetas de vértices
+                // Etiquetas de vértices - Corregidas
                 const positionVertexLabel = (vertex, name) => {
-                    ctx.font = vtxFont;
-                    ctx.textBaseline = "middle";
                     let dirX = vertex.x - Gx, dirY = vertex.y - Gy;
                     let lenDir = Math.sqrt(dirX**2 + dirY**2);
 
@@ -1733,11 +1741,17 @@
                         dirY /= lenDir;
                     }
 
-                    const metrics = ctx.measureText(name);
-                    const padding = labelFontSize * 0.3;
                     const labelX = vertex.x + dirX * vtxLabelOffset;
                     const labelY = vertex.y + dirY * vtxLabelOffset;
 
+                    // Configurar fuente y medidas
+                    ctx.font = vtxFont;
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
+                    const metrics = ctx.measureText(name);
+                    const padding = labelFontSize * 0.3;
+
+                    // Dibujar fondo
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
                     ctx.fillRect(
                         labelX - metrics.width/2 - padding,
@@ -1746,6 +1760,7 @@
                         labelFontSize + 2 * padding
                     );
 
+                    // Dibujar texto
                     ctx.fillStyle = colors.label;
                     ctx.fillText(name, labelX, labelY);
                 };
@@ -1754,8 +1769,7 @@
                 positionVertexLabel(pB, "B");
                 positionVertexLabel(pC, "C");
 
-                // Etiquetas de lados
-                ctx.font = sideValFont;
+                // Etiquetas de lados - Corregidas
                 const positionSideLabel = (p1, p2, midPt, oppositeVtx, sideValueText) => {
                     let normal_x = p1.y - p2.y;
                     let normal_y = p2.x - p1.x;
@@ -1781,9 +1795,17 @@
                     const labelX = midPt.x + normal_x * sideLabelDist;
                     const labelY = midPt.y + normal_y * sideLabelDist;
 
+                    // Configurar fuente y medidas
+                    // Configurar valores por defecto y metricas
+                ctx.save();
+                ctx.font = sideValFont;
+                ctx.restore();
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "middle";
                     const metrics = ctx.measureText(sideValueText);
                     const padding = labelFontSize * 0.2;
 
+                    // Dibujar fondo
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
                     ctx.fillRect(
                         labelX - metrics.width/2 - padding,
@@ -1792,6 +1814,7 @@
                         labelFontSize*0.9 + 2 * padding
                     );
 
+                    // Dibujar texto
                     ctx.fillStyle = colors.label;
                     ctx.fillText(sideValueText, labelX, labelY);
                 };
@@ -1929,7 +1952,14 @@
                 displayTriangleResults(solution);
                 resultsPanel.style.display = 'block';
                 updateLastCalculatedGeometry();
-                requestAnimationFrame(drawTriangleOnCanvas);
+                
+                // Forzar redibujado múltiple para asegurar renderización
+                requestAnimationFrame(() => {
+                    drawTriangleOnCanvas();
+                    setTimeout(() => {
+                        drawTriangleOnCanvas();
+                    }, 100);
+                });
 
                 if (isUserInitiated) {
                     showModal('Cálculo Exitoso ✅', 'El triángulo ha sido calculado y visualizado correctamente.', false);
@@ -2250,6 +2280,13 @@
             // Calcular triángulo ejemplo después de un breve delay
             setTimeout(() => {
                 handleCalculate(false);
+                // Redibujado adicional para asegurar renderización
+                setTimeout(() => {
+                    if (currentTriangle) {
+                        updateLastCalculatedGeometry();
+                        drawTriangleOnCanvas();
+                    }
+                }, 200);
             }, 500);
 
             console.log('🚀 TriangleForge Ultra inicializado correctamente');
