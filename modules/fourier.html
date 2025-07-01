@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fourier Series - Visualizador Avanzado</title>
-    
-    <!-- KaTeX para renderizado de Fórmulas Matemáticas -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" xintegrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3NU" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js" xintegrity="sha384-XjKyOOlGwcjNTAIQHIpgOno0Hl1YQqzUOEleOLALmuqehneUG+vnGctmUb0ZY0l8" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" xintegrity="sha384-+VBxd3r6XgURycqtZ117nYw44OOcIax56Z4dCRWbxyPt0Koah1uHoK0o4+/RRE05" crossorigin="anonymous"></script>
+    <title>Fourier Series - Ultra Modern Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         :root {
             --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
@@ -28,12 +35,6 @@
             --error-color: #ef4444;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Inter', sans-serif;
             background: var(--dark-bg);
@@ -41,49 +42,62 @@
                 radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
                 radial-gradient(circle at 75% 75%, rgba(245, 87, 108, 0.1) 0%, transparent 50%);
             color: var(--text-primary);
-            min-height: 100vh;
-            overflow-x: hidden;
+            overflow-y: auto;
         }
 
         .app-container {
             display: grid;
+            width: 100%;
+            max-width: 1800px;
+            margin: 0 auto;
             grid-template-columns: 380px 1fr;
-            grid-template-rows: 100px 1fr;
+            grid-template-rows: auto 1fr;
             grid-template-areas: 
                 "header header"
                 "sidebar main";
-            height: 100vh;
-            gap: 15px;
-            padding: 15px;
+            min-height: 100vh;
+            gap: 20px;
+            padding: 20px;
         }
 
         .header {
             grid-area: header;
             text-align: center;
+            padding: 20px 0;
         }
 
         .main-title {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 700;
             background: var(--primary-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
             text-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: brightness(1) drop-shadow(0 0 20px rgba(102, 126, 234, 0.3)); }
+            to { filter: brightness(1.2) drop-shadow(0 0 30px rgba(102, 126, 234, 0.6)); }
         }
 
         .subtitle {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             color: var(--text-secondary);
             font-weight: 400;
         }
 
         .sidebar {
             grid-area: sidebar;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 30px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .main-content {
@@ -91,72 +105,39 @@
             display: flex;
             flex-direction: column;
             gap: 15px;
-            min-height: 0;
         }
 
-        .collapsible-section {
+        .section {
             background: var(--card-bg);
             backdrop-filter: blur(20px);
             border: 1px solid var(--border-color);
             border-radius: 16px;
+            padding: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
-        
-        .section-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 15px 20px;
-            cursor: pointer;
-            user-select: none;
+
+        .section:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
         }
 
         .section-title {
-            font-size: 1.3rem;
+            font-size: 1.5rem;
             font-weight: 600;
+            margin-bottom: 20px;
             background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
-        
-        .collapse-toggle {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.3s ease;
-        }
-
-        .collapsible-section.collapsed .collapse-toggle {
-            transform: rotate(-90deg);
-        }
-
-        .section-content {
-            padding: 0 20px 20px 20px;
-            max-height: 5000px; /* Large value to allow for content */
-            transition: max-height 0.5s ease-in-out, padding 0.5s ease-in-out;
-            overflow-y: auto;
-        }
-        
-        .collapsible-section.collapsed .section-content {
-            max-height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            overflow: hidden;
-        }
 
         .graph-container {
             flex: 1;
             position: relative;
-            min-height: 400px;
+            min-height: 500px;
             background: rgba(10, 10, 15, 0.8);
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
             border: 1px solid var(--border-color);
         }
@@ -165,27 +146,44 @@
             width: 100%;
             height: 100%;
             cursor: grab;
-            touch-action: none; /* Important for touch events */
+            touch-action: none; 
         }
 
-        #canvas:active { cursor: grabbing; }
+        #canvas:active {
+            cursor: grabbing;
+        }
+
+        .controls-overlay {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            z-index: 10;
+            pointer-events: none;
+        }
 
         .function-type-selector {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 30px;
         }
 
         .type-btn {
             flex: 1;
-            padding: 12px 16px;
+            padding: 14px 18px;
             background: var(--glass-bg);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 12px;
             color: var(--text-primary);
             font-weight: 500;
             cursor: pointer;
             transition: all 0.3s ease;
+            text-align: center;
         }
 
         .type-btn:hover {
@@ -200,253 +198,384 @@
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .input-group { margin-bottom: 20px; }
+        .input-group {
+            margin-bottom: 25px;
+        }
 
         .input-label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             color: var(--text-secondary);
             font-weight: 500;
-            font-size: 0.9rem;
+            font-size: 0.95rem;
         }
 
         .modern-input {
             width: 100%;
-            padding: 14px 16px;
+            padding: 16px 18px;
             background: var(--glass-bg);
             border: 1px solid var(--border-color);
-            border-radius: 10px;
+            border-radius: 12px;
             color: var(--text-primary);
             font-size: 1rem;
             transition: all 0.3s ease;
             outline: none;
         }
 
-        .modern-input:focus {
+        .modern-input:focus, .modern-input.active-input-glow {
             border-color: #667eea;
             background: rgba(102, 126, 234, 0.1);
             box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
         }
 
-        .symbol-panel {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: -10px;
-            margin-bottom: 20px;
+        .piecewise-container {
+            display: none;
+            margin-top: 10px;
         }
 
-        .symbol-btn {
-            padding: 8px 12px;
+        .piece-group {
             background: var(--glass-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            color: var(--text-secondary);
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            padding: 10px;
+            margin-bottom: 10px;
         }
-        .symbol-btn:hover {
-            background: rgba(102, 126, 234, 0.2);
-            color: var(--text-primary);
+
+        .piece-title {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .piece-inputs {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .piece-inputs input {
+            flex: 1;
         }
 
         .harmonics-widget {
             background: var(--glass-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            padding: 20px;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
         }
 
         .harmonics-title {
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 600;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            color: var(--text-primary);
         }
 
         .harmonics-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-            gap: 8px;
-            margin-bottom: 15px;
+            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+            min-height: 120px;
         }
 
         .harmonic-btn {
-            width: 100%;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border: 1px solid var(--border-color);
-            border-radius: 8px;
+            border-radius: 10px;
             background: var(--glass-bg);
             color: var(--text-secondary);
+            font-size: 0.9rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .harmonic-btn:hover {
+            border-color: #667eea;
+            color: var(--text-primary);
         }
 
         .harmonic-btn.active {
             background: var(--primary-gradient);
+            border-color: transparent;
             color: white;
             transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .harmonics-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 10px 14px;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .control-btn:hover {
+            background: rgba(102, 126, 234, 0.2);
+            border-color: #667eea;
         }
 
         .modern-btn {
             background: var(--primary-gradient);
             color: white;
             border: none;
-            padding: 12px 24px;
-            border-radius: 10px;
-            font-size: 0.9rem;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            margin-right: 8px;
+            margin-right: 10px;
+            margin-bottom: 10px;
         }
-        .modern-btn:hover { transform: translateY(-2px); }
-        .modern-btn.secondary { background: var(--secondary-gradient); }
+
+        .modern-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .modern-btn:active {
+            transform: translateY(0);
+        }
+
+        .modern-btn.secondary {
+            background: var(--secondary-gradient);
+        }
 
         .coefficients-display {
-            max-height: 250px;
+            max-height: 300px;
             overflow-y: auto;
-            margin-top: 15px;
-            padding-right: 5px;
+            margin-top: 20px;
         }
 
         .coefficient-item {
             background: var(--glass-bg);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-bottom: 6px;
-            font-family: 'Monaco', monospace;
-            font-size: 0.85rem;
-        }
-
-        .loading-overlay {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            border-radius: 12px;
-        }
-        .loading-overlay.active { display: flex; }
-
-        .spinner {
-            width: 50px; height: 50px;
-            border: 3px solid var(--border-color);
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        .zoom-controls {
-            position: absolute;
-            bottom: 15px; left: 15px;
-            display: flex; flex-direction: column;
-            gap: 5px; z-index: 10;
-        }
-
-        .zoom-btn {
-            width: 35px; height: 35px;
-            background: rgba(0, 0, 0, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
-            cursor: pointer;
-            font-size: 1.1rem;
+            border-radius: 10px;
+            padding: 12px 16px;
+            margin-bottom: 8px;
+            font-family: 'Monaco', 'Menlo', monospace;
             transition: all 0.3s ease;
-            display:flex; align-items:center; justify-content:center;
         }
-        .zoom-btn:hover { background: rgba(102, 126, 234, 0.3); }
 
-        /* Modal de Fórmulas */
-        .modal-overlay {
+        .coefficient-item:hover {
+            background: rgba(102, 126, 234, 0.1);
+            border-color: rgba(102, 126, 234, 0.5);
+        }
+
+        .coefficient-value {
+            color: #4facfe;
+            font-weight: 600;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .status-ready { background: var(--success-color); }
+        .status-calculating { background: var(--warning-color); animation: pulse 1s infinite; }
+        .status-error { background: var(--error-color); }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading-overlay, .modal-overlay {
             position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
             backdrop-filter: blur(10px);
             display: none;
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            padding: 20px;
         }
-        .modal-overlay.active { display: flex; opacity: 1; }
 
+        .loading-overlay.active, .modal-overlay.active {
+            display: flex;
+        }
+        
         .modal-content {
             background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
             padding: 30px;
-            width: 90%;
-            max-width: 900px;
-            max-height: 80vh; /* Altura del modal ajustada */
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            max-width: 800px;
+            width: 100%;
+            max-height: 90vh;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
         }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
+        
+        #formulas-content {
+            font-family: 'Inter', sans-serif;
+            font-size: 1.2rem;
+            line-height: 2.5;
+            color: var(--text-primary);
+            overflow: auto;
+            max-height: calc(90vh - 150px);
         }
-
-        .modal-title {
-            font-size: 1.6rem;
-            background: var(--primary-gradient);
+        
+        #formulas-content h3 {
+            font-size: 1.5rem;
+            color: var(--text-primary);
+            background: var(--accent-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+        
+        .mjx-container {
+            overflow-x: auto;
+            overflow-y: hidden;
         }
 
-        .modal-close {
-            width: 35px; height: 35px;
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid var(--border-color);
+            border-top: 3px solid #667eea;
             border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .zoom-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .zoom-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             color: var(--text-primary);
             cursor: pointer;
-            display: flex; align-items: center; justify-content: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.2rem;
             transition: all 0.3s ease;
         }
-        .modal-close:hover { background: rgba(102, 126, 234, 0.2); }
 
-        .formula-section {
-            margin-bottom: 20px;
-            padding: 20px;
-            background: var(--glass-bg);
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            overflow: auto; /* AÑADIDO PARA SCROLL */
-        }
-
-        .formula-title {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-            color: #667eea;
+        .zoom-btn:hover {
+            background: rgba(102, 126, 234, 0.3);
+            border-color: #667eea;
         }
         
-        /* Estilos para KaTeX */
-        .katex-display {
-            margin: 0.5em 0;
-            font-size: 1.1em;
-            padding: 0.5em; /* Añadido para que el scroll no se pegue */
+        .collapsible-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            background: var(--glass-bg);
+            border-radius: 12px;
+            margin-bottom: 10px;
         }
-        .katex {
-            color: var(--text-primary);
+        
+        .collapsible-header .section-title {
+            margin: 0;
+            font-size: 1.1rem;
+        }
+        
+        .collapsible-icon {
+            font-size: 1.5rem;
+            transition: transform 0.3s ease;
+        }
+        
+        .collapsible-content {
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            margin-top: -10px;
+        }
+        
+        .keyboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+            gap: 8px;
+        }
+        
+        .key-btn {
+            padding: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .color-control {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
-        /* Responsive Design */
+        .color-control label {
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .modern-color-picker {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 40px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+        .modern-color-picker::-webkit-color-swatch {
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+        }
+        .modern-color-picker::-moz-color-swatch {
+            border-radius: 50%;
+            border: 2px solid var(--border-color);
+        }
+
         @media (max-width: 1200px) {
             .app-container {
                 grid-template-columns: 1fr;
@@ -455,749 +584,838 @@
                     "header"
                     "sidebar"
                     "main";
+                padding: 10px;
                 height: auto;
-                min-height: 100vh;
             }
-            .sidebar, .main-content {
-                min-width: 0;
+            
+            .sidebar {
+                max-height: none;
+                padding: 15px;
             }
-            .main-content {
-                min-height: 50vh;
-            }
-        }
 
-        @media (max-width: 768px) {
-            .app-container { padding: 10px; gap: 10px; }
-            .header { margin-bottom: 0; }
-            .main-title { font-size: 2rem; }
-            .subtitle { font-size: 0.9rem; }
-            .section-header { padding: 12px 15px; }
-            .section-title { font-size: 1.1rem; }
-            .section-content { padding: 0 15px 15px 15px; }
-            .modal-content { width: 95%; padding: 20px; }
-            .modal-title { font-size: 1.3rem; }
-        }
+            .main-title {
+                font-size: 2.2rem;
+            }
 
-        @media (max-width: 480px) {
-            .app-container { padding: 5px; gap: 5px; }
-            .main-title { font-size: 1.6rem; }
-            .subtitle { display: none; }
-            .function-type-selector { flex-direction: column; }
-            .modern-btn { width: 100%; margin-bottom: 8px; }
-            .harmonics-grid { grid-template-columns: repeat(auto-fill, minmax(35px, 1fr)); }
-            .harmonic-btn { height: 35px; }
-            .modal-content { padding: 15px; }
-            .modal-title { font-size: 1.1rem; }
+            .subtitle {
+                font-size: 0.9rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="app-container">
-        <header class="header">
-            <h1 class="main-title">Series de Fourier</h1>
-            <p class="subtitle">Visualizador Interactivo Avanzado</p>
-        </header>
+        <div class="header">
+            <h1 class="main-title">Fourier Series</h1>
+            <p class="subtitle">Ultra Modern Interactive Visualizer & Calculator</p>
+        </div>
 
-        <aside class="sidebar">
-            <section class="collapsible-section" id="config-section">
-                <header class="section-header">
-                    <h2 class="section-title">Configuración</h2>
-                    <button class="collapse-toggle" aria-label="Toggle Configuration Panel">▼</button>
-                </header>
-                <div class="section-content">
-                    <div class="function-type-selector">
-                        <div class="type-btn active" data-type="normal">Normal</div>
-                        <div class="type-btn" data-type="piecewise">A Trozos</div>
-                    </div>
-                    
-                    <div id="normal-inputs">
-                        <div class="input-group">
-                            <label class="input-label" for="function-input">Función f(x)</label>
-                            <input type="text" class="modern-input" id="function-input" placeholder="Ej: sin(x), x^2, abs(x)" value="x">
-                        </div>
-                    </div>
-                    <div class="symbol-panel" id="symbol-panel">
-                        <!-- Los botones de símbolos se generan aquí -->
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label" for="period-input">Período (2L)</label>
-                        <input type="text" class="modern-input" id="period-input" value="2*pi">
-                    </div>
-
-                    <div class="input-group">
-                        <label class="input-label" for="max-terms">Número de términos (N)</label>
-                        <input type="number" class="modern-input" id="max-terms" value="20" min="1" max="100">
-                    </div>
-
-                    <div class="harmonics-widget">
-                        <h3 class="harmonics-title">Armónicos a mostrar</h3>
-                        <div class="harmonics-grid" id="harmonics-grid"></div>
-                    </div>
-
-                    <div>
-                        <button class="modern-btn" onclick="calculateFourier()">Calcular</button>
-                        <button class="modern-btn formula" onclick="showFormulaModal()">📜 Ver Fórmula</button>
-                    </div>
-                </div>
-            </section>
-            
-            <section class="collapsible-section" id="coeffs-section">
-                <header class="section-header">
-                    <h2 class="section-title">Coeficientes</h2>
-                    <button class="collapse-toggle" aria-label="Toggle Coefficients Panel">▼</button>
-                </header>
-                <div class="section-content">
-                    <div class="coefficients-display" id="coefficients-container">
-                        <p style="color: var(--text-secondary); text-align: center; font-size: 0.8rem;">
-                            Los coeficientes aparecerán aquí.
-                        </p>
-                    </div>
-                </div>
-            </section>
-        </aside>
-
-        <main class="main-content">
-            <section class="collapsible-section" id="plot-section" style="flex: 1;">
-                <header class="section-header">
-                    <h2 class="section-title">Visualización Interactiva</h2>
-                    <button class="collapse-toggle" aria-label="Toggle Plot Panel">▼</button>
-                </header>
-                <div class="section-content" style="flex: 1; display: flex; flex-direction: column; padding: 0;">
-                     <div class="graph-container">
-                        <canvas id="canvas"></canvas>
-                        <div class="loading-overlay" id="loading-overlay">
-                            <div>
-                                <div class="spinner"></div>
-                                <p style="margin-top: 15px;">Calculando...</p>
-                            </div>
-                        </div>
-                        <div class="zoom-controls">
-                            <div class="zoom-btn" onclick="zoomIn()" aria-label="Zoom In">+</div>
-                            <div class="zoom-btn" onclick="zoomOut()" aria-label="Zoom Out">−</div>
-                            <div class="zoom-btn" onclick="resetView()" aria-label="Reset View">⌂</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Modal para Fórmulas -->
-    <div class="modal-overlay" id="formula-modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 class="modal-title">Fórmulas de la Serie de Fourier</h2>
-                <div class="modal-close" onclick="hideFormulaModal()" aria-label="Close Modal">×</div>
-            </div>
-            
-            <div class="formula-section">
-                <h3 class="formula-title">Fórmula General</h3>
-                <div id="general-formula"></div>
+        <div class="sidebar">
+            <div class="section-title">
+                <span class="status-indicator status-ready"></span>
+                Configuración de Función
             </div>
 
-            <div class="formula-section">
-                <h3 class="formula-title">Serie Específica para <span id="modal-function-name">f(x)</span></h3>
-                <div id="specific-formula"></div>
+            <div class="function-type-selector">
+                <div class="type-btn active" data-type="normal">Normal</div>
+                <div class="type-btn" data-type="piecewise">A Trozos</div>
             </div>
 
-            <div class="formula-section">
-                <h3 class="formula-title">Armónicos Expandidos (primeros 5 seleccionados)</h3>
-                <div id="expanded-harmonics"></div>
+            <div class="input-group">
+                <div class="collapsible-header" id="color-picker-toggle">
+                    <span class="section-title">Paleta de Colores</span>
+                    <span class="collapsible-icon" id="color-picker-icon">+</span>
+                </div>
+                <div class="collapsible-content" id="color-picker" style="display: none;">
+                    <div class="color-control">
+                        <label for="original-color">Función Original</label>
+                        <input type="color" id="original-color" class="modern-color-picker" value="#ff6b6b">
+                    </div>
+                    <div class="color-control">
+                        <label for="fourier-color">Serie de Fourier</label>
+                        <input type="color" id="fourier-color" class="modern-color-picker" value="#4ecdc4">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="collapsible-header" id="math-keyboard-toggle">
+                    <span class="section-title">Teclado Matemático</span>
+                    <span class="collapsible-icon" id="keyboard-icon">+</span>
+                </div>
+                <div class="collapsible-content" id="math-keyboard" style="display: none;">
+                    <div class="keyboard-grid">
+                        <button class="control-btn key-btn" data-symbol="(">(</button>
+                        <button class="control-btn key-btn" data-symbol=")">)</button>
+                        <button class="control-btn key-btn" data-symbol="^">xʸ</button>
+                        <button class="control-btn key-btn" data-symbol="sqrt()">√</button>
+                        <button class="control-btn key-btn" data-symbol="sin()">sin</button>
+                        <button class="control-btn key-btn" data-symbol="cos()">cos</button>
+                        <button class="control-btn key-btn" data-symbol="tan()">tan</button>
+                        <button class="control-btn key-btn" data-symbol="pi">π</button>
+                        <button class="control-btn key-btn" data-symbol="e">e</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="normal-inputs">
+                <div class="input-group">
+                    <label class="input-label">Función f(x)</label>
+                    <input type="text" class="modern-input" id="function-input" placeholder="sin(x), x^2, cos(2*x)" value="x">
+                </div>
+            </div>
+
+            <div id="piecewise-inputs" class="piecewise-container">
+                <div class="piece-group">
+                    <div class="piece-title">Trozo 1</div>
+                    <input type="text" class="modern-input" id="piece1-func" placeholder="Función" value="x">
+                    <div class="piece-inputs">
+                        <input type="number" class="modern-input" id="piece1-start" placeholder="Inicio" value="-3.14159">
+                        <input type="number" class="modern-input" id="piece1-end" placeholder="Fin" value="0">
+                    </div>
+                </div>
+                <div class="piece-group">
+                    <div class="piece-title">Trozo 2</div>
+                    <input type="text" class="modern-input" id="piece2-func" placeholder="Función" value="-x">
+                    <div class="piece-inputs">
+                        <input type="number" class="modern-input" id="piece2-start" placeholder="Inicio" value="0">
+                        <input type="number" class="modern-input" id="piece2-end" placeholder="Fin" value="3.14159">
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Período (T)</label>
+                <input type="number" class="modern-input" id="period-input" value="6.28318" step="0.1">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Número máximo de términos</label>
+                <input type="number" class="modern-input" id="max-terms" value="20" min="1" max="50">
+            </div>
+
+            <div class="harmonics-widget">
+                <div class="harmonics-title">Armónicos a mostrar</div>
+                <div class="harmonics-grid" id="harmonics-grid">
+                </div>
+                <div class="harmonics-controls">
+                    <div class="control-btn" onclick="selectAllHarmonics()">Todos</div>
+                    <div class="control-btn" onclick="clearHarmonics()">Ninguno</div>
+                    <div class="control-btn" onclick="selectOddHarmonics()">Impares</div>
+                </div>
+            </div>
+
+            <div style="margin-top: auto;">
+                <button class="modern-btn" onclick="calculateFourier()">Calcular Serie</button>
+                <button class="modern-btn secondary" onclick="resetAll()">Reiniciar</button>
+                <button class="modern-btn" id="show-formulas-btn" style="display: none;">Mostrar Fórmulas</button>
+
+                <div class="section-title" style="margin-top: 15px; margin-bottom: 8px;">Coeficientes de Fourier</div>
+                <div class="coefficients-display" id="coefficients-container">
+                    <p style="color: var(--text-secondary); text-align: center; margin: 20px 0; font-size: 0.8rem;">
+                        Los coeficientes aparecerán aquí después del cálculo...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="section">
+                <div class="section-title">Visualización Interactiva 2D</div>
+                <div class="graph-container">
+                    <canvas id="canvas"></canvas>
+                    <div class="loading-overlay" id="loading-overlay">
+                        <div>
+                            <div class="spinner"></div>
+                            <p style="margin-top: 15px; text-align: center;">Calculando...</p>
+                        </div>
+                    </div>
+                    <div class="controls-overlay">
+                        <p>🖱️ Arrastra para mover</p>
+                        <p>🔍 Scroll/Pellizca para zoom</p>
+                        <p>📱 Doble click/toque para centrar</p>
+                    </div>
+                    <div class="zoom-controls">
+                        <div class="zoom-btn" onclick="zoomIn()">+</div>
+                        <div class="zoom-btn" onclick="zoomOut()">−</div>
+                        <div class="zoom-btn" onclick="resetView()">⌂</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    
+    <!-- Formulas Modal -->
+    <div id="formulas-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div id="formulas-content">
+                <!-- Content is injected here by JavaScript -->
+            </div>
+            <button id="close-formulas-modal" class="modern-btn" style="margin-top: 20px;">Cerrar</button>
+        </div>
+    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
     <script>
-        // Variables globales
+        // Global variables
         let canvas, ctx;
-        let coefficients = { a0: 0, an: [], bn: [] };
-        let selectedHarmonics = new Set();
-        let needsRedraw = true;
-        let canvasSizeDirty = true;
-        let firstCalculation = true;
+        let currentFunction = 'normal';
+        let coefficients = { a0: 0, an: [], bn: [], an_symbolic: [], bn_symbolic: [] };
+        let selectedHarmonics = new Set([1, 2, 3, 4, 5]);
+        let originalFunctionColor = '#ff6b6b';
+        let fourierSeriesColor = '#4ecdc4';
         
-        // Variables de vista del canvas
+        // View and gesture variables
         let zoom = 50;
-        let offsetX = 0, offsetY = 2; // Ajuste vertical inicial
+        let offsetX = 0;
+        let offsetY = 0;
         let isDragging = false;
-        let lastMousePos = { x: 0, y: 0 };
-        let lastTouchDistance = null;
+        let lastDragX = 0;
+        let initialPinchDistance = null;
+        let redrawQueued = false;
 
-        // Inicialización
-        document.addEventListener('DOMContentLoaded', () => {
+        // DOM Elements
+        let formulasModal, showFormulasBtn, closeFormulasModal, formulasContent;
+        let activeInput = null;
+
+        // Initialization
+        document.addEventListener('DOMContentLoaded', function() {
+            formulasModal = document.getElementById('formulas-modal');
+            showFormulasBtn = document.getElementById('show-formulas-btn');
+            closeFormulasModal = document.getElementById('close-formulas-modal');
+            formulasContent = document.getElementById('formulas-content');
+
             initializeCanvas();
             initializeEventListeners();
-            initializeCollapsiblePanels();
-            initializeSymbolPanel();
             generateHarmonicsGrid();
-            renderGeneralFormula();
-            animate();
         });
+        
+        function requestRedraw() {
+            if (redrawQueued) return;
+            redrawQueued = true;
+            requestAnimationFrame(() => {
+                drawScene();
+                redrawQueued = false;
+            });
+        }
+        
+        function drawScene() {
+            const dpr = window.devicePixelRatio || 1;
+            
+            ctx.save();
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.restore();
+            
+            drawGrid();
+            drawFunctions();
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const dpr = window.devicePixelRatio || 1;
+            const rect = container.getBoundingClientRect();
+            
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+
+            ctx.scale(dpr, dpr);
+            requestRedraw();
+        }
 
         function initializeCanvas() {
             canvas = document.getElementById('canvas');
             ctx = canvas.getContext('2d');
-            
-            const observer = new ResizeObserver(() => {
-                canvasSizeDirty = true;
-            });
-            observer.observe(canvas.parentElement);
+            resizeCanvas();
         }
 
         function initializeEventListeners() {
-            canvas.addEventListener('mousedown', startDragging);
-            canvas.addEventListener('mousemove', drag);
-            canvas.addEventListener('mouseup', stopDragging);
-            canvas.addEventListener('mouseleave', stopDragging);
+            window.addEventListener('resize', resizeCanvas);
+
+            document.querySelectorAll('.type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFunction = this.dataset.type;
+                    
+                    document.getElementById('normal-inputs').style.display = currentFunction === 'normal' ? 'block' : 'none';
+                    document.getElementById('piecewise-inputs').style.display = currentFunction === 'piecewise' ? 'block' : 'none';
+                });
+            });
+
+            canvas.addEventListener('mousedown', handleDragStart);
+            canvas.addEventListener('mousemove', handleDragMove);
+            canvas.addEventListener('mouseup', handleDragEnd);
+            canvas.addEventListener('mouseleave', handleDragEnd);
             canvas.addEventListener('wheel', handleZoom, { passive: false });
             canvas.addEventListener('dblclick', resetView);
             
-            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-            canvas.addEventListener('touchend', handleTouchEnd);
+            canvas.addEventListener('touchstart', handleDragStart, { passive: false });
+            canvas.addEventListener('touchmove', handleDragMove, { passive: false });
+            canvas.addEventListener('touchend', handleDragEnd);
 
-            document.getElementById('max-terms').addEventListener('change', generateHarmonicsGrid);
+            // Modal Listeners
+            showFormulasBtn.addEventListener('click', () => formulasModal.classList.add('active'));
+            closeFormulasModal.addEventListener('click', () => formulasModal.classList.remove('active'));
+            formulasModal.addEventListener('click', (e) => {
+                if (e.target === formulasModal) {
+                    formulasModal.classList.remove('active');
+                }
+            });
+
+            // Collapsible Panels
+            document.querySelectorAll('.collapsible-header').forEach(header => {
+                header.addEventListener('click', () => {
+                    const content = header.nextElementSibling;
+                    const icon = header.querySelector('.collapsible-icon');
+                    const isHidden = content.style.display === 'none';
+                    content.style.display = isHidden ? 'block' : 'none';
+                    icon.style.transform = isHidden ? 'rotate(45deg)' : 'rotate(0deg)';
+                });
+            });
+
+            document.querySelectorAll('.key-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    if (activeInput) {
+                        const symbol = btn.dataset.symbol;
+                        const start = activeInput.selectionStart;
+                        const end = activeInput.selectionEnd;
+                        const text = activeInput.value;
+                        
+                        let newText;
+                        let newPos;
+
+                        if (symbol.endsWith('()')) {
+                            const funcName = symbol.slice(0, -2);
+                            newText = text.substring(0, start) + funcName + '()' + text.substring(end);
+                            newPos = start + funcName.length + 1;
+                        } else {
+                            newText = text.substring(0, start) + symbol + text.substring(end);
+                            newPos = start + symbol.length;
+                        }
+                        
+                        activeInput.value = newText;
+                        activeInput.focus();
+                        activeInput.setSelectionRange(newPos, newPos);
+                    }
+                });
+            });
+
+            document.querySelectorAll('.modern-input[type="text"]').forEach(input => {
+                input.addEventListener('focus', (e) => {
+                    activeInput = e.target;
+                    document.querySelectorAll('.modern-input[type="text"]').forEach(i => i.classList.remove('active-input-glow'));
+                    activeInput.classList.add('active-input-glow');
+                });
+            });
+            
+            // Color Pickers
+            document.getElementById('original-color').addEventListener('input', (e) => {
+                originalFunctionColor = e.target.value;
+                requestRedraw();
+            });
+            document.getElementById('fourier-color').addEventListener('input', (e) => {
+                fourierSeriesColor = e.target.value;
+                requestRedraw();
+            });
         }
         
-        function initializeCollapsiblePanels() {
-            document.querySelectorAll('.collapsible-section .section-header').forEach(header => {
-                header.addEventListener('click', () => {
-                    const section = header.parentElement;
-                    section.classList.toggle('collapsed');
-                });
-            });
-        }
+        // --- Interaction Event Handlers ---
 
-        function initializeSymbolPanel() {
-            const panel = document.getElementById('symbol-panel');
-            const symbols = ['π', 'e', '^', '(', ')', '*', '/', '+', '-', 'sqrt', 'abs', 'sin', 'cos'];
-            symbols.forEach(symbol => {
-                const btn = document.createElement('button');
-                btn.className = 'symbol-btn';
-                btn.textContent = symbol;
-                btn.onclick = () => insertSymbol(symbol);
-                panel.appendChild(btn);
-            });
-        }
-
-        function insertSymbol(symbol) {
-            const input = document.getElementById('function-input');
-            const start = input.selectionStart;
-            const end = input.selectionEnd;
-            const text = input.value;
-            
-            let valueToInsert = symbol;
-            if (['sqrt', 'abs', 'sin', 'cos'].includes(symbol)) {
-                valueToInsert = symbol + '()';
-            } else if (symbol === 'π') {
-                valueToInsert = 'pi';
-            }
-
-            input.value = text.substring(0, start) + valueToInsert + text.substring(end);
-            input.focus();
-            
-            let cursorPosition = start + valueToInsert.length;
-            if (valueToInsert.endsWith(')')) {
-                cursorPosition--;
-            }
-            input.setSelectionRange(cursorPosition, cursorPosition);
-        }
-
-        function generateHarmonicsGrid() {
-            const grid = document.getElementById('harmonics-grid');
-            const maxTerms = parseInt(document.getElementById('max-terms').value) || 20;
-            
-            grid.innerHTML = '';
-            const oldSelected = new Set(selectedHarmonics);
-            selectedHarmonics.clear();
-            
-            for (let i = 1; i <= maxTerms; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'harmonic-btn';
-                btn.textContent = i;
-                btn.dataset.harmonic = i;
-                
-                if (oldSelected.has(i) || (firstCalculation && i <= 5)) {
-                    btn.classList.add('active');
-                    selectedHarmonics.add(i);
-                }
-                
-                btn.addEventListener('click', function() {
-                    const harmonic = parseInt(this.dataset.harmonic);
-                    this.classList.toggle('active');
-                    if (selectedHarmonics.has(harmonic)) {
-                        selectedHarmonics.delete(harmonic);
-                    } else {
-                        selectedHarmonics.add(harmonic);
-                    }
-                    needsRedraw = true;
-                });
-                
-                grid.appendChild(btn);
-            }
-        }
-
-        // --- Lógica de Arrastre y Zoom ---
-        function startDragging(e) {
+        function handleDragStart(e) {
             isDragging = true;
-            lastMousePos = { x: e.clientX, y: e.clientY };
             canvas.style.cursor = 'grabbing';
+            
+            if (e.touches) {
+                if (e.touches.length === 1) {
+                    lastDragX = e.touches[0].clientX;
+                } else if (e.touches.length === 2) {
+                    initialPinchDistance = getPinchDistance(e);
+                }
+            } else {
+                lastDragX = e.clientX;
+            }
         }
 
-        function drag(e) {
+        function handleDragMove(e) {
             if (!isDragging) return;
-            const deltaX = e.clientX - lastMousePos.x;
-            const deltaY = e.clientY - lastMousePos.y;
-            offsetX += deltaX / zoom;
-            offsetY -= deltaY / zoom;
-            lastMousePos = { x: e.clientX, y: e.clientY };
-            needsRedraw = true;
+            e.preventDefault();
+
+            if (e.touches) {
+                if (e.touches.length === 1) {
+                    handlePan(e.touches[0].clientX);
+                } else if (e.touches.length === 2) {
+                    handlePinch(e);
+                }
+            } else {
+                handlePan(e.clientX);
+            }
+            
+            requestRedraw();
         }
 
-        function stopDragging() {
+        function handleDragEnd() {
             isDragging = false;
             canvas.style.cursor = 'grab';
+            initialPinchDistance = null;
+        }
+
+        function handlePan(currentX) {
+            const deltaX = currentX - lastDragX;
+            offsetX += deltaX / zoom;
+            lastDragX = currentX;
+        }
+        
+        function handlePinch(e) {
+            const newPinchDistance = getPinchDistance(e);
+            if (initialPinchDistance === null) {
+                initialPinchDistance = newPinchDistance;
+                return;
+            }
+            const zoomFactor = newPinchDistance / initialPinchDistance;
+            zoom *= zoomFactor;
+            zoom = Math.max(10, Math.min(500, zoom));
+            initialPinchDistance = newPinchDistance;
+        }
+
+        function getPinchDistance(e) {
+            const t1 = e.touches[0];
+            const t2 = e.touches[1];
+            return Math.sqrt(Math.pow(t1.clientX - t2.clientX, 2) + Math.pow(t1.clientY - t2.clientY, 2));
         }
 
         function handleZoom(e) {
             e.preventDefault();
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = (e.clientX - rect.left) / zoom - offsetX;
-            const mouseY = -( (e.clientY - rect.top) / zoom - offsetY );
-
-            const zoomFactor = e.deltaY < 0 ? 1.1 : 1/1.1;
+            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
             zoom *= zoomFactor;
-            zoom = Math.max(10, Math.min(200, zoom));
+            zoom = Math.max(10, Math.min(500, zoom));
             
-            offsetX = (e.clientX - rect.left) / zoom - mouseX;
-            offsetY = (e.clientY - rect.top) / zoom + mouseY;
-
-            needsRedraw = true;
-        }
-        
-        function handleTouchStart(e) {
-            e.preventDefault();
-            const touches = e.touches;
-            if (touches.length === 1) {
-                isDragging = true;
-                lastMousePos = { x: touches[0].clientX, y: touches[0].clientY };
-            } else if (touches.length === 2) {
-                isDragging = false;
-                lastTouchDistance = Math.hypot(
-                    touches[0].clientX - touches[1].clientX,
-                    touches[0].clientY - touches[1].clientY
-                );
-            }
+            requestRedraw();
         }
 
-        function handleTouchMove(e) {
-            e.preventDefault();
-            const touches = e.touches;
-            if (touches.length === 1 && isDragging) {
-                drag({ clientX: touches[0].clientX, clientY: touches[0].clientY });
-            } else if (touches.length === 2) {
-                const newDist = Math.hypot(
-                    touches[0].clientX - touches[1].clientX,
-                    touches[0].clientY - touches[1].clientY
-                );
-                if (lastTouchDistance) {
-                    const zoomFactor = newDist / lastTouchDistance;
-                    handleZoom({
-                        preventDefault: () => {},
-                        deltaY: -(zoomFactor-1),
-                        clientX: (touches[0].clientX + touches[1].clientX) / 2,
-                        clientY: (touches[0].clientY + touches[1].clientY) / 2
-                    });
-                    lastTouchDistance = newDist;
-                }
-            }
-        }
-        
-        function handleTouchEnd(e) {
-            isDragging = false;
-            lastTouchDistance = null;
+        function zoomIn() {
+            zoom *= 1.2;
+            zoom = Math.min(500, zoom);
+            requestRedraw();
         }
 
-        function zoomIn() { zoom *= 1.2; needsRedraw = true; }
-        function zoomOut() { zoom /= 1.2; needsRedraw = true; }
+        function zoomOut() {
+            zoom *= 0.8;
+            zoom = Math.max(10, zoom);
+            requestRedraw();
+        }
+
         function resetView() {
             zoom = 50;
             offsetX = 0;
-            offsetY = 2; // Ajuste vertical inicial
-            needsRedraw = true;
+            offsetY = 0;
+            requestRedraw();
         }
 
-        // --- Lógica de Dibujo en Canvas ---
+        // --- Drawing Logic ---
+
         function drawGrid() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const dpr = window.devicePixelRatio || 1;
+            const scaledWidth = canvas.width / dpr;
+            const scaledHeight = canvas.height / dpr;
             
-            const origin = worldToScreen(0, 0);
+            const axisCenter = worldToScreen(0, 0);
 
-            // --- Grid Lines ---
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
-            ctx.lineWidth = 1;
-
-            const gridSpacing = zoom * (Math.PI / 4); 
-
-            // Vertical grid lines
-            for (let x = origin.x % gridSpacing; x < canvas.width; x += gridSpacing) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-            }
-            for (let x = origin.x % gridSpacing - gridSpacing; x >= 0; x -= gridSpacing) {
-                ctx.beginPath();
-                ctx.moveTo(x, 0);
-                ctx.lineTo(x, canvas.height);
-                ctx.stroke();
-            }
-
-            // Horizontal grid lines
-            for (let y = origin.y % gridSpacing; y < canvas.height; y += gridSpacing) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-            }
-            for (let y = origin.y % gridSpacing - gridSpacing; y >= 0; y -= gridSpacing) {
-                ctx.beginPath();
-                ctx.moveTo(0, y);
-                ctx.lineTo(canvas.width, y);
-                ctx.stroke();
-            }
-
-            // --- Axis Lines ---
-            ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(0, origin.y);
-            ctx.lineTo(canvas.width, origin.y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(origin.x, 0);
-            ctx.lineTo(origin.x, canvas.height);
-            ctx.stroke();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 1 / dpr;
             
-            // --- Axis Labels ---
-            ctx.fillStyle = "rgba(255, 255, 255, 0.6)";
-            ctx.font = "12px Inter";
+            const { x: startWorldX } = screenToWorld(0, 0);
+            const { x: endWorldX } = screenToWorld(scaledWidth, 0);
+            const { y: startWorldY } = screenToWorld(0, scaledHeight);
+            const { y: endWorldY } = screenToWorld(0, 0);
+            
+            const step = Math.pow(10, Math.floor(Math.log10(scaledWidth / zoom)) - 1) * 5;
+
+            for (let i = Math.floor(startWorldX / step) * step; i <= endWorldX; i += step) {
+                const sx = worldToScreen(i, 0).x;
+                ctx.beginPath();
+                ctx.moveTo(sx, 0);
+                ctx.lineTo(sx, scaledHeight);
+                ctx.stroke();
+            }
+            for (let i = Math.floor(startWorldY / step) * step; i <= endWorldY; i += step) {
+                const sy = worldToScreen(0, i).y;
+                ctx.beginPath();
+                ctx.moveTo(0, sy);
+                ctx.lineTo(scaledWidth, sy);
+                ctx.stroke();
+            }
+            
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+            ctx.lineWidth = 2 / dpr;
+            
+            if (axisCenter.y >= 0 && axisCenter.y <= scaledHeight) {
+                ctx.beginPath();
+                ctx.moveTo(0, axisCenter.y);
+                ctx.lineTo(scaledWidth, axisCenter.y);
+                ctx.stroke();
+            }
+            if (axisCenter.x >= 0 && axisCenter.x <= scaledWidth) {
+                ctx.beginPath();
+                ctx.moveTo(axisCenter.x, 0);
+                ctx.lineTo(axisCenter.x, scaledHeight);
+                ctx.stroke();
+            }
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.font = `${12 / dpr}px Inter`;
+            
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-
-            // X-axis labels (in terms of PI)
-            const piStep = Math.PI;
-            for (let i = -10; i <= 10; i++) {
-                const xVal = i * piStep;
-                const screenX = worldToScreen(xVal, 0).x;
-                if (screenX > 0 && screenX < canvas.width) {
-                    let label = i === 0 ? "0" : (i === 1 ? "π" : (i === -1 ? "-π" : `${i}π`));
-                    ctx.fillText(label, screenX, origin.y + 8);
-                }
+            for (let i = Math.floor(startWorldX / step) * step; i <= endWorldX; i += step) {
+                if (Math.abs(i) < 1e-9) continue;
+                const sx = worldToScreen(i, 0).x;
+                ctx.fillText(i.toPrecision(2), sx, axisCenter.y + 5 / dpr);
             }
             
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
-            // Y-axis labels (simple numbers)
-            const yUnit = Math.ceil(canvas.height / zoom / 4);
-            for (let i = -10; i <= 10; i++) {
-                const yVal = i * yUnit;
-                if (yVal === 0) continue;
-                const screenY = worldToScreen(0, yVal).y;
-                if (screenY > 0 && screenY < canvas.height) {
-                    ctx.fillText(yVal.toFixed(1), origin.x - 8, screenY);
+            for (let i = Math.floor(startWorldY / step) * step; i <= endWorldY; i += step) {
+                if (Math.abs(i) < 1e-9) continue;
+                const sy = worldToScreen(0, i).y;
+                if (sy > 0 && sy < scaledHeight) {
+                    ctx.fillText(i.toPrecision(2), axisCenter.x - 5 / dpr, sy);
                 }
             }
         }
 
-
         function worldToScreen(x, y) {
-            return {
-                x: canvas.width / 2 + (offsetX + x) * zoom,
-                y: canvas.height / 2 - (offsetY + y) * zoom
+            const dpr = window.devicePixelRatio || 1;
+            const scaledWidth = canvas.width / dpr;
+            const scaledHeight = canvas.height / dpr;
+            return { 
+                x: (scaledWidth / 2) + (x + offsetX) * zoom, 
+                y: (scaledHeight / 2) - (y - offsetY) * zoom 
             };
         }
-
+        
         function screenToWorld(sx, sy) {
-            return {
-                x: (sx - canvas.width / 2) / zoom - offsetX,
-                y: -((sy - canvas.height / 2) / zoom - offsetY)
+            const dpr = window.devicePixelRatio || 1;
+            const scaledWidth = canvas.width / dpr;
+            const scaledHeight = canvas.height / dpr;
+            return { 
+                x: (sx - scaledWidth / 2) / zoom - offsetX,
+                y: (scaledHeight / 2 - sy) / zoom + offsetY
             };
         }
 
         function drawFunction(evalFunc, color, lineWidth = 2) {
+            const dpr = window.devicePixelRatio || 1;
+            const scaledWidth = canvas.width / dpr;
+
             ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
+            ctx.lineWidth = lineWidth / dpr;
             ctx.beginPath();
-
-            const start = screenToWorld(0, 0);
-            const end = screenToWorld(canvas.width, 0);
-            const step = (end.x - start.x) / canvas.width;
-
+            
             let firstPoint = true;
-            for (let i = 0; i <= canvas.width; i++) {
-                const x = start.x + i * step;
-                const y = evalFunc(x);
-                if (isFinite(y)) {
-                    const screenPos = worldToScreen(x, y);
-                    if (firstPoint) {
-                        ctx.moveTo(screenPos.x, screenPos.y);
-                        firstPoint = false;
-                    } else {
-                        ctx.lineTo(screenPos.x, screenPos.y);
-                    }
+            for (let sx = 0; sx <= scaledWidth; sx += 1) {
+                const worldX = screenToWorld(sx, 0).x;
+                const worldY = evalFunc(worldX);
+                const screenPoint = worldToScreen(worldX, worldY);
+
+                if (firstPoint) {
+                    ctx.moveTo(screenPoint.x, screenPoint.y);
+                    firstPoint = false;
                 } else {
-                    firstPoint = true;
+                    ctx.lineTo(screenPoint.x, screenPoint.y);
                 }
             }
             ctx.stroke();
         }
-
-        function drawAllFunctions() {
-            if (!coefficients.an.length) return;
-            
-            const funcString = document.getElementById('function-input').value;
-            const originalFunc = (x) => evaluateFunction(funcString, x);
-            drawFunction(originalFunc, '#ff6b6b', 3);
-            
-            const fourierFunc = (x) => fourierSeries(x, selectedHarmonics);
-            drawFunction(fourierFunc, '#4ecdc4', 2.5);
-        }
-
-        // --- Lógica de Cálculo de Fourier ---
-        function evaluateFunction(func, x) {
-            try {
-                return math.evaluate(func, { x });
-            } catch (e) {
-                return NaN;
+        
+        // --- UI and Calculation Logic ---
+        
+        function generateHarmonicsGrid() {
+            const grid = document.getElementById('harmonics-grid');
+            const maxTerms = parseInt(document.getElementById('max-terms').value);
+            grid.innerHTML = '';
+            for (let i = 1; i <= maxTerms; i++) {
+                const btn = document.createElement('div');
+                btn.className = 'harmonic-btn';
+                btn.textContent = i;
+                btn.dataset.harmonic = i;
+                if (selectedHarmonics.has(i)) btn.classList.add('active');
+                btn.addEventListener('click', function() {
+                    const harmonic = parseInt(this.dataset.harmonic);
+                    if (selectedHarmonics.has(harmonic)) {
+                        selectedHarmonics.delete(harmonic);
+                        this.classList.remove('active');
+                    } else {
+                        selectedHarmonics.add(harmonic);
+                        this.classList.add('active');
+                    }
+                    requestRedraw();
+                });
+                grid.appendChild(btn);
             }
         }
 
-        function fourierSeries(x, includeTerms) {
-            if (!coefficients.an.length) return 0;
-            const L = evaluateFunction(document.getElementById('period-input').value) / 2;
-            if (!isFinite(L)) return 0;
+        function selectAllHarmonics() {
+            const maxTerms = parseInt(document.getElementById('max-terms').value);
+            selectedHarmonics.clear();
+            for (let i = 1; i <= maxTerms; i++) selectedHarmonics.add(i);
+            updateHarmonicsUI();
+            requestRedraw();
+        }
+
+        function clearHarmonics() {
+            selectedHarmonics.clear();
+            updateHarmonicsUI();
+            requestRedraw();
+        }
+
+        function selectOddHarmonics() {
+            const maxTerms = parseInt(document.getElementById('max-terms').value);
+            selectedHarmonics.clear();
+            for (let i = 1; i <= maxTerms; i += 2) selectedHarmonics.add(i);
+            updateHarmonicsUI();
+            requestRedraw();
+        }
+
+        function updateHarmonicsUI() {
+            document.querySelectorAll('.harmonic-btn').forEach(btn => {
+                const harmonic = parseInt(btn.dataset.harmonic);
+                btn.classList.toggle('active', selectedHarmonics.has(harmonic));
+            });
+        }
+
+        function evaluateFunction(func, x) {
+            try {
+                return math.evaluate(func, { x: x, pi: Math.PI });
+            } catch (e) {
+                console.error('Error evaluating function:', e);
+                return 0;
+            }
+        }
+
+        function evaluatePiecewiseFunction(x) {
+            const piece1Start = parseFloat(document.getElementById('piece1-start').value);
+            const piece1End = parseFloat(document.getElementById('piece1-end').value);
+            const piece2Start = parseFloat(document.getElementById('piece2-start').value);
+            const piece2End = parseFloat(document.getElementById('piece2-end').value);
             
+            if (x >= piece1Start && x < piece1End) {
+                return evaluateFunction(document.getElementById('piece1-func').value, x);
+            } else if (x >= piece2Start && x < piece2End) {
+                return evaluateFunction(document.getElementById('piece2-func').value, x);
+            }
+            return 0;
+        }
+
+        function fourierSeries(x) {
+            if (!coefficients.an.length) return 0;
+            const T = parseFloat(document.getElementById('period-input').value);
             let result = coefficients.a0 / 2;
-            for (let n of includeTerms) {
+
+            for (let n of selectedHarmonics) {
                 if (n <= coefficients.an.length) {
-                    result += coefficients.an[n-1] * Math.cos(n * Math.PI * x / L);
-                    result += coefficients.bn[n-1] * Math.sin(n * Math.PI * x / L);
+                    result += coefficients.an[n-1] * Math.cos(n * 2 * Math.PI * x / T);
+                    result += coefficients.bn[n-1] * Math.sin(n * 2 * Math.PI * x / T);
                 }
             }
             return result;
         }
 
+        function drawFunctions() {
+            if (!coefficients.an.length) return;
+            
+            let originalFunc = currentFunction === 'normal' 
+                ? (x) => evaluateFunction(document.getElementById('function-input').value, x)
+                : evaluatePiecewiseFunction;
+            
+            drawFunction(originalFunc, originalFunctionColor, 3);
+            drawFunction(fourierSeries, fourierSeriesColor, 2);
+        }
+
         function calculateFourierCoefficients() {
-            const L = evaluateFunction(document.getElementById('period-input').value) / 2;
-            if (!isFinite(L) || L <= 0) {
-                alert("Período inválido. Debe ser un número positivo.");
-                return false;
+            nerdamer.set('integration_depth', 50);
+            const T = parseFloat(document.getElementById('period-input').value);
+            const nTerms = parseInt(document.getElementById('max-terms').value);
+            
+            let evalFunc;
+            let funcStr;
+            if (currentFunction === 'normal') {
+                funcStr = document.getElementById('function-input').value;
+                evalFunc = (x) => evaluateFunction(funcStr, x);
+            } else {
+                funcStr = 'Función a trozos';
+                evalFunc = evaluatePiecewiseFunction;
             }
 
-            const nTerms = parseInt(document.getElementById('max-terms').value);
-            const numPoints = 4000;
-            const dx = 2 * L / numPoints;
-            const funcString = document.getElementById('function-input').value;
-            const evalFunc = (x) => evaluateFunction(funcString, x);
-            
-            let sumA0 = 0;
-            for (let i = 0; i < numPoints; i++) {
-                const x = -L + i * dx;
-                const y = evalFunc(x);
-                if (isFinite(y)) sumA0 += y;
-            }
-            coefficients.a0 = (sumA0 * dx) / L;
+            coefficients.a0 = simpson_integration(evalFunc, T, 0, 'a0');
             
             coefficients.an = [];
             coefficients.bn = [];
+            coefficients.an_symbolic = [];
+            coefficients.bn_symbolic = [];
+
             for (let n = 1; n <= nTerms; n++) {
-                let sumAn = 0, sumBn = 0;
-                for (let i = 0; i < numPoints; i++) {
-                    const x = -L + i * dx;
-                    const y = evalFunc(x);
-                    if (isFinite(y)) {
-                        sumAn += y * Math.cos(n * Math.PI * x / L);
-                        sumBn += y * Math.sin(n * Math.PI * x / L);
+                let an_val, bn_val;
+                let an_sym = 'Cálculo numérico', bn_sym = 'Cálculo numérico';
+
+                if (currentFunction === 'normal') {
+                    try {
+                        const an_integrand = `(2/${T}) * (${funcStr}) * cos(n*2*pi*x/${T})`;
+                        const bn_integrand = `(2/${T}) * (${funcStr}) * sin(n*2*pi*x/${T})`;
+                        
+                        const an_symbolic_expr = nerdamer.defint(an_integrand, 'x', -T/2, T/2);
+                        an_sym = an_symbolic_expr.toTeX();
+                        
+                        const bn_symbolic_expr = nerdamer.defint(bn_integrand, 'x', -T/2, T/2);
+                        bn_sym = bn_symbolic_expr.toTeX();
+
+                        an_val = parseFloat(nerdamer(an_symbolic_expr).evaluate({n: n}).text());
+                        bn_val = parseFloat(nerdamer(bn_symbolic_expr).evaluate({n: n}).text());
+
+                        if(isNaN(an_val) || isNaN(bn_val)) throw new Error("Symbolic integration resulted in NaN");
+
+                    } catch (e) {
+                       console.warn(`Symbolic integration failed for n=${n}. Falling back to numeric.`, e);
+                       an_val = simpson_integration(evalFunc, T, n, 'cos');
+                       bn_val = simpson_integration(evalFunc, T, n, 'sin');
+                       an_sym = 'Cálculo numérico';
+                       bn_sym = 'Cálculo numérico';
                     }
+                } else {
+                    an_val = simpson_integration(evalFunc, T, n, 'cos');
+                    bn_val = simpson_integration(evalFunc, T, n, 'sin');
                 }
-                coefficients.an.push((sumAn * dx) / L);
-                coefficients.bn.push((sumBn * dx) / L);
+                
+                coefficients.an.push(an_val);
+                coefficients.bn.push(bn_val);
+                coefficients.an_symbolic.push(an_sym);
+                coefficients.bn_symbolic.push(bn_sym);
             }
-            return true;
+        }
+
+        function simpson_integration(fn, T, n, type) {
+            const N = 1000; // Number of intervals (must be even)
+            const a = -T / 2;
+            const b = T / 2;
+            const h = (b - a) / N;
+            let sum = 0;
+
+            for (let i = 0; i <= N; i++) {
+                const x = a + i * h;
+                let y;
+                if (type === 'a0') {
+                    y = fn(x);
+                } else if (type === 'cos') {
+                    y = fn(x) * Math.cos(n * 2 * Math.PI * x / T);
+                } else { // sin
+                    y = fn(x) * Math.sin(n * 2 * Math.PI * x / T);
+                }
+
+                if (i === 0 || i === N) {
+                    sum += y;
+                } else if (i % 2 !== 0) {
+                    sum += 4 * y;
+                } else {
+                    sum += 2 * y;
+                }
+            }
+            const integral = (h / 3) * sum;
+            return type === 'a0' ? (2 / T) * integral : (2 / T) * integral;
         }
 
         function displayCoefficients() {
             const container = document.getElementById('coefficients-container');
-            let html = `<div class="coefficient-item"><strong>a₀ =</strong> ${coefficients.a0.toFixed(5)}</div>`;
+            let html = `<div class="coefficient-item"><strong>a₀ =</strong> <span class="coefficient-value">${coefficients.a0.toFixed(6)}</span></div>`;
             for (let i = 0; i < coefficients.an.length; i++) {
                 html += `<div class="coefficient-item">
-                            <strong>a<sub>${i+1}</sub> =</strong> ${coefficients.an[i].toFixed(5)}<br>
-                            <strong>b<sub>${i+1}</sub> =</strong> ${coefficients.bn[i].toFixed(5)}
+                            <strong>a₍${i+1}₎ =</strong> <span class="coefficient-value">${coefficients.an[i].toFixed(6)}</span><br>
+                            <strong>b₍${i+1}₎ =</strong> <span class="coefficient-value">${coefficients.bn[i].toFixed(6)}</span>
                          </div>`;
             }
             container.innerHTML = html;
         }
+        
+        function updateFormulasDisplay() {
+            const T_val = parseFloat(document.getElementById('period-input').value);
+            const T_str = T_val.toFixed(2);
+            let funcStr = document.getElementById('function-input').value;
+             if (currentFunction !== 'normal') {
+                funcStr = "f(x)"; // Placeholder for piecewise
+            }
+
+
+            let resultHTML = `
+                <h3>Resultados Específicos</h3>
+                <p>\\[ a_0 = \\frac{2}{${T_str}} \\int_{-${T_str}/2}^{${T_str}/2} (${funcStr}) \\,dx = ${coefficients.a0.toFixed(4)} \\]</p>
+                <p>\\[ a_n = \\frac{2}{${T_str}} \\int_{-${T_str}/2}^{${T_str}/2} (${funcStr}) \\cos\\left(\\frac{2\\pi nx}{${T_str}}\\right) \\,dx \\]</p>
+                <p>Resultado para \\(a_n\\): \\( ${coefficients.an_symbolic[0] || '...'} \\) </p>
+                <p>\\[ b_n = \\frac{2}{${T_str}} \\int_{-${T_str}/2}^{${T_str}/2} (${funcStr}) \\sin\\left(\\frac{2\\pi nx}{${T_str}}\\right) \\,dx \\]</p>
+                 <p>Resultado para \\(b_n\\): \\( ${coefficients.bn_symbolic[0] || '...'} \\) </p>
+                
+                <h3>Serie Resultante para f(x)</h3>`;
+
+            let seriesString = `f(x) \\approx ${ (coefficients.a0 / 2).toFixed(4)}`;
+            for (let n = 1; n <= Math.min(coefficients.an.length, 3); n++) {
+                const an = coefficients.an[n-1];
+                const bn = coefficients.bn[n-1];
+                
+                if (Math.abs(an) > 1e-4) {
+                    seriesString += ` ${an > 0 ? '+' : ''} \\left(${an.toFixed(4)}\\right) \\cos\\left(\\frac{${2*n}\\pi x}{${T_str}}\\right)`;
+                }
+                if (Math.abs(bn) > 1e-4) {
+                    seriesString += ` ${bn > 0 ? '+' : ''} \\left(${bn.toFixed(4)}\\right) \\sin\\left(\\frac{${2*n}\\pi x}{${T_str}}\\right)`;
+                }
+            }
+            
+            if (coefficients.an.length > 3) {
+                seriesString += " + \\dots";
+            }
+            
+            resultHTML += `<p>\\[ ${seriesString} \\]</p>`;
+            formulasContent.innerHTML = resultHTML;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise([formulasContent]).catch((err) => console.log('MathJax error: ', err));
+            }
+
+            showFormulasBtn.style.display = 'inline-block';
+        }
 
         function calculateFourier() {
             document.getElementById('loading-overlay').classList.add('active');
+            document.querySelector('.status-indicator').className = 'status-indicator status-calculating';
+            
             setTimeout(() => {
                 try {
-                    if (calculateFourierCoefficients()) {
-                        if (firstCalculation) {
-                            resetView();
-                            firstCalculation = false;
-                        }
-                        displayCoefficients();
-                        needsRedraw = true;
-                    }
+                    calculateFourierCoefficients();
+                    displayCoefficients();
+                    updateFormulasDisplay();
+                    requestRedraw();
+                    document.querySelector('.status-indicator').className = 'status-indicator status-ready';
                 } catch (error) {
-                    alert('Error al calcular la serie: ' + error.message);
+                    console.error('Error calculating Fourier series:', error);
+                    document.querySelector('.status-indicator').className = 'status-indicator status-error';
                 } finally {
                     document.getElementById('loading-overlay').classList.remove('active');
                 }
-            }, 50);
+            }, 100);
         }
 
-        function animate() {
-            if (canvasSizeDirty) {
-                const container = canvas.parentElement;
-                canvas.width = container.clientWidth;
-                canvas.height = container.clientHeight;
-                needsRedraw = true;
-                canvasSizeDirty = false;
-            }
-
-            if (needsRedraw) {
-                drawGrid();
-                drawAllFunctions();
-                needsRedraw = false;
-            }
-            requestAnimationFrame(animate);
+        function resetAll() {
+            coefficients = { a0: 0, an: [], bn: [] };
+            selectedHarmonics = new Set([1, 2, 3, 4, 5]);
+            document.getElementById('coefficients-container').innerHTML = 
+                '<p style="color: var(--text-secondary); text-align: center; margin: 20px 0;">Los coeficientes aparecerán aquí después del cálculo...</p>';
+            showFormulasBtn.style.display = 'none';
+            formulasContent.innerHTML = '';
+            generateHarmonicsGrid();
+            resetView();
+            document.querySelector('.status-indicator').className = 'status-indicator status-ready';
         }
 
-        // --- Lógica del Modal y Fórmulas con KaTeX ---
-        function showFormulaModal() {
-            if (typeof katex !== 'undefined') {
-                 updateModalContent();
-                 document.getElementById('formula-modal').classList.add('active');
-            } else {
-                alert("La librería de fórmulas aún no ha cargado. Por favor, intente de nuevo en un momento.");
-            }
-        }
-
-        function hideFormulaModal() {
-            document.getElementById('formula-modal').classList.remove('active');
-        }
-
-        function renderGeneralFormula() {
-            if (typeof katex === 'undefined') {
-                setTimeout(renderGeneralFormula, 100);
-                return;
-            }
-            const formula = `f(x) = \\frac{a_0}{2} + \\sum_{n=1}^{\\infty} \\left( a_n \\cos\\left(\\frac{n\\pi x}{L}\\right) + b_n \\sin\\left(\\frac{n\\pi x}{L}\\right) \\right)`;
-            katex.render(formula, document.getElementById('general-formula'), {
-                displayMode: true,
-                throwOnError: false
-            });
-        }
-
-        function updateModalContent() {
-            const funcString = document.getElementById('function-input').value;
-            document.getElementById('modal-function-name').textContent = funcString;
-            
-            generateSpecificFourierFormula();
-            generateExpandedHarmonics();
-        }
-
-        function toLatex(num) {
-            if (Math.abs(num) < 1e-9) return "0";
-            return num.toFixed(4);
-        }
-
-        function generateSpecificFourierFormula() {
-            const container = document.getElementById('specific-formula');
-            if (!coefficients.an.length) {
-                container.innerHTML = "<p>Calcule la serie primero.</p>";
-                return;
-            }
-            const L = evaluateFunction(document.getElementById('period-input').value) / 2;
-            const L_str = L === Math.PI ? "\\pi" : L.toFixed(2);
-            const N = coefficients.an.length;
-            
-            let formula = `f(x) \\approx ${toLatex(coefficients.a0/2)}`;
-            
-            let addedTerms = 0;
-            for (let n of Array.from(selectedHarmonics).sort((a,b) => a-b)) {
-                if (n > N || addedTerms >= 3) break;
-                
-                const an = coefficients.an[n-1];
-                const bn = coefficients.bn[n-1];
-                
-                if (Math.abs(an) > 1e-9) {
-                    formula += an > 0 ? " + " : " - ";
-                    formula += `${toLatex(Math.abs(an))} \\cos\\left(\\frac{${n}\\pi x}{${L_str}}\\right)`;
-                }
-                if (Math.abs(bn) > 1e-9) {
-                    formula += bn > 0 ? " + " : " - ";
-                    formula += `${toLatex(Math.abs(bn))} \\sin\\left(\\frac{${n}\\pi x}{${L_str}}\\right)`;
-                }
-                addedTerms++;
-            }
-            if (selectedHarmonics.size > addedTerms) {
-                formula += " + \\dots";
-            }
-
-            katex.render(formula, container, { displayMode: true, throwOnError: false });
-        }
-
-        function generateExpandedHarmonics() {
-            const container = document.getElementById('expanded-harmonics');
-            if (!coefficients.an.length) {
-                container.innerHTML = "<p>Calcule la serie primero.</p>";
-                return;
-            }
-            const L = evaluateFunction(document.getElementById('period-input').value) / 2;
-            const L_str = L === Math.PI ? "\\pi" : L.toFixed(2);
-            
-            let formula = `f(x) \\approx ${toLatex(coefficients.a0/2)}`;
-            
-            let termCount = 0;
-            for (let n of Array.from(selectedHarmonics).sort((a,b) => a-b)) {
-                if (n > coefficients.an.length || termCount >= 5) break;
-                
-                const an = coefficients.an[n-1];
-                const bn = coefficients.bn[n-1];
-                let term = "";
-                if(Math.abs(an) > 1e-9) term += ` + ${toLatex(an)}\\cos(\\frac{${n}\\pi x}{${L_str}})`;
-                if(Math.abs(bn) > 1e-9) term += ` + ${toLatex(bn)}\\sin(\\frac{${n}\\pi x}{${L_str}})`;
-                
-                if (term) {
-                    formula += `\\\\ ${term}`; // New line for each harmonic
-                    termCount++;
-                }
-            }
-             if (selectedHarmonics.size > termCount) {
-                formula += " + \\dots";
-            }
-
-            katex.render(formula, container, { displayMode: true, throwOnError: false, fleqn: true });
-        }
-
-        // Cerrar modal con click fuera o tecla Escape
-        document.getElementById('formula-modal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('formula-modal')) {
-                hideFormulaModal();
-            }
-        });
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                hideFormulaModal();
-            }
-        });
-
+        document.getElementById('max-terms').addEventListener('change', generateHarmonicsGrid);
     </script>
 </body>
 </html>
