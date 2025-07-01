@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="midnight">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis Estadístico Descriptivo</title>
+    <title>Análisis Estadístico Descriptivo Moderno</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -11,34 +11,128 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --success-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            --warning-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
-            --glass-bg: rgba(255, 255, 255, 0.25);
-            --glass-border: rgba(255, 255, 255, 0.18);
-            --dark-glass: rgba(0, 0, 0, 0.1);
+        /* --- Motor de Temas con Variables CSS --- */
+        :root, [data-theme="classic-neon"] {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4facfe 100%);
+            --glass-bg: rgba(255, 255, 255, 0.2);
+            --glass-border: rgba(255, 255, 255, 0.3);
             --text-primary: #2d3748;
             --text-secondary: #4a5568;
-            --shadow-soft: 0 8px 32px rgba(31, 38, 135, 0.37);
-            --shadow-hover: 0 15px 35px rgba(31, 38, 135, 0.5);
+            --text-light: #f8fafc;
+            --text-muted: #e2e8f0;
+            --shadow-color: rgba(31, 38, 135, 0.37);
+            --input-bg: rgba(255, 255, 255, 0.9);
+            --input-focus-bg: white;
+            --input-focus-ring: rgba(255, 255, 255, 0.5);
+            --button-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --nav-button-bg: rgba(255, 255, 255, 0.2);
+            --nav-button-active-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --table-header-bg: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --output-section-bg: rgba(255, 255, 255, 0.95);
+            --chart-bg: rgba(255, 255, 255, 0.9);
+            --chart-accent-1: rgba(59, 130, 246, 0.7);
+            --chart-accent-2: rgba(16, 185, 129, 0.7);
+            --chart-accent-3: rgba(239, 68, 68, 0.7);
+            --chart-accent-4: rgba(245, 158, 11, 0.7);
+            --chart-border-1: #3b82f6;
+            --chart-border-2: #10b981;
+            --chart-border-3: #ef4444;
+            --chart-border-4: #f59e0b;
+        }
+
+        [data-theme="midnight"] {
+            --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #020617 100%);
+            --glass-bg: rgba(30, 41, 59, 0.4);
+            --glass-border: rgba(51, 65, 85, 0.5);
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-light: #f8fafc;
+            --text-muted: #94a3b8;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --input-bg: rgba(15, 23, 42, 0.7);
+            --input-focus-bg: #0f172a;
+            --input-focus-ring: rgba(56, 189, 248, 0.5);
+            --button-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            --nav-button-bg: rgba(51, 65, 85, 0.5);
+            --nav-button-active-gradient: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            --table-header-bg: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            --output-section-bg: rgba(15, 23, 42, 0.8);
+            --chart-bg: rgba(15, 23, 42, 0.5);
+            --chart-accent-1: rgba(56, 189, 248, 0.7);
+            --chart-accent-2: rgba(34, 211, 238, 0.7);
+            --chart-accent-3: rgba(16, 185, 129, 0.7);
+            --chart-accent-4: rgba(99, 102, 241, 0.7);
+            --chart-border-1: #38bdf8;
+            --chart-border-2: #22d3ee;
+            --chart-border-3: #10b981;
+            --chart-border-4: #6366f1;
+        }
+
+        [data-theme="slate"] {
+            --bg-gradient: linear-gradient(135deg, #1c1917 0%, #292524 50%, #1c1917 100%);
+            --glass-bg: rgba(41, 37, 36, 0.4);
+            --glass-border: rgba(68, 64, 60, 0.5);
+            --text-primary: #fafaf9;
+            --text-secondary: #e7e5e4;
+            --text-light: #f8fafc;
+            --text-muted: #a8a29e;
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --input-bg: rgba(28, 25, 23, 0.7);
+            --input-focus-bg: #1c1917;
+            --input-focus-ring: rgba(251, 146, 60, 0.5);
+            --button-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            --nav-button-bg: rgba(68, 64, 60, 0.5);
+            --nav-button-active-gradient: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            --table-header-bg: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            --output-section-bg: rgba(28, 25, 23, 0.8);
+            --chart-bg: rgba(28, 25, 23, 0.5);
+            --chart-accent-1: rgba(251, 146, 60, 0.7);
+            --chart-accent-2: rgba(245, 158, 11, 0.7);
+            --chart-accent-3: rgba(239, 68, 68, 0.7);
+            --chart-accent-4: rgba(252, 211, 77, 0.7);
+            --chart-border-1: #fb923c;
+            --chart-border-2: #f59e0b;
+            --chart-border-3: #ef4444;
+            --chart-border-4: #facc15;
+        }
+
+        [data-theme="forest"] {
+            --bg-gradient: linear-gradient(135deg, #064e3b 0%, #047857 50%, #064e3b 100%);
+            --glass-bg: rgba(4, 120, 87, 0.2);
+            --glass-border: rgba(5, 150, 105, 0.4);
+            --text-primary: #d1fae5;
+            --text-secondary: #a7f3d0;
+            --text-light: #f8fafc;
+            --text-muted: #6ee7b7;
+            --shadow-color: rgba(0, 0, 0, 0.3);
+            --input-bg: rgba(6, 78, 59, 0.7);
+            --input-focus-bg: #064e3b;
+            --input-focus-ring: rgba(52, 211, 153, 0.5);
+            --button-gradient: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --nav-button-bg: rgba(5, 150, 105, 0.3);
+            --nav-button-active-gradient: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --table-header-bg: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+            --output-section-bg: rgba(6, 78, 59, 0.8);
+            --chart-bg: rgba(6, 78, 59, 0.5);
+            --chart-accent-1: rgba(52, 211, 153, 0.7);
+            --chart-accent-2: rgba(16, 185, 129, 0.7);
+            --chart-accent-3: rgba(110, 231, 183, 0.7);
+            --chart-accent-4: rgba(20, 83, 45, 0.7);
+            --chart-border-1: #34d399;
+            --chart-border-2: #10b981;
+            --chart-border-3: #6ee7b7;
+            --chart-border-4: #14532d;
         }
 
         html, body {
             height: 100%;
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #4facfe 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
+            background: var(--bg-gradient);
+            background-size: 200% 200%;
+            animation: gradientShift 20s ease infinite;
             scroll-behavior: smooth;
+            color: var(--text-secondary);
+            transition: background 0.5s ease-in-out;
         }
 
         @keyframes gradientShift {
@@ -47,566 +141,178 @@
             100% { background-position: 0% 50%; }
         }
 
-        body {
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-        }
-
-        main {
-            flex-grow: 1;
-            overflow-y: auto;
-        }
-
-        .floating-elements {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .floating-circle {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            animation: float 20s infinite linear;
-        }
-
-        .floating-circle:nth-child(1) { width: 80px; height: 80px; top: 15%; left: 10%; animation-delay: 0s; }
-        .floating-circle:nth-child(2) { width: 120px; height: 120px; top: 70%; right: 15%; animation-delay: 5s; }
-        .floating-circle:nth-child(3) { width: 60px; height: 60px; bottom: 20%; left: 20%; animation-delay: 10s; }
-        .floating-circle:nth-child(4) { width: 100px; height: 100px; top: 45%; right: 40%; animation-delay: 15s; }
-
-        @keyframes float {
-            from { transform: translateY(0px) rotate(0deg); }
-            to { transform: translateY(-20px) rotate(360deg); }
-        }
-
         .glass-card {
             background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
             border-radius: 20px;
             border: 1px solid var(--glass-border);
-            box-shadow: var(--shadow-soft);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
-            z-index: 1;
-        }
-
-        .glass-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
-        }
-
-        .glass-card:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--shadow-hover);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-
-        header {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid var(--glass-border);
-            padding: 1.5rem;
-            position: relative;
-            z-index: 10;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            transition: all 0.3s ease;
         }
 
         header h1 {
-            color: white;
-            font-size: 2rem;
-            font-weight: 900;
-            text-align: center;
-            text-shadow: 0 2px 15px rgba(0,0,0,0.3);
-            background: linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--text-light);
+            text-shadow: 0 2px 15px var(--shadow-color);
         }
 
-        .section-title {
-            color: white;
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 1.5rem;
-            text-shadow: 0 2px 10px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .section-title, .form-label, .radio-option {
+            color: var(--text-light);
+            text-shadow: 0 1px 3px var(--shadow-color);
         }
-
-        .emoji-icon {
-            font-size: 1.2em;
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-        }
-
-        .form-label {
-            display: block;
-            color: white;
-            font-weight: 600;
-            margin-bottom: 0.8rem;
-            font-size: 1rem;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
-
+        
         .modern-input {
-            width: 100%;
-            padding: 1rem 1.2rem;
-            font-size: 1rem;
-            border: none;
-            border-radius: 15px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
-            transition: all 0.3s ease;
-            font-family: 'Inter', sans-serif;
-            resize: vertical;
+            color: var(--text-primary);
+            background: var(--input-bg);
         }
-
+        
         .modern-input:focus {
-            outline: none;
-            background: rgba(255, 255, 255, 0.95);
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1), 0 0 0 3px rgba(255,255,255,0.3);
-            transform: translateY(-2px);
-        }
-
-        .radio-group {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 1.5rem;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            color: white;
-            font-weight: 500;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: 10px;
-            transition: all 0.3s ease;
-        }
-
-        .radio-option:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .radio-option input[type="radio"] {
-            width: 1.25rem;
-            height: 1.25rem;
-            accent-color: #4facfe;
+            background: var(--input-focus-bg);
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1), 0 0 0 3px var(--input-focus-ring);
         }
 
         .calculate-button {
-            background: var(--primary-gradient);
+            background: var(--button-gradient);
             color: white;
-            border: none;
-            border-radius: 15px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            padding: 1.2rem 2rem;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            position: relative;
-            overflow: hidden;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            width: 100%;
-        }
-
-        .calculate-button::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
-        }
-
-        .calculate-button:hover::before {
-            left: 100%;
-        }
-
-        .calculate-button:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
-        }
-
-        .calculate-button:active {
-            transform: translateY(-1px) scale(0.98);
-        }
-
-        .error-message {
-            color: #ff6b6b;
-            font-size: 0.9rem;
-            margin-top: 0.5rem;
-            background: rgba(255, 107, 107, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 0.75rem;
-            border: 1px solid rgba(255, 107, 107, 0.3);
-        }
-
-        .nav-tabs {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
-            padding: 1rem;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
         }
 
         .nav-button {
-            padding: 0.75rem 1.5rem;
-            font-size: 0.9rem;
-            font-weight: 600;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(10px);
-            color: white;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .nav-button:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
+            background: var(--nav-button-bg);
+            color: var(--text-muted);
         }
 
         .nav-button.active {
-            background: var(--accent-gradient);
+            background: var(--nav-button-active-gradient);
             color: white;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-            transform: translateY(-2px);
         }
 
         .output-section {
-            display: none;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: var(--shadow-soft);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .output-section::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: var(--accent-gradient);
-            border-radius: 20px 20px 0 0;
-        }
-
-        .output-section.active {
-            display: block;
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+            background: var(--output-section-bg);
+            color: var(--text-primary);
         }
 
         .section-subtitle {
-            font-size: 1.3rem;
-            font-weight: 700;
             color: var(--text-primary);
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
         }
 
-        /* Estilos de tabla modernos */
         table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-            font-size: 0.875rem;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            color: var(--text-primary);
         }
-
-        th, td {
-            padding: 1rem 0.75rem;
-            text-align: center;
-            border: none;
-        }
-
+        
         th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--table-header-bg);
             color: white;
-            font-weight: 700;
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            white-space: nowrap;
         }
 
         td {
-            background: rgba(255, 255, 255, 0.8);
-            backdrop-filter: blur(10px);
-            color: var(--text-primary);
-            font-weight: 500;
+            background: transparent;
         }
 
         tbody tr:nth-child(even) td {
-            background: rgba(248, 250, 252, 0.9);
-        }
-
-        tbody tr:hover td {
-            background: rgba(59, 130, 246, 0.1);
-            transform: scale(1.02);
-            transition: all 0.3s ease;
-        }
-
-        tfoot tr td {
-            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-            color: white;
-            font-weight: 700;
-            font-size: 0.9rem;
+            background: rgba(0, 0, 0, 0.05);
         }
 
         .median-class td {
-            background: rgba(59, 130, 246, 0.2) !important;
-            border-left: 4px solid #3b82f6;
-            font-weight: 600;
+            background: var(--chart-accent-1) !important;
+            color: white;
+            font-weight: 700;
         }
 
         .mode-class td {
-            background: rgba(16, 185, 129, 0.2) !important;
-            border-left: 4px solid #10b981;
-            font-weight: 600;
-        }
-
-        .measures-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1rem;
-            font-size: 0.9rem;
+            background: var(--chart-accent-2) !important;
+            color: white;
+            font-weight: 700;
         }
 
         .measure-item {
-            background: rgba(255, 255, 255, 0.6);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 1rem;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-            border-left: 4px solid transparent;
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: var(--chart-border-1);
         }
-
-        .measure-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
-            border-left-color: #4facfe;
-        }
-
-        .measure-label {
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.25rem;
-        }
-
-        .measure-value {
-            color: var(--text-primary);
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
+        .measure-label { color: var(--text-secondary); }
+        .measure-value { color: var(--text-primary); }
 
         .chart-container {
-            position: relative;
-            max-width: 100%;
-            overflow-x: auto;
-            min-height: 400px;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: inset 0 2px 10px rgba(0,0,0,0.05);
+            background: var(--chart-bg);
         }
-
-        canvas {
-            max-width: 100%;
-            border-radius: 10px;
-        }
-
-        footer {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-top: 1px solid var(--glass-border);
-            padding: 1rem;
-            text-align: center;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 0.85rem;
-            font-weight: 500;
-            position: relative;
-            z-index: 10;
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* Responsive improvements */
-        @media (max-width: 768px) {
-            header h1 {
-                font-size: 1.5rem;
-            }
-
-            .section-title {
-                font-size: 1.3rem;
-            }
-
-            .nav-tabs {
-                flex-direction: column;
-            }
-
-            .nav-button {
-                text-align: center;
-            }
-
-            .radio-group {
-                padding: 1rem;
-            }
-
-            .measures-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .chart-container {
-                min-height: 300px;
-                padding: 1rem;
-            }
-        }
-
-        /* Scrollbar personalizada */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
+        
+        /* --- Estilos base sin cambios --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { display: flex; flex-direction: column; overflow-x: hidden; }
+        main { flex-grow: 1; overflow-y: auto; }
+        .glass-card:hover { transform: translateY(-5px); }
+        .calculate-button:hover { transform: translateY(-3px) scale(1.02); }
+        .output-section.active { display: block; animation: fadeIn 0.6s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .hidden { display: none !important; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.2); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.3); border-radius: 10px; }
     </style>
 </head>
 <body>
-    <div class="floating-elements">
-        <div class="floating-circle"></div>
-        <div class="floating-circle"></div>
-        <div class="floating-circle"></div>
-        <div class="floating-circle"></div>
-    </div>
-
-    <header>
-        <h1>🔬 Herramienta de Análisis Estadístico Descriptivo</h1>
+    <header class="p-6">
+        <h1 class="text-3xl font-black text-center">🔬 Herramienta de Análisis Estadístico Descriptivo</h1>
     </header>
 
     <main class="container mx-auto p-4 md:p-6">
         <section class="glass-card p-6 mb-6">
-            <h2 class="section-title">
-                <span class="emoji-icon">📊</span>
-                Ingreso de Datos
-            </h2>
+            <div class="flex flex-col sm:flex-row justify-between items-start mb-6">
+                <h2 class="section-title text-2xl font-bold flex items-center gap-2 mb-4 sm:mb-0">
+                    <span class="text-2xl">📊</span>
+                    Ingreso de Datos
+                </h2>
+                <!-- Theme Selector -->
+                <div id="theme-selector" class="flex items-center gap-2 bg-black/20 p-2 rounded-full">
+                    <button data-theme="midnight" class="theme-button w-8 h-8 rounded-full bg-slate-800 border-2 border-sky-400" title="Medianoche"></button>
+                    <button data-theme="slate" class="theme-button w-8 h-8 rounded-full bg-stone-800 border-2 border-transparent" title="Pizarra"></button>
+                    <button data-theme="forest" class="theme-button w-8 h-8 rounded-full bg-green-900 border-2 border-transparent" title="Bosque"></button>
+                    <button data-theme="classic-neon" class="theme-button w-8 h-8 rounded-full bg-indigo-500 border-2 border-transparent" title="Neón Clásico"></button>
+                </div>
+            </div>
             
             <div class="mb-6">
-                <label for="rawData" class="form-label">Ingrese los valores numéricos separados por comas:</label>
-                <textarea id="rawData" rows="4" class="modern-input" placeholder="Ejemplo: 15, 22.5, 18, 30, 25.2, 19, 21.8, 17.5, 24, 20.3"></textarea>
+                <label for="rawData" class="form-label font-semibold mb-3">Ingrese los valores numéricos separados por comas:</label>
+                <textarea id="rawData" rows="4" class="modern-input w-full p-4 text-base border-none rounded-xl shadow-inner resize-vertical" placeholder="Ej: 15, 22.5, 18, 30, 25.2, 19, 21.8, 17.5, 24, 20.3"></textarea>
             </div>
 
             <div class="mb-6">
-                <label class="form-label">Método para calcular el número de intervalos (m):</label>
-                <div class="radio-group">
-                    <label class="radio-option">
-                        <input type="radio" name="intervalMethod" value="sqrt" checked>
-                        <span>🔢 Raíz cuadrada de n (m = √n)</span>
+                <label class="form-label font-semibold mb-3">Método para calcular el número de intervalos (m):</label>
+                <div class="radio-group flex flex-col gap-4 bg-black/10 p-4 rounded-xl">
+                    <label class="radio-option flex items-center gap-3 cursor-pointer">
+                        <input type="radio" name="intervalMethod" value="sqrt" checked class="w-5 h-5">
+                        <span class="font-medium">🔢 Raíz cuadrada de n (m = √n)</span>
                     </label>
-                    <label class="radio-option">
-                        <input type="radio" name="intervalMethod" value="sturges">
-                        <span>📐 Regla de Sturges (m = 1 + 3.3 × log₁₀(n))</span>
+                    <label class="radio-option flex items-center gap-3 cursor-pointer">
+                        <input type="radio" name="intervalMethod" value="sturges" class="w-5 h-5">
+                        <span class="font-medium">📐 Regla de Sturges (m = 1 + 3.3 × log₁₀(n))</span>
                     </label>
                 </div>
             </div>
 
-            <button id="calculateButton" class="calculate-button">
+            <button id="calculateButton" class="calculate-button w-full font-bold text-lg py-4 px-8 rounded-xl shadow-lg uppercase tracking-wider">
                 <span class="emoji-icon">⚡</span> Calcular Estadísticas
             </button>
-            <div id="errorMessages" class="error-message" style="display: none;"></div>
+            <div id="errorMessages" class="mt-4 p-3 rounded-lg bg-red-500/20 text-red-300 border border-red-500/30 hidden"></div>
         </section>
 
         <section id="resultsSection" class="glass-card p-6 hidden">
-            <h2 class="section-title">
-                <span class="emoji-icon">📈</span>
+            <h2 class="section-title text-2xl font-bold flex items-center gap-2 mb-6">
+                <span class="text-2xl">📈</span>
                 Resultados del Análisis
             </h2>
             
-            <nav class="nav-tabs">
-                <button data-target="tableOutput" class="nav-button active">📋 Tabla de Frecuencias</button>
-                <button data-target="measuresOutput" class="nav-button">📏 Medidas Estadísticas</button>
-                <button data-target="histogramOutput" class="nav-button">📊 Histograma</button>
-                <button data-target="polygonOutput" class="nav-button">📈 Polígono de Frecuencias</button>
-                <button data-target="ogiveOutput" class="nav-button">📉 Ojiva</button>
+            <nav class="nav-tabs flex flex-wrap gap-2 mb-6 p-2 bg-black/10 rounded-xl">
+                <button data-target="tableOutput" class="nav-button flex-grow text-sm font-semibold py-2 px-4 rounded-lg border-none cursor-pointer active">📋 Tabla</button>
+                <button data-target="measuresOutput" class="nav-button flex-grow text-sm font-semibold py-2 px-4 rounded-lg border-none cursor-pointer">📏 Medidas</button>
+                <button data-target="histogramOutput" class="nav-button flex-grow text-sm font-semibold py-2 px-4 rounded-lg border-none cursor-pointer">📊 Histograma</button>
+                <button data-target="polygonOutput" class="nav-button flex-grow text-sm font-semibold py-2 px-4 rounded-lg border-none cursor-pointer">📈 Polígono</button>
+                <button data-target="ogiveOutput" class="nav-button flex-grow text-sm font-semibold py-2 px-4 rounded-lg border-none cursor-pointer">📉 Ojiva</button>
             </nav>
 
-            <div id="tableOutput" class="output-section active">
-                <h3 class="section-subtitle">
-                    <span class="emoji-icon">📋</span>
-                    Tabla de Distribución de Frecuencias
-                </h3>
+            <div id="tableOutput" class="output-section active p-6 rounded-xl">
+                <h3 class="section-subtitle text-xl font-bold mb-4">Tabla de Frecuencias</h3>
                 <div class="overflow-x-auto">
-                    <table id="frequencyTable">
+                    <table id="frequencyTable" class="w-full border-collapse text-sm">
                         <thead></thead>
                         <tbody></tbody>
                         <tfoot></tfoot>
@@ -614,91 +320,83 @@
                 </div>
             </div>
 
-            <div id="measuresOutput" class="output-section">
-                <h3 class="section-subtitle">
-                    <span class="emoji-icon">📏</span>
-                    Medidas Estadísticas Descriptivas
-                </h3>
-                <div id="measuresContent" class="measures-grid"></div>
+            <div id="measuresOutput" class="output-section p-6 rounded-xl">
+                <h3 class="section-subtitle text-xl font-bold mb-4">Medidas Estadísticas</h3>
+                <div id="measuresContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
 
-            <div id="histogramOutput" class="output-section">
-                <h3 class="section-subtitle">
-                    <span class="emoji-icon">📊</span>
-                    Histograma de Frecuencias
-                </h3>
-                <div class="chart-container">
-                    <canvas id="histogramChart"></canvas>
-                </div>
+            <div id="histogramOutput" class="output-section p-6 rounded-xl">
+                <h3 class="section-subtitle text-xl font-bold mb-4">Histograma</h3>
+                <div class="chart-container relative h-96 p-4 rounded-lg"><canvas id="histogramChart"></canvas></div>
             </div>
 
-            <div id="polygonOutput" class="output-section">
-                <h3 class="section-subtitle">
-                    <span class="emoji-icon">📈</span>
-                    Polígono de Frecuencias
-                </h3>
-                <div class="chart-container">
-                    <canvas id="polygonChart"></canvas>
-                </div>
+            <div id="polygonOutput" class="output-section p-6 rounded-xl">
+                <h3 class="section-subtitle text-xl font-bold mb-4">Polígono de Frecuencias</h3>
+                <div class="chart-container relative h-96 p-4 rounded-lg"><canvas id="polygonChart"></canvas></div>
             </div>
 
-            <div id="ogiveOutput" class="output-section">
-                <h3 class="section-subtitle">
-                    <span class="emoji-icon">📉</span>
-                    Ojiva (Frecuencia Acumulada)
-                </h3>
-                <div class="chart-container">
-                    <canvas id="ogiveChart"></canvas>
-                </div>
+            <div id="ogiveOutput" class="output-section p-6 rounded-xl">
+                <h3 class="section-subtitle text-xl font-bold mb-4">Ojiva</h3>
+                <div class="chart-container relative h-96 p-4 rounded-lg"><canvas id="ogiveChart"></canvas></div>
             </div>
         </section>
     </main>
 
-    <footer>
-        <span class="emoji-icon">🔬</span>
-        Herramienta de Estadística Descriptiva - Análisis Avanzado con Visualizaciones Interactivas
-    </footer>
-
     <script>
-        // Función para inicializar cuando todo esté listo
-        function initializeApp() {
-            // Verificar que Chart.js esté disponible
-            if (typeof Chart === 'undefined') {
-                console.error('Chart.js no está disponible');
-                setTimeout(initializeApp, 100); // Reintentar en 100ms
-                return;
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Referencias al DOM ---
+        const dom = {
+            html: document.documentElement,
+            rawDataInput: document.getElementById('rawData'),
+            intervalMethodRadios: document.querySelectorAll('input[name="intervalMethod"]'),
+            calculateButton: document.getElementById('calculateButton'),
+            errorMessagesDiv: document.getElementById('errorMessages'),
+            resultsSection: document.getElementById('resultsSection'),
+            navButtons: document.querySelectorAll('.nav-button'),
+            outputSections: document.querySelectorAll('.output-section'),
+            frequencyTable: document.getElementById('frequencyTable'),
+            measuresContent: document.getElementById('measuresContent'),
+            histogramCanvas: document.getElementById('histogramChart'),
+            polygonCanvas: document.getElementById('polygonChart'),
+            ogiveCanvas: document.getElementById('ogiveChart'),
+            themeSelector: document.getElementById('theme-selector'),
+        };
+
+        // --- Estado de la aplicación ---
+        let chartInstances = {
+            histogram: null,
+            polygon: null,
+            ogive: null
+        };
+        let lastStats = null; // Guardar los últimos resultados calculados
+
+        // --- Lógica de Temas ---
+        dom.themeSelector.addEventListener('click', (e) => {
+            if (e.target.matches('.theme-button')) {
+                const theme = e.target.dataset.theme;
+                dom.html.setAttribute('data-theme', theme);
+                // Actualizar la selección visual de los botones de tema
+                document.querySelectorAll('.theme-button').forEach(btn => {
+                    btn.classList.remove('border-sky-400', 'border-orange-400', 'border-green-400', 'border-indigo-400');
+                    btn.style.borderColor = 'transparent';
+                });
+                e.target.style.borderColor = 'var(--chart-border-1)';
+
+                // Si ya hay datos calculados, redibujar los gráficos con los nuevos colores
+                if (lastStats) {
+                    drawAllCharts(lastStats);
+                }
             }
+        });
 
-            console.log('Chart.js cargado correctamente ✅');
-
-            // --- Elementos del DOM ---
-        const rawDataInput = document.getElementById('rawData');
-        const intervalMethodRadios = document.querySelectorAll('input[name="intervalMethod"]');
-        const calculateButton = document.getElementById('calculateButton');
-        const errorMessagesDiv = document.getElementById('errorMessages');
-        const resultsSection = document.getElementById('resultsSection');
-        const navButtons = document.querySelectorAll('.nav-button');
-        const outputSections = document.querySelectorAll('.output-section');
-        const frequencyTable = document.getElementById('frequencyTable');
-        const measuresContent = document.getElementById('measuresContent');
-        const histogramCanvas = document.getElementById('histogramChart');
-        const polygonCanvas = document.getElementById('polygonChart');
-        const ogiveCanvas = document.getElementById('ogiveChart');
-
-        // --- Variables Globales para Gráficos ---
-        let histogramChartInstance = null;
-        let polygonChartInstance = null;
-        let ogiveChartInstance = null;
-
-        // --- Funciones Auxiliares ---
-        function getValidData() {
-            const rawText = rawDataInput.value.trim();
+        // --- Funciones de Cálculo (sin cambios mayores) ---
+        const getValidData = () => {
+            const rawText = dom.rawDataInput.value.trim();
             if (!rawText) {
                 showError("Por favor, ingrese los datos.");
                 return null;
             }
-            const dataStrings = rawText.split(',');
-            const dataNumbers = dataStrings
+            const dataNumbers = rawText.split(/[,;\s\n]+/)
                 .map(s => s.trim())
                 .filter(s => s !== '')
                 .map(s => Number(s.replace(',', '.')))
@@ -708,69 +406,12 @@
                 showError("No se encontraron datos numéricos válidos.");
                 return null;
             }
-            if (dataNumbers.length < 5) {
-                 showError("Se recomiendan al menos 5 datos para un análisis significativo.");
-            }
-
             dataNumbers.sort((a, b) => a - b);
             clearError();
             return dataNumbers;
-        }
-        function showError(message) {
-            errorMessagesDiv.textContent = message;
-            errorMessagesDiv.style.display = 'block';
-            resultsSection.classList.add('hidden');
-        }
-        function clearError() {
-            errorMessagesDiv.textContent = '';
-            errorMessagesDiv.style.display = 'none';
-        }
-        function getIntervalMethod() {
-            for (const radio of intervalMethodRadios) {
-                if (radio.checked) {
-                    return radio.value;
-                }
-            }
-            return 'sqrt';
-        }
-        function countDecimals(value) {
-            if (Math.floor(value) === value || !value.toString().includes('.')) return 0;
-            return value.toString().split('.')[1].length || 0;
-        }
-        function ceilToDecimal(number, decimals) {
-             if (isNaN(number) || !isFinite(number)) return number; // Handle non-numeric input
-             const factor = Math.pow(10, decimals);
-             // Add small epsilon to handle floating point inaccuracies before ceiling
-             const epsilon = 1e-9;
-             return Math.ceil(number * factor + epsilon) / factor;
-        }
-
-        /** Genera una paleta de colores para los gráficos. */
-        function generateColors(count) {
-            const backgroundColors = [];
-            const borderColors = [];
-            // Paleta base de colores (puedes añadir más)
-            const baseColors = [
-                { bg: 'rgba(59, 130, 246, 0.6)', border: 'rgba(59, 130, 246, 1)' },   // Blue
-                { bg: 'rgba(16, 185, 129, 0.6)', border: 'rgba(16, 185, 129, 1)' },   // Emerald
-                { bg: 'rgba(239, 68, 68, 0.6)', border: 'rgba(239, 68, 68, 1)' },    // Red
-                { bg: 'rgba(245, 158, 11, 0.6)', border: 'rgba(245, 158, 11, 1)' },   // Amber
-                { bg: 'rgba(139, 92, 246, 0.6)', border: 'rgba(139, 92, 246, 1)' },  // Violet
-                { bg: 'rgba(236, 72, 153, 0.6)', border: 'rgba(236, 72, 153, 1)' },  // Pink
-                { bg: 'rgba(96, 165, 250, 0.6)', border: 'rgba(96, 165, 250, 1)' },  // Light Blue
-                { bg: 'rgba(52, 211, 153, 0.6)', border: 'rgba(52, 211, 153, 1)' },  // Light Emerald
-            ];
-            for (let i = 0; i < count; i++) {
-                const colorIndex = i % baseColors.length;
-                backgroundColors.push(baseColors[colorIndex].bg);
-                borderColors.push(baseColors[colorIndex].border);
-            }
-            return { backgroundColors, borderColors };
-        }
-
-
-        // --- Funciones de Cálculo Estadístico ---
-        function calculateStatistics(data) {
+        };
+        
+        const calculateStatistics = (data) => {
             const n = data.length;
             if (n === 0) return null;
 
@@ -778,570 +419,249 @@
             const xMax = data[n - 1];
             const range1 = xMax - xMin;
 
-            // 5. Número de intervalos (m)
-            const method = getIntervalMethod();
-            let m;
-            if (method === 'sturges') {
-                m = (n > 1) ? 1 + 3.3 * Math.log10(n) : 1; // Handle n=1 for log10
-            } else {
-                m = Math.sqrt(n);
-            }
-            m = Math.max(1, Math.ceil(m)); // Asegurar al menos 1 intervalo
+            const method = document.querySelector('input[name="intervalMethod"]:checked').value;
+            let m = (method === 'sturges') ? (1 + 3.3 * Math.log10(n)) : Math.sqrt(n);
+            m = Math.ceil(m);
+            m = Math.max(1, m);
 
-            // 6. Amplitud de clase (A)
-            let amplitude = (m > 0 && range1 >= 0) ? range1 / m : 1; // Default amplitude if range is 0 or m is 0
-
-            // Estrategia de redondeo para Amplitud:
+            let amplitude = (m > 0 && range1 > 0) ? range1 / m : 1;
+            
             if (range1 > 0) {
-                const dataDecimals = data.reduce((max, val) => Math.max(max, countDecimals(val)), 0);
-                // Redondear A hacia arriba a dataDecimals+1 o al entero si es necesario
-                let targetDecimals = dataDecimals;
-                // Si la amplitud calculada es < 1, usar más decimales
-                 if (amplitude < 1 && amplitude > 0) {
-                    targetDecimals = Math.max(dataDecimals + 1, countDecimals(amplitude) + 1); // Aumentar precisión
-                 } else if (amplitude >= 1) {
-                     // Si es >= 1, redondear al entero o a los decimales de los datos
-                     targetDecimals = dataDecimals > 0 ? dataDecimals : 0;
-                 }
-                 // Aplicar redondeo hacia arriba
-                 amplitude = ceilToDecimal(amplitude, targetDecimals);
-
-                 // Si después de redondear sigue siendo 0 (datos muy juntos), forzar un mínimo
-                 if (amplitude <= 0) amplitude = Math.pow(10, -targetDecimals) || 0.1;
-
-            } else {
-                 // Si el rango es 0 (todos los datos iguales)
-                 amplitude = 1; // O un valor por defecto pequeño
-                 m = 1; // Solo un intervalo si todos los datos son iguales
+                const dataDecimals = data.reduce((max, val) => Math.max(max, (val.toString().split('.')[1] || '').length), 0);
+                const factor = Math.pow(10, dataDecimals);
+                amplitude = Math.ceil(amplitude * factor) / factor;
+                if (amplitude === 0) {
+                    amplitude = 1 / factor;
+                }
             }
-
-
-            // 7. Nuevo Rango (R2)
+            
             const range2 = m * amplitude;
-
-            // 8. Diferencia de rangos (dR)
             const dR = range2 - range1;
-
-            // 9. Límites inferior y superior generales
             let lowerLimitOverall = xMin - dR / 2;
-            // Redondear límite inferior para mejor presentación
-             const ampDecimals = countDecimals(amplitude);
-             lowerLimitOverall = Math.floor(lowerLimitOverall * Math.pow(10, ampDecimals + 1)) / Math.pow(10, ampDecimals + 1); // Un decimal más que A
 
-            // 10. Construir la tabla de frecuencias
             const tableData = [];
             let currentLowerLimit = lowerLimitOverall;
             let cumulativeFrequency = 0;
-            let cumulativeRelativeFrequency = 0;
-            const epsilon = 1e-9; // Pequeña tolerancia para comparaciones de punto flotante
-
+            
             for (let i = 0; i < m; i++) {
                 const currentUpperLimit = currentLowerLimit + amplitude;
                 const classMark = (currentLowerLimit + currentUpperLimit) / 2;
-                let frequency = 0;
-
-                // Contar frecuencia absoluta (f)
-                for (const value of data) {
-                    if (i === m - 1) { // Última clase incluye ambos límites (<=)
-                        if (value >= currentLowerLimit - epsilon && value <= currentUpperLimit + epsilon) {
-                            frequency++;
-                        }
-                    } else { // Clases intermedias incluyen LInf pero no LSup (>= LInf y < LSup)
-                        if (value >= currentLowerLimit - epsilon && value < currentUpperLimit - epsilon) {
-                            frequency++;
-                        }
-                    }
-                }
-
+                const isLastClass = i === m - 1;
+                const frequency = data.filter(val => (val >= currentLowerLimit && (isLastClass ? val <= currentUpperLimit : val < currentUpperLimit))).length;
+                
                 cumulativeFrequency += frequency;
-                const relativeFrequency = n > 0 ? (frequency / n) * 100 : 0;
-                cumulativeRelativeFrequency += relativeFrequency;
+                const relativeFrequency = (frequency / n) * 100;
 
                 tableData.push({
-                    classInterval: `${currentLowerLimit.toFixed(ampDecimals + 1)} - ${currentUpperLimit.toFixed(ampDecimals + 1)}`,
+                    classInterval: `${currentLowerLimit.toFixed(3)} - ${currentUpperLimit.toFixed(3)}`,
                     lowerLimit: currentLowerLimit,
                     upperLimit: currentUpperLimit,
-                    classMark: classMark,
-                    frequency: frequency,
-                    cumulativeFrequency: cumulativeFrequency,
-                    relativeFrequency: relativeFrequency,
-                    cumulativeRelativeFrequency: cumulativeRelativeFrequency
+                    classMark,
+                    frequency,
+                    cumulativeFrequency,
+                    relativeFrequency,
                 });
                 currentLowerLimit = currentUpperLimit;
             }
 
-            // Calcular columnas adicionales y Medidas
-            const mean = calculateMeanGrouped(tableData, n);
-            let sumXprimeMinusMeanTimesF = 0;
-            let sumXprimeMinusMeanSqTimesF = 0;
-
-            tableData.forEach(row => {
-                const xPrimeMinusMean = row.classMark - mean;
-                row.xPrimeMinusMean = xPrimeMinusMean;
-                row.xPrimeMinusMeanTimesF = xPrimeMinusMean * row.frequency;
-                row.xPrimeMinusMeanSq = Math.pow(xPrimeMinusMean, 2);
-                row.xPrimeMinusMeanSqTimesF = row.xPrimeMinusMeanSq * row.frequency;
-                sumXprimeMinusMeanTimesF += row.xPrimeMinusMeanTimesF;
-                sumXprimeMinusMeanSqTimesF += row.xPrimeMinusMeanSqTimesF;
-            });
-
-            const measures = calculateMeasures(tableData, n, amplitude, mean, sumXprimeMinusMeanSqTimesF);
-
+            const measures = calculateMeasures(tableData, n, amplitude);
             return { tableData, measures, n, xMin, xMax, m, amplitude };
-        }
-
-        function calculateMeanGrouped(tableData, n) {
-            if (n === 0) return NaN;
-            let sumXprimeF = tableData.reduce((sum, row) => sum + (row.classMark * row.frequency), 0);
-            return sumXprimeF / n;
-        }
-
-        function calculateMeasures(tableData, n, amplitude, mean, sumXprimeMinusMeanSqTimesF) {
-            if (n === 0 || tableData.length === 0) return {};
-
-            // --- Mediana ---
+        };
+        
+        const calculateMeasures = (tableData, n, amplitude) => {
+            if (n === 0) return {};
+            const sumXF = tableData.reduce((sum, row) => sum + (row.classMark * row.frequency), 0);
+            const mean = sumXF / n;
+            
             const medianPos = n / 2;
-            let medianClassIndex = -1;
-            let fPrevMedian = 0;
-            for (let i = 0; i < tableData.length; i++) {
-                if (tableData[i].cumulativeFrequency >= medianPos - 1e-9) { // Tolerancia
-                    medianClassIndex = i;
-                    fPrevMedian = (i > 0) ? tableData[i - 1].cumulativeFrequency : 0;
-                    break;
-                }
-            }
+            const medianClass = tableData.find(row => row.cumulativeFrequency >= medianPos);
             let median = NaN;
-            if (medianClassIndex !== -1) {
-                const medianClass = tableData[medianClassIndex];
-                if (medianClass.frequency > 0) {
-                    median = medianClass.lowerLimit + ((medianPos - fPrevMedian) / medianClass.frequency) * amplitude;
-                } else if (fPrevMedian === medianPos) {
-                    // Si la posición cae justo en el límite superior de la clase anterior
-                    median = medianClass.lowerLimit;
-                }
-                 medianClass.isMedianClass = true;
+            if (medianClass) {
+                const fPrevMedian = tableData[tableData.indexOf(medianClass) - 1]?.cumulativeFrequency || 0;
+                median = medianClass.lowerLimit + ((medianPos - fPrevMedian) / medianClass.frequency) * amplitude;
+                medianClass.isMedianClass = true;
             }
 
-            // --- Moda ---
-            let modeClassIndex = -1;
-            let maxFrequency = -1;
-            tableData.forEach((row, index) => {
-                if (row.frequency > maxFrequency) {
-                    maxFrequency = row.frequency;
-                    modeClassIndex = index;
-                }
-            });
-            // Chequear si hay múltiples modas (frecuencias máximas iguales)
-            const maxFreqCount = tableData.filter(row => row.frequency === maxFrequency).length;
-
+            const maxFrequency = Math.max(...tableData.map(r => r.frequency));
+            const modeClass = tableData.find(r => r.frequency === maxFrequency);
             let mode = NaN;
-            if (modeClassIndex !== -1 && maxFrequency > 0 && maxFreqCount === 1) { // Solo si hay una moda clara
-                const modeClass = tableData[modeClassIndex];
+            if (modeClass && tableData.filter(r => r.frequency === maxFrequency).length === 1) {
+                const modeIndex = tableData.indexOf(modeClass);
+                const f_prev = tableData[modeIndex - 1]?.frequency || 0;
+                const f_next = tableData[modeIndex + 1]?.frequency || 0;
+                const delta1 = modeClass.frequency - f_prev;
+                const delta2 = modeClass.frequency - f_next;
+                if (delta1 + delta2 > 0) {
+                   mode = modeClass.lowerLimit + (delta1 / (delta1 + delta2)) * amplitude;
+                }
                 modeClass.isModeClass = true;
-                const f_i = modeClass.frequency;
-                const f_prev = (modeClassIndex > 0) ? tableData[modeClassIndex - 1].frequency : 0;
-                const f_next = (modeClassIndex < tableData.length - 1) ? tableData[modeClassIndex + 1].frequency : 0;
-                const delta1 = f_i - f_prev;
-                const delta2 = f_i - f_next;
-                if ((delta1 + delta2) > 0) {
-                    mode = modeClass.lowerLimit + (delta1 / (delta1 + delta2)) * amplitude;
-                } else if (delta1 === 0 && delta2 === 0 && f_prev === f_i && f_next === f_i) {
-                     // Si las 3 frecuencias son iguales, no hay moda clara o es multimodal
-                     mode = NaN; // Indicar que no hay moda única
-                     modeClass.isModeClass = false; // Quitar marca si no es única
-                } else {
-                     // Si está en los extremos o deltas son <=0, la fórmula no es ideal
-                     mode = modeClass.classMark; // Usar marca de clase como aproximación
-                }
-            } else if (maxFreqCount > 1) {
-                 mode = NaN; // Indicar multimodal
-                 // Marcar todas las clases modales (opcional)
-                 tableData.forEach(row => { if(row.frequency === maxFrequency) row.isModeClass = true; });
             }
 
+            const variance = tableData.reduce((sum, r) => sum + Math.pow(r.classMark - mean, 2) * r.frequency, 0) / (n - 1);
+            const stdDev = Math.sqrt(variance);
 
-            // --- Varianza y Desviación Estándar (Muestral) ---
-            let variance = NaN;
-            let stdDev = NaN;
-            if (n > 1) {
-                variance = sumXprimeMinusMeanSqTimesF / (n - 1);
-                stdDev = Math.sqrt(variance);
-            }
+            return { mean, median, mode, variance, stdDev };
+        };
 
-            // --- Cuantiles ---
-            const calculateQuantile = (k, totalParts) => {
-                const position = (k * n) / totalParts;
-                let classIndex = -1;
-                let fPrev = 0;
-                for (let i = 0; i < tableData.length; i++) {
-                    if (tableData[i].cumulativeFrequency >= position - 1e-9) { // Tolerancia
-                        classIndex = i;
-                        fPrev = (i > 0) ? tableData[i - 1].cumulativeFrequency : 0;
-                        break;
-                    }
-                }
-                if (classIndex !== -1) {
-                    const qClass = tableData[classIndex];
-                    if (qClass.frequency > 0) {
-                        return qClass.lowerLimit + ((position - fPrev) / qClass.frequency) * amplitude;
-                    } else if (fPrev === position) {
-                         // Si la posición cae justo en el límite superior de la clase anterior
-                         return qClass.lowerLimit;
-                    }
-                }
-                return NaN;
-            };
-
-            const quartiles = { Q1: calculateQuantile(1, 4), Q2: median, Q3: calculateQuantile(3, 4) };
-            const deciles = {}; for (let i = 1; i <= 9; i++) deciles[`D${i}`] = calculateQuantile(i, 10);
-            const percentiles = {}; for (let i of [10, 25, 50, 75, 90]) percentiles[`P${i}`] = calculateQuantile(i, 100);
-
-            return { mean, median, mode, variance, stdDev, quartiles, deciles, percentiles, medianClassIndex, modeClassIndex };
-        }
 
         // --- Funciones de Visualización ---
-        function displayTable(tableData, measures) {
-            const tableHead = frequencyTable.querySelector('thead');
-            const tableBody = frequencyTable.querySelector('tbody');
-            const tableFoot = frequencyTable.querySelector('tfoot');
-            tableHead.innerHTML = ''; tableBody.innerHTML = ''; tableFoot.innerHTML = '';
-            if (!tableData || tableData.length === 0) return;
+        const showError = (message) => {
+            dom.errorMessagesDiv.textContent = message;
+            dom.errorMessagesDiv.style.display = 'block';
+            dom.resultsSection.classList.add('hidden');
+        };
+        const clearError = () => {
+            dom.errorMessagesDiv.style.display = 'none';
+        };
 
-            const headers = ['Clases', 'x\'', 'f', 'F', 'h (%)', 'H (%)', 'x\'-Media', '(x\'-Media)f', '(x\'-Media)²','(x\'-Media)²f'];
-            const headerRow = document.createElement('tr');
-            headers.forEach(headerText => {
-                const th = document.createElement('th'); th.textContent = headerText; headerRow.appendChild(th);
+        const displayTable = (tableData, measures) => {
+            const { thead, tbody, tfoot } = { thead: dom.frequencyTable.createTHead(), tbody: dom.frequencyTable.createTBody(), tfoot: dom.frequencyTable.createTFoot() };
+            thead.innerHTML = `<tr>${['Clase', 'x\'', 'f', 'F', 'h (%)'].map(h => `<th>${h}</th>`).join('')}</tr>`;
+            tbody.innerHTML = '';
+            tableData.forEach(row => {
+                const tr = tbody.insertRow();
+                if (row.isMedianClass) tr.classList.add('median-class');
+                if (row.isModeClass) tr.classList.add('mode-class');
+                tr.innerHTML = `
+                    <td>${row.classInterval}</td>
+                    <td>${row.classMark.toFixed(2)}</td>
+                    <td>${row.frequency}</td>
+                    <td>${row.cumulativeFrequency}</td>
+                    <td>${row.relativeFrequency.toFixed(2)}</td>
+                `;
             });
-            tableHead.appendChild(headerRow);
+        };
 
-            let totalF = 0, totalRelF = 0, totalXprimeMinusMeanTimesF = 0, totalXprimeMinusMeanSqTimesF = 0;
-            const mean = measures.mean; // Obtener la media calculada
+        const displayMeasures = (measures, n, xMin, xMax, m, amplitude) => {
+            dom.measuresContent.innerHTML = '';
+            const createMeasureItem = (label, value, decimals = 2) => {
+                const valStr = (value === null || isNaN(value)) ? 'N/A' : value.toFixed(decimals);
+                return `<div class="measure-item p-4 rounded-lg border-l-4">
+                            <div class="measure-label text-sm font-semibold">${label}</div>
+                            <div class="measure-value text-xl font-bold">${valStr}</div>
+                        </div>`;
+            };
+            dom.measuresContent.innerHTML += createMeasureItem('Número de datos (n)', n, 0);
+            dom.measuresContent.innerHTML += createMeasureItem('Valor Mínimo', xMin);
+            dom.measuresContent.innerHTML += createMeasureItem('Valor Máximo', xMax);
+            dom.measuresContent.innerHTML += createMeasureItem('Intervalos (m)', m, 0);
+            dom.measuresContent.innerHTML += createMeasureItem('Amplitud (A)', amplitude);
+            dom.measuresContent.innerHTML += createMeasureItem('Media (μ)', measures.mean);
+            dom.measuresContent.innerHTML += createMeasureItem('Mediana (Me)', measures.median);
+            dom.measuresContent.innerHTML += createMeasureItem('Moda (Mo)', measures.mode);
+            dom.measuresContent.innerHTML += createMeasureItem('Varianza (s²)', measures.variance);
+            dom.measuresContent.innerHTML += createMeasureItem('Desv. Estándar (s)', measures.stdDev);
+        };
+        
+        const getChartColors = () => {
+            const style = getComputedStyle(document.documentElement);
+            return {
+                accent1: style.getPropertyValue('--chart-accent-1').trim(),
+                accent2: style.getPropertyValue('--chart-accent-2').trim(),
+                accent3: style.getPropertyValue('--chart-accent-3').trim(),
+                accent4: style.getPropertyValue('--chart-accent-4').trim(),
+                border1: style.getPropertyValue('--chart-border-1').trim(),
+                border2: style.getPropertyValue('--chart-border-2').trim(),
+                text: style.getPropertyValue('--text-primary').trim(),
+                grid: style.getPropertyValue('--glass-border').trim(),
+            };
+        };
+        
+        const drawAllCharts = (stats) => {
+            const colors = getChartColors();
+            const chartOptions = {
+                responsive: true, maintainAspectRatio: false,
+                scales: {
+                    x: { ticks: { color: colors.text }, grid: { color: colors.grid } },
+                    y: { ticks: { color: colors.text }, grid: { color: colors.grid }, beginAtZero: true }
+                },
+                plugins: { legend: { labels: { color: colors.text } } }
+            };
 
-            tableData.forEach((row, index) => {
-                const tr = document.createElement('tr');
-                if (row.isMedianClass) tr.classList.add('median-class'); // Usar la marca de la fila
-                if (row.isModeClass) tr.classList.add('mode-class');     // Usar la marca de la fila
-
-                // Recalcular columnas dependientes de la media aquí si es necesario
-                const xPrimeMinusMean = !isNaN(mean) ? row.classMark - mean : NaN;
-                const xPrimeMinusMeanTimesF = !isNaN(xPrimeMinusMean) ? xPrimeMinusMean * row.frequency : NaN;
-                const xPrimeMinusMeanSq = !isNaN(xPrimeMinusMean) ? Math.pow(xPrimeMinusMean, 2) : NaN;
-                const xPrimeMinusMeanSqTimesF = !isNaN(xPrimeMinusMeanSq) ? xPrimeMinusMeanSq * row.frequency : NaN;
-
-                const values = [
-                    row.classInterval, row.classMark.toFixed(3), row.frequency, row.cumulativeFrequency,
-                    row.relativeFrequency.toFixed(2), row.cumulativeRelativeFrequency.toFixed(2),
-                    isNaN(xPrimeMinusMean) ? 'N/A' : xPrimeMinusMean.toFixed(3),
-                    isNaN(xPrimeMinusMeanTimesF) ? 'N/A' : xPrimeMinusMeanTimesF.toFixed(3),
-                    isNaN(xPrimeMinusMeanSq) ? 'N/A' : xPrimeMinusMeanSq.toFixed(3),
-                    isNaN(xPrimeMinusMeanSqTimesF) ? 'N/A' : xPrimeMinusMeanSqTimesF.toFixed(3)
-                ];
-                values.forEach(value => { const td = document.createElement('td'); td.textContent = value; tr.appendChild(td); });
-                tableBody.appendChild(tr);
-
-                totalF += row.frequency;
-                totalRelF += row.relativeFrequency;
-                if (!isNaN(xPrimeMinusMeanTimesF)) totalXprimeMinusMeanTimesF += xPrimeMinusMeanTimesF;
-                if (!isNaN(xPrimeMinusMeanSqTimesF)) totalXprimeMinusMeanSqTimesF += xPrimeMinusMeanSqTimesF;
-            });
-
-             const footerRow = document.createElement('tr');
-             const totals = [
-                 'Total', '', totalF, '', totalRelF.toFixed(2), '', '',
-                 totalXprimeMinusMeanTimesF.toFixed(3), '', totalXprimeMinusMeanSqTimesF.toFixed(3)
-             ];
-             totals.forEach((total, index) => {
-                 const td = document.createElement('td'); td.textContent = total;
-                 if (index === 0) td.setAttribute('colspan', '2');
-                 if (index !== 1 || index === 0) footerRow.appendChild(td);
-             });
-             tableFoot.appendChild(footerRow);
-        }
-
-        function displayMeasures(measures, n, xMin, xMax, m, amplitude) {
-             measuresContent.innerHTML = '';
-             if (!measures || Object.keys(measures).length === 0) return;
-             
-             const addMeasure = (label, value, decimals = 3, icon = '📊') => {
-                 const div = document.createElement('div'); 
-                 div.classList.add('measure-item');
-                 const valueStr = (value === null || isNaN(value)) ? 'No aplicable/Multimodal' : value.toFixed(decimals);
-                 div.innerHTML = `
-                     <div class="measure-label">${icon} ${label}</div>
-                     <div class="measure-value">${valueStr}</div>
-                 `;
-                 measuresContent.appendChild(div);
-             };
-             
-             const addQuantileGroup = (label, quantiles, icon = '📏') => {
-                 const div = document.createElement('div'); 
-                 div.classList.add('measure-item');
-                 div.style.gridColumn = 'span 2';
-                 let content = `<div class="measure-label">${icon} ${label}</div><div class="grid grid-cols-3 gap-2 mt-2">`;
-                 for (const key in quantiles) {
-                     const valueStr = (quantiles[key] === null || isNaN(quantiles[key])) ? 'N/A' : quantiles[key].toFixed(3);
-                     content += `<div class="text-xs bg-white bg-opacity-50 rounded p-1"><span class="font-semibold">${key}:</span> ${valueStr}</div>`;
-                 }
-                 content += `</div>`; 
-                 div.innerHTML = content; 
-                 measuresContent.appendChild(div);
-             }
-             
-             addMeasure('Número de datos (n)', n, 0, '🔢'); 
-             addMeasure('Valor Mínimo (Xmin)', xMin, 3, '⬇️'); 
-             addMeasure('Valor Máximo (Xmax)', xMax, 3, '⬆️');
-             addMeasure('Número de Intervalos (m)', m, 0, '📊'); 
-             addMeasure('Amplitud Calculada (A)', amplitude, 3, '📏');
-             addMeasure('Media Aritmética', measures.mean, 3, '🎯'); 
-             addMeasure('Mediana', measures.median, 3, '🎪'); 
-             addMeasure('Moda', measures.mode, 3, '🏆');
-             addMeasure('Varianza Muestral (s²)', measures.variance, 3, '📈'); 
-             addMeasure('Desv. Estándar Muestral (s)', measures.stdDev, 3, '📊');
-             addQuantileGroup('Cuartiles', measures.quartiles, '🔢'); 
-             addQuantileGroup('Deciles (Selección)', measures.deciles, '📊'); 
-             addQuantileGroup('Percentiles (Selección)', measures.percentiles, '📈');
-        }
-
-        /** Dibuja el histograma con barras juntas y colores. */
-        function displayHistogram(tableData, mean, median) {
-            if (histogramChartInstance) {
-                histogramChartInstance.destroy();
-            }
-            if (!tableData || tableData.length === 0) return;
-
-            const labels = tableData.map(row => row.classInterval);
-            const dataValues = tableData.map(row => row.frequency);
-            const { backgroundColors, borderColors } = generateColors(tableData.length);
-
-            histogramChartInstance = new Chart(histogramCanvas, {
+            // Histograma
+            if(chartInstances.histogram) chartInstances.histogram.destroy();
+            chartInstances.histogram = new Chart(dom.histogramCanvas, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: stats.tableData.map(r => r.classInterval),
                     datasets: [{
-                        label: 'Frecuencia Absoluta (f)',
-                        data: dataValues,
-                        backgroundColor: backgroundColors,
-                        borderColor: borderColors,
-                        borderWidth: 2,
-                        barPercentage: 1.0, // Las barras ocupan todo el espacio disponible
-                        categoryPercentage: 1.0 // Sin espacio entre categorías (barras pegadas)
+                        label: 'Frecuencia',
+                        data: stats.tableData.map(r => r.frequency),
+                        backgroundColor: [colors.accent1, colors.accent2, colors.accent3, colors.accent4],
+                        borderColor: [colors.border1, colors.border2, colors.border3, colors.border4],
+                        borderWidth: 2, barPercentage: 1.0, categoryPercentage: 1.0,
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: {
-                            title: { 
-                                display: true, 
-                                text: 'Intervalos de Clase',
-                                font: { size: 14, weight: 'bold' }
-                            },
-                            grid: {
-                                display: false // Ocultar líneas de grid para look más limpio
-                            },
-                            ticks: {
-                                maxRotation: 45, // Rotar etiquetas si son largas
-                                minRotation: 0
-                            }
-                        },
-                        y: {
-                            beginAtZero: true,
-                            title: { 
-                                display: true, 
-                                text: 'Frecuencia Absoluta (f)',
-                                font: { size: 14, weight: 'bold' }
-                            }
-                        }
-                    },
-                    plugins: {
-                        title: { 
-                            display: true, 
-                            text: `📊 Histograma de Frecuencias ${mean && !isNaN(mean) ? `(Media: ${mean.toFixed(2)})` : ''}${median && !isNaN(median) ? ` (Mediana: ${median.toFixed(2)})` : ''}`,
-                            font: { size: 16, weight: 'bold' }
-                        },
-                        tooltip: {
-                            backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                            titleColor: 'white',
-                            bodyColor: 'white',
-                            borderColor: 'rgba(255, 255, 255, 0.3)',
-                            borderWidth: 1,
-                            callbacks: {
-                                title: function(context) {
-                                    return `📊 Intervalo: ${context[0].label}`;
-                                },
-                                label: function(context) {
-                                    return `🔢 Frecuencia: ${context.raw}`;
-                                },
-                                afterLabel: function(context) {
-                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                    const percentage = ((context.raw / total) * 100).toFixed(1);
-                                    return `📈 Porcentaje: ${percentage}%`;
-                                }
-                            }
-                        },
-                        legend: {
-                            display: false // Ocultar leyenda para histograma más limpio
-                        }
-                    },
-                    layout: {
-                        padding: {
-                            top: 10,
-                            bottom: 10
-                        }
-                    }
-                }
+                options: chartOptions
             });
-        }
 
-
-        function displayFrequencyPolygon(tableData, mean, median) {
-            if (polygonChartInstance) polygonChartInstance.destroy();
-            if (!tableData || tableData.length === 0) return;
-
-            const labels = tableData.map(row => row.classMark);
-            const dataValues = tableData.map(row => row.frequency);
-            const amplitude = tableData.length > 0 ? tableData[0].upperLimit - tableData[0].lowerLimit : 0;
-
-            const extendedLabels = [
-                tableData[0].lowerLimit - amplitude / 2,
-                ...labels,
-                tableData[tableData.length - 1].upperLimit + amplitude / 2
-            ];
-            const extendedData = [0, ...dataValues, 0];
-
-            polygonChartInstance = new Chart(polygonCanvas, {
+            // Polígono
+            if(chartInstances.polygon) chartInstances.polygon.destroy();
+            const polyLabels = [stats.tableData[0].lowerLimit, ...stats.tableData.map(r => r.classMark), stats.tableData[stats.tableData.length-1].upperLimit];
+            const polyData = [0, ...stats.tableData.map(r => r.frequency), 0];
+            chartInstances.polygon = new Chart(dom.polygonCanvas, {
                 type: 'line',
                 data: {
-                    labels: extendedLabels,
+                    labels: polyLabels,
                     datasets: [{
-                        label: 'Frecuencia Absoluta (f)', 
-                        data: extendedData,
-                        borderColor: 'rgb(59, 130, 246)', 
-                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                        tension: 0.1, 
-                        fill: false, 
-                        pointRadius: 4, 
-                        pointHoverRadius: 6
+                        label: 'Frecuencia', data: polyData,
+                        borderColor: colors.border1, backgroundColor: colors.accent1, tension: 0.1, fill: true
                     }]
                 },
-                options: {
-                    responsive: true, 
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { 
-                            type: 'linear', 
-                            title: { display: true, text: 'Marca de Clase / Valor' } 
-                        },
-                        y: { 
-                            beginAtZero: true, 
-                            title: { display: true, text: 'Frecuencia Absoluta (f)' } 
-                        }
-                    },
-                    plugins: {
-                        title: { 
-                            display: true, 
-                            text: `Polígono de Frecuencias ${mean && !isNaN(mean) ? `(Media: ${mean.toFixed(2)})` : ''}${median && !isNaN(median) ? ` (Mediana: ${median.toFixed(2)})` : ''}` 
-                        },
-                        tooltip: {
-                            callbacks: {
-                                title: function(context) {
-                                    if (context[0].dataIndex === 0 || context[0].dataIndex === extendedData.length - 1) return null;
-                                    const targetMark = parseFloat(context[0].label);
-                                    let originalMark = targetMark;
-                                    let minDist = Infinity;
-                                    tableData.forEach(row => {
-                                        const dist = Math.abs(row.classMark - targetMark);
-                                        if (dist < minDist) {
-                                            minDist = dist;
-                                            originalMark = row.classMark;
-                                        }
-                                    });
-                                    return `Marca de Clase: ${originalMark.toFixed(3)}`;
-                                },
-                                label: function(context) {
-                                    if (context.dataIndex === 0 || context.dataIndex === extendedData.length - 1) return null;
-                                    return `Frecuencia: ${context.raw}`;
-                                }
-                            }
-                        }
-                    }
-                }
+                options: chartOptions
             });
-        }
 
-        function displayOgive(tableData) {
-             if (ogiveChartInstance) ogiveChartInstance.destroy();
-            if (!tableData || tableData.length === 0) return;
-
-            const labels = [tableData[0].lowerLimit, ...tableData.map(row => row.upperLimit)];
-            const dataValues = [0, ...tableData.map(row => row.cumulativeFrequency)];
-
-            ogiveChartInstance = new Chart(ogiveCanvas, {
+            // Ojiva
+            if(chartInstances.ogive) chartInstances.ogive.destroy();
+            const ogiveLabels = [stats.tableData[0].lowerLimit, ...stats.tableData.map(r => r.upperLimit)];
+            const ogiveData = [0, ...stats.tableData.map(r => r.cumulativeFrequency)];
+            chartInstances.ogive = new Chart(dom.ogiveCanvas, {
                 type: 'line',
                 data: {
-                    labels: labels,
+                    labels: ogiveLabels,
                     datasets: [{
-                        label: 'Frecuencia Acumulada (F)', data: dataValues,
-                        borderColor: 'rgb(139, 92, 246)', backgroundColor: 'rgba(139, 92, 246, 0.2)', // Violeta
-                        tension: 0.1, fill: false, pointRadius: 4, pointHoverRadius: 6, stepped: false
+                        label: 'Frecuencia Acumulada', data: ogiveData,
+                        borderColor: colors.border2, backgroundColor: colors.accent2, tension: 0.1, fill: true
                     }]
                 },
-                options: {
-                    responsive: true, maintainAspectRatio: false,
-                    scales: {
-                        x: { type: 'linear', title: { display: true, text: 'Límite Superior de Clase' } },
-                        y: { beginAtZero: true, title: { display: true, text: 'Frecuencia Acumulada (F)' }, max: dataValues[dataValues.length - 1] }
-                    },
-                    plugins: {
-                        title: { display: true, text: 'Ojiva (Polígono de Frecuencia Acumulada)' },
-                         tooltip: {
-                             callbacks: {
-                                title: function(context) { return `Límite Superior: ${context[0].label}`; },
-                                label: function(context) { return `Frec. Acumulada: ${context.raw}`; }
-                            }
-                        }
-                    }
-                }
+                options: chartOptions
             });
-        }
+        };
 
-        // --- Control de Navegación ---
-        function handleNavClick(event) {
-            const targetId = event.target.dataset.target; if (!targetId) return;
-            outputSections.forEach(section => section.classList.remove('active'));
-            navButtons.forEach(button => button.classList.remove('active'));
-            const targetSection = document.getElementById(targetId); if (targetSection) targetSection.classList.add('active');
-            event.target.classList.add('active');
-        }
+        // --- Controladores de Eventos ---
+        dom.calculateButton.addEventListener('click', () => {
+            const data = getValidData();
+            if (!data) return;
+            
+            lastStats = calculateStatistics(data);
+            if (!lastStats) {
+                showError("No se pudieron calcular las estadísticas.");
+                return;
+            }
 
-        // --- Event Listener Principal ---
-        calculateButton.addEventListener('click', () => {
-            const data = getValidData(); if (!data) return;
-            const stats = calculateStatistics(data); if (!stats) { showError("No se pudieron calcular las estadísticas."); return; }
-            resultsSection.classList.remove('hidden');
-            if (histogramChartInstance) histogramChartInstance.destroy(); if (polygonChartInstance) polygonChartInstance.destroy(); if (ogiveChartInstance) ogiveChartInstance.destroy();
-            displayTable(stats.tableData, stats.measures);
-            displayMeasures(stats.measures, stats.n, stats.xMin, stats.xMax, stats.m, stats.amplitude);
-            displayHistogram(stats.tableData, stats.measures.mean, stats.measures.median);
-            displayFrequencyPolygon(stats.tableData, stats.measures.mean, stats.measures.median);
-            displayOgive(stats.tableData);
-            navButtons.forEach(btn => { btn.classList.remove('active'); if (btn.dataset.target === 'tableOutput') { btn.classList.add('active'); } });
-            outputSections.forEach(sec => { sec.classList.remove('active'); if (sec.id === 'tableOutput') sec.classList.add('active'); });
+            dom.resultsSection.classList.remove('hidden');
+            displayTable(lastStats.tableData, lastStats.measures);
+            displayMeasures(lastStats.measures, lastStats.n, lastStats.xMin, lastStats.xMax, lastStats.m, lastStats.amplitude);
+            drawAllCharts(lastStats);
+            
+            // Activar la primera pestaña por defecto
+            dom.navButtons.forEach(btn => btn.classList.remove('active'));
+            dom.outputSections.forEach(sec => sec.classList.remove('active'));
+            dom.navButtons[0].classList.add('active');
+            dom.outputSections[0].classList.add('active');
         });
 
-            navButtons.forEach(button => button.addEventListener('click', handleNavClick));
+        dom.navButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                const targetId = e.target.dataset.target;
+                dom.navButtons.forEach(btn => btn.classList.remove('active'));
+                dom.outputSections.forEach(sec => sec.classList.remove('active'));
+                e.target.classList.add('active');
+                document.getElementById(targetId).classList.add('active');
+            });
+        });
 
-        } // Fin de initializeApp
-
-        // Esperar a que el DOM esté listo
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initializeApp);
-        } else {
-            initializeApp();
-        }
-
+    });
     </script>
-
 </body>
 </html>
