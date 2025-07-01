@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taylor Series Visualizer [v4.0]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Taylor Series Visualizer [v5.0]</title>
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
@@ -444,7 +444,7 @@
                     isDragging = false;
                     lastPinchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
                 }
-            });
+            }, { passive: false });
             dom.canvas.addEventListener('touchmove', e => {
                 e.preventDefault();
                 if (isDragging && e.touches.length === 1) {
@@ -461,7 +461,7 @@
                     lastPinchDist = currentPinchDist;
                     requestDraw();
                 }
-            });
+            }, { passive: false });
             dom.canvas.addEventListener('touchend', () => {
                 isDragging = false;
                 lastPinchDist = null;
@@ -548,8 +548,24 @@
                 bottom: viewCenter.y - (dom.canvas.height / 2) / zoom,
             };
 
-            const xStep = Math.pow(10, Math.floor(Math.log10(view.right - view.left)) - 1);
-            const yStep = Math.pow(10, Math.floor(Math.log10(view.top - view.bottom)) - 1);
+            const minPixelSpacing = 70; // Aumentado para más espacio en móviles
+            let xStep = Math.pow(10, Math.floor(Math.log10(view.right - view.left)) - 1);
+            while(xStep * zoom < minPixelSpacing) {
+                xStep *= 2;
+                if(xStep * zoom > minPixelSpacing * 2.5) {
+                    xStep /= 2.5;
+                    break;
+                }
+            }
+
+            let yStep = Math.pow(10, Math.floor(Math.log10(view.top - view.bottom)) - 1);
+             while(yStep * zoom < minPixelSpacing) {
+                yStep *= 2;
+                 if(yStep * zoom > minPixelSpacing * 2.5) {
+                    yStep /= 2.5;
+                    break;
+                }
+            }
             
             ctx.strokeStyle = 'rgba(0, 191, 255, 0.1)';
             ctx.lineWidth = 1;
