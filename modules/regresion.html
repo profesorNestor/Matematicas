@@ -3,9 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Análisis de Regresión Interactivo</title>
+    <title>Análisis de Regresión - Edición Quantum</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -29,12 +31,16 @@
             --input-focus-ring: rgba(56, 189, 248, 0.5);
         }
 
-        html, body {
-            height: 100%;
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-start);
             color: var(--text-secondary);
-            overflow: hidden;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
         #particle-canvas {
@@ -51,16 +57,26 @@
             position: relative;
             z-index: 1;
             display: grid;
-            grid-template-columns: 380px 1fr;
+            grid-template-columns: 400px 1fr;
             gap: 1.5rem;
-            height: 100vh;
+            min-height: 100vh;
             padding: 1.5rem;
+            max-width: 1800px;
+            margin: 0 auto;
         }
-
+        
         @media (max-width: 1024px) {
             .main-container {
                 grid-template-columns: 1fr;
                 height: auto;
+                padding: 1rem;
+            }
+            .control-panel {
+                order: 2;
+            }
+            .results-panel {
+                order: 1;
+                min-height: 60vh;
             }
         }
 
@@ -73,19 +89,17 @@
             box-shadow: 0 8px 32px var(--shadow-color);
             transition: all 0.3s ease;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
 
         .control-panel {
-            display: flex;
-            flex-direction: column;
             gap: 1.5rem;
             padding: 1.5rem;
-            overflow-y: auto;
         }
 
         .results-panel {
-            display: flex;
-            flex-direction: column;
+            flex-grow: 1;
         }
 
         .panel-title {
@@ -100,7 +114,7 @@
 
         .model-selector {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
             gap: 0.75rem;
         }
 
@@ -156,7 +170,7 @@
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             resize: vertical;
-            min-height: 120px;
+            min-height: 150px;
             transition: all 0.2s ease;
         }
         .data-input:focus {
@@ -176,10 +190,18 @@
             cursor: pointer;
             transition: all 0.3s ease;
             box-shadow: 0 4px 20px rgba(56, 189, 248, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
         }
         .action-button:hover {
             transform: translateY(-3px);
             box-shadow: 0 8px 30px rgba(56, 189, 248, 0.4);
+        }
+        .secondary-button {
+            background: var(--input-bg);
+            color: var(--text-secondary);
         }
 
         .prediction-input {
@@ -234,6 +256,7 @@
         .output-content {
             flex-grow: 1;
             position: relative;
+            min-height: 300px;
         }
         .output-section {
             position: absolute;
@@ -244,10 +267,15 @@
             visibility: hidden;
             transition: opacity 0.4s ease, visibility 0.4s;
             overflow-y: auto;
+            display: flex;
+            flex-direction: column;
         }
         .output-section.active {
             opacity: 1;
             visibility: visible;
+        }
+        #graph-output.active {
+            flex-grow: 1;
         }
 
         .equation-display {
@@ -261,16 +289,33 @@
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--text-primary);
+            word-break: break-all;
         }
-        #r-squared-text {
-            font-size: 1.2rem;
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        .metric-card {
+            background: var(--input-bg);
+            padding: 1rem;
+            border-radius: 15px;
+            text-align: center;
+        }
+        .metric-label {
             font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+        .metric-value {
+            font-size: 1.5rem;
+            font-weight: 700;
             color: var(--accent-solid);
-            margin-top: 0.5rem;
         }
 
         .data-table-container {
-            max-height: calc(100% - 150px);
+            flex-grow: 1;
             overflow-y: auto;
         }
 
@@ -288,6 +333,9 @@
             font-weight: 700;
             text-transform: uppercase;
             font-size: 0.8rem;
+            position: sticky;
+            top: 0;
+            background: var(--glass-bg);
         }
 
         ::-webkit-scrollbar { width: 8px; }
@@ -335,18 +383,21 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div>
-                    <label for="x-data" class="form-label">Datos de X (Independiente)</label>
-                    <textarea id="x-data" class="data-input" placeholder="1, 2, 3, ..."></textarea>
-                </div>
-                <div>
-                    <label for="y-data" class="form-label">Datos de Y (Dependiente)</label>
-                    <textarea id="y-data" class="data-input" placeholder="2, 4.1, 5.9, ..."></textarea>
-                </div>
+            <div>
+                <label for="data-input" class="form-label">Pegue sus datos aquí (de Excel, etc.)</label>
+                <textarea id="data-input" class="data-input" placeholder="Ej:&#10;1   2.1&#10;2   3.9&#10;3   6.2&#10;4   7.8"></textarea>
             </div>
 
-            <button id="calculate-button" class="action-button">Calcular Regresión</button>
+            <div class="grid grid-cols-2 gap-4">
+                <button id="calculate-button" class="action-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                    <span>Calcular</span>
+                </button>
+                 <button id="load-sample-button" class="action-button secondary-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 17-4 4-4-4"/></svg>
+                    <span>Ejemplo</span>
+                </button>
+            </div>
             <div id="error-message" class="text-red-400 text-center hidden"></div>
 
             <div>
@@ -375,7 +426,16 @@
                 <div id="equation-output" class="output-section">
                     <div class="equation-display">
                         <p id="equation-text">Ecuación del Modelo</p>
-                        <p id="r-squared-text">R² = ?</p>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-label">Coeficiente de Determinación (R²)</div>
+                            <p id="r-squared-text" class="metric-value">?</p>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-label">Error Estándar de Estimación</div>
+                            <p id="std-error-text" class="metric-value">?</p>
+                        </div>
                     </div>
                 </div>
                 <div id="table-output" class="output-section">
@@ -396,9 +456,14 @@
     // --- PARTICLE ANIMATION SCRIPT ---
     const canvas = document.getElementById('particle-canvas');
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
     let particles = [];
+    
+    function setupCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    setupCanvas();
+
     const mouse = { x: null, y: null, radius: 150 };
 
     window.addEventListener('mousemove', (event) => {
@@ -406,8 +471,8 @@
         mouse.y = event.y;
     });
     window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        setupCanvas();
+        initParticles();
     });
 
     class Particle {
@@ -428,10 +493,10 @@
             let dy = mouse.y - this.y;
             let distance = Math.sqrt(dx * dx + dy * dy);
             if (distance < mouse.radius + this.size) {
-                if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 5;
-                if (mouse.x > this.x && this.x > this.size * 10) this.x -= 5;
-                if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 5;
-                if (mouse.y > this.y && this.y > this.size * 10) this.y -= 5;
+                if (mouse.x < this.x && this.x < canvas.width - this.size * 10) this.x += 3;
+                if (mouse.x > this.x && this.x > this.size * 10) this.x -= 3;
+                if (mouse.y < this.y && this.y < canvas.height - this.size * 10) this.y += 3;
+                if (mouse.y > this.y && this.y > this.size * 10) this.y -= 3;
             }
             this.x += this.directionX;
             this.y += this.directionY;
@@ -441,7 +506,10 @@
 
     function initParticles() {
         particles = [];
-        let numberOfParticles = (canvas.height * canvas.width) / 9000;
+        let baseNumberOfParticles = window.innerWidth < 768 ? 30 : 100;
+        let numberOfParticles = (canvas.height * canvas.width) / 25000;
+        numberOfParticles = Math.min(baseNumberOfParticles, numberOfParticles);
+
         for (let i = 0; i < numberOfParticles; i++) {
             let size = (Math.random() * 2) + 1;
             let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
@@ -456,9 +524,7 @@
     function animateParticles() {
         requestAnimationFrame(animateParticles);
         ctx.clearRect(0, 0, innerWidth, innerHeight);
-        for (let i = 0; i < particles.length; i++) {
-            particles[i].update();
-        }
+        particles.forEach(p => p.update());
     }
     initParticles();
     animateParticles();
@@ -467,15 +533,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         const dom = {
             modelSelector: document.getElementById('model-selector'),
-            xDataInput: document.getElementById('x-data'),
-            yDataInput: document.getElementById('y-data'),
+            dataInput: document.getElementById('data-input'),
             calculateButton: document.getElementById('calculate-button'),
+            loadSampleButton: document.getElementById('load-sample-button'),
             errorMessage: document.getElementById('error-message'),
             navButtons: document.querySelectorAll('.nav-button'),
             outputSections: document.querySelectorAll('.output-section'),
             chartCanvas: document.getElementById('regression-chart'),
             equationText: document.getElementById('equation-text'),
             rSquaredText: document.getElementById('r-squared-text'),
+            stdErrorText: document.getElementById('std-error-text'),
             dataTableBody: document.querySelector('#data-table tbody'),
             predictionInput: document.getElementById('prediction-input'),
             predictionOutput: document.getElementById('prediction-output'),
@@ -503,6 +570,7 @@
         });
 
         dom.calculateButton.addEventListener('click', handleCalculation);
+        dom.loadSampleButton.addEventListener('click', loadSampleData);
         dom.predictionInput.addEventListener('input', handlePrediction);
 
         // --- Core Functions ---
@@ -518,7 +586,7 @@
             const result = calculateRegression(x, y, modelType);
             
             if (!result || !result.equation) {
-                showError("No se pudo calcular el modelo. Verifique los datos.");
+                // Specific errors are now shown inside calculateRegression
                 return;
             }
 
@@ -538,24 +606,50 @@
                 updateChartPredictionLine(null, null);
             }
         }
+        
+        function loadSampleData() {
+            const sampleData = `1\t2.1\n2\t3.9\n3\t6.2\n4\t7.8\n5\t10.1\n6\t11.8\n7\t14.3\n8\t15.9\n9\t18.1\n10\t20.2`;
+            dom.dataInput.value = sampleData;
+            handleCalculation();
+        }
 
         function parseData() {
-            const xStr = dom.xDataInput.value.trim().split(/[\n,;\s]+/);
-            const yStr = dom.yDataInput.value.trim().split(/[\n,;\s]+/);
-            const x = xStr.map(Number).filter(n => !isNaN(n));
-            const y = yStr.map(Number).filter(n => !isNaN(n));
+            const rawText = dom.dataInput.value.trim();
+            if (!rawText) return { error: "El campo de datos está vacío." };
 
-            if (x.length === 0 || y.length === 0) {
-                return { error: "Por favor, ingrese datos para X y Y." };
+            const x = [];
+            const y = [];
+            const lines = rawText.split('\n');
+
+            for (const line of lines) {
+                const parts = line.trim().split(/[\t,;\s]+/);
+                if (parts.length >= 2) {
+                    const xVal = parseFloat(parts[0]);
+                    const yVal = parseFloat(parts[1]);
+                    if (!isNaN(xVal) && !isNaN(yVal)) {
+                        x.push(xVal);
+                        y.push(yVal);
+                    }
+                }
             }
-            if (x.length !== y.length) {
-                return { error: "Las columnas X y Y deben tener la misma cantidad de datos." };
+
+            if (x.length < 2) {
+                return { error: "Se necesitan al menos 2 pares de datos válidos." };
             }
             return { x, y, error: null };
         }
 
         function calculateRegression(x, y, type) {
             try {
+                if ((type === 'logarithmic' || type === 'potential') && x.some(xi => xi <= 0)) {
+                    showError("Para modelos Logarítmico/Potencial, los valores de X deben ser > 0.");
+                    return null;
+                }
+                if ((type === 'exponential' || type === 'potential') && y.some(yi => yi <= 0)) {
+                    showError("Para modelos Exponencial/Potencial, los valores de Y deben ser > 0.");
+                    return null;
+                }
+
                 switch (type) {
                     case 'linear': return linearRegression(x, y);
                     case 'quadratic': return polynomialRegression(x, y, 2);
@@ -567,6 +661,7 @@
                 }
             } catch (e) {
                 console.error("Regression calculation error:", e);
+                showError("Error en el cálculo. Verifique los datos.");
                 return null;
             }
         }
@@ -583,9 +678,9 @@
             const b = (sumY - m * sumX) / n;
             
             const predict = (val) => m * val + b;
-            const equation = `Ŷ = ${m.toFixed(4)}X + ${b.toFixed(4)}`;
-            const r2 = calculateRSquared(x, y, predict);
-            return { predict, equation, r2, coefficients: [b, m] };
+            const equation = `Ŷ = ${m.toFixed(4)}X ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(4)}`;
+            const { r2, stdError } = calculateMetrics(x, y, predict, 2);
+            return { predict, equation, r2, stdError, coefficients: [b, m] };
         }
         
         function polynomialRegression(x, y, degree) {
@@ -595,26 +690,28 @@
             const XT = math.transpose(X);
             const XTX = math.multiply(XT, X);
             const XTY = math.multiply(XT, Y);
-            const coeffs = math.multiply(math.inv(XTX), XTY)._data;
+            const coeffs = math.multiply(math.inv(XTX), XTY)._data.reverse();
             
-            const predict = (val) => coeffs.reduce((sum, c, i) => sum + c * Math.pow(val, i), 0);
+            const predict = (val) => coeffs.reduce((sum, c, i) => sum + c * Math.pow(val, degree - i), 0);
             
             let equation = "Ŷ = ";
             coeffs.forEach((c, i) => {
+                const power = degree - i;
                 if (Math.abs(c) < 1e-9) return;
-                const sign = c > 0 ? (i > 0 ? " + " : "") : " - ";
+                const sign = c > 0 ? (i > 0 ? " + " : "") : (i > 0 ? " - " : "-");
                 const val = Math.abs(c).toFixed(4);
-                if (i === 0) {
-                    equation += `${val}`;
-                } else if (i === 1) {
-                    equation += `${sign}${val}X`;
+
+                if (power === 0) {
+                    equation += `${sign} ${val}`;
+                } else if (power === 1) {
+                    equation += `${sign} ${val}X`;
                 } else {
-                    equation += `${sign}${val}X^${i}`;
+                    equation += `${sign} ${val}X^${power}`;
                 }
             });
 
-            const r2 = calculateRSquared(x, y, predict);
-            return { predict, equation, r2, coefficients: coeffs };
+            const { r2, stdError } = calculateMetrics(x, y, predict, degree + 1);
+            return { predict, equation, r2, stdError, coefficients: coeffs };
         }
 
         function exponentialRegression(x, y) {
@@ -625,8 +722,8 @@
 
             const predict = (val) => a * Math.exp(b * val);
             const equation = `Ŷ = ${a.toFixed(4)} * e^(${b.toFixed(4)}X)`;
-            const r2 = calculateRSquared(x, y, predict);
-            return { predict, equation, r2 };
+            const { r2, stdError } = calculateMetrics(x, y, predict, 2);
+            return { predict, equation, r2, stdError };
         }
 
         function logarithmicRegression(x, y) {
@@ -636,9 +733,9 @@
             const b = linReg.coefficients[0];
 
             const predict = (val) => m * Math.log(val) + b;
-            const equation = `Ŷ = ${m.toFixed(4)}ln(X) + ${b.toFixed(4)}`;
-            const r2 = calculateRSquared(x, y, predict);
-            return { predict, equation, r2 };
+            const equation = `Ŷ = ${m.toFixed(4)}ln(X) ${b >= 0 ? '+' : '-'} ${Math.abs(b).toFixed(4)}`;
+            const { r2, stdError } = calculateMetrics(x, y, predict, 2);
+            return { predict, equation, r2, stdError };
         }
 
         function potentialRegression(x, y) {
@@ -650,21 +747,27 @@
 
             const predict = (val) => a * Math.pow(val, b);
             const equation = `Ŷ = ${a.toFixed(4)} * X^(${b.toFixed(4)})`;
-            const r2 = calculateRSquared(x, y, predict);
-            return { predict, equation, r2 };
+            const { r2, stdError } = calculateMetrics(x, y, predict, 2);
+            return { predict, equation, r2, stdError };
         }
         
-        function calculateRSquared(x, y, predict) {
-            const yMean = y.reduce((a, b) => a + b, 0) / y.length;
+        function calculateMetrics(x, y, predict, numParams) {
+            const n = x.length;
+            const yMean = y.reduce((a, b) => a + b, 0) / n;
             const ssTot = y.reduce((sum, yi) => sum + Math.pow(yi - yMean, 2), 0);
             const ssRes = x.reduce((sum, xi, i) => sum + Math.pow(y[i] - predict(xi), 2), 0);
-            return 1 - (ssRes / ssTot);
+            
+            const r2 = 1 - (ssRes / ssTot);
+            const stdError = Math.sqrt(ssRes / (n - numParams));
+
+            return { r2, stdError };
         }
 
         // --- Display Functions ---
         function displayResults(x, y, result) {
             dom.equationText.textContent = result.equation;
-            dom.rSquaredText.textContent = `R² = ${result.r2.toFixed(4)}`;
+            dom.rSquaredText.textContent = result.r2.toFixed(4);
+            dom.stdErrorText.textContent = result.stdError.toFixed(4);
             
             dom.dataTableBody.innerHTML = '';
             x.forEach((xi, i) => {
@@ -672,10 +775,10 @@
                 const yPred = result.predict(xi);
                 const residual = yi - yPred;
                 const row = `<tr>
-                    <td>${xi}</td>
-                    <td>${yi}</td>
-                    <td>${yPred.toFixed(4)}</td>
-                    <td>${residual.toFixed(4)}</td>
+                    <td>${xi.toFixed(3)}</td>
+                    <td>${yi.toFixed(3)}</td>
+                    <td>${yPred.toFixed(3)}</td>
+                    <td class="${residual >= 0 ? 'text-green-400' : 'text-red-400'}">${residual.toFixed(3)}</td>
                 </tr>`;
                 dom.dataTableBody.innerHTML += row;
             });
@@ -694,7 +797,9 @@
             const curvePoints = [];
             for (let i = 0; i <= 100; i++) {
                 const xi = xMin + (xMax - xMin) * i / 100;
-                curvePoints.push({ x: xi, y: predictFn(xi) });
+                if (xi > 0 || !['logarithmic', 'potential'].includes(document.querySelector('.model-card.active').dataset.model)) {
+                    curvePoints.push({ x: xi, y: predictFn(xi) });
+                }
             }
 
             chartInstance = new Chart(dom.chartCanvas, {
@@ -728,7 +833,13 @@
                         x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(51, 65, 85, 0.5)' } },
                         y: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(51, 65, 85, 0.5)' } }
                     },
-                    plugins: { legend: { labels: { color: '#cbd5e1' } } }
+                    plugins: { 
+                        legend: { labels: { color: '#cbd5e1' } },
+                        zoom: {
+                            pan: { enabled: true, mode: 'xy' },
+                            zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'xy' }
+                        }
+                    }
                 }
             });
         }
@@ -739,17 +850,13 @@
             if (xVal === null || yVal === null) {
                 chartInstance.data.datasets[2].data = [];
             } else {
-                const yMin = chartInstance.scales.y.min;
-                const xMin = chartInstance.scales.x.min;
+                const {x, y} = chartInstance.scales;
                 chartInstance.data.datasets[2].data = [
-                    {x: xVal, y: yMin}, // Vertical line
-                    {x: xVal, y: yVal}, // Intersection point
-                    {x: xMin, y: yVal}  // Horizontal line
+                    {x: xVal, y: y.min},
+                    {x: xVal, y: yVal},
+                    {x: x.min, y: yVal}
                 ];
-                // Highlight the point
-                chartInstance.data.datasets[2].pointBackgroundColor = '#34d399';
                 chartInstance.data.datasets[2].pointRadius = [0, 6, 0];
-                chartInstance.data.datasets[2].pointBorderColor = 'white';
             }
             chartInstance.update('none');
         }
@@ -765,4 +872,4 @@
     });
     </script>
 </body>
-</html>
+</ht
