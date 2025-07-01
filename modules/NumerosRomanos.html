@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Convertidor Romano-Decimal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* Definición de variables de color para los temas */
+        :root {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-card: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            --border-color: #e2e8f0;
+            --accent-primary: #3b82f6;
+            --accent-primary-translucent: rgba(59, 130, 246, 0.2);
+            --accent-secondary: #1d4ed8;
+            --success: #22c55e;
+            --error: #ef4444;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #293548;
+            --text-primary: #f1f5f9;
+            --text-secondary: #cbd5e1;
+            --text-muted: #94a3b8;
+            --border-color: #475569;
+            --accent-primary: #60a5fa;
+            --accent-primary-translucent: rgba(96, 165, 250, 0.2);
+            --accent-secondary: #3b82f6;
+            --success: #4ade80;
+            --error: #f87171;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+        }
+
+        [data-theme="ocean"] {
+            --bg-primary: #ecfeff;
+            --bg-secondary: #f0f9ff;
+            --bg-card: #ffffff;
+            --text-primary: #164e63;
+            --text-secondary: #0891b2;
+            --text-muted: #67e8f9;
+            --border-color: #a7f3d0;
+            --accent-primary: #0891b2;
+            --accent-primary-translucent: rgba(8, 145, 178, 0.2);
+            --accent-secondary: #0e7490;
+            --success: #10b981;
+            --error: #f59e0b;
+        }
+
+        [data-theme="forest"] {
+            --bg-primary: #f0fdf4;
+            --bg-secondary: #f7fee7;
+            --bg-card: #ffffff;
+            --text-primary: #14532d;
+            --text-secondary: #166534;
+            --text-muted: #84cc16;
+            --border-color: #bbf7d0;
+            --accent-primary: #22c55e;
+            --accent-primary-translucent: rgba(34, 197, 94, 0.2);
+            --accent-secondary: #16a34a;
+            --success: #22c55e;
+            --error: #dc2626;
+        }
+
+        [data-theme="sunset"] {
+            --bg-primary: #fff7ed;
+            --bg-secondary: #fefce8;
+            --bg-card: #ffffff;
+            --text-primary: #9a3412;
+            --text-secondary: #ea580c;
+            --text-muted: #fb923c;
+            --border-color: #fed7aa;
+            --accent-primary: #f97316;
+            --accent-primary-translucent: rgba(249, 115, 22, 0.2);
+            --accent-secondary: #ea580c;
+            --success: #65a30d;
+            --error: #dc2626;
+        }
+
+        [data-theme="purple"] {
+            --bg-primary: #faf5ff;
+            --bg-secondary: #fdf4ff;
+            --bg-card: #ffffff;
+            --text-primary: #581c87;
+            --text-secondary: #7e22ce;
+            --text-muted: #a78bfa;
+            --border-color: #ddd6fe;
+            --accent-primary: #8b5cf6;
+            --accent-primary-translucent: rgba(139, 92, 246, 0.2);
+            --accent-secondary: #7c3aed;
+            --success: #059669;
+            --error: #dc2626;
+        }
+
+        /* Estilos base */
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+            line-height: 1.6;
+        }
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+        .card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+        /* Estilos de formulario */
+        .input-group { margin-bottom: 2rem; }
+        .label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; }
+        .input {
+            width: 100%;
+            padding: 1rem 1.25rem;
+            font-size: 1.125rem;
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+        }
+        .input:focus { outline: none; border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-primary-translucent); background-color: var(--bg-card); }
+        .input.roman { font-family: 'JetBrains Mono', monospace; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+        .input.error { border-color: var(--error); }
+        .input.success { border-color: var(--success); }
+        .error-message { margin-top: 0.5rem; font-size: 0.875rem; color: var(--error); font-weight: 500; min-height: 1.25rem; }
+
+        /* Botones */
+        .btn { padding: 1rem 2rem; font-size: 1rem; font-weight: 600; border: none; border-radius: 12px; cursor: pointer; transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 0.05em; }
+        .btn-primary { background-color: var(--accent-primary); color: white; }
+        .btn-primary:hover { background-color: var(--accent-secondary); transform: translateY(-2px); }
+        .btn-secondary { background-color: var(--bg-secondary); color: var(--text-primary); border: 2px solid var(--border-color); }
+        .btn-secondary:hover { border-color: var(--accent-primary); background-color: var(--bg-card); }
+
+        /* Nuevo Panel de Temas */
+        #theme-panel-container { transition: all 0.3s ease; }
+        #theme-panel-trigger {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+        #theme-panel {
+            visibility: hidden;
+            opacity: 0;
+            transform: translateY(-10px) scale(0.95);
+            transition: all 0.2s ease-in-out;
+            transform-origin: top right;
+        }
+        #theme-panel.visible {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .theme-btn {
+            width: 100%;
+            padding-bottom: 100%; /* Aspect ratio 1:1 */
+            height: 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            border: 2px solid var(--border-color);
+        }
+        .theme-btn:hover { transform: scale(1.05); }
+        .theme-btn.active {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-primary-translucent);
+        }
+        .theme-light { background: linear-gradient(135deg, #f8fafc, #e2e8f0); }
+        .theme-dark { background: linear-gradient(135deg, #1e293b, #0f172a); }
+        .theme-ocean { background: linear-gradient(135deg, #0891b2, #164e63); }
+        .theme-forest { background: linear-gradient(135deg, #22c55e, #14532d); }
+        .theme-sunset { background: linear-gradient(135deg, #f97316, #9a3412); }
+        .theme-purple { background: linear-gradient(135deg, #8b5cf6, #581c87); }
+
+        /* Layout y otros */
+        .converter-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+        .header { text-align: center; margin-bottom: 3rem; }
+        .title { font-size: 2.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .subtitle { font-size: 1.125rem; color: var(--text-secondary); font-weight: 400; }
+        .divider { display: flex; align-items: center; justify-content: center; margin: 2rem 0; }
+        .divider-line { flex: 1; height: 1px; background-color: var(--border-color); }
+        .divider-icon { margin: 0 1rem; color: var(--accent-primary); font-size: 1.5rem; font-weight: 700; }
+        .actions { display: flex; gap: 1rem; justify-content: center; }
+        .footer { margin-top: 4rem; text-align: center; padding-top: 2rem; border-top: 1px solid var(--border-color); }
+        .footer-text { color: var(--text-muted); font-size: 0.875rem; }
+
+        /* Diseño Responsivo */
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .converter-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .title { font-size: 2rem; }
+            #theme-panel-container { top: 1rem; right: 1rem; }
+            .actions { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Panel de Temas Mejorado -->
+    <div id="theme-panel-container" class="fixed top-6 right-6 z-50">
+        <button id="theme-panel-trigger" class="w-12 h-12 rounded-full flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-bg-primary focus:ring-accent-primary transition-transform transform hover:scale-110 active:scale-95">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
+            </svg>
+        </button>
+        <div id="theme-panel" class="absolute top-16 right-0 w-56 p-4 bg-card rounded-2xl shadow-lg border border-border-color">
+            <h4 class="font-semibold text-text-primary mb-3 text-sm text-center">Elige un Tema</h4>
+            <div class="grid grid-cols-3 gap-3">
+                <div class="theme-btn theme-light" data-theme="light" title="Claro"></div>
+                <div class="theme-btn theme-dark" data-theme="dark" title="Oscuro"></div>
+                <div class="theme-btn theme-ocean" data-theme="ocean" title="Océano"></div>
+                <div class="theme-btn theme-forest" data-theme="forest" title="Bosque"></div>
+                <div class="theme-btn theme-sunset" data-theme="sunset" title="Atardecer"></div>
+                <div class="theme-btn theme-purple" data-theme="purple" title="Púrpura"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1 class="title">Convertidor Romano ↔ Decimal</h1>
+            <p class="subtitle">Conversión bidireccional, moderna e interactiva.</p>
+        </header>
+
+        <!-- Convertidor Principal -->
+        <main class="card" style="padding: 3rem;">
+            <div class="converter-grid">
+                <!-- Input Decimal -->
+                <div class="input-group">
+                    <label for="decimalInput" class="label">📊 Número Decimal</label>
+                    <input type="number" id="decimalInput" class="input" placeholder="Ingresa un número (1-3999)" min="1" max="3999">
+                    <div id="decimalError" class="error-message"></div>
+                </div>
+                <!-- Input Romano -->
+                <div class="input-group">
+                    <label for="romanInput" class="label">🏛️ Número Romano</label>
+                    <input type="text" id="romanInput" class="input roman" placeholder="Ingresa números romanos">
+                    <div id="romanError" class="error-message"></div>
+                </div>
+            </div>
+            <!-- Divisor y Acciones -->
+            <div class="divider"><div class="divider-line"></div><div class="divider-icon">⚡</div><div class="divider-line"></div></div>
+            <div class="actions">
+                <button id="clearButton" class="btn btn-secondary">🗑️ Limpiar Campos</button>
+            </div>
+        </main>
+
+        <!-- Tarjetas de Información -->
+        <section style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+            <div class="card" style="padding: 1.5rem;">
+                <h3 style="color: var(--accent-primary); margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">✨ Características</h3>
+                <ul style="color: var(--text-secondary); font-size: 0.875rem; list-style-position: inside; padding-left: 0;">
+                    <li>Conversión en tiempo real</li>
+                    <li>Validación automática de errores</li>
+                    <li>Rango de conversión: 1 - 3999</li>
+                    <li>Panel de temas personalizable</li>
+                </ul>
+            </div>
+            <div class="card" style="padding: 1.5rem;">
+                <h3 style="color: var(--accent-primary); margin-bottom: 1rem; font-size: 1.125rem; font-weight: 600;">🔢 Ejemplos</h3>
+                <div style="color: var(--text-secondary); font-size: 0.875rem; line-height: 1.8;">
+                    <div><strong>1994</strong> → MCMXCIV</div>
+                    <div><strong>2024</strong> → MMXXIV</div>
+                    <div><strong>3999</strong> → MMMCMXCIX</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p class="footer-text">Creado por <strong>Msc. Néstor Fabio Montoya Palacios</strong></p>
+        </footer>
+    </div>
+
+    <script>
+        // --- Gestión del Panel de Temas ---
+        const themePanelContainer = document.getElementById('theme-panel-container');
+        const themePanelTrigger = document.getElementById('theme-panel-trigger');
+        const themePanel = document.getElementById('theme-panel');
+        let currentTheme = localStorage.getItem('romanConverterTheme') || 'light';
+
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('romanConverterTheme', theme);
+            
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
+            });
+        }
+
+        themePanelTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            themePanel.classList.toggle('visible');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!themePanelContainer.contains(e.target)) {
+                themePanel.classList.remove('visible');
+            }
+        });
+
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setTheme(btn.dataset.theme);
+            });
+        });
+        
+        setTheme(currentTheme); // Inicializar tema al cargar
+
+        // --- Lógica del Convertidor ---
+        const decimalInput = document.getElementById('decimalInput');
+        const romanInput = document.getElementById('romanInput');
+        const decimalError = document.getElementById('decimalError');
+        const romanError = document.getElementById('romanError');
+        const clearButton = document.getElementById('clearButton');
+
+        const romanMap = new Map([
+            [1000, 'M'], [900, 'CM'], [500, 'D'], [400, 'CD'],
+            [100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'],
+            [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']
+        ]);
+
+        const decimalMap = new Map([
+            ['M', 1000], ['D', 500], ['C', 100], ['L', 50], ['X', 10], ['V', 5], ['I', 1]
+        ]);
+
+        let isUpdating = false;
+
+        function setInputState(input, state, errorElement, message = '') {
+            input.classList.remove('error', 'success');
+            errorElement.textContent = message;
+            if (state) input.classList.add(state);
+        }
+
+        function toRoman(num) {
+            if (isNaN(num) || num < 1 || num > 3999 || !Number.isInteger(num)) {
+                if (decimalInput.value) {
+                    setInputState(decimalInput, 'error', decimalError, 'Número debe ser entero entre 1 y 3999.');
+                } else {
+                    setInputState(decimalInput, null, decimalError);
+                }
+                return undefined;
+            }
+            
+            setInputState(decimalInput, 'success', decimalError);
+            setTimeout(() => setInputState(decimalInput, null, decimalError), 1500);
+            
+            let result = '';
+            for (let [value, numeral] of romanMap) {
+                while (num >= value) {
+                    result += numeral;
+                    num -= value;
+                }
+            }
+            return result;
+        }
+
+        function isValidRoman(str) {
+            return /^(M{0,3})(CM|CD|D?C{0,3})(XC|XL|L?X{0,3})(IX|IV|V?I{0,3})$/.test(str);
+        }
+
+        function toDecimal(str) {
+            str = str.toUpperCase().trim();
+            if (!str) {
+                setInputState(romanInput, null, romanError);
+                return null;
+            }
+            if (!isValidRoman(str)) {
+                setInputState(romanInput, 'error', romanError, 'Número romano inválido.');
+                return null;
+            }
+
+            let result = 0, i = 0;
+            while (i < str.length) {
+                const currentVal = decimalMap.get(str[i]);
+                const nextVal = i + 1 < str.length ? decimalMap.get(str[i + 1]) : 0;
+                if (nextVal > currentVal) {
+                    result += nextVal - currentVal;
+                    i += 2;
+                } else {
+                    result += currentVal;
+                    i++;
+                }
+            }
+
+            if (toRoman(result) !== str) {
+                setInputState(romanInput, 'error', romanError, 'Formato romano no canónico.');
+                return null;
+            }
+
+            setInputState(romanInput, 'success', romanError);
+            setTimeout(() => setInputState(romanInput, null, romanError), 1500);
+            return result;
+        }
+
+        decimalInput.addEventListener('input', () => {
+            if (isUpdating) return;
+            isUpdating = true;
+            const decimalValue = parseInt(decimalInput.value, 10);
+            const romanValue = toRoman(decimalValue);
+            romanInput.value = romanValue !== undefined ? romanValue : '';
+            if (romanValue) setInputState(romanInput, null, romanError);
+            if (!decimalInput.value) {
+                romanInput.value = '';
+                setInputState(romanInput, null, romanError);
+            }
+            isUpdating = false;
+        });
+
+        romanInput.addEventListener('input', () => {
+            if (isUpdating) return;
+            isUpdating = true;
+            const romanValue = romanInput.value.toUpperCase();
+            romanInput.value = romanValue;
+            const decimalValue = toDecimal(romanValue);
+            decimalInput.value = decimalValue !== null ? decimalValue : '';
+            if (decimalValue) setInputState(decimalInput, null, decimalError);
+            if (!romanInput.value) {
+                decimalInput.value = '';
+                setInputState(decimalInput, null, decimalError);
+            }
+            isUpdating = false;
+        });
+
+        clearButton.addEventListener('click', () => {
+            isUpdating = true;
+            decimalInput.value = '';
+            romanInput.value = '';
+            setInputState(decimalInput, null, decimalError);
+            setInputState(romanInput, null, romanError);
+            isUpdating = false;
+            decimalInput.focus();
+        });
+    </script>
+</body>
+</html>

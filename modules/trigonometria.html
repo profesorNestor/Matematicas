@@ -1,0 +1,1922 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Geometría Interactiva Ultra - 3D Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --bg-tertiary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --bg-quaternary: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --bg-dark: linear-gradient(135deg, #2c3e50 0%, #4a6741 100%);
+            --glass-bg: rgba(255, 255, 255, 0.25);
+            --glass-bg-dark: rgba(0, 0, 0, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.18);
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-light: #f8fafc;
+            --accent-primary: #3b82f6;
+            --accent-secondary: #8b5cf6;
+            --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --shadow-lg: 0 35px 60px -12px rgba(0, 0, 0, 0.35);
+        }
+
+        [data-theme="dark"] {
+            --bg-primary: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+            --glass-bg: var(--glass-bg-dark);
+            --text-primary: var(--text-light);
+            --text-secondary: #cbd5e1;
+        }
+
+        [data-theme="neon"] {
+            --bg-primary: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            --glass-bg: rgba(0, 255, 255, 0.1);
+            --glass-border: rgba(0, 255, 255, 0.3);
+            --text-primary: #00ffff;
+            --text-secondary: #ff00ff;
+            --accent-primary: #00ff00;
+            --accent-secondary: #ff0080;
+        }
+
+        [data-theme="ocean"] {
+            --bg-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --glass-bg: rgba(102, 126, 234, 0.2);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+        }
+
+        [data-theme="forest"] {
+            --bg-primary: linear-gradient(135deg, #134e5e 0%, #71b280 100%);
+            --glass-bg: rgba(113, 178, 128, 0.2);
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            color: var(--text-primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .floating-shapes {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        .floating-shape {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            animation: float 20s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .glass-panel:hover::before {
+            left: 100%;
+        }
+
+        .glass-panel:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+            position: relative;
+            z-index: 10;
+        }
+
+        .sidebar {
+            width: 380px;
+            min-width: 280px;
+            max-width: 500px;
+            padding: 1.5rem;
+            overflow-y: auto;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+            margin: 1.5rem;
+            margin-right: 0;
+        }
+
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .sidebar.collapsed {
+            width: 80px;
+            min-width: 80px;
+        }
+
+        .sidebar.collapsed .panel-content {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .resizer {
+            width: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            cursor: col-resize;
+            position: relative;
+            transition: all 0.3s ease;
+            margin: 1.5rem 0;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .resizer::before {
+            content: '';
+            width: 3px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .resizer:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .resizer:hover::before {
+            background: rgba(255, 255, 255, 0.6);
+            height: 60px;
+        }
+
+        .resizer.resizing {
+            background: var(--accent-primary);
+        }
+
+        .resizer.resizing::before {
+            background: white;
+            height: 80px;
+        }
+
+        .canvas-container {
+            flex: 1;
+            position: relative;
+            margin: 1.5rem;
+            margin-left: 0;
+            min-width: 300px;
+        }
+
+        .canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+            cursor: grab;
+            touch-action: none;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .canvas:active {
+            cursor: grabbing;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            font-family: 'Orbitron', monospace;
+            font-size: 1.5rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            font-size: 0.875rem;
+            opacity: 0.8;
+        }
+
+        .control-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .coord-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .coord-input-group {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .coord-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+            opacity: 0.9;
+        }
+
+        .coord-input-row {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .coord-input-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .coord-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-family: 'JetBrains Mono', monospace;
+            transition: all 0.3s ease;
+        }
+
+        .coord-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .elements-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.75rem;
+        }
+
+        .element-category {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .category-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .custom-checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            border-radius: 6px;
+            position: relative;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .custom-checkbox.checked {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+        }
+
+        .custom-checkbox.checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkbox-label {
+            font-size: 0.875rem;
+            flex: 1;
+            user-select: none;
+        }
+
+        .info-panel {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .info-item:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .info-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent-primary);
+        }
+
+        .theme-selector {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 1000;
+            display: flex;
+            gap: 0.5rem;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            padding: 0.75rem;
+            border-radius: 20px;
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--shadow);
+        }
+
+        .theme-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .theme-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .theme-btn.active {
+            border-color: white;
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.5);
+        }
+
+        .theme-light { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .theme-dark { background: linear-gradient(135deg, #1a202c, #2d3748); }
+        .theme-neon { background: linear-gradient(135deg, #0f0f23, #ff00ff); }
+        .theme-ocean { background: linear-gradient(135deg, #667eea, #4facfe); }
+        .theme-forest { background: linear-gradient(135deg, #134e5e, #71b280); }
+
+        .toggle-btn {
+            position: fixed;
+            top: 50%;
+            left: 2rem;
+            transform: translateY(-50%);
+            z-index: 1000;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: var(--text-primary);
+        }
+
+        .toggle-btn:hover {
+            transform: translateY(-50%) scale(1.1);
+            box-shadow: var(--shadow);
+        }
+
+        .magic-btn {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: 12px;
+            color: white;
+            font-weight: 600;
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .magic-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.6s;
+        }
+
+        .magic-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .magic-btn:hover::before {
+            left: 100%;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                z-index: 1000;
+                transform: translateX(-100%);
+                width: 100%;
+                max-width: 380px;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .canvas-container {
+                margin: 1rem;
+            }
+
+            .theme-selector {
+                top: 1rem;
+                right: 1rem;
+                padding: 0.5rem;
+                gap: 0.25rem;
+            }
+
+            .theme-btn {
+                width: 32px;
+                height: 32px;
+            }
+
+            .toggle-btn {
+                left: 1rem;
+                width: 44px;
+                height: 44px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            .coord-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                padding: 1rem;
+            }
+
+            .canvas-container {
+                margin: 0.5rem;
+            }
+
+            .theme-selector {
+                flex-direction: column;
+                top: 0.5rem;
+                right: 0.5rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeInUp {
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        /* Point animations */
+        .point-glow {
+            animation: pointGlow 2s ease-in-out infinite;
+        }
+
+        @keyframes pointGlow {
+            0%, 100% { filter: drop-shadow(0 0 5px currentColor); }
+            50% { filter: drop-shadow(0 0 15px currentColor); }
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <!-- Floating Background Elements -->
+    <div class="floating-shapes">
+        <div class="floating-shape" style="width: 20px; height: 20px; left: 10%; animation-delay: 0s;"></div>
+        <div class="floating-shape" style="width: 15px; height: 15px; left: 20%; animation-delay: 2s;"></div>
+        <div class="floating-shape" style="width: 25px; height: 25px; left: 30%; animation-delay: 4s;"></div>
+        <div class="floating-shape" style="width: 18px; height: 18px; left: 40%; animation-delay: 6s;"></div>
+        <div class="floating-shape" style="width: 22px; height: 22px; left: 50%; animation-delay: 8s;"></div>
+        <div class="floating-shape" style="width: 16px; height: 16px; left: 60%; animation-delay: 10s;"></div>
+        <div class="floating-shape" style="width: 24px; height: 24px; left: 70%; animation-delay: 12s;"></div>
+        <div class="floating-shape" style="width: 19px; height: 19px; left: 80%; animation-delay: 14s;"></div>
+        <div class="floating-shape" style="width: 21px; height: 21px; left: 90%; animation-delay: 16s;"></div>
+    </div>
+
+    <!-- Theme Selector -->
+    <div class="theme-selector">
+        <div class="theme-btn theme-light active" data-theme="light" title="Clásico"></div>
+        <div class="theme-btn theme-dark" data-theme="dark" title="Oscuro"></div>
+        <div class="theme-btn theme-neon" data-theme="neon" title="Neón"></div>
+        <div class="theme-btn theme-ocean" data-theme="ocean" title="Océano"></div>
+        <div class="theme-btn theme-forest" data-theme="forest" title="Bosque"></div>
+    </div>
+
+    <!-- Sidebar Toggle -->
+    <div class="toggle-btn" onclick="toggleSidebar()">
+        <svg id="toggle-icon" width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+    </div>
+
+    <div class="main-container">
+        <!-- Sidebar -->
+        <div class="sidebar glass-panel" id="sidebar">
+            <div class="panel-content">
+                <!-- Header -->
+                <div class="header">
+                    <h1 class="title">GEOMETRÍA 3D</h1>
+                    <p class="subtitle">Exploración Interactiva Avanzada</p>
+                </div>
+
+                <!-- Coordinates Control -->
+                <div class="control-section animate-fadeInUp" style="animation-delay: 0.1s;">
+                    <div class="section-title">
+                        📐 Coordenadas de Vértices
+                    </div>
+                    <div class="coord-grid">
+                        <div class="coord-input-group">
+                            <div class="coord-label">🔴 Punto A</div>
+                            <div class="coord-input-row">
+                                <span>X:</span>
+                                <input type="number" id="x1" step="0.1" class="coord-input" value="-2">
+                            </div>
+                            <div class="coord-input-row">
+                                <span>Y:</span>
+                                <input type="number" id="y1" step="0.1" class="coord-input" value="-1">
+                            </div>
+                        </div>
+                        <div class="coord-input-group">
+                            <div class="coord-label">🔵 Punto B</div>
+                            <div class="coord-input-row">
+                                <span>X:</span>
+                                <input type="number" id="x2" step="0.1" class="coord-input" value="3">
+                            </div>
+                            <div class="coord-input-row">
+                                <span>Y:</span>
+                                <input type="number" id="y2" step="0.1" class="coord-input" value="-2">
+                            </div>
+                        </div>
+                        <div class="coord-input-group">
+                            <div class="coord-label">🟢 Punto C</div>
+                            <div class="coord-input-row">
+                                <span>X:</span>
+                                <input type="number" id="x3" step="0.1" class="coord-input" value="1">
+                            </div>
+                            <div class="coord-input-row">
+                                <span>Y:</span>
+                                <input type="number" id="y3" step="0.1" class="coord-input" value="3">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Elements Visualization -->
+                <div class="control-section animate-fadeInUp" style="animation-delay: 0.2s;">
+                    <div class="section-title">
+                        🎨 Elementos Visuales
+                    </div>
+                    <div class="elements-grid">
+                        <!-- Basic Elements -->
+                        <div class="element-category">
+                            <div class="category-title">📊 Propiedades Básicas</div>
+                            <div class="checkbox-grid">
+                                <div class="checkbox-item" onclick="toggleCheckbox('showArea')">
+                                    <div class="custom-checkbox" id="cb-showArea"></div>
+                                    <div class="checkbox-label">Área del Triángulo</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showPerimeter')">
+                                    <div class="custom-checkbox" id="cb-showPerimeter"></div>
+                                    <div class="checkbox-label">Perímetro</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Centers -->
+                        <div class="element-category">
+                            <div class="category-title">⭐ Centros Notables</div>
+                            <div class="checkbox-grid">
+                                <div class="checkbox-item" onclick="toggleCheckbox('showCentroid')">
+                                    <div class="custom-checkbox" id="cb-showCentroid"></div>
+                                    <div class="checkbox-label">Centroide (G)</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showCircumcenter')">
+                                    <div class="custom-checkbox" id="cb-showCircumcenter"></div>
+                                    <div class="checkbox-label">Circuncentro (O)</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showIncenter')">
+                                    <div class="custom-checkbox" id="cb-showIncenter"></div>
+                                    <div class="checkbox-label">Incentro (I)</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showOrthocenter')">
+                                    <div class="custom-checkbox" id="cb-showOrthocenter"></div>
+                                    <div class="checkbox-label">Ortocentro (H)</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Lines -->
+                        <div class="element-category">
+                            <div class="category-title">📏 Líneas Especiales</div>
+                            <div class="checkbox-grid">
+                                <div class="checkbox-item" onclick="toggleCheckbox('showMedians')">
+                                    <div class="custom-checkbox" id="cb-showMedians"></div>
+                                    <div class="checkbox-label">Medianas</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showAltitudes')">
+                                    <div class="custom-checkbox" id="cb-showAltitudes"></div>
+                                    <div class="checkbox-label">Alturas</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showAngleBisectors')">
+                                    <div class="custom-checkbox" id="cb-showAngleBisectors"></div>
+                                    <div class="checkbox-label">Bisectrices</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showPerpendicularBisectors')">
+                                    <div class="custom-checkbox" id="cb-showPerpendicularBisectors"></div>
+                                    <div class="checkbox-label">Mediatrices</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showEulerLine')">
+                                    <div class="custom-checkbox" id="cb-showEulerLine"></div>
+                                    <div class="checkbox-label">Recta de Euler</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Circles -->
+                        <div class="element-category">
+                            <div class="category-title">⭕ Circunferencias</div>
+                            <div class="checkbox-grid">
+                                <div class="checkbox-item" onclick="toggleCheckbox('showCircumscribedCircle')">
+                                    <div class="custom-checkbox" id="cb-showCircumscribedCircle"></div>
+                                    <div class="checkbox-label">Circunscrita</div>
+                                </div>
+                                <div class="checkbox-item" onclick="toggleCheckbox('showInscribedCircle')">
+                                    <div class="custom-checkbox" id="cb-showInscribedCircle"></div>
+                                    <div class="checkbox-label">Inscrita</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Information Panel -->
+                <div class="control-section animate-fadeInUp" style="animation-delay: 0.3s;">
+                    <div class="section-title">
+                        📈 Información Detallada
+                    </div>
+                    <div class="info-panel">
+                        <div class="info-item">
+                            <span class="info-label">Área:</span>
+                            <span class="info-value" id="areaValue">0.000</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Perímetro:</span>
+                            <span class="info-value" id="perimeterValue">0.000</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Lado a:</span>
+                            <span class="info-value" id="sideA">0.000</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Lado b:</span>
+                            <span class="info-value" id="sideB">0.000</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Lado c:</span>
+                            <span class="info-value" id="sideC">0.000</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ángulo A:</span>
+                            <span class="info-value" id="angleA">0.0°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ángulo B:</span>
+                            <span class="info-value" id="angleB">0.0°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Ángulo C:</span>
+                            <span class="info-value" id="angleC">0.0°</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Tipo:</span>
+                            <span class="info-value" id="triangleType">Escaleno</span>
+                        </div>
+                    </div>
+
+                    <button class="magic-btn" onclick="resetView()">
+                        ✨ Reiniciar Vista
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resizable Divider -->
+        <div class="resizer" id="resizer"></div>
+
+        <!-- Canvas Container -->
+        <div class="canvas-container">
+            <canvas id="canvas" class="canvas glass-panel"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // --- Global Variables ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Theme management
+        let currentTheme = 'light';
+        let sidebarOpen = true;
+
+        // Inputs
+        const inputs = {
+            x1: document.getElementById('x1'),
+            y1: document.getElementById('y1'),
+            x2: document.getElementById('x2'),
+            y2: document.getElementById('y2'),
+            x3: document.getElementById('x3'),
+            y3: document.getElementById('y3')
+        };
+
+        // State
+        const state = {
+            showArea: false,
+            showPerimeter: false,
+            showCentroid: false,
+            showMedians: false,
+            showAltitudes: false,
+            showOrthocenter: false,
+            showAngleBisectors: false,
+            showIncenter: false,
+            showPerpendicularBisectors: false,
+            showCircumcenter: false,
+            showEulerLine: false,
+            showCircumscribedCircle: false,
+            showInscribedCircle: false
+        };
+
+        // Canvas state
+        let points = [
+            { x: -2, y: -1 },
+            { x: 3, y: -2 },
+            { x: 1, y: 3 }
+        ];
+
+        const pointRadius = 10;
+        const pointGrabRadius = 20;
+        let zoomLevel = 40;
+        let originOffset = { x: 0, y: 0 };
+        let isDraggingPoint = -1;
+        let isPanning = false;
+        let lastMousePos = { x: 0, y: 0 };
+        const zoomFactor = 1.1;
+        const minZoom = 10;
+        const maxZoom = 300;
+        const snapDistancePixels = 15;
+
+        // Mobile pinch variables
+        let pinchZoom = false;
+        let pinchInitialDist = 0;
+        let pinchStartZoom = 0;
+        let pinchCenterWorld = null;
+
+        // --- Theme Management ---
+        function setTheme(theme) {
+            currentTheme = theme;
+            document.body.setAttribute('data-theme', theme);
+            
+            // Update active theme button
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.dataset.theme === theme) {
+                    btn.classList.add('active');
+                }
+            });
+            
+            redraw();
+        }
+
+        // Initialize theme selector
+        document.querySelectorAll('.theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => setTheme(btn.dataset.theme));
+        });
+
+        // --- Sidebar Management ---
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleIcon = document.getElementById('toggle-icon');
+            
+            if (window.innerWidth <= 1024) {
+                sidebar.classList.toggle('open');
+                sidebarOpen = sidebar.classList.contains('open');
+            } else {
+                sidebar.classList.toggle('collapsed');
+                sidebarOpen = !sidebar.classList.contains('collapsed');
+            }
+            
+            // Update icon
+            if (sidebarOpen) {
+                toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>';
+            } else {
+                toggleIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>';
+            }
+        }
+
+        // --- Checkbox Management ---
+        function toggleCheckbox(id) {
+            state[id] = !state[id];
+            const checkbox = document.getElementById(`cb-${id}`);
+            checkbox.classList.toggle('checked', state[id]);
+            redraw();
+        }
+
+        // --- Coordinate Transformation ---
+        function canvasToWorld(cx, cy) {
+            const canvasCenterX = canvas.width / 2;
+            const canvasCenterY = canvas.height / 2;
+            const worldX = (cx - canvasCenterX - originOffset.x) / zoomLevel;
+            const worldY = (canvasCenterY - cy + originOffset.y) / zoomLevel;
+            return { x: worldX, y: worldY };
+        }
+
+        function worldToCanvas(wx, wy) {
+            const canvasCenterX = canvas.width / 2;
+            const canvasCenterY = canvas.height / 2;
+            const canvasX = canvasCenterX + originOffset.x + wx * zoomLevel;
+            const canvasY = canvasCenterY + originOffset.y - wy * zoomLevel;
+            return { x: canvasX, y: canvasY };
+        }
+
+        function findNearestGridPoint(worldPos) {
+            const step = determineGridStep(zoomLevel);
+            const gridX = Math.round(worldPos.x / step) * step;
+            const gridY = Math.round(worldPos.y / step) * step;
+            return { x: gridX, y: gridY };
+        }
+
+        function determineGridStep(zoom) {
+            const targetPixels = 80;
+            const roughStep = targetPixels / zoom;
+            const magnitude = Math.pow(10, Math.floor(Math.log10(roughStep)));
+            const residual = roughStep / magnitude;
+            if (residual < 1.5) return magnitude;
+            if (residual < 3.5) return 2 * magnitude;
+            if (residual < 7.5) return 5 * magnitude;
+            return 10 * magnitude;
+        }
+
+        function precision(step) {
+            if (step >= 1) return 0;
+            return Math.max(0, Math.ceil(-Math.log10(step)));
+        }
+
+        // --- Drawing Functions ---
+        function getThemeColors() {
+            const themes = {
+                light: {
+                    grid: '#e2e8f0',
+                    axes: '#475569',
+                    triangle: '#3b82f6',
+                    pointA: '#ef4444',
+                    pointB: '#3b82f6',
+                    pointC: '#22c55e',
+                    centroid: '#15803d',
+                    circumcenter: '#7e22ce',
+                    incenter: '#c2410c',
+                    orthocenter: '#b91c1c',
+                    medians: '#ca8a04',
+                    altitudes: '#dc2626',
+                    bisectors: '#ea580c',
+                    perpendicularBisectors: '#9333ea',
+                    euler: '#475569',
+                    circumcircle: '#9333ea',
+                    incircle: '#ea580c'
+                },
+                dark: {
+                    grid: '#374151',
+                    axes: '#9ca3af',
+                    triangle: '#60a5fa',
+                    pointA: '#f87171',
+                    pointB: '#60a5fa',
+                    pointC: '#4ade80',
+                    centroid: '#34d399',
+                    circumcenter: '#a78bfa',
+                    incenter: '#fb923c',
+                    orthocenter: '#f87171',
+                    medians: '#fbbf24',
+                    altitudes: '#f87171',
+                    bisectors: '#fb923c',
+                    perpendicularBisectors: '#a78bfa',
+                    euler: '#9ca3af',
+                    circumcircle: '#a78bfa',
+                    incircle: '#fb923c'
+                },
+                neon: {
+                    grid: '#1f2937',
+                    axes: '#00ffff',
+                    triangle: '#00ff00',
+                    pointA: '#ff0080',
+                    pointB: '#00ffff',
+                    pointC: '#ffff00',
+                    centroid: '#00ff00',
+                    circumcenter: '#ff00ff',
+                    incenter: '#ff8000',
+                    orthocenter: '#ff0080',
+                    medians: '#ffff00',
+                    altitudes: '#ff0080',
+                    bisectors: '#ff8000',
+                    perpendicularBisectors: '#ff00ff',
+                    euler: '#ffffff',
+                    circumcircle: '#ff00ff',
+                    incircle: '#ff8000'
+                },
+                ocean: {
+                    grid: '#dbeafe',
+                    axes: '#1e40af',
+                    triangle: '#2563eb',
+                    pointA: '#dc2626',
+                    pointB: '#2563eb',
+                    pointC: '#059669',
+                    centroid: '#047857',
+                    circumcenter: '#7c3aed',
+                    incenter: '#ea580c',
+                    orthocenter: '#b91c1c',
+                    medians: '#d97706',
+                    altitudes: '#dc2626',
+                    bisectors: '#ea580c',
+                    perpendicularBisectors: '#7c3aed',
+                    euler: '#1e40af',
+                    circumcircle: '#7c3aed',
+                    incircle: '#ea580c'
+                },
+                forest: {
+                    grid: '#d1fae5',
+                    axes: '#065f46',
+                    triangle: '#059669',
+                    pointA: '#dc2626',
+                    pointB: '#2563eb',
+                    pointC: '#16a34a',
+                    centroid: '#15803d',
+                    circumcenter: '#7c3aed',
+                    incenter: '#ea580c',
+                    orthocenter: '#b91c1c',
+                    medians: '#ca8a04',
+                    altitudes: '#dc2626',
+                    bisectors: '#ea580c',
+                    perpendicularBisectors: '#7c3aed',
+                    euler: '#065f46',
+                    circumcircle: '#7c3aed',
+                    incircle: '#ea580c'
+                }
+            };
+            return themes[currentTheme] || themes.light;
+        }
+
+        function drawAxes() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const center = worldToCanvas(0, 0);
+            const colors = getThemeColors();
+
+            // Grid
+            ctx.strokeStyle = colors.grid;
+            ctx.lineWidth = 0.5;
+            const fontSize = Math.max(10, 12 * Math.sqrt(zoomLevel / 40));
+            ctx.font = `${fontSize}px Inter`;
+            ctx.fillStyle = colors.axes;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const stepX = determineGridStep(zoomLevel);
+            const startWorldX = canvasToWorld(0, center.y).x;
+            const endWorldX = canvasToWorld(width, center.y).x;
+            const startGridX = Math.floor(startWorldX / stepX) * stepX;
+            const endGridX = Math.ceil(endWorldX / stepX) * stepX;
+
+            for (let x = startGridX; x <= endGridX; x += stepX) {
+                const screenX = worldToCanvas(x, 0).x;
+                ctx.beginPath();
+                ctx.moveTo(screenX, 0);
+                ctx.lineTo(screenX, height);
+                ctx.stroke();
+
+                const numY = center.y + fontSize * 1.5;
+                if (Math.abs(screenX - center.x) > fontSize * 1.5) {
+                    ctx.fillText(x.toFixed(precision(stepX)), screenX, numY);
+                }
+            }
+
+            const stepY = determineGridStep(zoomLevel);
+            const startWorldY = canvasToWorld(center.x, height).y;
+            const endWorldY = canvasToWorld(center.x, 0).y;
+            const startGridY = Math.floor(startWorldY / stepY) * stepY;
+            const endGridY = Math.ceil(endWorldY / stepY) * stepY;
+
+            for (let y = startGridY; y <= endGridY; y += stepY) {
+                const screenY = worldToCanvas(0, y).y;
+                ctx.beginPath();
+                ctx.moveTo(0, screenY);
+                ctx.lineTo(width, screenY);
+                ctx.stroke();
+
+                ctx.save();
+                ctx.textAlign = 'right';
+                ctx.fillText(y.toFixed(precision(stepY)), center.x - fontSize * 0.5, screenY);
+                ctx.restore();
+            }
+
+            // Main axes
+            ctx.strokeStyle = colors.axes;
+            ctx.lineWidth = 2;
+            
+            // X axis
+            ctx.beginPath();
+            ctx.moveTo(0, center.y);
+            ctx.lineTo(width, center.y);
+            ctx.stroke();
+
+            // Y axis
+            ctx.beginPath();
+            ctx.moveTo(center.x, 0);
+            ctx.lineTo(center.x, height);
+            ctx.stroke();
+
+            // Origin label
+            if (center.x > fontSize && center.x < width - fontSize && 
+                center.y > fontSize && center.y < height - fontSize) {
+                ctx.fillStyle = colors.axes;
+                ctx.fillText('0', center.x + fontSize * 0.7, center.y + fontSize * 0.7);
+            }
+        }
+
+        function drawPoint(p, color, label = '', size = pointRadius) {
+            const pos = worldToCanvas(p.x, p.y);
+            if (pos.x < -size || pos.x > canvas.width + size || 
+                pos.y < -size || pos.y > canvas.height + size) {
+                return;
+            }
+
+            // Glow effect
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 15;
+            ctx.fillStyle = color;
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, size, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+
+            // Inner highlight
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(pos.x - size * 0.3, pos.y - size * 0.3, size * 0.4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Label
+            if (label) {
+                ctx.fillStyle = color;
+                ctx.font = 'bold 16px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.fillText(label, pos.x, pos.y - size - 5);
+
+                ctx.font = '12px JetBrains Mono';
+                ctx.fillStyle = getThemeColors().axes;
+                ctx.textAlign = 'left';
+                const textX = pos.x + size + 8;
+                const textY = pos.y + 4;
+                const text = `(${p.x.toFixed(1)}, ${p.y.toFixed(1)})`;
+                const textWidth = ctx.measureText(text).width;
+                
+                if (textX + textWidth > canvas.width) {
+                    ctx.textAlign = 'right';
+                    ctx.fillText(text, pos.x - size - 8, textY);
+                } else {
+                    ctx.fillText(text, textX, textY);
+                }
+            }
+        }
+
+        function drawLine(p1, p2, color, lineWidth = 2, dashed = false, glowEffect = false) {
+            const start = worldToCanvas(p1.x, p1.y);
+            const end = worldToCanvas(p2.x, p2.y);
+            
+            if (glowEffect) {
+                ctx.shadowColor = color;
+                ctx.shadowBlur = 10;
+            }
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.setLineDash(dashed ? [8, 6] : []);
+            ctx.beginPath();
+            ctx.moveTo(start.x, start.y);
+            ctx.lineTo(end.x, end.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            
+            if (glowEffect) {
+                ctx.shadowBlur = 0;
+            }
+        }
+
+        function drawInfiniteLine(p1, p2, color, lineWidth = 2, dashed = false) {
+            const dx = p2.x - p1.x;
+            const dy = p2.y - p1.y;
+            if (Math.abs(dx) < 1e-9 && Math.abs(dy) < 1e-9) return;
+            
+            const scale = 10000;
+            const farP1 = { x: p1.x - dx * scale, y: p1.y - dy * scale };
+            const farP2 = { x: p1.x + dx * scale, y: p1.y + dy * scale };
+            drawLine(farP1, farP2, color, lineWidth, dashed, true);
+        }
+
+        function drawCircle(center, radius, color, lineWidth = 2, dashed = false) {
+            const pos = worldToCanvas(center.x, center.y);
+            const canvasRadius = radius * zoomLevel;
+            
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 8;
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.setLineDash(dashed ? [10, 5] : []);
+            ctx.beginPath();
+            ctx.arc(pos.x, pos.y, Math.max(0, canvasRadius), 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.shadowBlur = 0;
+        }
+
+        // --- Geometric Calculations ---
+        function distance(p1, p2) {
+            return Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
+        }
+
+        function midpoint(p1, p2) {
+            return { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+        }
+
+        function calculateArea(p1, p2, p3) {
+            return 0.5 * Math.abs(
+                p1.x * (p2.y - p3.y) +
+                p2.x * (p3.y - p1.y) +
+                p3.x * (p1.y - p2.y)
+            );
+        }
+
+        function calculatePerimeter(p1, p2, p3) {
+            return distance(p1, p2) + distance(p2, p3) + distance(p3, p1);
+        }
+
+        function calculateAngles(p1, p2, p3) {
+            const a = distance(p2, p3);
+            const b = distance(p1, p3);
+            const c = distance(p1, p2);
+            
+            const angleA = Math.acos((b*b + c*c - a*a) / (2*b*c)) * 180 / Math.PI;
+            const angleB = Math.acos((a*a + c*c - b*b) / (2*a*c)) * 180 / Math.PI;
+            const angleC = Math.acos((a*a + b*b - c*c) / (2*a*b)) * 180 / Math.PI;
+            
+            return { angleA, angleB, angleC };
+        }
+
+        function getTriangleType(p1, p2, p3) {
+            const a = distance(p2, p3);
+            const b = distance(p1, p3);
+            const c = distance(p1, p2);
+            
+            const sides = [a, b, c].sort((x, y) => x - y);
+            const [s1, s2, s3] = sides;
+            
+            // Check if equilateral
+            if (Math.abs(s1 - s2) < 0.01 && Math.abs(s2 - s3) < 0.01) {
+                return 'Equilátero';
+            }
+            
+            // Check if isosceles
+            if (Math.abs(s1 - s2) < 0.01 || Math.abs(s2 - s3) < 0.01) {
+                return 'Isósceles';
+            }
+            
+            // Check angle types
+            const angles = calculateAngles(p1, p2, p3);
+            const maxAngle = Math.max(angles.angleA, angles.angleB, angles.angleC);
+            
+            if (Math.abs(maxAngle - 90) < 0.1) {
+                return 'Rectángulo';
+            } else if (maxAngle > 90) {
+                return 'Obtusángulo';
+            } else {
+                return 'Acutángulo';
+            }
+        }
+
+        function calculateCentroid(p1, p2, p3) {
+            return { x: (p1.x + p2.x + p3.x) / 3, y: (p1.y + p2.y + p3.y) / 3 };
+        }
+
+        function calculateCircumcenter(p1, p2, p3) {
+            const D = 2 * (p1.x * (p2.y - p3.y) + p2.x * (p3.y - p1.y) + p3.x * (p1.y - p2.y));
+            if (Math.abs(D) < 1e-9) return null;
+            
+            const p1sq = p1.x * p1.x + p1.y * p1.y;
+            const p2sq = p2.x * p2.x + p2.y * p2.y;
+            const p3sq = p3.x * p3.x + p3.y * p3.y;
+            
+            const Ux = (p1sq * (p2.y - p3.y) + p2sq * (p3.y - p1.y) + p3sq * (p1.y - p2.y)) / D;
+            const Uy = (p1sq * (p3.x - p2.x) + p2sq * (p1.x - p3.x) + p3sq * (p2.x - p1.x)) / D;
+            
+            return { x: Ux, y: Uy };
+        }
+
+        function calculateIncenter(p1, p2, p3, sides) {
+            const [a, b, c] = sides;
+            const perimeter = a + b + c;
+            if (perimeter < 1e-9) return calculateCentroid(p1, p2, p3);
+            
+            const Ix = (a * p1.x + b * p2.x + c * p3.x) / perimeter;
+            const Iy = (a * p1.y + b * p2.y + c * p3.y) / perimeter;
+            
+            return { x: Ix, y: Iy };
+        }
+
+        function calculateInradius(area, perimeter) {
+            return perimeter < 1e-9 ? 0 : (2 * area) / perimeter;
+        }
+
+        function lineIntersection(p1, p2, p3, p4) {
+            if (!p1 || !p2 || !p3 || !p4) return null;
+            
+            const x1 = p1.x, y1 = p1.y, x2 = p2.x, y2 = p2.y;
+            const x3 = p3.x, y3 = p3.y, x4 = p4.x, y4 = p4.y;
+            
+            const den = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+            if (Math.abs(den) < 1e-9) return null;
+            
+            const tNum = (x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4);
+            const t = tNum / den;
+            
+            const intersectX = x1 + t * (x2 - x1);
+            const intersectY = y1 + t * (y2 - y1);
+            
+            if (!isFinite(intersectX) || !isFinite(intersectY)) return null;
+            return { x: intersectX, y: intersectY };
+        }
+
+        function getPerpendicularFoot(p, a, b) {
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const lenSq = dx*dx + dy*dy;
+            if (lenSq < 1e-9) return { ...a };
+            
+            const t = ((p.x - a.x)*dx + (p.y - a.y)*dy) / lenSq;
+            return { x: a.x + t*dx, y: a.y + t*dy };
+        }
+
+        function getPerpendicularBisectorPoint(mid, a, b) {
+            const dx = b.x - a.x, dy = b.y - a.y;
+            return { x: mid.x - dy, y: mid.y + dx };
+        }
+
+        function getAngleBisectorPoint(p, a, b) {
+            const lenPA = distance(p, a), lenPB = distance(p, b);
+            if (lenPA < 1e-9 || lenPB < 1e-9) return p;
+            
+            const uPA = { x: (a.x - p.x)/lenPA, y: (a.y - p.y)/lenPA };
+            const uPB = { x: (b.x - p.x)/lenPB, y: (b.y - p.y)/lenPB };
+            
+            const bisectorVec = { x: uPA.x + uPB.x, y: uPA.y + uPB.y };
+            const lenBis = Math.sqrt(bisectorVec.x**2 + bisectorVec.y**2);
+            if (lenBis < 1e-9) return p;
+            
+            const normBis = { x: bisectorVec.x/lenBis, y: bisectorVec.y/lenBis };
+            const scale = 100;
+            return { x: p.x + normBis.x * scale, y: p.y + normBis.y * scale };
+        }
+
+        function calculateOrthocenter(p1, p2, p3) {
+            if (arePointsCollinear(p1, p2, p3)) return null;
+            
+            const foot1 = getPerpendicularFoot(p1, p2, p3);
+            const foot2 = getPerpendicularFoot(p2, p1, p3);
+            
+            if (!foot1 || !foot2) return null;
+            return lineIntersection(p1, foot1, p2, foot2);
+        }
+
+        function arePointsCollinear(p1, p2, p3) {
+            return Math.abs(calculateArea(p1, p2, p3)) < 1e-9;
+        }
+
+        function arePointsCoincident(pointArray) {
+            if (!pointArray || pointArray.length < 2) return true;
+            
+            const nonNull = pointArray.filter(
+                p => p !== null && typeof p === 'object' && !isNaN(p.x) && !isNaN(p.y)
+            );
+            if (nonNull.length < 2) return true;
+            
+            const ref = nonNull[0];
+            for (let i = 1; i < nonNull.length; i++) {
+                if (distance(ref, nonNull[i]) > 1e-6) return false;
+            }
+            return true;
+        }
+
+        // --- Main Drawing Functions ---
+        function drawTriangle() {
+            const colors = getThemeColors();
+            drawLine(points[0], points[1], colors.triangle, 3, false, true);
+            drawLine(points[1], points[2], colors.triangle, 3, false, true);
+            drawLine(points[2], points[0], colors.triangle, 3, false, true);
+        }
+
+        function drawGeometricFeatures() {
+            const [p1, p2, p3] = points;
+            const colors = getThemeColors();
+            
+            // Skip if collinear
+            if (arePointsCollinear(p1, p2, p3)) return;
+            
+            const sides = [distance(p2, p3), distance(p1, p3), distance(p1, p2)];
+            const triangleArea = calculateArea(p1, p2, p3);
+            const trianglePerimeter = calculatePerimeter(p1, p2, p3);
+            
+            // Calculate centers
+            const centroid = calculateCentroid(p1, p2, p3);
+            const circumcenter = calculateCircumcenter(p1, p2, p3);
+            const incenter = calculateIncenter(p1, p2, p3, sides);
+            const orthocenter = calculateOrthocenter(p1, p2, p3);
+            
+            // Draw elements based on state
+            if (state.showCentroid && centroid) {
+                drawPoint(centroid, colors.centroid, 'G', 8);
+            }
+            
+            if (state.showMedians && centroid) {
+                const mid1 = midpoint(p2, p3);
+                const mid2 = midpoint(p1, p3);
+                const mid3 = midpoint(p1, p2);
+                drawLine(p1, mid1, colors.medians, 2, true, true);
+                drawLine(p2, mid2, colors.medians, 2, true, true);
+                drawLine(p3, mid3, colors.medians, 2, true, true);
+                drawPoint(mid1, colors.medians, '', 4);
+                drawPoint(mid2, colors.medians, '', 4);
+                drawPoint(mid3, colors.medians, '', 4);
+            }
+            
+            if (state.showAltitudes && orthocenter) {
+                const foot1 = getPerpendicularFoot(p1, p2, p3);
+                const foot2 = getPerpendicularFoot(p2, p1, p3);
+                const foot3 = getPerpendicularFoot(p3, p1, p2);
+                drawLine(p1, foot1, colors.altitudes, 2, true, true);
+                drawLine(p2, foot2, colors.altitudes, 2, true, true);
+                drawLine(p3, foot3, colors.altitudes, 2, true, true);
+                drawPoint(foot1, colors.altitudes, '', 4);
+                drawPoint(foot2, colors.altitudes, '', 4);
+                drawPoint(foot3, colors.altitudes, '', 4);
+            }
+            
+            if (state.showOrthocenter && orthocenter) {
+                drawPoint(orthocenter, colors.orthocenter, 'H', 8);
+            }
+            
+            if (state.showPerpendicularBisectors && circumcenter) {
+                const mid1 = midpoint(p2, p3);
+                const mid2 = midpoint(p1, p3);
+                const mid3 = midpoint(p1, p2);
+                drawInfiniteLine(mid1, getPerpendicularBisectorPoint(mid1, p2, p3), colors.perpendicularBisectors, 2, true);
+                drawInfiniteLine(mid2, getPerpendicularBisectorPoint(mid2, p1, p3), colors.perpendicularBisectors, 2, true);
+                drawInfiniteLine(mid3, getPerpendicularBisectorPoint(mid3, p1, p2), colors.perpendicularBisectors, 2, true);
+            }
+            
+            if (state.showCircumcenter && circumcenter) {
+                drawPoint(circumcenter, colors.circumcenter, 'O', 8);
+            }
+            
+            if (state.showAngleBisectors && incenter) {
+                const bisectorEnd1 = lineIntersection(p1, getAngleBisectorPoint(p1, p2, p3), p2, p3);
+                const bisectorEnd2 = lineIntersection(p2, getAngleBisectorPoint(p2, p1, p3), p1, p3);
+                const bisectorEnd3 = lineIntersection(p3, getAngleBisectorPoint(p3, p1, p2), p1, p2);
+                if (bisectorEnd1) drawLine(p1, bisectorEnd1, colors.bisectors, 2, true, true);
+                if (bisectorEnd2) drawLine(p2, bisectorEnd2, colors.bisectors, 2, true, true);
+                if (bisectorEnd3) drawLine(p3, bisectorEnd3, colors.bisectors, 2, true, true);
+            }
+            
+            if (state.showIncenter && incenter) {
+                drawPoint(incenter, colors.incenter, 'I', 8);
+            }
+            
+            if (state.showEulerLine && centroid && circumcenter && orthocenter) {
+                const pointsForEuler = [centroid, circumcenter, orthocenter];
+                if (!arePointsCoincident(pointsForEuler)) {
+                    pointsForEuler.sort((a, b) => a.x - b.x);
+                    drawInfiniteLine(pointsForEuler[0], pointsForEuler[pointsForEuler.length - 1], colors.euler, 3, true);
+                }
+            }
+            
+            if (state.showCircumscribedCircle && circumcenter) {
+                const circumRadius = distance(circumcenter, p1);
+                drawCircle(circumcenter, circumRadius, colors.circumcircle, 2, true);
+            }
+            
+            if (state.showInscribedCircle && incenter) {
+                const inRadius = calculateInradius(triangleArea, trianglePerimeter);
+                drawCircle(incenter, inRadius, colors.incircle, 2, true);
+            }
+            
+            // Update information panel
+            updateInfoPanel(triangleArea, trianglePerimeter, sides, p1, p2, p3);
+        }
+
+        function updateInfoPanel(area, perimeter, sides, p1, p2, p3) {
+            document.getElementById('areaValue').textContent = area.toFixed(3);
+            document.getElementById('perimeterValue').textContent = perimeter.toFixed(3);
+            document.getElementById('sideA').textContent = sides[0].toFixed(3);
+            document.getElementById('sideB').textContent = sides[1].toFixed(3);
+            document.getElementById('sideC').textContent = sides[2].toFixed(3);
+            
+            const angles = calculateAngles(p1, p2, p3);
+            document.getElementById('angleA').textContent = angles.angleA.toFixed(1) + '°';
+            document.getElementById('angleB').textContent = angles.angleB.toFixed(1) + '°';
+            document.getElementById('angleC').textContent = angles.angleC.toFixed(1) + '°';
+            
+            document.getElementById('triangleType').textContent = getTriangleType(p1, p2, p3);
+        }
+
+        function redraw() {
+            const parent = canvas.parentElement;
+            const newWidth = Math.max(10, parent.clientWidth);
+            const newHeight = Math.max(10, parent.clientHeight);
+            
+            if (canvas.width !== newWidth || canvas.height !== newHeight) {
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+            }
+            
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            drawAxes();
+            drawGeometricFeatures();
+            drawTriangle();
+            
+            // Draw vertices
+            const colors = getThemeColors();
+            drawPoint(points[0], colors.pointA, 'A', pointRadius);
+            drawPoint(points[1], colors.pointB, 'B', pointRadius);
+            drawPoint(points[2], colors.pointC, 'C', pointRadius);
+        }
+
+        // --- Event Handlers ---
+        function getMousePos(event) {
+            const rect = canvas.getBoundingClientRect();
+            const clientX = event.touches ? event.touches[0].clientX : event.clientX;
+            const clientY = event.touches ? event.touches[0].clientY : event.clientY;
+            return { x: clientX - rect.left, y: clientY - rect.top };
+        }
+
+        function handleMouseDown(event) {
+            event.preventDefault();
+            
+            // Handle pinch zoom
+            if (event.touches && event.touches.length === 2) {
+                pinchZoom = true;
+                isDraggingPoint = -1;
+                isPanning = false;
+                
+                const touch1 = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+                const touch2 = { x: event.touches[1].clientX, y: event.touches[1].clientY };
+                pinchInitialDist = Math.sqrt((touch2.x - touch1.x)**2 + (touch2.y - touch1.y)**2);
+                pinchStartZoom = zoomLevel;
+                
+                const midTouchCanvas = {
+                    x: (touch1.x + touch2.x) / 2 - canvas.getBoundingClientRect().left,
+                    y: (touch1.y + touch2.y) / 2 - canvas.getBoundingClientRect().top
+                };
+                pinchCenterWorld = canvasToWorld(midTouchCanvas.x, midTouchCanvas.y);
+                return;
+            }
+            
+            const mousePos = getMousePos(event);
+            lastMousePos = mousePos;
+            isDraggingPoint = -1;
+            
+            // Check for point dragging
+            for (let i = 0; i < points.length; i++) {
+                const pointCanvasPos = worldToCanvas(points[i].x, points[i].y);
+                const dist = Math.sqrt((mousePos.x - pointCanvasPos.x)**2 + (mousePos.y - pointCanvasPos.y)**2);
+                if (dist <= pointGrabRadius) {
+                    isDraggingPoint = i;
+                    canvas.style.cursor = 'grabbing';
+                    break;
+                }
+            }
+            
+            if (isDraggingPoint === -1) {
+                isPanning = true;
+                canvas.style.cursor = 'grabbing';
+            }
+        }
+
+        function handleMouseMove(event) {
+            event.preventDefault();
+            
+            // Handle pinch zoom
+            if (pinchZoom && event.touches && event.touches.length === 2) {
+                const touch1 = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+                const touch2 = { x: event.touches[1].clientX, y: event.touches[1].clientY };
+                const distNow = Math.sqrt((touch2.x - touch1.x)**2 + (touch2.y - touch1.y)**2);
+                
+                const ratio = distNow / pinchInitialDist;
+                let newZoom = pinchStartZoom * ratio;
+                newZoom = Math.max(minZoom, Math.min(maxZoom, newZoom));
+                
+                zoomLevel = newZoom;
+                const currentCanvasCenterPos = worldToCanvas(pinchCenterWorld.x, pinchCenterWorld.y);
+                const midTouchCanvas = {
+                    x: (touch1.x + touch2.x) / 2 - canvas.getBoundingClientRect().left,
+                    y: (touch1.y + touch2.y) / 2 - canvas.getBoundingClientRect().top
+                };
+                originOffset.x += (midTouchCanvas.x - currentCanvasCenterPos.x);
+                originOffset.y += (midTouchCanvas.y - currentCanvasCenterPos.y);
+                
+                redraw();
+                return;
+            }
+            
+            const mousePos = getMousePos(event);
+            
+            if (isDraggingPoint !== -1) {
+                let targetWorldPos = canvasToWorld(mousePos.x, mousePos.y);
+                const nearestGridPoint = findNearestGridPoint(targetWorldPos);
+                const nearestGridCanvasPos = worldToCanvas(nearestGridPoint.x, nearestGridPoint.y);
+                const distToGridPx = Math.sqrt((mousePos.x - nearestGridCanvasPos.x)**2 + (mousePos.y - nearestGridCanvasPos.y)**2);
+                
+                if (distToGridPx <= snapDistancePixels) {
+                    targetWorldPos = nearestGridPoint;
+                }
+                
+                points[isDraggingPoint] = targetWorldPos;
+                updateInputsFromPoints();
+                redraw();
+            } else if (isPanning) {
+                const dx = mousePos.x - lastMousePos.x;
+                const dy = mousePos.y - lastMousePos.y;
+                originOffset.x += dx;
+                originOffset.y += dy;
+                redraw();
+            } else {
+                // Update cursor based on hover
+                let hoveringPoint = false;
+                for (let i = 0; i < points.length; i++) {
+                    const pc = worldToCanvas(points[i].x, points[i].y);
+                    const dist = Math.sqrt((mousePos.x - pc.x)**2 + (mousePos.y - pc.y)**2);
+                    if (dist <= pointGrabRadius) {
+                        hoveringPoint = true;
+                        break;
+                    }
+                }
+                canvas.style.cursor = hoveringPoint ? 'pointer' : 'grab';
+            }
+            
+            lastMousePos = mousePos;
+        }
+
+        function handleMouseUp(event) {
+            event.preventDefault();
+            
+            if (pinchZoom && (!event.touches || event.touches.length < 2)) {
+                pinchZoom = false;
+                redraw();
+                return;
+            }
+            
+            if (isDraggingPoint !== -1) {
+                const finalPos = points[isDraggingPoint];
+                const nearestGridPoint = findNearestGridPoint(finalPos);
+                const finalCanvasPos = worldToCanvas(finalPos.x, finalPos.y);
+                const nearestGridCanvasPos = worldToCanvas(nearestGridPoint.x, nearestGridPoint.y);
+                const distToGridPx = Math.sqrt(
+                    (finalCanvasPos.x - nearestGridCanvasPos.x)**2 + (finalCanvasPos.y - nearestGridCanvasPos.y)**2
+                );
+                
+                if (distToGridPx <= snapDistancePixels) {
+                    points[isDraggingPoint] = nearestGridPoint;
+                    updateInputsFromPoints();
+                }
+                
+                isDraggingPoint = -1;
+                canvas.style.cursor = 'grab';
+                redraw();
+            } else if (isPanning) {
+                isPanning = false;
+                canvas.style.cursor = 'grab';
+            }
+        }
+
+        function handleWheel(event) {
+            event.preventDefault();
+            const mousePos = getMousePos(event);
+            const worldPosBeforeZoom = canvasToWorld(mousePos.x, mousePos.y);
+            const scale = event.deltaY < 0 ? zoomFactor : 1 / zoomFactor;
+            const newZoomLevel = Math.max(minZoom, Math.min(maxZoom, zoomLevel * scale));
+            
+            if (Math.abs(newZoomLevel - zoomLevel) < 1e-6) return;
+            
+            zoomLevel = newZoomLevel;
+            const worldPosAfterZoom = canvasToWorld(mousePos.x, mousePos.y);
+            originOffset.x += (worldPosAfterZoom.x - worldPosBeforeZoom.x) * zoomLevel;
+            originOffset.y -= (worldPosAfterZoom.y - worldPosBeforeZoom.y) * zoomLevel;
+            
+            redraw();
+        }
+
+        function handleInputChange() {
+            try {
+                const x1 = parseFloat(inputs.x1.value), y1 = parseFloat(inputs.y1.value);
+                if (!isNaN(x1) && !isNaN(y1)) points[0] = { x: x1, y: y1 };
+            } catch (e) {}
+            try {
+                const x2 = parseFloat(inputs.x2.value), y2 = parseFloat(inputs.y2.value);
+                if (!isNaN(x2) && !isNaN(y2)) points[1] = { x: x2, y: y2 };
+            } catch (e) {}
+            try {
+                const x3 = parseFloat(inputs.x3.value), y3 = parseFloat(inputs.y3.value);
+                if (!isNaN(x3) && !isNaN(y3)) points[2] = { x: x3, y: y3 };
+            } catch (e) {}
+            redraw();
+        }
+
+        function updateInputsFromPoints() {
+            const prec = precision(determineGridStep(zoomLevel)) + 1;
+            inputs.x1.value = points[0].x.toFixed(prec);
+            inputs.y1.value = points[0].y.toFixed(prec);
+            inputs.x2.value = points[1].x.toFixed(prec);
+            inputs.y2.value = points[1].y.toFixed(prec);
+            inputs.x3.value = points[2].x.toFixed(prec);
+            inputs.y3.value = points[2].y.toFixed(prec);
+        }
+
+        function resetView() {
+            zoomLevel = 40;
+            originOffset = { x: 0, y: 0 };
+            points = [
+                { x: -2, y: -1 },
+                { x: 3, y: -2 },
+                { x: 1, y: 3 }
+            ];
+            updateInputsFromPoints();
+            redraw();
+        }
+
+        // --- Resizer Functionality ---
+        let isResizing = false;
+        let startX = 0;
+        let startWidth = 0;
+
+        function initResizer() {
+            const resizer = document.getElementById('resizer');
+            const sidebar = document.getElementById('sidebar');
+
+            resizer.addEventListener('mousedown', (e) => {
+                isResizing = true;
+                startX = e.clientX;
+                startWidth = parseInt(document.defaultView.getComputedStyle(sidebar).width, 10);
+                resizer.classList.add('resizing');
+                document.body.style.cursor = 'col-resize';
+                document.body.style.userSelect = 'none';
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing) return;
+                
+                const width = startWidth + e.clientX - startX;
+                const minWidth = 280;
+                const maxWidth = Math.min(500, window.innerWidth * 0.6);
+                
+                if (width >= minWidth && width <= maxWidth) {
+                    sidebar.style.width = width + 'px';
+                    sidebar.style.minWidth = width + 'px';
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('resizing');
+                    document.body.style.cursor = '';
+                    document.body.style.userSelect = '';
+                    redraw(); // Redraw canvas after resize
+                }
+            });
+
+            // Touch events for mobile
+            resizer.addEventListener('touchstart', (e) => {
+                isResizing = true;
+                startX = e.touches[0].clientX;
+                startWidth = parseInt(document.defaultView.getComputedStyle(sidebar).width, 10);
+                resizer.classList.add('resizing');
+            }, { passive: true });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isResizing) return;
+                
+                const width = startWidth + e.touches[0].clientX - startX;
+                const minWidth = 280;
+                const maxWidth = Math.min(500, window.innerWidth * 0.6);
+                
+                if (width >= minWidth && width <= maxWidth) {
+                    sidebar.style.width = width + 'px';
+                    sidebar.style.minWidth = width + 'px';
+                }
+            }, { passive: true });
+
+            document.addEventListener('touchend', () => {
+                if (isResizing) {
+                    isResizing = false;
+                    resizer.classList.remove('resizing');
+                    redraw();
+                }
+            });
+        }
+
+        // --- Initialization ---
+        function init() {
+            updateInputsFromPoints();
+            redraw();
+            initResizer(); // Initialize resizer functionality
+            
+            // Event listeners
+            Object.values(inputs).forEach(input => {
+                input.addEventListener('input', handleInputChange);
+            });
+            
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mouseleave', handleMouseUp);
+            canvas.addEventListener('touchstart', handleMouseDown, { passive: false });
+            canvas.addEventListener('touchmove', handleMouseMove, { passive: false });
+            canvas.addEventListener('touchend', handleMouseUp);
+            canvas.addEventListener('touchcancel', handleMouseUp);
+            canvas.addEventListener('wheel', handleWheel, { passive: false });
+            
+            // Resize observer
+            const resizeObserver = new ResizeObserver(() => {
+                redraw();
+            });
+            resizeObserver.observe(canvas.parentElement);
+            
+            // Window resize handler
+            window.addEventListener('resize', () => {
+                setTimeout(redraw, 100);
+            });
+        }
+
+        // Start the application
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
