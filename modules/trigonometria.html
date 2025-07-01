@@ -335,7 +335,6 @@
 
         .coord-grid {
             display: grid;
-            /* --- MODIFICADO: Cambiado a una columna para apilar los controles --- */
             grid-template-columns: 1fr;
             gap: 1rem;
             margin-bottom: 1.5rem;
@@ -762,12 +761,38 @@
              box-shadow: var(--shadow);
         }
 
+        .canvas-resizer {
+            display: none;
+            height: 20px;
+            background-color: var(--glass-bg);
+            cursor: ns-resize;
+            border-radius: 10px;
+            margin: 0.5rem 1rem 0 1rem;
+            border: 1px solid var(--glass-border);
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .canvas-resizer:hover {
+            background-color: var(--accent-secondary);
+        }
+
+        .canvas-resizer::before {
+            content: '•••';
+            color: var(--text-secondary);
+            font-weight: bold;
+            letter-spacing: 4px;
+            font-size: 12px;
+        }
+
 
         /* Responsive Design */
         @media (max-width: 1024px) {
             .main-container {
                 flex-direction: column;
                 height: auto;
+                min-height: 100vh;
             }
             .sidebar {
                 position: fixed;
@@ -793,6 +818,12 @@
             .canvas-container {
                 margin: 1rem;
                 height: 60vh;
+                min-height: 200px;
+                max-height: 90vh;
+            }
+            
+            .canvas-resizer {
+                display: flex;
             }
             
             .settings-btn-container {
@@ -822,6 +853,10 @@
             }
 
             .canvas-container {
+                margin: 0.5rem;
+            }
+            
+            .canvas-resizer {
                 margin: 0.5rem;
             }
 
@@ -1071,6 +1106,8 @@
                 <button class="settings-btn" id="settings-btn" title="Ajustes">⚙️</button>
             </div>
         </div>
+        <!-- Canvas Resizer for Mobile -->
+        <div class="canvas-resizer" id="canvas-resizer"></div>
     </div>
 
     <!-- Settings Modal -->
@@ -2103,6 +2140,62 @@
             });
         }
 
+        // --- Canvas Resizer (Mobile) ---
+        function initCanvasResizer() {
+            const resizer = document.getElementById('canvas-resizer');
+            const canvasContainer = document.querySelector('.canvas-container');
+            if (!resizer || !canvasContainer) return;
+
+            let isCanvasResizing = false;
+            let lastY = 0;
+
+            const onPointerDown = (e) => {
+                isCanvasResizing = true;
+                lastY = e.clientY || e.touches[0].clientY;
+                document.body.style.cursor = 'ns-resize';
+                document.body.style.userSelect = 'none';
+                
+                document.addEventListener('mousemove', onPointerMove);
+                document.addEventListener('touchmove', onPointerMove, { passive: false });
+                document.addEventListener('mouseup', onPointerUp);
+                document.addEventListener('touchend', onPointerUp);
+            };
+
+            const onPointerMove = (e) => {
+                if (!isCanvasResizing) return;
+                e.preventDefault();
+
+                const currentY = e.clientY || e.touches[0].clientY;
+                const deltaY = currentY - lastY;
+                lastY = currentY;
+
+                const currentHeight = canvasContainer.offsetHeight;
+                let newHeight = currentHeight + deltaY;
+
+                const minHeight = 200; // px
+                const maxHeight = window.innerHeight * 0.9; // 90vh
+                newHeight = Math.max(minHeight, Math.min(newHeight, maxHeight));
+
+                canvasContainer.style.height = `${newHeight}px`;
+                redraw();
+            };
+
+            const onPointerUp = () => {
+                isCanvasResizing = false;
+                document.body.style.cursor = '';
+                document.body.style.userSelect = '';
+
+                document.removeEventListener('mousemove', onPointerMove);
+                document.removeEventListener('touchmove', onPointerMove);
+                document.removeEventListener('mouseup', onPointerUp);
+                document.removeEventListener('touchend', onPointerUp);
+            };
+
+            resizer.addEventListener('mousedown', onPointerDown);
+            resizer.addEventListener('touchstart', onPointerDown, { passive: true });
+        }
+
+
         // --- Modal Functionality ---
         function initModals() {
             const settingsModal = document.getElementById('settings-modal');
@@ -2143,9 +2236,10 @@
         // --- Initialization ---
         function init() {
             updateInputsFromPoints();
-            redraw();
             initResizer();
+            initCanvasResizer();
             initModals();
+            redraw();
             
             Object.values(inputs).forEach(input => {
                 input.addEventListener('input', handleInputChange);
