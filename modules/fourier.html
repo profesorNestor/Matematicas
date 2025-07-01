@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fourier Series - Ultra Modern Visualizer</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
+    <title>Visualizador de Series de Fourier - Edición Cósmica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
@@ -12,209 +13,101 @@
     <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Solve.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
         
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --dark-bg: #0a0a0f;
-            --card-bg: rgba(15, 15, 30, 0.85);
-            --glass-bg: rgba(255, 255, 255, 0.08);
-            --border-color: rgba(255, 255, 255, 0.12);
-            --text-primary: #e0e0e0;
-            --text-secondary: #9ca3af;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --error-color: #ef4444;
+            --bg-dark: #020617;
+            --bg-panel: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(56, 189, 248, 0.2);
+            --glass-border-hover: rgba(56, 189, 248, 0.5);
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --accent-primary: #22d3ee;
+            --accent-secondary: #f43f5e;
+            --accent-glow: rgba(34, 211, 238, 0.5);
+            --shadow-color: rgba(0, 0, 0, 0.5);
         }
 
-        body {
+        html, body {
+            height: 100%;
             font-family: 'Inter', sans-serif;
-            background: var(--dark-bg);
-            background-image: 
-                radial-gradient(circle at 25% 25%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 75% 75%, rgba(245, 87, 108, 0.1) 0%, transparent 50%);
+            background-color: var(--bg-dark);
             color: var(--text-primary);
-            overflow-y: auto;
+            overflow: hidden;
+        }
+
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
         }
 
         .app-container {
+            position: relative;
+            z-index: 1;
             display: grid;
-            width: 100%;
-            max-width: 1800px;
-            margin: 0 auto;
-            grid-template-columns: 380px 1fr;
-            grid-template-rows: auto 1fr;
-            grid-template-areas: 
-                "header header"
-                "sidebar main";
-            min-height: 100vh;
-            gap: 20px;
-            padding: 20px;
+            grid-template-columns: 420px 1fr;
+            gap: 1.5rem;
+            height: 100vh;
+            padding: 1.5rem;
         }
 
-        .header {
-            grid-area: header;
-            text-align: center;
-            padding: 20px 0;
-        }
-
-        .main-title {
-            font-size: 3.5rem;
-            font-weight: 700;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 10px;
-            text-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
-            animation: titleGlow 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes titleGlow {
-            from { filter: brightness(1) drop-shadow(0 0 20px rgba(102, 126, 234, 0.3)); }
-            to { filter: brightness(1.2) drop-shadow(0 0 30px rgba(102, 126, 234, 0.6)); }
-        }
-
-        .subtitle {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            font-weight: 400;
-        }
-
-        .sidebar {
-            grid-area: sidebar;
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
+        .glass-panel {
+            background: var(--bg-panel);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--glass-border);
             border-radius: 24px;
-            padding: 30px;
+            box-shadow: 0 8px 32px var(--shadow-color);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .control-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            padding: 1.5rem;
             overflow-y: auto;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .main-content {
-            grid-area: main;
             display: flex;
             flex-direction: column;
-            gap: 15px;
         }
 
-        .section {
-            background: var(--card-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .section:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 40px rgba(102, 126, 234, 0.2);
-        }
-
-        .section-title {
+        .panel-title {
             font-size: 1.5rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .graph-container {
-            flex: 1;
-            position: relative;
-            min-height: 500px;
-            background: rgba(10, 10, 15, 0.8);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--border-color);
-        }
-
-        #canvas {
-            width: 100%;
-            height: 100%;
-            cursor: grab;
-            touch-action: none; 
-        }
-
-        #canvas:active {
-            cursor: grabbing;
-        }
-
-        .controls-overlay {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 15px;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
-            font-size: 0.9rem;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .function-type-selector {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-
-        .type-btn {
-            flex: 1;
-            padding: 14px 18px;
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
+            font-weight: 800;
             color: var(--text-primary);
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .type-btn:hover {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: #667eea;
-        }
-
-        .type-btn.active {
-            background: var(--primary-gradient);
-            border-color: transparent;
-            color: white;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px var(--accent-glow);
         }
 
         .input-group {
-            margin-bottom: 25px;
+            margin-bottom: 1rem;
         }
 
         .input-label {
             display: block;
-            margin-bottom: 10px;
+            margin-bottom: 0.5rem;
             color: var(--text-secondary);
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
         .modern-input {
             width: 100%;
-            padding: 16px 18px;
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
+            padding: 12px 16px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid var(--glass-border);
             border-radius: 12px;
             color: var(--text-primary);
             font-size: 1rem;
@@ -222,1200 +115,875 @@
             outline: none;
         }
 
-        .modern-input:focus, .modern-input.active-input-glow {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-            box-shadow: 0 0 20px rgba(102, 126, 234, 0.2);
+        .modern-input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 15px var(--accent-glow);
         }
 
-        .piecewise-container {
-            display: none;
-            margin-top: 10px;
-        }
-
-        .piece-group {
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-        }
-
-        .piece-title {
-            color: var(--text-secondary);
-            font-size: 0.8rem;
-            margin-bottom: 8px;
-            font-weight: 500;
-        }
-
-        .piece-inputs {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-        }
-
-        .piece-inputs input {
-            flex: 1;
-        }
-
-        .harmonics-widget {
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 25px;
-            margin-bottom: 25px;
-        }
-
-        .harmonics-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: var(--text-primary);
-        }
-
-        .harmonics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
-            gap: 10px;
-            margin-bottom: 20px;
-            min-height: 120px;
-        }
-
-        .harmonic-btn {
-            width: 50px;
-            height: 50px;
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            background: var(--glass-bg);
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-            font-weight: 600;
+        .action-button {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, #0ea5e9 100%);
+            color: var(--bg-dark);
+            font-weight: 700;
+            padding: 14px;
+            border-radius: 12px;
+            border: none;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 0.5rem;
         }
-
-        .harmonic-btn:hover {
-            border-color: #667eea;
-            color: var(--text-primary);
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px var(--accent-glow);
         }
-
-        .harmonic-btn.active {
-            background: var(--primary-gradient);
-            border-color: transparent;
-            color: white;
-            transform: scale(1.05);
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        
+        .slider-group {
+            padding: 1rem 0.5rem;
         }
-
-        .harmonics-controls {
-            display: flex;
-            gap: 12px;
+        .slider {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 4px;
+            background: var(--glass-border);
+            outline: none;
+            border-radius: 2px;
+            transition: opacity .2s;
         }
-
-        .control-btn {
-            flex: 1;
-            padding: 10px 14px;
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            color: var(--text-primary);
-            font-size: 0.85rem;
-            font-weight: 500;
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--accent-primary);
             cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .control-btn:hover {
-            background: rgba(102, 126, 234, 0.2);
-            border-color: #667eea;
-        }
-
-        .modern-btn {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 14px 28px;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-            margin-right: 10px;
-            margin-bottom: 10px;
-        }
-
-        .modern-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(102, 126, 234, 0.4);
-        }
-
-        .modern-btn:active {
-            transform: translateY(0);
-        }
-
-        .modern-btn.secondary {
-            background: var(--secondary-gradient);
-        }
-
-        .coefficients-display {
-            max-height: 300px;
-            overflow-y: auto;
-            margin-top: 20px;
-        }
-
-        .coefficient-item {
-            background: var(--glass-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            font-family: 'Monaco', 'Menlo', monospace;
-            transition: all 0.3s ease;
-        }
-
-        .coefficient-item:hover {
-            background: rgba(102, 126, 234, 0.1);
-            border-color: rgba(102, 126, 234, 0.5);
-        }
-
-        .coefficient-value {
-            color: #4facfe;
-            font-weight: 600;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
             border-radius: 50%;
-            margin-right: 8px;
+            box-shadow: 0 0 10px var(--accent-glow);
+        }
+        .slider::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--accent-primary);
+            cursor: pointer;
+            border-radius: 50%;
         }
 
-        .status-ready { background: var(--success-color); }
-        .status-calculating { background: var(--warning-color); animation: pulse 1s infinite; }
-        .status-error { background: var(--error-color); }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .graph-container {
+            flex-grow: 1;
+            position: relative;
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
         }
-
-        .loading-overlay, .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
+        #canvas {
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            cursor: grab;
+        }
+        #canvas:active { cursor: grabbing; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(2, 6, 23, 0.8);
             backdrop-filter: blur(10px);
             display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            padding: 20px;
+            align-items: center; justify-content: center;
+            z-index: 1000; padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
-
-        .loading-overlay.active, .modal-overlay.active {
-            display: flex;
-        }
+        .modal-overlay.active { display: flex; opacity: 1; }
         
         .modal-content {
-            background: var(--card-bg);
-            padding: 30px;
+            background: var(--bg-panel);
+            padding: 2rem;
             border-radius: 24px;
-            border: 1px solid var(--border-color);
-            max-width: 800px;
+            border: 1px solid var(--glass-border);
+            max-width: 900px;
             width: 100%;
             max-height: 90vh;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 40px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
         }
-        
-        #formulas-content {
-            font-family: 'Inter', sans-serif;
-            font-size: 1.2rem;
-            line-height: 2.5;
-            color: var(--text-primary);
-            overflow: auto;
-            max-height: calc(90vh - 150px);
-        }
-        
-        #formulas-content h3 {
-            font-size: 1.5rem;
-            color: var(--text-primary);
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 10px;
-        }
-        
-        .mjx-container {
-            overflow-x: auto;
-            overflow-y: hidden;
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
         }
 
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid var(--border-color);
-            border-top: 3px solid #667eea;
+        #formulas-content {
+            font-size: 1.2rem;
+            line-height: 2.5;
+            overflow: auto;
+            padding-right: 1rem;
+        }
+        #formulas-content h3 {
+            font-size: 1.5rem;
+            color: var(--accent-primary);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid var(--glass-border);
+            padding-bottom: 0.5rem;
+        }
+        
+        .loading-spinner {
+            width: 50px; height: 50px;
+            border: 4px solid var(--glass-border);
+            border-top: 4px solid var(--accent-primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .zoom-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
+        .function-type-selector {
             display: flex;
-            flex-direction: column;
-            gap: 5px;
-            z-index: 10;
+            background: rgba(0,0,0,0.3);
+            border-radius: 12px;
+            padding: 4px;
+            margin-bottom: 1rem;
         }
-
-        .zoom-btn {
-            width: 40px;
-            height: 40px;
-            background: rgba(0, 0, 0, 0.8);
-            backdrop-filter: blur(10px);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            color: var(--text-primary);
+        .type-btn {
+            flex: 1;
+            padding: 8px;
+            background: transparent;
+            border: none;
+            border-radius: 9px;
+            color: var(--text-secondary);
+            font-weight: 600;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
             transition: all 0.3s ease;
         }
-
-        .zoom-btn:hover {
-            background: rgba(102, 126, 234, 0.3);
-            border-color: #667eea;
+        .type-btn.active {
+            background: var(--accent-primary);
+            color: var(--bg-dark);
+            box-shadow: 0 0 10px var(--accent-glow);
         }
-        
+
+        .piecewise-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .piece-group {
+            padding: 1rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: rgba(0,0,0,0.2);
+        }
+
         .collapsible-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             cursor: pointer;
-            padding: 10px;
-            background: var(--glass-bg);
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.2);
             border-radius: 12px;
-            margin-bottom: 10px;
+            transition: background 0.2s ease;
         }
-        
-        .collapsible-header .section-title {
-            margin: 0;
-            font-size: 1.1rem;
+        .collapsible-header:hover {
+            background: rgba(0,0,0,0.4);
         }
-        
-        .collapsible-icon {
-            font-size: 1.5rem;
-            transition: transform 0.3s ease;
-        }
-        
-        .collapsible-content {
-            padding: 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            margin-top: -10px;
-        }
-        
-        .keyboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
-            gap: 8px;
-        }
-        
-        .key-btn {
-            padding: 10px;
-            font-size: 1rem;
+        .collapsible-title {
             font-weight: 600;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
-        
+        .collapsible-icon {
+            transition: transform 0.3s ease-out;
+            font-style: normal;
+        }
+        .collapsible-content {
+            padding: 1rem 0.5rem 0.5rem;
+            display: none;
+        }
         .color-control {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 1rem;
         }
-
-        .color-control label {
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
         .modern-color-picker {
             -webkit-appearance: none;
             -moz-appearance: none;
             appearance: none;
-            width: 40px;
-            height: 40px;
+            width: 32px;
+            height: 32px;
             background-color: transparent;
             border: none;
             cursor: pointer;
         }
         .modern-color-picker::-webkit-color-swatch {
             border-radius: 50%;
-            border: 2px solid var(--border-color);
+            border: 2px solid var(--glass-border);
         }
         .modern-color-picker::-moz-color-swatch {
             border-radius: 50%;
-            border: 2px solid var(--border-color);
+            border: 2px solid var(--glass-border);
         }
 
-        @media (max-width: 1200px) {
+        @media (max-width: 1024px) {
             .app-container {
                 grid-template-columns: 1fr;
-                grid-template-rows: auto auto 1fr;
-                grid-template-areas: 
-                    "header"
-                    "sidebar"
-                    "main";
-                padding: 10px;
                 height: auto;
+                padding: 1rem;
             }
-            
-            .sidebar {
-                max-height: none;
-                padding: 15px;
-            }
-
-            .main-title {
-                font-size: 2.2rem;
-            }
-
-            .subtitle {
-                font-size: 0.9rem;
-            }
+            html, body { overflow: auto; }
+            .control-panel { order: 2; }
+            .main-content { order: 1; min-height: 60vh; }
         }
+        
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
     </style>
 </head>
 <body>
+    <canvas id="particle-canvas"></canvas>
+
     <div class="app-container">
-        <div class="header">
-            <h1 class="main-title">Fourier Series</h1>
-            <p class="subtitle">Ultra Modern Interactive Visualizer & Calculator</p>
-        </div>
-
-        <div class="sidebar">
-            <div class="section-title">
-                <span class="status-indicator status-ready"></span>
-                Configuración de Función
+        <!-- Panel de Control (Izquierda) -->
+        <aside class="glass-panel control-panel">
+            <h1 class="panel-title text-2xl">Visualizador de Fourier</h1>
+            
+            <div class="input-group">
+                <div class="collapsible-header">
+                    <span class="collapsible-title">🎨 Paleta de Colores</span>
+                    <i class="collapsible-icon">+</i>
+                </div>
+                <div class="collapsible-content">
+                    <div class="color-control">
+                        <label>Función Original</label>
+                        <input type="color" id="original-color-picker" class="modern-color-picker" value="#f43f5e">
+                    </div>
+                    <div class="color-control">
+                        <label>Serie de Fourier</label>
+                        <input type="color" id="fourier-color-picker" class="modern-color-picker" value="#22d3ee">
+                    </div>
+                </div>
             </div>
-
+            
             <div class="function-type-selector">
-                <div class="type-btn active" data-type="normal">Normal</div>
-                <div class="type-btn" data-type="piecewise">A Trozos</div>
+                <button class="type-btn active" data-type="normal">Normal</button>
+                <button class="type-btn" data-type="piecewise">A Trozos</button>
             </div>
 
-            <div class="input-group">
-                <div class="collapsible-header" id="color-picker-toggle">
-                    <span class="section-title">Paleta de Colores</span>
-                    <span class="collapsible-icon" id="color-picker-icon">+</span>
-                </div>
-                <div class="collapsible-content" id="color-picker" style="display: none;">
-                    <div class="color-control">
-                        <label for="original-color">Función Original</label>
-                        <input type="color" id="original-color" class="modern-color-picker" value="#ff6b6b">
-                    </div>
-                    <div class="color-control">
-                        <label for="fourier-color">Serie de Fourier</label>
-                        <input type="color" id="fourier-color" class="modern-color-picker" value="#4ecdc4">
-                    </div>
-                </div>
-            </div>
-
-            <div class="input-group">
-                <div class="collapsible-header" id="math-keyboard-toggle">
-                    <span class="section-title">Teclado Matemático</span>
-                    <span class="collapsible-icon" id="keyboard-icon">+</span>
-                </div>
-                <div class="collapsible-content" id="math-keyboard" style="display: none;">
-                    <div class="keyboard-grid">
-                        <button class="control-btn key-btn" data-symbol="(">(</button>
-                        <button class="control-btn key-btn" data-symbol=")">)</button>
-                        <button class="control-btn key-btn" data-symbol="^">xʸ</button>
-                        <button class="control-btn key-btn" data-symbol="sqrt()">√</button>
-                        <button class="control-btn key-btn" data-symbol="sin()">sin</button>
-                        <button class="control-btn key-btn" data-symbol="cos()">cos</button>
-                        <button class="control-btn key-btn" data-symbol="tan()">tan</button>
-                        <button class="control-btn key-btn" data-symbol="pi">π</button>
-                        <button class="control-btn key-btn" data-symbol="e">e</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="normal-inputs">
+            <div id="normal-input-container">
                 <div class="input-group">
-                    <label class="input-label">Función f(x)</label>
-                    <input type="text" class="modern-input" id="function-input" placeholder="sin(x), x^2, cos(2*x)" value="x">
+                    <label for="function-input" class="input-label">Función f(x)</label>
+                    <input type="text" class="modern-input" id="function-input" placeholder="Ej: x, sin(x), x^2" value="x">
                 </div>
-            </div>
-
-            <div id="piecewise-inputs" class="piecewise-container">
-                <div class="piece-group">
-                    <div class="piece-title">Trozo 1</div>
-                    <input type="text" class="modern-input" id="piece1-func" placeholder="Función" value="x">
-                    <div class="piece-inputs">
-                        <input type="number" class="modern-input" id="piece1-start" placeholder="Inicio" value="-3.14159">
-                        <input type="number" class="modern-input" id="piece1-end" placeholder="Fin" value="0">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="input-group">
+                        <label for="period-start" class="input-label">Inicio del Período</label>
+                        <input type="number" class="modern-input" id="period-start" value="-3.14159" step="0.1">
                     </div>
-                </div>
-                <div class="piece-group">
-                    <div class="piece-title">Trozo 2</div>
-                    <input type="text" class="modern-input" id="piece2-func" placeholder="Función" value="-x">
-                    <div class="piece-inputs">
-                        <input type="number" class="modern-input" id="piece2-start" placeholder="Inicio" value="0">
-                        <input type="number" class="modern-input" id="piece2-end" placeholder="Fin" value="3.14159">
+                    <div class="input-group">
+                        <label for="period-end" class="input-label">Fin del Período</label>
+                        <input type="number" class="modern-input" id="period-end" value="3.14159" step="0.1">
                     </div>
                 </div>
             </div>
 
-            <div class="input-group">
-                <label class="input-label">Período (T)</label>
-                <input type="number" class="modern-input" id="period-input" value="6.28318" step="0.1">
-            </div>
-
-            <div class="input-group">
-                <label class="input-label">Número máximo de términos</label>
-                <input type="number" class="modern-input" id="max-terms" value="20" min="1" max="50">
-            </div>
-
-            <div class="harmonics-widget">
-                <div class="harmonics-title">Armónicos a mostrar</div>
-                <div class="harmonics-grid" id="harmonics-grid">
-                </div>
-                <div class="harmonics-controls">
-                    <div class="control-btn" onclick="selectAllHarmonics()">Todos</div>
-                    <div class="control-btn" onclick="clearHarmonics()">Ninguno</div>
-                    <div class="control-btn" onclick="selectOddHarmonics()">Impares</div>
-                </div>
-            </div>
-
-            <div style="margin-top: auto;">
-                <button class="modern-btn" onclick="calculateFourier()">Calcular Serie</button>
-                <button class="modern-btn secondary" onclick="resetAll()">Reiniciar</button>
-                <button class="modern-btn" id="show-formulas-btn" style="display: none;">Mostrar Fórmulas</button>
-
-                <div class="section-title" style="margin-top: 15px; margin-bottom: 8px;">Coeficientes de Fourier</div>
-                <div class="coefficients-display" id="coefficients-container">
-                    <p style="color: var(--text-secondary); text-align: center; margin: 20px 0; font-size: 0.8rem;">
-                        Los coeficientes aparecerán aquí después del cálculo...
-                    </p>
-                </div>
-            </div>
-        </div>
-
-        <div class="main-content">
-            <div class="section">
-                <div class="section-title">Visualización Interactiva 2D</div>
-                <div class="graph-container">
-                    <canvas id="canvas"></canvas>
-                    <div class="loading-overlay" id="loading-overlay">
-                        <div>
-                            <div class="spinner"></div>
-                            <p style="margin-top: 15px; text-align: center;">Calculando...</p>
+            <div id="piecewise-input-container" class="hidden">
+                <div class="piecewise-container">
+                    <div class="piece-group">
+                        <label class="input-label">Trozo 1</label>
+                        <input type="text" class="modern-input mb-2" id="p1-func" value="-1">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" class="modern-input" id="p1-start" value="-3.14159">
+                            <input type="number" class="modern-input" id="p1-end" value="0">
                         </div>
                     </div>
-                    <div class="controls-overlay">
-                        <p>🖱️ Arrastra para mover</p>
-                        <p>🔍 Scroll/Pellizca para zoom</p>
-                        <p>📱 Doble click/toque para centrar</p>
-                    </div>
-                    <div class="zoom-controls">
-                        <div class="zoom-btn" onclick="zoomIn()">+</div>
-                        <div class="zoom-btn" onclick="zoomOut()">−</div>
-                        <div class="zoom-btn" onclick="resetView()">⌂</div>
+                    <div class="piece-group">
+                        <label class="input-label">Trozo 2</label>
+                        <input type="text" class="modern-input mb-2" id="p2-func" value="1">
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="number" class="modern-input" id="p2-start" value="0">
+                            <input type="number" class="modern-input" id="p2-end" value="3.14159">
+                        </div>
                     </div>
                 </div>
             </div>
+
+            <div class="input-group slider-group">
+                <div class="flex justify-between items-center mb-2">
+                    <label for="terms-slider" class="input-label mb-0">Número de Armónicos (N)</label>
+                    <span id="terms-value" class="font-bold text-lg text-accent-primary">10</span>
+                </div>
+                <input type="range" min="1" max="50" value="10" class="slider" id="terms-slider">
+            </div>
+
+            <div class="flex gap-4 mt-2">
+                <button id="calculate-button" class="action-button w-full">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+                    <span>Calcular</span>
+                </button>
+                <button id="show-formulas-btn" class="action-button w-full" style="background: var(--bg-panel); color: var(--text-primary); display:none;">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+                    <span>Fórmulas</span>
+                </button>
+            </div>
+            
+            <div id="status-container" class="text-center text-sm text-text-secondary mt-4 h-5"></div>
+
+            <div class="mt-auto pt-4 border-t border-glass-border">
+                <h3 class="panel-title text-lg">Coeficientes Calculados</h3>
+                <div class="h-48 overflow-y-auto pr-2" id="coefficients-container">
+                    <p class="text-center text-text-secondary text-sm">Los coeficientes aparecerán aquí...</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Panel Principal (Derecha) -->
+        <main class="main-content">
+            <div class="graph-container">
+                <canvas id="canvas"></canvas>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modal para Fórmulas -->
+    <div id="formulas-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div id="formulas-content"></div>
+            <button id="close-formulas-modal" class="action-button mt-6 self-center">Cerrar</button>
         </div>
     </div>
     
-    <!-- Formulas Modal -->
-    <div id="formulas-modal" class="modal-overlay">
-        <div class="modal-content">
-            <div id="formulas-content">
-                <!-- Content is injected here by JavaScript -->
-            </div>
-            <button id="close-formulas-modal" class="modern-btn" style="margin-top: 20px;">Cerrar</button>
-        </div>
+    <!-- Modal para Carga -->
+    <div id="loading-modal" class="modal-overlay">
+        <div class="loading-spinner"></div>
     </div>
 
     <script>
-        // Global variables
-        let canvas, ctx;
-        let currentFunction = 'normal';
-        let coefficients = { a0: 0, an: [], bn: [], an_symbolic: [], bn_symbolic: [] };
-        let selectedHarmonics = new Set([1, 2, 3, 4, 5]);
-        let originalFunctionColor = '#ff6b6b';
-        let fourierSeriesColor = '#4ecdc4';
-        
-        // View and gesture variables
-        let zoom = 50;
-        let offsetX = 0;
-        let offsetY = 0;
-        let isDragging = false;
-        let lastDragX = 0;
-        let initialPinchDistance = null;
+    // --- PARTICLE ANIMATION ---
+    const particleCanvas = document.getElementById('particle-canvas');
+    const particleCtx = particleCanvas.getContext('2d');
+    let particles = [];
+    
+    function setupParticleCanvas() {
+        particleCanvas.width = window.innerWidth;
+        particleCanvas.height = window.innerHeight;
+    }
+    setupParticleCanvas();
+
+    class Particle {
+        constructor(x, y, dirX, dirY, size, color) {
+            this.x = x; this.y = y; this.dirX = dirX; this.dirY = dirY;
+            this.size = size; this.color = color;
+        }
+        draw() {
+            particleCtx.beginPath();
+            particleCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+            particleCtx.fillStyle = this.color;
+            particleCtx.fill();
+        }
+        update() {
+            if (this.x > particleCanvas.width || this.x < 0) this.dirX = -this.dirX;
+            if (this.y > particleCanvas.height || this.y < 0) this.dirY = -this.dirY;
+            this.x += this.dirX; this.y += this.dirY;
+            this.draw();
+        }
+    }
+
+    function initParticles() {
+        particles = [];
+        let numParticles = (particleCanvas.height * particleCanvas.width) / 30000;
+        for (let i = 0; i < numParticles; i++) {
+            let size = Math.random() * 2 + 1;
+            let x = Math.random() * (innerWidth - size * 2) + size * 2;
+            let y = Math.random() * (innerHeight - size * 2) + size * 2;
+            let dirX = (Math.random() * 0.4) - 0.2;
+            let dirY = (Math.random() * 0.4) - 0.2;
+            let color = 'rgba(34, 211, 238, ' + (Math.random() * 0.5) + ')';
+            particles.push(new Particle(x, y, dirX, dirY, size, color));
+        }
+    }
+
+    function animateParticles() {
+        requestAnimationFrame(animateParticles);
+        particleCtx.clearRect(0, 0, innerWidth, innerHeight);
+        particles.forEach(p => p.update());
+    }
+    initParticles();
+    animateParticles();
+    window.addEventListener('resize', () => {
+        setupParticleCanvas();
+        initParticles();
+    });
+
+    // --- FOURIER ANALYSIS SCRIPT ---
+    document.addEventListener('DOMContentLoaded', () => {
+        const dom = {
+            canvas: document.getElementById('canvas'),
+            functionInput: document.getElementById('function-input'),
+            periodStartInput: document.getElementById('period-start'),
+            periodEndInput: document.getElementById('period-end'),
+            termsSlider: document.getElementById('terms-slider'),
+            termsValue: document.getElementById('terms-value'),
+            calculateButton: document.getElementById('calculate-button'),
+            showFormulasBtn: document.getElementById('show-formulas-btn'),
+            closeFormulasModal: document.getElementById('close-formulas-modal'),
+            formulasModal: document.getElementById('formulas-modal'),
+            formulasContent: document.getElementById('formulas-content'),
+            loadingModal: document.getElementById('loading-modal'),
+            statusContainer: document.getElementById('status-container'),
+            coefficientsContainer: document.getElementById('coefficients-container'),
+            functionTypeSelector: document.querySelector('.function-type-selector'),
+            normalInputContainer: document.getElementById('normal-input-container'),
+            piecewiseInputContainer: document.getElementById('piecewise-input-container'),
+            originalColorPicker: document.getElementById('original-color-picker'),
+            fourierColorPicker: document.getElementById('fourier-color-picker'),
+        };
+
+        const ctx = dom.canvas.getContext('2d');
+        let coefficients = { a0: 0, an: [], bn: [] };
+        let view = { zoom: 50, offsetX: 0, offsetY: 0, isDragging: false, lastX: 0, lastY: 0 };
         let redrawQueued = false;
+        let currentFunctionType = 'normal';
+        let originalFunctionColor = dom.originalColorPicker.value;
+        let fourierSeriesColor = dom.fourierColorPicker.value;
 
-        // DOM Elements
-        let formulasModal, showFormulasBtn, closeFormulasModal, formulasContent;
-        let activeInput = null;
-
-        // Initialization
-        document.addEventListener('DOMContentLoaded', function() {
-            formulasModal = document.getElementById('formulas-modal');
-            showFormulasBtn = document.getElementById('show-formulas-btn');
-            closeFormulasModal = document.getElementById('close-formulas-modal');
-            formulasContent = document.getElementById('formulas-content');
-
-            initializeCanvas();
-            initializeEventListeners();
-            generateHarmonicsGrid();
-        });
-        
-        function requestRedraw() {
-            if (redrawQueued) return;
-            redrawQueued = true;
-            requestAnimationFrame(() => {
-                drawScene();
-                redrawQueued = false;
-            });
-        }
-        
-        function drawScene() {
-            const dpr = window.devicePixelRatio || 1;
-            
-            ctx.save();
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.restore();
-            
-            drawGrid();
-            drawFunctions();
+        // --- Initialization ---
+        function initialize() {
+            setupMainCanvas();
+            addEventListeners();
+            dom.calculateButton.click(); // Initial calculation
         }
 
-        function resizeCanvas() {
-            const container = canvas.parentElement;
+        function setupMainCanvas() {
             const dpr = window.devicePixelRatio || 1;
-            const rect = container.getBoundingClientRect();
-            
-            canvas.width = rect.width * dpr;
-            canvas.height = rect.height * dpr;
-            
-            canvas.style.width = `${rect.width}px`;
-            canvas.style.height = `${rect.height}px`;
-
+            const rect = dom.canvas.parentElement.getBoundingClientRect();
+            dom.canvas.width = rect.width * dpr;
+            dom.canvas.height = rect.height * dpr;
+            dom.canvas.style.width = `${rect.width}px`;
+            dom.canvas.style.height = `${rect.height}px`;
             ctx.scale(dpr, dpr);
-            requestRedraw();
         }
 
-        function initializeCanvas() {
-            canvas = document.getElementById('canvas');
-            ctx = canvas.getContext('2d');
-            resizeCanvas();
-        }
-
-        function initializeEventListeners() {
-            window.addEventListener('resize', resizeCanvas);
-
-            document.querySelectorAll('.type-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentFunction = this.dataset.type;
-                    
-                    document.getElementById('normal-inputs').style.display = currentFunction === 'normal' ? 'block' : 'none';
-                    document.getElementById('piecewise-inputs').style.display = currentFunction === 'piecewise' ? 'block' : 'none';
-                });
+        function addEventListeners() {
+            window.addEventListener('resize', setupMainCanvas);
+            dom.calculateButton.addEventListener('click', handleCalculation);
+            dom.termsSlider.addEventListener('input', () => {
+                dom.termsValue.textContent = dom.termsSlider.value;
+                requestRedraw();
             });
 
-            canvas.addEventListener('mousedown', handleDragStart);
-            canvas.addEventListener('mousemove', handleDragMove);
-            canvas.addEventListener('mouseup', handleDragEnd);
-            canvas.addEventListener('mouseleave', handleDragEnd);
-            canvas.addEventListener('wheel', handleZoom, { passive: false });
-            canvas.addEventListener('dblclick', resetView);
-            
-            canvas.addEventListener('touchstart', handleDragStart, { passive: false });
-            canvas.addEventListener('touchmove', handleDragMove, { passive: false });
-            canvas.addEventListener('touchend', handleDragEnd);
-
-            // Modal Listeners
-            showFormulasBtn.addEventListener('click', () => formulasModal.classList.add('active'));
-            closeFormulasModal.addEventListener('click', () => formulasModal.classList.remove('active'));
-            formulasModal.addEventListener('click', (e) => {
-                if (e.target === formulasModal) {
-                    formulasModal.classList.remove('active');
-                }
-            });
-
-            // Collapsible Panels
+            // Collapsible panels
             document.querySelectorAll('.collapsible-header').forEach(header => {
                 header.addEventListener('click', () => {
                     const content = header.nextElementSibling;
                     const icon = header.querySelector('.collapsible-icon');
-                    const isHidden = content.style.display === 'none';
+                    const isHidden = content.style.display === 'none' || content.style.display === '';
                     content.style.display = isHidden ? 'block' : 'none';
                     icon.style.transform = isHidden ? 'rotate(45deg)' : 'rotate(0deg)';
                 });
             });
 
-            document.querySelectorAll('.key-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    if (activeInput) {
-                        const symbol = btn.dataset.symbol;
-                        const start = activeInput.selectionStart;
-                        const end = activeInput.selectionEnd;
-                        const text = activeInput.value;
-                        
-                        let newText;
-                        let newPos;
-
-                        if (symbol.endsWith('()')) {
-                            const funcName = symbol.slice(0, -2);
-                            newText = text.substring(0, start) + funcName + '()' + text.substring(end);
-                            newPos = start + funcName.length + 1;
-                        } else {
-                            newText = text.substring(0, start) + symbol + text.substring(end);
-                            newPos = start + symbol.length;
-                        }
-                        
-                        activeInput.value = newText;
-                        activeInput.focus();
-                        activeInput.setSelectionRange(newPos, newPos);
-                    }
-                });
-            });
-
-            document.querySelectorAll('.modern-input[type="text"]').forEach(input => {
-                input.addEventListener('focus', (e) => {
-                    activeInput = e.target;
-                    document.querySelectorAll('.modern-input[type="text"]').forEach(i => i.classList.remove('active-input-glow'));
-                    activeInput.classList.add('active-input-glow');
-                });
-            });
-            
             // Color Pickers
-            document.getElementById('original-color').addEventListener('input', (e) => {
+            dom.originalColorPicker.addEventListener('input', (e) => {
                 originalFunctionColor = e.target.value;
                 requestRedraw();
             });
-            document.getElementById('fourier-color').addEventListener('input', (e) => {
+            dom.fourierColorPicker.addEventListener('input', (e) => {
                 fourierSeriesColor = e.target.value;
                 requestRedraw();
             });
+
+            // Function type selector
+            dom.functionTypeSelector.addEventListener('click', (e) => {
+                if (e.target.matches('.type-btn')) {
+                    currentFunctionType = e.target.dataset.type;
+                    document.querySelectorAll('.type-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    
+                    const isNormal = currentFunctionType === 'normal';
+                    dom.normalInputContainer.classList.toggle('hidden', !isNormal);
+                    dom.piecewiseInputContainer.classList.toggle('hidden', isNormal);
+                }
+            });
+
+            // Canvas interaction
+            dom.canvas.addEventListener('mousedown', e => {
+                view.isDragging = true;
+                view.lastX = e.offsetX;
+                view.lastY = e.offsetY;
+                dom.canvas.style.cursor = 'grabbing';
+            });
+            dom.canvas.addEventListener('mousemove', e => {
+                if (view.isDragging) {
+                    const dx = e.offsetX - view.lastX;
+                    const dy = e.offsetY - view.lastY;
+                    view.offsetX += dx / view.zoom;
+                    view.offsetY -= dy / view.zoom;
+                    view.lastX = e.offsetX;
+                    view.lastY = e.offsetY;
+                    requestRedraw();
+                }
+            });
+            dom.canvas.addEventListener('mouseup', () => { view.isDragging = false; dom.canvas.style.cursor = 'grab'; });
+            dom.canvas.addEventListener('mouseleave', () => { view.isDragging = false; dom.canvas.style.cursor = 'grab'; });
+            dom.canvas.addEventListener('wheel', e => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
+                view.zoom *= zoomFactor;
+                requestRedraw();
+            });
+            
+            // Modal
+            dom.showFormulasBtn.addEventListener('click', () => dom.formulasModal.classList.add('active'));
+            dom.closeFormulasModal.addEventListener('click', () => dom.formulasModal.classList.remove('active'));
+            dom.formulasModal.addEventListener('click', e => {
+                if (e.target === dom.formulasModal) dom.formulasModal.classList.remove('active');
+            });
         }
         
-        // --- Interaction Event Handlers ---
+        // --- Calculation Logic ---
+        async function handleCalculation() {
+            dom.loadingModal.classList.add('active');
+            dom.statusContainer.textContent = "Calculando coeficientes...";
+            await new Promise(resolve => setTimeout(resolve, 50));
 
-        function handleDragStart(e) {
-            isDragging = true;
-            canvas.style.cursor = 'grabbing';
-            
-            if (e.touches) {
-                if (e.touches.length === 1) {
-                    lastDragX = e.touches[0].clientX;
-                } else if (e.touches.length === 2) {
-                    initialPinchDistance = getPinchDistance(e);
+            try {
+                let funcData = getFunctionDataFromDOM();
+                const T = funcData.end - funcData.start;
+                const L = T / 2;
+                const maxTerms = 50;
+                
+                const evalFunc = createEvalFunction(funcData);
+                const symData = await getSymbolicFormulas(funcData, L);
+
+                coefficients.a0 = (1 / L) * numericalIntegration(evalFunc, funcData.start, funcData.end);
+                coefficients.an = [];
+                coefficients.bn = [];
+
+                for (let n = 1; n <= maxTerms; n++) {
+                    coefficients.an.push((1 / L) * numericalIntegration(x => evalFunc(x) * Math.cos(n * Math.PI * x / L), funcData.start, funcData.end));
+                    coefficients.bn.push((1 / L) * numericalIntegration(x => evalFunc(x) * Math.sin(n * Math.PI * x / L), funcData.start, funcData.end));
                 }
-            } else {
-                lastDragX = e.clientX;
+                
+                displayCoefficients();
+                updateFormulasDisplay(funcData, T, L, symData);
+                dom.showFormulasBtn.style.display = 'flex';
+                dom.statusContainer.textContent = "Cálculo completado.";
+                requestRedraw();
+
+            } catch (error) {
+                console.error("Calculation Error:", error);
+                dom.statusContainer.textContent = "Error en la función ingresada.";
+            } finally {
+                dom.loadingModal.classList.remove('active');
             }
-        }
-
-        function handleDragMove(e) {
-            if (!isDragging) return;
-            e.preventDefault();
-
-            if (e.touches) {
-                if (e.touches.length === 1) {
-                    handlePan(e.touches[0].clientX);
-                } else if (e.touches.length === 2) {
-                    handlePinch(e);
-                }
-            } else {
-                handlePan(e.clientX);
-            }
-            
-            requestRedraw();
-        }
-
-        function handleDragEnd() {
-            isDragging = false;
-            canvas.style.cursor = 'grab';
-            initialPinchDistance = null;
-        }
-
-        function handlePan(currentX) {
-            const deltaX = currentX - lastDragX;
-            offsetX += deltaX / zoom;
-            lastDragX = currentX;
         }
         
-        function handlePinch(e) {
-            const newPinchDistance = getPinchDistance(e);
-            if (initialPinchDistance === null) {
-                initialPinchDistance = newPinchDistance;
-                return;
+        function createEvalFunction(funcData) {
+            if (funcData.type === 'normal') {
+                return (x) => math.evaluate(funcData.funcStr, { x, pi: Math.PI, e: Math.E });
+            } else {
+                return (x) => {
+                    for (const piece of funcData.pieces) {
+                        if (x >= piece.start && x < piece.end) {
+                            return math.evaluate(piece.func, { x, pi: Math.PI, e: Math.E });
+                        }
+                    }
+                    return 0;
+                };
             }
-            const zoomFactor = newPinchDistance / initialPinchDistance;
-            zoom *= zoomFactor;
-            zoom = Math.max(10, Math.min(500, zoom));
-            initialPinchDistance = newPinchDistance;
         }
 
-        function getPinchDistance(e) {
-            const t1 = e.touches[0];
-            const t2 = e.touches[1];
-            return Math.sqrt(Math.pow(t1.clientX - t2.clientX, 2) + Math.pow(t1.clientY - t2.clientY, 2));
+        async function getSymbolicFormulas(funcData, L) {
+            try {
+                nerdamer.set('integration_depth', 40);
+                if (funcData.type === 'normal') {
+                    const { funcStr, start, end } = funcData;
+                    return {
+                        a0_sym: nerdamer.defint(`(1/${L}) * (${funcStr})`, 'x', start, end).toTeX(),
+                        an_sym: nerdamer.defint(`(1/${L}) * (${funcStr}) * cos(n*pi*x/${L})`, 'x', start, end).toTeX(),
+                        bn_sym: nerdamer.defint(`(1/${L}) * (${funcStr}) * sin(n*pi*x/${L})`, 'x', start, end).toTeX(),
+                    };
+                } else {
+                    let a0_sym = '', an_sym = '', bn_sym = '';
+                    funcData.pieces.forEach((p, i) => {
+                        if (i > 0) { a0_sym += '+'; an_sym += '+'; bn_sym += '+'; }
+                        a0_sym += `\\int_{${p.start}}^{${p.end}} (${p.func}) \\,dx`;
+                        an_sym += `\\int_{${p.start}}^{${p.end}} (${p.func}) \\cos(\\frac{n\\pi x}{${L.toFixed(3)}}) \\,dx`;
+                        bn_sym += `\\int_{${p.start}}^{${p.end}} (${p.func}) \\sin(\\frac{n\\pi x}{${L.toFixed(3)}}) \\,dx`;
+                    });
+                    return {
+                        a0_sym: `\\frac{1}{${L.toFixed(3)}} \\left[ ${a0_sym} \\right]`,
+                        an_sym: `\\frac{1}{${L.toFixed(3)}} \\left[ ${an_sym} \\right]`,
+                        bn_sym: `\\frac{1}{${L.toFixed(3)}} \\left[ ${bn_sym} \\right]`,
+                    };
+                }
+            } catch (e) {
+                console.warn("Symbolic integration failed.", e);
+                return { a0_sym: "\\text{Cálculo Numérico}", an_sym: "\\text{Cálculo Numérico}", bn_sym: "\\text{Cálculo Numérico}" };
+            }
         }
 
-        function handleZoom(e) {
-            e.preventDefault();
-            const zoomFactor = e.deltaY > 0 ? 0.9 : 1.1;
-            zoom *= zoomFactor;
-            zoom = Math.max(10, Math.min(500, zoom));
-            
-            requestRedraw();
+        function numericalIntegration(fn, a, b, n = 1000) {
+            const h = (b - a) / n;
+            let sum = 0.5 * (fn(a) + fn(b));
+            for (let i = 1; i < n; i++) {
+                sum += fn(a + i * h);
+            }
+            return sum * h;
         }
-
-        function zoomIn() {
-            zoom *= 1.2;
-            zoom = Math.min(500, zoom);
-            requestRedraw();
-        }
-
-        function zoomOut() {
-            zoom *= 0.8;
-            zoom = Math.max(10, zoom);
-            requestRedraw();
-        }
-
-        function resetView() {
-            zoom = 50;
-            offsetX = 0;
-            offsetY = 0;
-            requestRedraw();
-        }
-
+        
         // --- Drawing Logic ---
+        function requestRedraw() {
+            if (!redrawQueued) {
+                redrawQueued = true;
+                requestAnimationFrame(() => {
+                    drawScene();
+                    redrawQueued = false;
+                });
+            }
+        }
+
+        function drawScene() {
+            const dpr = window.devicePixelRatio || 1;
+            const { width, height } = dom.canvas;
+            ctx.save();
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            ctx.clearRect(0, 0, width, height);
+            ctx.restore();
+
+            drawGrid();
+            
+            if (coefficients.an.length > 0) {
+                const funcData = getFunctionDataFromDOM();
+                const evalFunc = createEvalFunction(funcData);
+                drawFunction(evalFunc, originalFunctionColor, 3.5);
+                drawFunction(fourierSeries, fourierSeriesColor, 2.5);
+            }
+        }
+        
+        function getFunctionDataFromDOM() {
+            if (currentFunctionType === 'normal') {
+                return {
+                    type: 'normal',
+                    funcStr: dom.functionInput.value,
+                    start: parseFloat(dom.periodStartInput.value),
+                    end: parseFloat(dom.periodEndInput.value),
+                };
+            } else {
+                const p1 = {
+                    func: document.getElementById('p1-func').value,
+                    start: parseFloat(document.getElementById('p1-start').value),
+                    end: parseFloat(document.getElementById('p1-end').value),
+                };
+                const p2 = {
+                    func: document.getElementById('p2-func').value,
+                    start: parseFloat(document.getElementById('p2-start').value),
+                    end: parseFloat(document.getElementById('p2-end').value),
+                };
+                return {
+                    type: 'piecewise',
+                    pieces: [p1, p2],
+                    start: Math.min(p1.start, p2.start),
+                    end: Math.max(p1.end, p2.end),
+                };
+            }
+        }
+
 
         function drawGrid() {
+            const { width, height } = dom.canvas;
             const dpr = window.devicePixelRatio || 1;
-            const scaledWidth = canvas.width / dpr;
-            const scaledHeight = canvas.height / dpr;
-            
-            const axisCenter = worldToScreen(0, 0);
+            const w = width / dpr;
+            const h = height / dpr;
 
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            const { x: xMin, y: yMax } = screenToWorld(0, 0);
+            const { x: xMax, y: yMin } = screenToWorld(w, h);
+
+            ctx.strokeStyle = "rgba(56, 189, 248, 0.15)";
             ctx.lineWidth = 1 / dpr;
             
-            const { x: startWorldX } = screenToWorld(0, 0);
-            const { x: endWorldX } = screenToWorld(scaledWidth, 0);
-            const { y: startWorldY } = screenToWorld(0, scaledHeight);
-            const { y: endWorldY } = screenToWorld(0, 0);
-            
-            const step = Math.pow(10, Math.floor(Math.log10(scaledWidth / zoom)) - 1) * 5;
+            const xStep = Math.pow(10, Math.floor(Math.log10(w / view.zoom)) - 1) * 5;
+            const yStep = Math.pow(10, Math.floor(Math.log10(h / view.zoom)) - 1) * 5;
 
-            for (let i = Math.floor(startWorldX / step) * step; i <= endWorldX; i += step) {
+            for (let i = Math.floor(xMin / xStep) * xStep; i <= xMax; i += xStep) {
                 const sx = worldToScreen(i, 0).x;
                 ctx.beginPath();
                 ctx.moveTo(sx, 0);
-                ctx.lineTo(sx, scaledHeight);
+                ctx.lineTo(sx, h);
                 ctx.stroke();
             }
-            for (let i = Math.floor(startWorldY / step) * step; i <= endWorldY; i += step) {
+            for (let i = Math.floor(yMin / yStep) * yStep; i <= yMax; i += yStep) {
                 const sy = worldToScreen(0, i).y;
                 ctx.beginPath();
                 ctx.moveTo(0, sy);
-                ctx.lineTo(scaledWidth, sy);
-                ctx.stroke();
-            }
-            
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-            ctx.lineWidth = 2 / dpr;
-            
-            if (axisCenter.y >= 0 && axisCenter.y <= scaledHeight) {
-                ctx.beginPath();
-                ctx.moveTo(0, axisCenter.y);
-                ctx.lineTo(scaledWidth, axisCenter.y);
-                ctx.stroke();
-            }
-            if (axisCenter.x >= 0 && axisCenter.x <= scaledWidth) {
-                ctx.beginPath();
-                ctx.moveTo(axisCenter.x, 0);
-                ctx.lineTo(axisCenter.x, scaledHeight);
+                ctx.lineTo(w, sy);
                 ctx.stroke();
             }
 
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-            ctx.font = `${12 / dpr}px Inter`;
+            // Axes
+            ctx.strokeStyle = "rgba(226, 232, 240, 0.8)"; // Intense white for axes
+            ctx.lineWidth = 2 / dpr;
+            const origin = worldToScreen(0, 0);
+            ctx.beginPath();
+            ctx.moveTo(0, origin.y); ctx.lineTo(w, origin.y);
+            ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, h);
+            ctx.stroke();
+            
+            // Labels
+            ctx.fillStyle = "rgba(226, 232, 240, 0.9)"; // Intense white for labels
+            ctx.font = `${12}px Inter`;
             
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            for (let i = Math.floor(startWorldX / step) * step; i <= endWorldX; i += step) {
+            for (let i = Math.floor(xMin / xStep) * xStep; i <= xMax; i += xStep) {
                 if (Math.abs(i) < 1e-9) continue;
                 const sx = worldToScreen(i, 0).x;
-                ctx.fillText(i.toPrecision(2), sx, axisCenter.y + 5 / dpr);
+                ctx.fillText(i.toPrecision(2), sx, origin.y + 5);
             }
             
             ctx.textAlign = 'right';
             ctx.textBaseline = 'middle';
-            for (let i = Math.floor(startWorldY / step) * step; i <= endWorldY; i += step) {
+            for (let i = Math.floor(yMin / yStep) * yStep; i <= yMax; i += yStep) {
                 if (Math.abs(i) < 1e-9) continue;
                 const sy = worldToScreen(0, i).y;
-                if (sy > 0 && sy < scaledHeight) {
-                    ctx.fillText(i.toPrecision(2), axisCenter.x - 5 / dpr, sy);
+                if (sy > 0 && sy < h) {
+                    ctx.fillText(i.toPrecision(2), origin.x - 5, sy);
                 }
             }
         }
 
-        function worldToScreen(x, y) {
+        function drawFunction(evalFunc, color, lineWidth) {
+            const { width } = dom.canvas;
             const dpr = window.devicePixelRatio || 1;
-            const scaledWidth = canvas.width / dpr;
-            const scaledHeight = canvas.height / dpr;
-            return { 
-                x: (scaledWidth / 2) + (x + offsetX) * zoom, 
-                y: (scaledHeight / 2) - (y - offsetY) * zoom 
-            };
-        }
-        
-        function screenToWorld(sx, sy) {
-            const dpr = window.devicePixelRatio || 1;
-            const scaledWidth = canvas.width / dpr;
-            const scaledHeight = canvas.height / dpr;
-            return { 
-                x: (sx - scaledWidth / 2) / zoom - offsetX,
-                y: (scaledHeight / 2 - sy) / zoom + offsetY
-            };
-        }
-
-        function drawFunction(evalFunc, color, lineWidth = 2) {
-            const dpr = window.devicePixelRatio || 1;
-            const scaledWidth = canvas.width / dpr;
-
+            const w = width / dpr;
+            
             ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth / dpr;
+            ctx.lineWidth = lineWidth;
+            ctx.shadowColor = color;
+            ctx.shadowBlur = 10;
             ctx.beginPath();
             
             let firstPoint = true;
-            for (let sx = 0; sx <= scaledWidth; sx += 1) {
+            for (let sx = 0; sx <= w; sx += 1) {
                 const worldX = screenToWorld(sx, 0).x;
-                const worldY = evalFunc(worldX);
-                const screenPoint = worldToScreen(worldX, worldY);
-
-                if (firstPoint) {
-                    ctx.moveTo(screenPoint.x, screenPoint.y);
-                    firstPoint = false;
-                } else {
-                    ctx.lineTo(screenPoint.x, screenPoint.y);
-                }
+                try {
+                    const worldY = evalFunc(worldX);
+                    if (isFinite(worldY)) {
+                        const { x, y } = worldToScreen(worldX, worldY);
+                        if (firstPoint) {
+                            ctx.moveTo(x, y);
+                            firstPoint = false;
+                        } else {
+                            ctx.lineTo(x, y);
+                        }
+                    } else {
+                        firstPoint = true;
+                    }
+                } catch (e) { firstPoint = true; }
             }
             ctx.stroke();
+            ctx.shadowBlur = 0; // Reset shadow
         }
         
-        // --- UI and Calculation Logic ---
-        
-        function generateHarmonicsGrid() {
-            const grid = document.getElementById('harmonics-grid');
-            const maxTerms = parseInt(document.getElementById('max-terms').value);
-            grid.innerHTML = '';
-            for (let i = 1; i <= maxTerms; i++) {
-                const btn = document.createElement('div');
-                btn.className = 'harmonic-btn';
-                btn.textContent = i;
-                btn.dataset.harmonic = i;
-                if (selectedHarmonics.has(i)) btn.classList.add('active');
-                btn.addEventListener('click', function() {
-                    const harmonic = parseInt(this.dataset.harmonic);
-                    if (selectedHarmonics.has(harmonic)) {
-                        selectedHarmonics.delete(harmonic);
-                        this.classList.remove('active');
-                    } else {
-                        selectedHarmonics.add(harmonic);
-                        this.classList.add('active');
-                    }
-                    requestRedraw();
-                });
-                grid.appendChild(btn);
-            }
-        }
-
-        function selectAllHarmonics() {
-            const maxTerms = parseInt(document.getElementById('max-terms').value);
-            selectedHarmonics.clear();
-            for (let i = 1; i <= maxTerms; i++) selectedHarmonics.add(i);
-            updateHarmonicsUI();
-            requestRedraw();
-        }
-
-        function clearHarmonics() {
-            selectedHarmonics.clear();
-            updateHarmonicsUI();
-            requestRedraw();
-        }
-
-        function selectOddHarmonics() {
-            const maxTerms = parseInt(document.getElementById('max-terms').value);
-            selectedHarmonics.clear();
-            for (let i = 1; i <= maxTerms; i += 2) selectedHarmonics.add(i);
-            updateHarmonicsUI();
-            requestRedraw();
-        }
-
-        function updateHarmonicsUI() {
-            document.querySelectorAll('.harmonic-btn').forEach(btn => {
-                const harmonic = parseInt(btn.dataset.harmonic);
-                btn.classList.toggle('active', selectedHarmonics.has(harmonic));
-            });
-        }
-
-        function evaluateFunction(func, x) {
-            try {
-                return math.evaluate(func, { x: x, pi: Math.PI });
-            } catch (e) {
-                console.error('Error evaluating function:', e);
-                return 0;
-            }
-        }
-
-        function evaluatePiecewiseFunction(x) {
-            const piece1Start = parseFloat(document.getElementById('piece1-start').value);
-            const piece1End = parseFloat(document.getElementById('piece1-end').value);
-            const piece2Start = parseFloat(document.getElementById('piece2-start').value);
-            const piece2End = parseFloat(document.getElementById('piece2-end').value);
-            
-            if (x >= piece1Start && x < piece1End) {
-                return evaluateFunction(document.getElementById('piece1-func').value, x);
-            } else if (x >= piece2Start && x < piece2End) {
-                return evaluateFunction(document.getElementById('piece2-func').value, x);
-            }
-            return 0;
-        }
-
         function fourierSeries(x) {
-            if (!coefficients.an.length) return 0;
-            const T = parseFloat(document.getElementById('period-input').value);
-            let result = coefficients.a0 / 2;
-
-            for (let n of selectedHarmonics) {
-                if (n <= coefficients.an.length) {
-                    result += coefficients.an[n-1] * Math.cos(n * 2 * Math.PI * x / T);
-                    result += coefficients.bn[n-1] * Math.sin(n * 2 * Math.PI * x / T);
-                }
+            const funcData = getFunctionDataFromDOM();
+            const L = (funcData.end - funcData.start) / 2;
+            const N = parseInt(dom.termsSlider.value);
+            let sum = coefficients.a0 / 2;
+            for (let n = 1; n <= N; n++) {
+                sum += coefficients.an[n - 1] * Math.cos(n * Math.PI * x / L);
+                sum += coefficients.bn[n - 1] * Math.sin(n * Math.PI * x / L);
             }
-            return result;
+            return sum;
         }
 
-        function drawFunctions() {
-            if (!coefficients.an.length) return;
-            
-            let originalFunc = currentFunction === 'normal' 
-                ? (x) => evaluateFunction(document.getElementById('function-input').value, x)
-                : evaluatePiecewiseFunction;
-            
-            drawFunction(originalFunc, originalFunctionColor, 3);
-            drawFunction(fourierSeries, fourierSeriesColor, 2);
-        }
-
-        function calculateFourierCoefficients() {
-            nerdamer.set('integration_depth', 50);
-            const T = parseFloat(document.getElementById('period-input').value);
-            const nTerms = parseInt(document.getElementById('max-terms').value);
-            
-            let evalFunc;
-            let funcStr;
-            if (currentFunction === 'normal') {
-                funcStr = document.getElementById('function-input').value;
-                evalFunc = (x) => evaluateFunction(funcStr, x);
-            } else {
-                funcStr = 'Función a trozos';
-                evalFunc = evaluatePiecewiseFunction;
-            }
-
-            coefficients.a0 = simpson_integration(evalFunc, T, 0, 'a0');
-            
-            coefficients.an = [];
-            coefficients.bn = [];
-            coefficients.an_symbolic = [];
-            coefficients.bn_symbolic = [];
-
-            for (let n = 1; n <= nTerms; n++) {
-                let an_val, bn_val;
-                let an_sym = 'Cálculo numérico', bn_sym = 'Cálculo numérico';
-
-                if (currentFunction === 'normal') {
-                    try {
-                        const an_integrand = `(2/${T}) * (${funcStr}) * cos(n*2*pi*x/${T})`;
-                        const bn_integrand = `(2/${T}) * (${funcStr}) * sin(n*2*pi*x/${T})`;
-                        
-                        const an_symbolic_expr = nerdamer.defint(an_integrand, 'x', -T/2, T/2);
-                        an_sym = an_symbolic_expr.toTeX();
-                        
-                        const bn_symbolic_expr = nerdamer.defint(bn_integrand, 'x', -T/2, T/2);
-                        bn_sym = bn_symbolic_expr.toTeX();
-
-                        an_val = parseFloat(nerdamer(an_symbolic_expr).evaluate({n: n}).text());
-                        bn_val = parseFloat(nerdamer(bn_symbolic_expr).evaluate({n: n}).text());
-
-                        if(isNaN(an_val) || isNaN(bn_val)) throw new Error("Symbolic integration resulted in NaN");
-
-                    } catch (e) {
-                       console.warn(`Symbolic integration failed for n=${n}. Falling back to numeric.`, e);
-                       an_val = simpson_integration(evalFunc, T, n, 'cos');
-                       bn_val = simpson_integration(evalFunc, T, n, 'sin');
-                       an_sym = 'Cálculo numérico';
-                       bn_sym = 'Cálculo numérico';
-                    }
-                } else {
-                    an_val = simpson_integration(evalFunc, T, n, 'cos');
-                    bn_val = simpson_integration(evalFunc, T, n, 'sin');
-                }
-                
-                coefficients.an.push(an_val);
-                coefficients.bn.push(bn_val);
-                coefficients.an_symbolic.push(an_sym);
-                coefficients.bn_symbolic.push(bn_sym);
-            }
-        }
-
-        function simpson_integration(fn, T, n, type) {
-            const N = 1000; // Number of intervals (must be even)
-            const a = -T / 2;
-            const b = T / 2;
-            const h = (b - a) / N;
-            let sum = 0;
-
-            for (let i = 0; i <= N; i++) {
-                const x = a + i * h;
-                let y;
-                if (type === 'a0') {
-                    y = fn(x);
-                } else if (type === 'cos') {
-                    y = fn(x) * Math.cos(n * 2 * Math.PI * x / T);
-                } else { // sin
-                    y = fn(x) * Math.sin(n * 2 * Math.PI * x / T);
-                }
-
-                if (i === 0 || i === N) {
-                    sum += y;
-                } else if (i % 2 !== 0) {
-                    sum += 4 * y;
-                } else {
-                    sum += 2 * y;
-                }
-            }
-            const integral = (h / 3) * sum;
-            return type === 'a0' ? (2 / T) * integral : (2 / T) * integral;
-        }
-
+        // --- UI Update ---
         function displayCoefficients() {
-            const container = document.getElementById('coefficients-container');
-            let html = `<div class="coefficient-item"><strong>a₀ =</strong> <span class="coefficient-value">${coefficients.a0.toFixed(6)}</span></div>`;
-            for (let i = 0; i < coefficients.an.length; i++) {
-                html += `<div class="coefficient-item">
-                            <strong>a₍${i+1}₎ =</strong> <span class="coefficient-value">${coefficients.an[i].toFixed(6)}</span><br>
-                            <strong>b₍${i+1}₎ =</strong> <span class="coefficient-value">${coefficients.bn[i].toFixed(6)}</span>
+            let html = '';
+            html += `<div class="p-2 rounded-lg bg-black/20"><strong>a₀ =</strong> <span class="font-mono text-accent-primary">${coefficients.a0.toFixed(5)}</span></div>`;
+            for (let i = 0; i < 10; i++) { // Display first 10
+                if (coefficients.an[i] === undefined) break;
+                html += `<div class="p-2 mt-2 rounded-lg bg-black/20 grid grid-cols-2 gap-2">
+                            <div><strong>a<sub>${i+1}</sub> =</strong> <span class="font-mono text-accent-primary">${coefficients.an[i].toFixed(5)}</span></div>
+                            <div><strong>b<sub>${i+1}</sub> =</strong> <span class="font-mono text-accent-primary">${coefficients.bn[i].toFixed(5)}</span></div>
                          </div>`;
             }
-            container.innerHTML = html;
+            dom.coefficientsContainer.innerHTML = html;
         }
         
-        function updateFormulasDisplay() {
-            const T_val = parseFloat(document.getElementById('period-input').value);
-            const T_str = T_val.toFixed(2);
-            let funcStr = document.getElementById('function-input').value;
-             if (currentFunction !== 'normal') {
-                funcStr = "f(x)"; // Placeholder for piecewise
+        function updateFormulasDisplay(funcData, T, L, sym) {
+            const L_str = L.toFixed(3);
+            let funcDefHTML = '';
+            let calcHTML = '';
+
+            if (funcData.type === 'normal') {
+                funcDefHTML = `f(x) = ${funcData.funcStr}`;
+                calcHTML = `<p>\\[ a_0 = \\frac{1}{${L_str}} \\int_{${funcData.start.toFixed(3)}}^{${funcData.end.toFixed(3)}} (${funcData.funcStr}) \\,dx \\approx ${coefficients.a0.toFixed(5)} \\]</p>
+                            <p>Resultado simbólico para \\(a_n\\): \\( ${sym.an_sym} \\)</p>
+                            <p>Resultado simbólico para \\(b_n\\): \\( ${sym.bn_sym} \\)</p>`;
+            } else {
+                funcDefHTML = `f(x) = \\begin{cases} ${funcData.pieces[0].func} & \\text{si } ${funcData.pieces[0].start.toFixed(3)} \\le x < ${funcData.pieces[0].end.toFixed(3)} \\\\ ${funcData.pieces[1].func} & \\text{si } ${funcData.pieces[1].start.toFixed(3)} \\le x < ${funcData.pieces[1].end.toFixed(3)} \\end{cases}`;
+                calcHTML = `<p>\\[ a_n = ${sym.an_sym} \\]</p>
+                            <p>\\[ b_n = ${sym.bn_sym} \\]</p>`;
             }
-
-
-            let resultHTML = `
-                <h3>Resultados Específicos</h3>
-                <p>\\[ a_0 = \\frac{2}{${T_str}} \\int_{-${T_str}/2}^{${T_str}/2} (${funcStr}) \\,dx = ${coefficients.a0.toFixed(4)} \\]</p>
-                <p>\\[ a_n = \\frac{2}{${T_str}} \\int_{-${T_str}/2}^{${T_str}/2} (${funcStr}) \\cos\\left(\\frac{2\\pi nx}{${T_str}}\\right) \\,dx \\]</p>
-                <p>Resultado para \\(a_n\\): \\( ${coefficients.an_symbolic[0] || '...'} \\) </p>
-                <p>\\[ b_n = \\frac{2}{${T_str}} \\int_{-${T_str}/2}^{${T_str}/2} (${funcStr}) \\sin\\left(\\frac{2\\pi nx}{${T_str}}\\right) \\,dx \\]</p>
-                 <p>Resultado para \\(b_n\\): \\( ${coefficients.bn_symbolic[0] || '...'} \\) </p>
+            
+            dom.formulasContent.innerHTML = `
+                <h3>Definiciones Generales</h3>
+                <p>\\[ f(x) \\approx \\frac{a_0}{2} + \\sum_{n=1}^{\\infty} \\left( a_n \\cos\\left(\\frac{n\\pi x}{L}\\right) + b_n \\sin\\left(\\frac{n\\pi x}{L}\\right) \\right) \\]</p>
+                <p>\\[ a_n = \\frac{1}{L} \\int_{-L}^{L} f(x) \\cos\\left(\\frac{n\\pi x}{L}\\right) \\,dx \\quad , \\quad b_n = \\frac{1}{L} \\int_{-L}^{L} f(x) \\sin\\left(\\frac{n\\pi x}{L}\\right) \\,dx \\]</p>
                 
-                <h3>Serie Resultante para f(x)</h3>`;
+                <h3>Cálculo para ${funcDefHTML}</h3>
+                ${calcHTML}
 
-            let seriesString = `f(x) \\approx ${ (coefficients.a0 / 2).toFixed(4)}`;
-            for (let n = 1; n <= Math.min(coefficients.an.length, 3); n++) {
+                <h3>Serie Resultante (Primeros Términos)</h3>
+                <p>\\[ f(x) \\approx ${(coefficients.a0 / 2).toFixed(4)} 
+                    ${generateSeriesString(L_str)}
+                \\]</p>
+            `;
+            if (window.MathJax) {
+                MathJax.typesetPromise([dom.formulasContent]).catch(err => console.error('MathJax Error:', err));
+            }
+        }
+        
+        function generateSeriesString(L_str) {
+            let str = '';
+            for (let n = 1; n <= 3; n++) {
+                if (coefficients.an[n-1] === undefined) break;
                 const an = coefficients.an[n-1];
                 const bn = coefficients.bn[n-1];
-                
-                if (Math.abs(an) > 1e-4) {
-                    seriesString += ` ${an > 0 ? '+' : ''} \\left(${an.toFixed(4)}\\right) \\cos\\left(\\frac{${2*n}\\pi x}{${T_str}}\\right)`;
-                }
-                if (Math.abs(bn) > 1e-4) {
-                    seriesString += ` ${bn > 0 ? '+' : ''} \\left(${bn.toFixed(4)}\\right) \\sin\\left(\\frac{${2*n}\\pi x}{${T_str}}\\right)`;
-                }
+                if (Math.abs(an) > 1e-4) str += ` ${an > 0 ? '+' : ''} ${an.toFixed(4)} \\cos(\\frac{${n}\\pi x}{${L_str}})`;
+                if (Math.abs(bn) > 1e-4) str += ` ${bn > 0 ? '+' : ''} ${bn.toFixed(4)} \\sin(\\frac{${n}\\pi x}{${L_str}})`;
             }
-            
-            if (coefficients.an.length > 3) {
-                seriesString += " + \\dots";
-            }
-            
-            resultHTML += `<p>\\[ ${seriesString} \\]</p>`;
-            formulasContent.innerHTML = resultHTML;
-            
-            if (window.MathJax) {
-                MathJax.typesetPromise([formulasContent]).catch((err) => console.log('MathJax error: ', err));
-            }
-
-            showFormulasBtn.style.display = 'inline-block';
+            return str + ' + \\dots';
         }
 
-        function calculateFourier() {
-            document.getElementById('loading-overlay').classList.add('active');
-            document.querySelector('.status-indicator').className = 'status-indicator status-calculating';
-            
-            setTimeout(() => {
-                try {
-                    calculateFourierCoefficients();
-                    displayCoefficients();
-                    updateFormulasDisplay();
-                    requestRedraw();
-                    document.querySelector('.status-indicator').className = 'status-indicator status-ready';
-                } catch (error) {
-                    console.error('Error calculating Fourier series:', error);
-                    document.querySelector('.status-indicator').className = 'status-indicator status-error';
-                } finally {
-                    document.getElementById('loading-overlay').classList.remove('active');
-                }
-            }, 100);
+        // --- Coordinate Transformation ---
+        function worldToScreen(x, y) {
+            const { width, height } = dom.canvas;
+            const dpr = window.devicePixelRatio || 1;
+            return { 
+                x: (width / dpr / 2) + (x + view.offsetX) * view.zoom, 
+                y: (height / dpr / 2) - (y - view.offsetY) * view.zoom 
+            };
+        }
+        function screenToWorld(sx, sy) {
+            const { width, height } = dom.canvas;
+            const dpr = window.devicePixelRatio || 1;
+            return { 
+                x: (sx - width / dpr / 2) / view.zoom - view.offsetX,
+                y: (height / dpr / 2 - sy) / view.zoom + view.offsetY
+            };
         }
 
-        function resetAll() {
-            coefficients = { a0: 0, an: [], bn: [] };
-            selectedHarmonics = new Set([1, 2, 3, 4, 5]);
-            document.getElementById('coefficients-container').innerHTML = 
-                '<p style="color: var(--text-secondary); text-align: center; margin: 20px 0;">Los coeficientes aparecerán aquí después del cálculo...</p>';
-            showFormulasBtn.style.display = 'none';
-            formulasContent.innerHTML = '';
-            generateHarmonicsGrid();
-            resetView();
-            document.querySelector('.status-indicator').className = 'status-indicator status-ready';
-        }
-
-        document.getElementById('max-terms').addEventListener('change', generateHarmonicsGrid);
+        initialize();
+    });
     </script>
 </body>
 </html>
