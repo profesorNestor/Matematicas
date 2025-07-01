@@ -198,8 +198,26 @@
         // --- LÓGICA DE DIBUJO ---
         function resizeCanvas() {
             const parent = canvas.parentElement;
-            canvas.width = parent.clientWidth;
-            canvas.height = parent.clientHeight;
+            // Obtener la relación de píxeles del dispositivo para renderizar a resolución nativa.
+            // Esto es clave para que se vea nítido en pantallas de alta densidad (Retina, móviles, etc.).
+            const dpr = window.devicePixelRatio || 1;
+            
+            const rect = parent.getBoundingClientRect();
+
+            // Establecer el tamaño del buffer de dibujo del canvas (resolución real)
+            // multiplicando el tamaño del layout por el dpr.
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+
+            // Establecer el tamaño de visualización del canvas con CSS para que ocupe
+            // el espacio correcto en la página.
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+
+            // Las funciones de dibujo ya usan canvas.width y canvas.height, por lo que
+            // se adaptarán automáticamente a la nueva resolución más alta.
+            // No es necesario escalar el contexto (ctx.scale), lo que simplifica el código.
+            
             draw();
         }
 
@@ -275,10 +293,11 @@
         function drawMandelbrot() {
             const { maxIter, zoom, offsetX, offsetY } = fractalConfig.mandelbrot;
             const colorPalette = themes[currentThemeIndex].colors;
+            const dpr = window.devicePixelRatio || 1; // <-- FIX: Define dpr
             for (let px = 0; px < canvas.width; px++) {
                 for (let py = 0; py < canvas.height; py++) {
-                    const x0 = (px - canvas.width / 2) * 4 / (canvas.width * zoom) + offsetX;
-                    const y0 = (py - canvas.height / 2) * 4 / (canvas.width * zoom) + offsetY;
+                    const x0 = (px / dpr - (canvas.width / dpr) / 2) * 4 / ((canvas.width / dpr) * zoom) + offsetX;
+                    const y0 = (py / dpr - (canvas.height / dpr) / 2) * 4 / ((canvas.width / dpr) * zoom) + offsetY;
                     let x = 0, y = 0, iteration = 0;
                     while (x * x + y * y <= 4 && iteration < maxIter) {
                         const xtemp = x * x - y * y + x0;
@@ -322,10 +341,11 @@
         function drawJulia() {
             const { maxIter, cx, cy, zoom, offsetX, offsetY } = fractalConfig.julia;
             const colorPalette = themes[currentThemeIndex].colors;
+            const dpr = window.devicePixelRatio || 1;
             for (let px = 0; px < canvas.width; px++) {
                 for (let py = 0; py < canvas.height; py++) {
-                    let zx = (px - canvas.width / 2) * 4 / (canvas.width * zoom) + offsetX;
-                    let zy = (py - canvas.height / 2) * 4 / (canvas.width * zoom) + offsetY;
+                    let zx = (px / dpr - (canvas.width / dpr) / 2) * 4 / ((canvas.width / dpr) * zoom) + offsetX;
+                    let zy = (py / dpr - (canvas.height / dpr) / 2) * 4 / ((canvas.width / dpr) * zoom) + offsetY;
                     let iteration = 0;
                     while (zx * zx + zy * zy <= 4 && iteration < maxIter) {
                         const xtemp = zx * zx - zy * zy;
@@ -469,6 +489,7 @@
                 resetButton.addEventListener('click', () => {
                     fractalConfig.mandelbrot = { maxIter: 100, zoom: 1, offsetX: -0.5, offsetY: 0 };
                     fractalConfig.julia = { maxIter: 200, cx: -0.7, cy: 0.27015, zoom: 1, offsetX: 0, offsetY: 0 };
+                    updateControls();
                     draw();
                 });
             }
@@ -521,7 +542,22 @@
             if (currentFractal !== 'mandelbrot' && currentFractal !== 'julia') return;
             e.preventDefault();
             const config = fractalConfig[currentFractal];
-            config.zoom *= e.deltaY < 0 ? 1.2 : 1 / 1.2;
+            const dpr = window.devicePixelRatio || 1;
+            const zoomFactor = e.deltaY < 0 ? 1.2 : 1 / 1.2;
+            
+            // Lógica de zoom hacia el puntero del ratón
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+
+            const mouseX_fractal = (mouseX - (canvas.width / dpr) / 2) / ((canvas.width / dpr) * 0.5 * config.zoom) + config.offsetX;
+            const mouseY_fractal = (mouseY - (canvas.height / dpr) / 2) / ((canvas.width / dpr) * 0.5 * config.zoom) + config.offsetY;
+
+            config.zoom *= zoomFactor;
+
+            config.offsetX = mouseX_fractal - (mouseX - (canvas.width / dpr) / 2) / ((canvas.width / dpr) * 0.5 * config.zoom);
+            config.offsetY = mouseY_fractal - (mouseY - (canvas.height / dpr) / 2) / ((canvas.width / dpr) * 0.5 * config.zoom);
+
             draw();
         });
         canvas.addEventListener('mousedown', (e) => {
@@ -531,8 +567,9 @@
         canvas.addEventListener('mousemove', (e) => {
             if (!isDragging || (currentFractal !== 'mandelbrot' && currentFractal !== 'julia')) return;
             const config = fractalConfig[currentFractal];
-            config.offsetX -= (e.clientX - lastX) / (0.5 * canvas.width * config.zoom);
-            config.offsetY += (e.clientY - lastY) / (0.5 * canvas.width * config.zoom);
+            const dpr = window.devicePixelRatio || 1;
+            config.offsetX -= (e.clientX - lastX) / (0.5 * (canvas.width / dpr) * config.zoom);
+            config.offsetY -= (e.clientY - lastY) / (0.5 * (canvas.height / dpr) * config.zoom);
             lastX = e.clientX; lastY = e.clientY;
             draw();
         });
@@ -551,7 +588,11 @@
         function init() {
             updateControls();
             resizeCanvas();
-            canvas.style.cursor = 'default';
+            if (currentFractal === 'mandelbrot' || currentFractal === 'julia') {
+                 canvas.style.cursor = 'grab';
+            } else {
+                 canvas.style.cursor = 'default';
+            }
         }
         init();
     </script>
