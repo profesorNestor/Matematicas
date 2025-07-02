@@ -1,0 +1,1477 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Límites | ε-δ Interactivo Premium</title>
+    
+    <!-- Dependencias Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    
+    <!-- Motor de Cálculo Simbólico: Nerdamer.js -->
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Algebra.js"></script>
+    
+    <!-- MathJax para renderizado de LaTeX -->
+    <script>
+    window.mathJaxIsReady = false;
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true,
+        tags: 'ams'
+      },
+      svg: { 
+        fontCache: 'global',
+        scale: 1.1
+      },
+      options: { 
+        skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+        renderActions: {
+          addMenu: [0, '', '']
+        }
+      },
+      startup: {
+        ready: () => {
+            console.log('MathJax está listo.');
+            window.mathJaxIsReady = true;
+            MathJax.startup.defaultReady();
+        }
+      }
+    };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* Estilos Generales y Tema Oscuro/Glassmorphism */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+            color: #f1f5f9;
+            min-height: 100vh;
+        }
+        
+        .glassmorphism {
+            background: rgba(31, 41, 55, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Animaciones para Modales */
+        .modal-enter { animation: fadeIn 0.3s ease-out; }
+        .modal-leave { animation: fadeOut 0.3s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1) translateY(0); }
+            to { opacity: 0; transform: scale(0.95) translateY(10px); }
+        }
+        
+        /* Scrollbar Personalizado */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+
+        /* Estilos para Sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #374151;
+            border-radius: 4px;
+            outline: none;
+            opacity: 0.8;
+            transition: all 0.3s ease;
+        }
+        input[type="range"]:hover { opacity: 1; transform: scale(1.02); }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: linear-gradient(135deg, #818cf8, #6366f1);
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid #111827;
+            box-shadow: 0 4px 8px rgba(99, 102, 241, 0.3);
+            transition: all 0.2s ease;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Spinner de Carga */
+        .loading-spinner {
+            display: inline-block; width: 1.2em; height: 1.2em;
+            border: 2px solid currentColor; border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Estilos para matemáticas */
+        .math-container {
+            overflow-x: auto;
+            padding: 0.75rem;
+            background: rgba(17, 24, 39, 0.7);
+            border-radius: 0.5rem;
+            border-left: 4px solid #6366f1;
+        }
+        
+        .math-step {
+            background: rgba(30, 41, 59, 0.6);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-left: 4px solid #06b6d4;
+            transition: all 0.3s ease;
+        }
+        
+        .math-step:hover {
+            background: rgba(30, 41, 59, 0.8);
+            transform: translateX(4px);
+        }
+
+        /* Mejoras en botones */
+        .btn-primary {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5b5bd6, #7c3aed);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+        .header-icon:hover {
+            animation: pulse 0.6s ease-in-out;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        /* Notificaciones toast */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            padding: 12px 20px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+        }
+        .toast.show { transform: translateX(0); }
+        .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
+        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+        /* Estados de validación */
+        .input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+        .input-success { border-color: #10b981 !important; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+
+        /* Indicadores de progreso */
+        .progress-indicator {
+            position: relative;
+            overflow: hidden;
+        }
+        .progress-indicator::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #6366f1, transparent);
+            animation: shimmer 2s infinite;
+        }
+        @keyframes shimmer {
+            0% { left: -100%; }
+            100% { left: 100%; }
+        }
+        
+        /* Estilos para el Footer */
+        .animated-footer {
+            text-align: center;
+            padding: 1.5rem;
+            margin-top: 2rem;
+            color: #9ca3af; /* gray-400 */
+            font-size: 0.9rem;
+            position: relative;
+            overflow: hidden;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .footer-content {
+            position: relative;
+            z-index: 1;
+        }
+        .footer-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(-45deg, #1e293b, #374151, #0f172a, #6366f1);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            opacity: 0.1;
+            z-index: 0;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .footer-link {
+            font-weight: 600;
+            background: linear-gradient(90deg, #818cf8, #a78bfa, #f472b6, #818cf8);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: text-gradient 5s linear infinite;
+            transition: all 0.3s ease;
+        }
+        .footer-link:hover {
+            filter: brightness(1.2);
+        }
+        @keyframes text-gradient {
+            to {
+                background-position: 200% center;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- Toast Notifications -->
+    <div id="toast-container"></div>
+
+    <main class="flex-grow">
+        <div class="w-full min-h-full p-4 lg:p-6 flex flex-col lg:flex-row gap-6">
+
+            <!-- PANEL DE CONTROL (IZQUIERDA) -->
+            <div class="w-full lg:w-1/3 lg:max-w-md flex-shrink-0">
+                <div class="glassmorphism rounded-2xl p-6 sticky top-6">
+                    <!-- Encabezado Mejorado -->
+                    <div class="flex justify-between items-center mb-6">
+                        <div class="flex items-center gap-4">
+                            <div class="bg-gradient-to-br from-indigo-500 to-purple-600 p-3 rounded-xl text-white shadow-lg shadow-indigo-500/30">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                </svg>
+                            </div>
+                            <div>
+                                <h1 class="text-2xl font-bold text-white">Visualizador de Límites</h1>
+                                <p class="text-indigo-300">Definición ε-δ Interactiva</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="export-btn" class="text-gray-400 hover:text-green-400 transition text-xl header-icon" title="Exportar Gráfica como PNG">📷</button>
+                            <button id="auto-delta-btn" class="text-gray-400 hover:text-cyan-400 transition text-xl header-icon" title="Auto-calcular δ">🎯</button>
+                            <button id="colors-btn" class="text-gray-400 hover:text-indigo-400 transition text-xl header-icon" title="Personalizar colores">🎨</button>
+                            <button id="help-btn" class="text-gray-400 hover:text-indigo-400 transition text-xl header-icon" title="Ayuda">❓</button>
+                        </div>
+                    </div>
+
+                    <!-- Selector de Ejemplos -->
+                    <div class="mb-6">
+                        <label for="example-select" class="block text-sm font-medium text-gray-300 mb-2">📚 Biblioteca de Ejemplos</label>
+                        <select id="example-select" class="w-full bg-gray-700/50 border-2 border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 transition">
+                            <option value="custom">-- Función Personalizada --</option>
+                            <option value="removable" selected>Discontinuidad Removible: (x^2-9)/(x-3)</option>
+                            <option value="linear">Límite Lineal: 2*x + 1</option>
+                            <option value="quadratic">Límite Cuadrático: x^2</option>
+                            <option value="rational">Función Racional: (x^2-1)/(x-1)</option>
+                            <option value="trigonometric">Límite Trigonométrico: sin(x)/x</option>
+                            <option value="exponential">Función Exponencial: (e^x - 1)/x</option>
+                            <option value="jump">Discontinuidad de Salto: abs(x)/x</option>
+                            <option value="asymptotic">Límite Infinito: 1/x^2</option>
+                            <option value="oscillating">Función Oscilante: x*sin(1/x)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Inputs Principales -->
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <label for="function-input" class="text-sm font-medium text-gray-300">Función $f(x)$</label>
+                            <input type="text" id="function-input" class="w-full mt-1 bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 transition" value="(x^2-9)/(x-3)" placeholder="Ej: x^2, sin(x), (x^2-1)/(x-1)">
+                            <div id="function-validation" class="text-xs mt-1 hidden"></div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label for="point-a" class="text-sm font-medium text-gray-300">Punto $a$</label>
+                                <input type="text" id="point-a" class="w-full mt-1 bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 transition" value="3" placeholder="Ej: 0, 1, pi">
+                                <div id="point-validation" class="text-xs mt-1 hidden"></div>
+                            </div>
+                            <div>
+                                 <label for="limit-type" class="text-sm font-medium text-gray-300">Tipo de Límite</label>
+                                 <select id="limit-type" class="w-full mt-1 bg-gray-800 border-2 border-gray-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-indigo-500 transition">
+                                     <option value="both_sided" selected>x → a</option>
+                                     <option value="right_sided">x → a⁺</option>
+                                     <option value="left_sided">x → a⁻</option>
+                                 </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="calculate-btn" class="w-full btn-primary text-white font-bold py-3 px-4 rounded-lg shadow-lg focus:outline-none focus:ring-4 focus:ring-indigo-500/50 transition-all duration-300 flex items-center justify-center gap-2">
+                        <span id="calculate-btn-text">🔍 Analizar Límite</span>
+                    </button>
+
+                    <!-- Panel ε-δ Mejorado -->
+                    <div id="epsilon-delta-panel" class="mt-6 border-t border-gray-700 pt-6 space-y-4 opacity-50 pointer-events-none transition-all duration-500">
+                        <div class="text-center mb-4">
+                            <h3 class="text-lg font-semibold text-indigo-300">Exploración ε-δ</h3>
+                            <p class="text-sm text-gray-400">Ajusta los valores para verificar la definición</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label for="epsilon-slider" class="font-semibold text-amber-300 flex items-center gap-2">
+                                    <span>Épsilon (ε)</span>
+                                    <span class="text-xs text-gray-400">vertical</span>
+                                </label>
+                                <input type="range" id="epsilon-slider" min="0.01" max="2" step="0.01" value="0.5">
+                                <div class="text-center text-sm text-amber-300 font-mono bg-amber-500/10 rounded px-2 py-1" id="epsilon-value">0.50</div>
+                            </div>
+                            <div class="space-y-2">
+                                <label for="delta-slider" class="font-semibold text-blue-300 flex items-center gap-2">
+                                    <span>Delta (δ)</span>
+                                    <span class="text-xs text-gray-400">horizontal</span>
+                                </label>
+                                <input type="range" id="delta-slider" min="0.001" max="1" step="0.001" value="0.1">
+                                <div class="text-center text-sm text-blue-300 font-mono bg-blue-500/10 rounded px-2 py-1" id="delta-value">0.100</div>
+                            </div>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="analysis-btn" class="bg-teal-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-teal-700 transition text-sm">📊 Análisis</button>
+                            <button id="suggest-delta-btn" class="bg-cyan-600 text-white font-bold py-2 px-3 rounded-lg hover:bg-cyan-700 transition text-sm">💡 Sugerir δ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VISUALIZACIÓN (DERECHA) -->
+            <div class="w-full lg:w-2/3 flex-grow flex flex-col gap-6">
+                <!-- Información del Límite -->
+                <div id="limit-info-panel" class="glassmorphism rounded-2xl p-4" style="display: none;">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h3 class="text-lg font-semibold text-indigo-300">Resultado del Límite</h3>
+                            <div id="limit-result" class="text-2xl font-bold text-white mt-1"></div>
+                        </div>
+                        <div id="limit-status" class="px-4 py-2 rounded-lg font-semibold"></div>
+                    </div>
+                </div>
+
+                <!-- Gráfica Principal -->
+                <div id="plot-container" class="glassmorphism rounded-2xl flex-grow min-h-[500px] lg:min-h-0 p-4 progress-indicator">
+                    <div id="plot" class="w-full h-full"></div>
+                </div>
+                
+                <!-- Resultado de Verificación -->
+                <div id="verification-result" class="glassmorphism rounded-2xl p-4 text-center font-semibold text-lg transition-all duration-300" style="display: none;">
+                    <!-- El resultado de la verificación se insertará aquí -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODALS MEJORADOS -->
+    <div id="help-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 hidden">
+        <div class="glassmorphism rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col modal-enter">
+            <div class="flex justify-between items-center p-5 border-b border-gray-700">
+                <h2 class="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent">❓ Guía Completa del Visualizador</h2>
+                <button id="close-help-modal-btn" class="text-gray-400 hover:text-white text-3xl transition">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-6 text-gray-300">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <details class="bg-gray-800/50 rounded-lg p-4" open>
+                        <summary class="font-bold text-lg text-indigo-300 cursor-pointer">🎯 ¿Qué es un Límite?</summary>
+                        <div class="mt-3 space-y-2">
+                            <p>Intuitivamente, el límite describe el comportamiento de una función cuando la variable independiente se acerca a un valor específico.</p>
+                            <div class="math-container">
+                                $$\lim_{x \to a} f(x) = L$$
+                            </div>
+                            <p class="text-sm text-gray-400">Significa que $f(x)$ se aproxima a $L$ cuando $x$ se aproxima a $a$.</p>
+                        </div>
+                    </details>
+                    
+                    <details class="bg-gray-800/50 rounded-lg p-4" open>
+                        <summary class="font-bold text-lg text-indigo-300 cursor-pointer">📐 Definición ε-δ</summary>
+                        <div class="mt-3">
+                            <div class="math-container">
+                                $$\lim_{x \to a} f(x) = L \iff$$
+                                $$\forall \varepsilon > 0, \exists \delta > 0 \text{ tal que}$$
+                                $$0 < |x-a| < \delta \implies |f(x)-L| < \varepsilon$$
+                            </div>
+                            <p class="mt-2 text-sm">Para cualquier "tolerancia vertical" ε, existe una "tolerancia horizontal" δ que garantiza que la función permanezca dentro de la banda ε.</p>
+                        </div>
+                    </details>
+                </div>
+                
+                <details class="bg-gray-800/50 rounded-lg p-4">
+                    <summary class="font-bold text-lg text-indigo-300 cursor-pointer">🚀 Cómo Usar la Aplicación</summary>
+                    <div class="mt-3 grid md:grid-cols-2 gap-4">
+                        <div>
+                            <h4 class="font-semibold text-cyan-300 mb-2">Pasos Básicos:</h4>
+                            <ol class="list-decimal list-inside space-y-1 text-sm">
+                                <li>Selecciona un ejemplo o ingresa tu función</li>
+                                <li>Define el punto $a$ donde evaluar el límite</li>
+                                <li>Presiona "Analizar Límite"</li>
+                                <li>Experimenta con los sliders ε y δ</li>
+                                <li>Observa la verificación visual</li>
+                            </ol>
+                        </div>
+                        <div>
+                            <h4 class="font-semibold text-cyan-300 mb-2">Funciones Disponibles:</h4>
+                            <ul class="list-disc list-inside space-y-1 text-sm">
+                                <li><code>x^2, x^3</code> - Potencias</li>
+                                <li><code>sin(x), cos(x), tan(x)</code> - Trigonométricas</li>
+                                <li><code>e^x, ln(x)</code> - Exponencial y logaritmo</li>
+                                <li><code>abs(x), sqrt(x)</code> - Valor absoluto y raíz</li>
+                                <li><code>(x^2-1)/(x-1)</code> - Racionales</li>
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+                
+                <details class="bg-gray-800/50 rounded-lg p-4">
+                    <summary class="font-bold text-lg text-indigo-300 cursor-pointer">🎮 Interpretación Visual</summary>
+                    <div class="mt-3 grid md:grid-cols-3 gap-4 text-sm">
+                        <div class="bg-amber-500/10 p-3 rounded border-l-4 border-amber-500">
+                            <h5 class="font-semibold text-amber-300">Banda Amarilla (ε)</h5>
+                            <p>Define qué tan cerca debe estar $f(x)$ del límite $L$</p>
+                        </div>
+                        <div class="bg-blue-500/10 p-3 rounded border-l-4 border-blue-500">
+                            <h5 class="font-semibold text-blue-300">Banda Azul (δ)</h5>
+                            <p>Define qué tan cerca debe estar $x$ del punto $a$</p>
+                        </div>
+                        <div class="bg-green-500/10 p-3 rounded border-l-4 border-green-500">
+                            <h5 class="font-semibold text-green-300">Verificación</h5>
+                            <p>Verde: ε-δ satisfecha<br>Rojo: Necesitas δ más pequeño</p>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+    
+    <div id="colors-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 hidden">
+        <div class="glassmorphism rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col modal-enter">
+             <div class="flex justify-between items-center p-5 border-b border-gray-700">
+                <h2 class="text-xl font-bold">🎨 Personalizar Colores</h2>
+                <button id="close-colors-modal-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4">
+                <div class="flex items-center justify-between"><label for="color-function">Función $f(x)$:</label><input type="color" id="color-function" value="#818cf8" class="bg-transparent p-1 rounded w-12 h-8"></div>
+                <div class="flex items-center justify-between"><label for="color-epsilon">Banda ε:</label><input type="color" id="color-epsilon" value="#fbbf24" class="bg-transparent p-1 rounded w-12 h-8"></div>
+                <div class="flex items-center justify-between"><label for="color-delta">Banda δ:</label><input type="color" id="color-delta" value="#3b82f6" class="bg-transparent p-1 rounded w-12 h-8"></div>
+                <div class="flex items-center justify-between"><label for="color-valid">Puntos Válidos:</label><input type="color" id="color-valid" value="#10b981" class="bg-transparent p-1 rounded w-12 h-8"></div>
+                <div class="flex items-center justify-between"><label for="color-invalid">Puntos Inválidos:</label><input type="color" id="color-invalid" value="#ef4444" class="bg-transparent p-1 rounded w-12 h-8"></div>
+                <button id="reset-colors-btn" class="w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 transition">Restablecer Colores</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="analysis-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50 hidden">
+        <div class="glassmorphism rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col modal-enter">
+            <div class="flex justify-between items-center p-5 border-b border-gray-700">
+                <h2 class="text-xl font-bold bg-gradient-to-r from-teal-400 to-cyan-400 bg-clip-text text-transparent">🔬 Análisis Matemático Completo</h2>
+                <button id="close-analysis-modal-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+            </div>
+            <div id="analysis-modal-content" class="p-6 overflow-y-auto space-y-4 text-gray-300">
+                <!-- Contenido generado por JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <footer class="animated-footer">
+        <div class="footer-bg"></div>
+        <p class="footer-content">
+            Desarrollado por <span class="footer-link">Msc. Néstor Fabio Montoya & Gemini</span>
+        </p>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- ESTADO Y ELEMENTOS DOM ---
+        const appState = {
+            nerdamerFunc: null,
+            compiledFunc: null,
+            limit: null,
+            limitExists: false,
+            point_a: null,
+            funcStr: '',
+            colors: {
+                function: '#818cf8', epsilon: '#fbbf24', delta: '#3b82f6',
+                valid: '#10b981', invalid: '#ef4444'
+            },
+            isCalculating: false
+        };
+
+        const dom = {
+            exampleSelect: document.getElementById('example-select'),
+            functionInput: document.getElementById('function-input'),
+            pointAInput: document.getElementById('point-a'),
+            limitType: document.getElementById('limit-type'),
+            epsilonSlider: document.getElementById('epsilon-slider'),
+            deltaSlider: document.getElementById('delta-slider'),
+            epsilonValue: document.getElementById('epsilon-value'),
+            deltaValue: document.getElementById('delta-value'),
+            calculateBtn: document.getElementById('calculate-btn'),
+            calculateBtnText: document.getElementById('calculate-btn-text'),
+            analysisBtn: document.getElementById('analysis-btn'),
+            suggestDeltaBtn: document.getElementById('suggest-delta-btn'),
+            autoDeltaBtn: document.getElementById('auto-delta-btn'),
+            helpBtn: document.getElementById('help-btn'),
+            colorsBtn: document.getElementById('colors-btn'),
+            exportBtn: document.getElementById('export-btn'),
+            epsilonDeltaPanel: document.getElementById('epsilon-delta-panel'),
+            limitInfoPanel: document.getElementById('limit-info-panel'),
+            limitResult: document.getElementById('limit-result'),
+            limitStatus: document.getElementById('limit-status'),
+            verificationResult: document.getElementById('verification-result'),
+            plot: document.getElementById('plot'),
+            functionValidation: document.getElementById('function-validation'),
+            pointValidation: document.getElementById('point-validation'),
+            toastContainer: document.getElementById('toast-container'),
+            // Modals
+            helpModal: document.getElementById('help-modal'),
+            colorsModal: document.getElementById('colors-modal'),
+            analysisModal: document.getElementById('analysis-modal'),
+            analysisModalContent: document.getElementById('analysis-modal-content'),
+            closeHelpModalBtn: document.getElementById('close-help-modal-btn'),
+            closeColorsModalBtn: document.getElementById('close-colors-modal-btn'),
+            closeAnalysisModalBtn: document.getElementById('close-analysis-modal-btn'),
+            resetColorsBtn: document.getElementById('reset-colors-btn'),
+        };
+
+        const examples = {
+            removable: { func: '(x^2-9)/(x-3)', a: '3' },
+            linear: { func: '2*x + 1', a: '2' },
+            quadratic: { func: 'x^2', a: '2' },
+            rational: { func: '(x^2-1)/(x-1)', a: '1' },
+            trigonometric: { func: 'sin(x)/x', a: '0' },
+            exponential: { func: '(e^x - 1)/x', a: '0' },
+            jump: { func: 'abs(x)/x', a: '0' },
+            asymptotic: { func: '1/x^2', a: '0' },
+            oscillating: { func: 'x*sin(1/x)', a: '0' },
+        };
+
+        // --- BASE DE DATOS DE SOLUCIONES TEÓRICAS ---
+        const theoreticalSolutions = {
+            '(x^2-9)/(x-3)_3': {
+                title: 'Límite con Discontinuidad Removible',
+                steps: [
+                    {
+                        title: '1. Identificar la Indeterminación',
+                        explanation: 'Al sustituir directamente $x=3$ en la función, obtenemos una forma indeterminada $\\frac{0}{0}$, lo que nos indica que debemos manipular algebraicamente la expresión.',
+                        formula: '$$f(3) = \\frac{3^2 - 9}{3 - 3} = \\frac{9 - 9}{3 - 3} = \\frac{0}{0}$$'
+                    },
+                    {
+                        title: '2. Factorización y Simplificación',
+                        explanation: 'Para resolver la indeterminación, factorizamos el numerador. Usamos la diferencia de cuadrados: $a^2 - b^2 = (a-b)(a+b)$.',
+                        formula: '$$\\lim_{x \\to 3} \\frac{(x-3)(x+3)}{x-3}$$'
+                    },
+                    {
+                        title: '3. Cancelar Términos Comunes',
+                        explanation: 'Como $x$ tiende a 3 (pero no es igual a 3), el término $(x-3)$ no es cero, por lo que podemos cancelarlo de forma segura.',
+                        formula: '$$\\lim_{x \\to 3} (x+3)$$'
+                    },
+                    {
+                        title: '4. Sustitución Directa',
+                        explanation: 'Ahora, la función simplificada $g(x) = x+3$ es continua en $x=3$. Podemos evaluar el límite por sustitución directa.',
+                        formula: '$$L = 3 + 3 = 6$$'
+                    }
+                ]
+            },
+            'sin(x)/x_0': {
+                title: 'Límite Trigonométrico Fundamental',
+                steps: [
+                    {
+                        title: '1. Reconocer el Límite Notable',
+                        explanation: 'Este es uno de los límites fundamentales del cálculo. Aunque la sustitución directa da $\\frac{0}{0}$, su valor es conocido y se demuestra geométricamente o mediante la regla de L\'Hôpital.',
+                        formula: '$$\\lim_{x \\to 0} \\frac{\\sin(x)}{x} = 1$$'
+                    },
+                    {
+                        title: '2. Demostración por L\'Hôpital (Opcional)',
+                        explanation: 'Dado que tenemos una indeterminación $\\frac{0}{0}$, podemos aplicar la regla de L\'Hôpital, derivando el numerador y el denominador por separado.',
+                        formula: '$$\\lim_{x \\to 0} \\frac{\\frac{d}{dx}(\\sin(x))}{\\frac{d}{dx}(x)} = \\lim_{x \\to 0} \\frac{\\cos(x)}{1}$$'
+                    },
+                    {
+                        title: '3. Evaluación Final',
+                        explanation: 'Evaluando el límite de la expresión simplificada por sustitución directa:',
+                        formula: '$$L = \\frac{\\cos(0)}{1} = \\frac{1}{1} = 1$$'
+                    }
+                ]
+            },
+             '(e^x-1)/x_0': {
+                title: 'Límite Exponencial Fundamental',
+                steps: [
+                    {
+                        title: '1. Reconocer el Límite Notable',
+                        explanation: 'Este límite es la definición de la derivada de la función $f(x) = e^x$ en el punto $x=0$. La sustitución directa resulta en $\\frac{0}{0}$.',
+                        formula: '$$f\'(0) = \\lim_{h \\to 0} \\frac{f(0+h) - f(0)}{h} = \\lim_{x \\to 0} \\frac{e^x - e^0}{x} = \\lim_{x \\to 0} \\frac{e^x - 1}{x}$$'
+                    },
+                    {
+                        title: '2. Demostración por L\'Hôpital',
+                        explanation: 'Aplicamos la regla de L\'Hôpital debido a la indeterminación $\\frac{0}{0}$.',
+                        formula: '$$\\lim_{x \\to 0} \\frac{\\frac{d}{dx}(e^x - 1)}{\\frac{d}{dx}(x)} = \\lim_{x \\to 0} \\frac{e^x}{1}$$'
+                    },
+                    {
+                        title: '3. Evaluación Final',
+                        explanation: 'Evaluando el límite de la expresión simplificada por sustitución directa:',
+                        formula: '$$L = \\frac{e^0}{1} = \\frac{1}{1} = 1$$'
+                    }
+                ]
+            }
+        };
+
+        // --- UTILIDADES ---
+        function showToast(message, type = 'info', duration = 3000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            dom.toastContainer.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 100);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+
+        function validateInput(input, validationDiv, validator, errorMsg) {
+            try {
+                const value = input.value.toLowerCase().replace('π', 'pi');
+                const isValid = validator(value);
+                if (isValid) {
+                    input.classList.remove('input-error');
+                    input.classList.add('input-success');
+                    validationDiv.className = 'text-xs mt-1 text-green-400';
+                    validationDiv.textContent = '✓ Válido';
+                    validationDiv.classList.remove('hidden');
+                    return true;
+                } else {
+                    throw new Error(errorMsg);
+                }
+            } catch (e) {
+                input.classList.remove('input-success');
+                input.classList.add('input-error');
+                validationDiv.className = 'text-xs mt-1 text-red-400';
+                validationDiv.textContent = `✗ ${e.message || errorMsg}`;
+                validationDiv.classList.remove('hidden');
+                return false;
+            }
+        }
+
+        async function ensureMathJaxReady() {
+            return new Promise((resolve) => {
+                if (window.mathJaxIsReady && window.MathJax) {
+                    resolve();
+                } else {
+                    const checkInterval = setInterval(() => {
+                        if (window.mathJaxIsReady && window.MathJax) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 100);
+                }
+            });
+        }
+
+        async function renderMath(element) {
+            await ensureMathJaxReady();
+            try {
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    await window.MathJax.typesetPromise([element]);
+                }
+            } catch (error) {
+                console.error('Error rendering math:', error);
+            }
+        }
+
+        // --- LÓGICA DE CÁLCULO MEJORADA ---
+        function calculateLimit(funcStr, a, type) {
+            try {
+                let side = '';
+                if (type === 'right_sided') side = "'+'";
+                if (type === 'left_sided') side = "'-'";
+                
+                let command = `limit(${funcStr}, x, ${a}${side ? ', ' + side : ''})`;
+                const result = nerdamer(command);
+                const resultStr = result.toString();
+
+                if (resultStr.includes('i') || resultStr === 'NaN' || resultStr === 'undefined') {
+                    return { value: null, symbolic: null, steps: 'Límite indefinido o complejo.' };
+                }
+                
+                let numericValue;
+                if (resultStr === 'Infinity' || resultStr === 'oo') numericValue = Infinity;
+                else if (resultStr === '-Infinity' || resultStr === '-oo') numericValue = -Infinity;
+                else numericValue = parseFloat(result.text());
+
+                return { 
+                    value: numericValue, 
+                    symbolic: result,
+                    steps: 'Cálculo simbólico exitoso.' 
+                };
+
+            } catch (e) {
+                console.error("Error calculating limit:", e);
+                return { value: null, symbolic: null, steps: `Error: ${e.message}` };
+            }
+        }
+        
+        function verifyEpsilonDelta(func, a, L, epsilon, delta, type) {
+            if (L === null || !isFinite(L) || !func) return { isSatisfied: false, points: [], stats: {} };
+            
+            const points = [];
+            let validCount = 0, invalidCount = 0;
+            const N_POINTS = 150;
+
+            let start = a - delta;
+            let end = a + delta;
+            if (type === 'left_sided') end = a;
+            if (type === 'right_sided') start = a;
+
+            for (let i = 0; i <= N_POINTS; i++) {
+                const x = start + (end - start) * i / N_POINTS;
+                if (Math.abs(x - a) < 1e-12) continue;
+                
+                let y;
+                try { 
+                    y = func(x); 
+                } catch(e) { continue; }
+                
+                if (!isFinite(y)) { 
+                    invalidCount++;
+                    continue; 
+                }
+
+                const distance = Math.abs(y - L);
+                const isValid = distance < epsilon;
+                points.push({ x, y, isValid, distance });
+                
+                if (isValid) validCount++;
+                else invalidCount++;
+            }
+
+            const stats = {
+                totalPoints: points.length,
+                validPoints: validCount,
+                invalidPoints: invalidCount,
+                successRate: points.length > 0 ? (validCount / points.length * 100).toFixed(1) : 0
+            };
+
+            return { 
+                isSatisfied: invalidCount === 0 && points.length > 0, 
+                points, 
+                stats 
+            };
+        }
+
+        function suggestOptimalDelta(func, a, L, epsilon, type) {
+            if (!isFinite(L) || !func) return null;
+            
+            let optimalDelta = null;
+            const maxDelta = 2.0;
+            const minDelta = 0.001;
+            const tolerance = 0.98; // 98% de puntos válidos
+            
+            for (let delta = maxDelta; delta >= minDelta; delta -= 0.005) {
+                const verification = verifyEpsilonDelta(func, a, L, epsilon, delta, type);
+                const successRate = parseFloat(verification.stats.successRate) / 100;
+                
+                if (successRate >= tolerance) {
+                    optimalDelta = delta;
+                } else if (optimalDelta !== null) {
+                    break;
+                }
+            }
+            
+            return optimalDelta;
+        }
+
+        // --- LÓGICA DE VISUALIZACIÓN MEJORADA ---
+        function drawPlot() {
+            if (!appState.compiledFunc || !dom.plot) return;
+            
+            const { compiledFunc, point_a, limit, limitExists, colors } = appState;
+            const epsilon = parseFloat(dom.epsilonSlider.value);
+            const delta = parseFloat(dom.deltaSlider.value);
+            const type = dom.limitType.value;
+
+            const verification = verifyEpsilonDelta(compiledFunc, point_a, limit, epsilon, delta, type);
+            updateVerificationUI(verification);
+
+            const traces = [];
+            const plotRangeX = Math.max(delta * 5, 2.0);
+            const xMin = point_a - plotRangeX, xMax = point_a + plotRangeX;
+
+            // Función principal con mejor muestreo
+            const xFunc = [], yFunc = [];
+            const N_FUNC_POINTS = 500;
+            for (let i = 0; i <= N_FUNC_POINTS; i++) {
+                const x = xMin + (xMax - xMin) * i / N_FUNC_POINTS;
+                try {
+                    const y = compiledFunc(x);
+                    if (isFinite(y) && (!limitExists || Math.abs(y) < Math.abs(limit)*15 + 100)) {
+                        xFunc.push(x); yFunc.push(y);
+                    } else { throw new Error('discontinuity'); }
+                } catch(e){
+                    if (xFunc.length > 0 && xFunc[xFunc.length-1] !== null) {
+                        xFunc.push(null); yFunc.push(null);
+                    }
+                }
+            }
+            traces.push({
+                x: xFunc, y: yFunc, mode: 'lines', name: 'f(x)',
+                line: { color: colors.function, width: 3.5 },
+                hovertemplate: 'x: %{x:.4f}<br>f(x): %{y:.4f}<extra></extra>'
+            });
+
+            // Puntos de verificación con información detallada
+            if (limitExists && isFinite(limit) && verification.points) {
+                const validPts = verification.points.filter(p => p.isValid);
+                const invalidPts = verification.points.filter(p => !p.isValid);
+                
+                if(validPts.length > 0) {
+                    traces.push({ 
+                        x: validPts.map(p => p.x), 
+                        y: validPts.map(p => p.y), 
+                        mode: 'markers', 
+                        name: `Válidos (${validPts.length})`,
+                        marker: { color: colors.valid, size: 5, opacity: 0.8 },
+                        hovertemplate: 'x: %{x:.4f}<br>f(x): %{y:.4f}<br>|f(x)-L|: %{customdata:.4f}<extra></extra>',
+                        customdata: validPts.map(p => p.distance)
+                    });
+                }
+                if(invalidPts.length > 0) {
+                    traces.push({ 
+                        x: invalidPts.map(p => p.x), 
+                        y: invalidPts.map(p => p.y), 
+                        mode: 'markers', 
+                        name: `Inválidos (${invalidPts.length})`,
+                        marker: { color: colors.invalid, size: 7, symbol: 'x', opacity: 0.9 },
+                        hovertemplate: 'x: %{x:.4f}<br>f(x): %{y:.4f}<br>|f(x)-L|: %{customdata:.4f}<extra></extra>',
+                        customdata: invalidPts.map(p => p.distance)
+                    });
+                }
+            }
+
+            // Formas y anotaciones mejoradas
+            const shapes = [];
+            const annotations = [];
+            
+            const y_values = yFunc.filter(y => y !== null && isFinite(y));
+            const y_min = y_values.length > 0 ? Math.min(...y_values) : -5;
+            const y_max = y_values.length > 0 ? Math.max(...y_values) : 5;
+            const y_padding = (y_max - y_min) * 0.25 || 1;
+            
+            if (limitExists && isFinite(limit)) {
+                // Banda Epsilon
+                shapes.push({ 
+                    type: 'rect', xref: 'paper', x0: 0, x1: 1, 
+                    y0: limit - epsilon, y1: limit + epsilon, 
+                    fillcolor: colors.epsilon, opacity: 0.2, 
+                    line: { width: 0 } 
+                });
+                shapes.push({ 
+                    type: 'line', xref: 'paper', x0: 0, x1: 1, 
+                    y0: limit + epsilon, y1: limit + epsilon, 
+                    line: { color: colors.epsilon, width: 2, dash: 'dot' } 
+                });
+                shapes.push({ 
+                    type: 'line', xref: 'paper', x0: 0, x1: 1, 
+                    y0: limit - epsilon, y1: limit - epsilon, 
+                    line: { color: colors.epsilon, width: 2, dash: 'dot' } 
+                });
+                
+                // Banda Delta
+                let d_start = point_a - delta;
+                let d_end = point_a + delta;
+                if (type === 'left_sided') { d_start = point_a - delta; d_end = point_a; }
+                if (type === 'right_sided') { d_start = point_a; d_end = point_a + delta; }
+                
+                shapes.push({ 
+                    type: 'rect', yref: 'paper', y0: 0, y1: 1, 
+                    x0: d_start, x1: d_end, 
+                    fillcolor: colors.delta, opacity: 0.15, 
+                    line: { width: 0 } 
+                });
+                
+                shapes.push({ 
+                    type: 'line', yref: 'paper', y0: 0, y1: 1, 
+                    x0: d_start, x1: d_start, 
+                    line: { color: colors.delta, width: 2, dash: 'dot' } 
+                });
+                shapes.push({ 
+                    type: 'line', yref: 'paper', y0: 0, y1: 1, 
+                    x0: d_end, x1: d_end, 
+                    line: { color: colors.delta, width: 2, dash: 'dot' } 
+                });
+                
+                // Línea del límite
+                shapes.push({ 
+                    type: 'line', xref: 'paper', x0: 0, x1: 1, 
+                    y0: limit, y1: limit, 
+                    line: { color: '#94a3b8', width: 2, dash: 'dash' } 
+                });
+                
+                // Punto del límite
+                traces.push({
+                    x: [point_a], y: [limit], mode: 'markers', name: `L = ${limit.toFixed(4)}`,
+                    marker: { 
+                        color: 'white', size: 12, symbol: 'circle-open', 
+                        line: { color: colors.function, width: 4 } 
+                    },
+                    hovertemplate: `Límite L<br>x: ${point_a}<br>L: ${limit.toFixed(4)}<extra></extra>`
+                });
+
+                // Anotaciones para Epsilon
+                annotations.push({
+                    x: xMin + (xMax - xMin) * 0.05, y: limit + epsilon,
+                    text: `L+ε = ${(limit + epsilon).toFixed(3)}`, showarrow: false,
+                    font: { color: colors.epsilon, size: 12, family: 'monospace' },
+                    bgcolor: 'rgba(15, 23, 42, 0.8)', bordercolor: colors.epsilon, borderpad: 2,
+                    xanchor: 'left', yanchor: 'bottom'
+                });
+                annotations.push({
+                    x: xMin + (xMax - xMin) * 0.05, y: limit - epsilon,
+                    text: `L-ε = ${(limit - epsilon).toFixed(3)}`, showarrow: false,
+                    font: { color: colors.epsilon, size: 12, family: 'monospace' },
+                    bgcolor: 'rgba(15, 23, 42, 0.8)', bordercolor: colors.epsilon, borderpad: 2,
+                    xanchor: 'left', yanchor: 'top'
+                });
+
+                // Anotaciones para Delta
+                annotations.push({
+                    x: point_a - delta, y: y_min - y_padding * 0.1,
+                    text: `a-δ=${(point_a - delta).toFixed(3)}`, showarrow: false,
+                    font: { color: colors.delta, size: 12, family: 'monospace' },
+                    bgcolor: 'rgba(15, 23, 42, 0.8)', bordercolor: colors.delta, borderpad: 2,
+                    xanchor: 'center', yanchor: 'top'
+                });
+                 annotations.push({
+                    x: point_a + delta, y: y_min - y_padding * 0.1,
+                    text: `a+δ=${(point_a + delta).toFixed(3)}`, showarrow: false,
+                    font: { color: colors.delta, size: 12, family: 'monospace' },
+                    bgcolor: 'rgba(15, 23, 42, 0.8)', bordercolor: colors.delta, borderpad: 2,
+                    xanchor: 'center', yanchor: 'top'
+                });
+            }
+            
+            // Layout mejorado
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(15, 23, 42, 0.3)',
+                font: { color: '#e2e8f0', family: 'Inter' },
+                xaxis: { 
+                    title: { text: 'x', font: { size: 16 } },
+                    gridcolor: 'rgba(255,255,255,0.1)', 
+                    zerolinecolor: 'rgba(255,255,255,0.3)', 
+                    range: [xMin, xMax],
+                    showspikes: true, spikecolor: '#6366f1', spikethickness: 2
+                },
+                yaxis: { 
+                    title: { text: 'f(x)', font: { size: 16 } },
+                    gridcolor: 'rgba(255,255,255,0.1)', 
+                    zerolinecolor: 'rgba(255,255,255,0.3)', 
+                    range: [y_min - y_padding, y_max + y_padding],
+                    showspikes: true, spikecolor: '#6366f1', spikethickness: 2
+                },
+                legend: { 
+                    bgcolor: 'rgba(15, 23, 42, 0.8)', 
+                    bordercolor: 'rgba(255,255,255,0.2)', 
+                    borderwidth: 1,
+                    font: { size: 12 }
+                },
+                shapes: shapes,
+                annotations: annotations,
+                margin: { l: 60, r: 40, b: 50, t: 40 },
+                dragmode: 'pan',
+                showlegend: true,
+                hovermode: 'x unified'
+            };
+            
+            Plotly.react(dom.plot, traces, layout, { 
+                responsive: true, 
+                displaylogo: false, 
+                scrollZoom: true,
+                modeBarButtonsToRemove: ['select2d', 'lasso2d']
+            });
+        }
+
+        // --- MANEJO DE UI MEJORADO ---
+        function setButtonLoading(isLoading) {
+            appState.isCalculating = isLoading;
+            dom.calculateBtn.disabled = isLoading;
+            if (isLoading) {
+                dom.calculateBtnText.innerHTML = '<div class="loading-spinner"></div> Analizando...';
+                dom.calculateBtn.classList.add('progress-indicator');
+            } else {
+                dom.calculateBtnText.innerHTML = '🔍 Analizar Límite';
+                dom.calculateBtn.classList.remove('progress-indicator');
+            }
+        }
+
+        function updateLimitInfoPanel() {
+            const { limitExists, limit } = appState;
+            
+            if (limitExists && limit !== null) {
+                dom.limitInfoPanel.style.display = 'block';
+                
+                if (isFinite(limit)) {
+                    dom.limitResult.innerHTML = `L = ${limit.toFixed(6)}`;
+                    dom.limitStatus.className = 'px-4 py-2 rounded-lg font-semibold bg-green-500/20 text-green-300 border border-green-500/30';
+                    dom.limitStatus.textContent = '✓ Existe';
+                } else {
+                    const symbol = limit > 0 ? '∞' : '-∞';
+                    dom.limitResult.innerHTML = `L = ${symbol}`;
+                    dom.limitStatus.className = 'px-4 py-2 rounded-lg font-semibold bg-yellow-500/20 text-yellow-300 border border-yellow-500/30';
+                    dom.limitStatus.textContent = '∞ Infinito';
+                }
+            } else {
+                dom.limitInfoPanel.style.display = 'block';
+                dom.limitResult.innerHTML = 'No existe';
+                dom.limitStatus.className = 'px-4 py-2 rounded-lg font-semibold bg-red-500/20 text-red-300 border border-red-500/30';
+                dom.limitStatus.textContent = '✗ No existe';
+            }
+        }
+        
+        async function updateVerificationUI(verification) {
+            dom.verificationResult.style.display = 'block';
+            
+            const { isSatisfied, stats } = verification;
+            const successRate = parseFloat(stats.successRate);
+            
+            if (isSatisfied) {
+                dom.verificationResult.className = 'glassmorphism rounded-2xl p-4 text-center font-semibold text-lg text-green-300 border-2 border-green-500/50 bg-green-500/10';
+                dom.verificationResult.innerHTML = `
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <span class="text-2xl">✅</span>
+                        <span>¡Definición ε-δ Satisfecha!</span>
+                    </div>
+                    <div class="text-sm text-green-200">
+                        Para δ = ${dom.deltaSlider.value}, todos los ${stats.validPoints} puntos están dentro de la banda ε
+                    </div>
+                `;
+            } else if (successRate >= 90) {
+                dom.verificationResult.className = 'glassmorphism rounded-2xl p-4 text-center font-semibold text-lg text-yellow-300 border-2 border-yellow-500/50 bg-yellow-500/10';
+                dom.verificationResult.innerHTML = `
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <span class="text-2xl">⚠️</span>
+                        <span>Casi Satisfecha (${successRate}%)</span>
+                    </div>
+                    <div class="text-sm text-yellow-200">
+                        ${stats.invalidPoints} de ${stats.totalPoints} puntos están fuera de la banda ε. Reduce δ ligeramente.
+                    </div>
+                `;
+            } else {
+                dom.verificationResult.className = 'glassmorphism rounded-2xl p-4 text-center font-semibold text-lg text-red-300 border-2 border-red-500/50 bg-red-500/10';
+                dom.verificationResult.innerHTML = `
+                    <div class="flex items-center justify-center gap-3 mb-2">
+                        <span class="text-2xl">❌</span>
+                        <span>Definición No Satisfecha (${successRate}%)</span>
+                    </div>
+                    <div class="text-sm text-red-200">
+                        ${stats.invalidPoints > 0 ? `${stats.invalidPoints} de ${stats.totalPoints} puntos están fuera. Necesitas un δ más pequeño.` : 'No se pudieron evaluar puntos en el intervalo δ.'}
+                    </div>
+                `;
+            }
+            
+            await renderMath(dom.verificationResult);
+        }
+
+        function showModal(modal, onShownCallback) {
+            modal.classList.remove('hidden');
+            modal.firstElementChild.classList.remove('modal-leave');
+            modal.firstElementChild.classList.add('modal-enter');
+            
+            // Usar requestAnimationFrame para sincronizar con el repintado del navegador
+            requestAnimationFrame(() => {
+                requestAnimationFrame(async () => {
+                    if (onShownCallback) await onShownCallback();
+                });
+            });
+        }
+
+        function hideModal(modal) {
+            modal.firstElementChild.classList.add('modal-leave');
+            modal.firstElementChild.classList.remove('modal-enter');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        async function updateAnalysisModal() {
+            const { nerdamerFunc, point_a, limit, limitExists, funcStr } = appState;
+            const normalizedFuncStr = funcStr.replace(/\s/g, '').replace(/\*x/g, 'x');
+            const solutionKey = `${normalizedFuncStr}_${point_a}`;
+            const theoreticalSolution = theoreticalSolutions[solutionKey];
+
+            if (theoreticalSolution) {
+                // Muestra la solución teórica detallada
+                let analysisHTML = `<h3 class="text-2xl font-bold text-cyan-300 mb-4">${theoreticalSolution.title}</h3>`;
+                theoreticalSolution.steps.forEach(step => {
+                    analysisHTML += `
+                        <div class="math-step">
+                            <h4 class="font-bold text-cyan-300 mb-2">${step.title}</h4>
+                            <p class="text-sm mb-3">${step.explanation}</p>
+                            <div class="math-container">${step.formula}</div>
+                        </div>
+                    `;
+                });
+                dom.analysisModalContent.innerHTML = analysisHTML;
+            } else {
+                // Comportamiento por defecto para límites no notables
+                let originalTex = '';
+                try {
+                    originalTex = nerdamerFunc ? nerdamerFunc.toTeX() : funcStr;
+                } catch (e) {
+                    originalTex = funcStr;
+                }
+                
+                let analysisHTML = `
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-4">
+                            <div class="math-step">
+                                <h4 class="font-bold text-cyan-300 mb-2">🎯 Problema Planteado</h4>
+                                <div class="math-container">
+                                    $\\lim_{x \\to ${point_a}} ${originalTex}$
+                                </div>
+                            </div>
+                            <div class="math-step">
+                                <h4 class="font-bold text-cyan-300 mb-2">🔍 Método General</h4>
+                                <p class="text-sm">Se utilizó cálculo simbólico para evaluar el límite. Para funciones no tabuladas, se muestra la simplificación si es posible.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                `;
+
+                if (limitExists) {
+                    const resultType = isFinite(limit) ? '✅ Resultado Finito' : '⚠️ Límite Infinito';
+                    const resultColor = isFinite(limit) ? 'green' : 'yellow';
+                    const limitValue = isFinite(limit) ? limit.toFixed(6) : (limit > 0 ? '\\infty' : '-\\infty');
+                    analysisHTML += `
+                            <div class="math-step border-l-${resultColor}-500">
+                                <h4 class="font-bold text-${resultColor}-300 mb-2">${resultType}</h4>
+                                <div class="math-container">$L = ${limitValue}$</div>
+                            </div>
+                    `;
+                } else {
+                     analysisHTML += `
+                        <div class="math-step border-l-red-500">
+                            <h4 class="font-bold text-red-300 mb-2">❌ Límite No Existe</h4>
+                            <p class="text-sm">El límite no pudo ser determinado. Causas comunes incluyen discontinuidades de salto o comportamiento oscilatorio no acotado.</p>
+                        </div>
+                    `;
+                }
+                analysisHTML += `</div></div>`;
+                dom.analysisModalContent.innerHTML = analysisHTML;
+            }
+        }
+
+        // --- EVENT HANDLERS MEJORADOS ---
+        async function handlePrimaryAnalysis() {
+            if (appState.isCalculating) return;
+            
+            setButtonLoading(true);
+            await new Promise(resolve => setTimeout(resolve, 50));
+
+            const funcValid = validateInput(
+                dom.functionInput, 
+                dom.functionValidation,
+                (value) => value.trim().length > 0,
+                'La función no puede estar vacía'
+            );
+
+            const pointValid = validateInput(
+                dom.pointAInput,
+                dom.pointValidation,
+                (value) => {
+                    const cleanedValue = value.toLowerCase().replace('pi', Math.PI);
+                    return !isNaN(parseFloat(cleanedValue)) && isFinite(parseFloat(cleanedValue));
+                },
+                'Debe ser un número válido (o "pi")'
+            );
+
+            if (!funcValid || !pointValid) {
+                showToast('Por favor corrige los errores en los campos', 'error');
+                setButtonLoading(false);
+                return;
+            }
+
+            appState.funcStr = dom.functionInput.value.trim();
+            const pointStr = dom.pointAInput.value.trim().toLowerCase().replace('pi', Math.PI);
+            appState.point_a = parseFloat(pointStr);
+            const type = dom.limitType.value;
+
+            try {
+                appState.nerdamerFunc = nerdamer(appState.funcStr);
+                appState.compiledFunc = appState.nerdamerFunc.buildFunction();
+                showToast('Función analizada correctamente', 'success');
+            } catch(e) {
+                showToast(`Error en la función: ${e.message}`, 'error');
+                setButtonLoading(false);
+                return;
+            }
+
+            const limitResult = calculateLimit(appState.funcStr, appState.point_a, type);
+            appState.limit = limitResult.value;
+            appState.limitExists = appState.limit !== null;
+            
+            updateLimitInfoPanel();
+            
+            if (appState.limitExists && isFinite(appState.limit)) {
+                dom.epsilonDeltaPanel.classList.remove('opacity-50', 'pointer-events-none');
+                dom.epsilonDeltaPanel.classList.add('opacity-100');
+                showToast('Panel ε-δ activado. ¡Experimenta con los controles!', 'info');
+            } else {
+                dom.epsilonDeltaPanel.classList.add('opacity-50', 'pointer-events-none');
+                dom.epsilonDeltaPanel.classList.remove('opacity-100');
+                dom.verificationResult.style.display = 'none';
+                if (!appState.limitExists) {
+                    showToast('El límite no existe en este punto', 'error');
+                } else {
+                    showToast('Límite infinito detectado', 'info');
+                }
+            }
+            
+            drawPlot();
+            setButtonLoading(false);
+        }
+
+        function handleSuggestDelta() {
+            if (!appState.limitExists || !isFinite(appState.limit)) {
+                showToast('Función δ solo disponible para límites finitos', 'error');
+                return;
+            }
+
+            const epsilon = parseFloat(dom.epsilonSlider.value);
+            const suggestedDelta = suggestOptimalDelta(
+                appState.compiledFunc, 
+                appState.point_a, 
+                appState.limit, 
+                epsilon, 
+                dom.limitType.value
+            );
+
+            if (suggestedDelta !== null) {
+                dom.deltaSlider.value = suggestedDelta;
+                dom.deltaValue.textContent = suggestedDelta.toFixed(3);
+                drawPlot();
+                showToast(`δ sugerido: ${suggestedDelta.toFixed(4)}`, 'success');
+            } else {
+                showToast('No se pudo encontrar un δ óptimo', 'error');
+            }
+        }
+
+        function handleAutoDelta() {
+            if (!appState.limitExists || !isFinite(appState.limit)) return;
+
+            const epsilon = parseFloat(dom.epsilonSlider.value);
+            let optimalDelta = suggestOptimalDelta(
+                appState.compiledFunc, 
+                appState.point_a, 
+                appState.limit, 
+                epsilon, 
+                dom.limitType.value
+            );
+
+            if (optimalDelta) {
+                const currentDelta = parseFloat(dom.deltaSlider.value);
+                const duration = 500; // ms
+                const startTime = performance.now();
+
+                function animate(currentTime) {
+                    const elapsedTime = currentTime - startTime;
+                    if (elapsedTime < duration) {
+                        const progress = elapsedTime / duration;
+                        const newValue = currentDelta + (optimalDelta - currentDelta) * progress;
+                        dom.deltaSlider.value = newValue;
+                        dom.deltaValue.textContent = newValue.toFixed(3);
+                        drawPlot();
+                        requestAnimationFrame(animate);
+                    } else {
+                        dom.deltaSlider.value = optimalDelta;
+                        dom.deltaValue.textContent = optimalDelta.toFixed(3);
+                        drawPlot();
+                        showToast('δ optimizado automáticamente', 'success');
+                    }
+                }
+                requestAnimationFrame(animate);
+            }
+        }
+
+        function resetColors() {
+            appState.colors = {
+                function: '#818cf8', epsilon: '#fbbf24', delta: '#3b82f6',
+                valid: '#10b981', invalid: '#ef4444'
+            };
+            
+            Object.keys(appState.colors).forEach(key => {
+                const input = document.getElementById(`color-${key}`);
+                if (input) input.value = appState.colors[key];
+            });
+            
+            drawPlot();
+            showToast('Colores restablecidos', 'success');
+        }
+
+        function setupEventListeners() {
+            // Botones principales
+            dom.calculateBtn.addEventListener('click', handlePrimaryAnalysis);
+            dom.suggestDeltaBtn.addEventListener('click', handleSuggestDelta);
+            dom.autoDeltaBtn.addEventListener('click', handleAutoDelta);
+            dom.exportBtn.addEventListener('click', () => {
+                const { funcStr, point_a } = appState;
+                const filename = `limite_${funcStr.replace(/[^a-z0-9]/gi, '_')}_a_${point_a}.png`;
+                Plotly.downloadImage(dom.plot, { format: 'png', width: 1200, height: 800, filename: filename });
+                showToast('Exportando gráfica como PNG...', 'success');
+            });
+
+            // Selector de ejemplos
+            dom.exampleSelect.addEventListener('change', () => {
+                const selection = dom.exampleSelect.value;
+                if (selection !== 'custom') {
+                    dom.functionInput.value = examples[selection].func;
+                    dom.pointAInput.value = examples[selection].a;
+                    handlePrimaryAnalysis();
+                }
+            });
+
+            // Sliders con actualización en tiempo real
+            [dom.epsilonSlider, dom.deltaSlider, dom.limitType].forEach(el => {
+                el.addEventListener('input', () => {
+                    if (appState.limitExists && isFinite(appState.limit)) {
+                        drawPlot();
+                    }
+                });
+            });
+
+            // Actualización de valores mostrados
+            dom.epsilonSlider.addEventListener('input', e => {
+                dom.epsilonValue.textContent = parseFloat(e.target.value).toFixed(2);
+            });
+            dom.deltaSlider.addEventListener('input', e => {
+                dom.deltaValue.textContent = parseFloat(e.target.value).toFixed(3);
+            });
+
+            // Validación en tiempo real
+            dom.functionInput.addEventListener('input', () => {
+                validateInput(
+                    dom.functionInput, 
+                    dom.functionValidation,
+                    (value) => value.trim().length > 0,
+                    'La función no puede estar vacía'
+                );
+            });
+
+            dom.pointAInput.addEventListener('input', () => {
+                validateInput(
+                    dom.pointAInput,
+                    dom.pointValidation,
+                    (value) => {
+                        const cleanedValue = value.toLowerCase().replace('pi', Math.PI);
+                        return !isNaN(parseFloat(cleanedValue)) && isFinite(parseFloat(cleanedValue));
+                    },
+                    'Debe ser un número válido (o "pi")'
+                );
+            });
+
+            // Modals
+            dom.helpBtn.addEventListener('click', () => {
+                showModal(dom.helpModal, async () => {
+                    await renderMath(dom.helpModal);
+                });
+            });
+            dom.closeHelpModalBtn.addEventListener('click', () => hideModal(dom.helpModal));
+
+            dom.colorsBtn.addEventListener('click', () => showModal(dom.colorsModal));
+            dom.closeColorsModalBtn.addEventListener('click', () => hideModal(dom.colorsModal));
+            dom.resetColorsBtn.addEventListener('click', resetColors);
+
+            dom.analysisBtn.addEventListener('click', () => {
+                showModal(dom.analysisModal, async () => {
+                    await updateAnalysisModal();
+                    await renderMath(dom.analysisModalContent);
+                });
+            });
+            dom.closeAnalysisModalBtn.addEventListener('click', () => hideModal(dom.analysisModal));
+
+            // Color pickers
+            Object.keys(appState.colors).forEach(key => {
+                const input = document.getElementById(`color-${key}`);
+                if(input) {
+                    input.addEventListener('input', (e) => {
+                        appState.colors[key] = e.target.value;
+                        if (appState.limitExists) drawPlot();
+                    });
+                }
+            });
+
+            // Atajos de teclado
+            document.addEventListener('keydown', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case 'Enter':
+                            e.preventDefault();
+                            handlePrimaryAnalysis();
+                            break;
+                        case 'h':
+                            e.preventDefault();
+                            showModal(dom.helpModal, async () => {
+                                await renderMath(dom.helpModal);
+                            });
+                            break;
+                    }
+                }
+                if (e.key === 'Escape') {
+                    [dom.helpModal, dom.colorsModal, dom.analysisModal].forEach(modal => {
+                        if (!modal.classList.contains('hidden')) {
+                            hideModal(modal);
+                        }
+                    });
+                }
+            });
+        }
+
+        // --- INICIALIZACIÓN MEJORADA ---
+        async function init() {
+            setupEventListeners();
+            
+            showToast('¡Bienvenido al Visualizador ε-δ Premium!', 'info', 4000);
+            
+            await ensureMathJaxReady();
+            
+            await renderMath(document.body);
+            
+            await handlePrimaryAnalysis();
+            
+            console.log('Visualizador ε-δ inicializado correctamente');
+        }
+
+        // Inicializar cuando el DOM esté listo
+        init();
+    });
+    </script>
+</body>
+</ht
