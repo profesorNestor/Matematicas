@@ -175,8 +175,8 @@
         .legend-color { width: 20px; height: 4px; margin-right: 8px; border-radius: 2px; }
         #error-legend-item { display: none; }
 
-        /* --- Modal de Fórmulas --- */
-        #formula-modal {
+        /* --- Modals --- */
+        .modal-backdrop {
             position: fixed;
             inset: 0;
             background: rgba(1, 4, 19, 0.8);
@@ -189,7 +189,7 @@
             visibility: hidden;
             transition: opacity var(--transition-speed) ease, visibility 0s var(--transition-speed);
         }
-        #formula-modal.active {
+        .modal-backdrop.active {
             opacity: 1;
             visibility: visible;
             transition-delay: 0s;
@@ -202,12 +202,13 @@
             width: 90%;
             max-width: 900px;
             max-height: 90vh;
-            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
             box-shadow: 0 0 50px var(--magenta-glow);
             transform: scale(0.95);
             transition: transform var(--transition-speed) ease;
         }
-        #formula-modal.active .modal-content {
+        .modal-backdrop.active .modal-content {
             transform: scale(1);
         }
         .modal-header {
@@ -215,14 +216,20 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
+            flex-shrink: 0;
         }
         .modal-title {
             font-family: 'Orbitron', sans-serif;
             font-size: 1.5rem;
             color: var(--magenta-glow);
         }
-        .formula-section {
-            margin-bottom: 1rem;
+        .modal-body {
+            overflow: auto;
+            padding-right: 1rem;
+        }
+
+        .formula-section, .help-section {
+            margin-bottom: 1.5rem;
         }
         .formula-content {
             font-size: 1.2rem;
@@ -231,6 +238,32 @@
             border-radius: 8px;
             overflow-x: auto;
         }
+        .help-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.2rem;
+            color: var(--cyan-glow);
+            margin-bottom: 1rem;
+        }
+        .help-section p, .help-section li {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            font-size: 1.1rem;
+        }
+        .help-section ul {
+            list-style-position: inside;
+            padding-left: 0.5rem;
+        }
+        .help-section li {
+            margin-bottom: 0.75rem;
+        }
+        .help-section code {
+            background: rgba(0, 255, 255, 0.1);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-family: monospace;
+            color: var(--cyan-glow);
+        }
+
 
         /* --- Diseño Responsivo --- */
         @media (max-width: 768px) {
@@ -268,7 +301,6 @@
                         <button class="preset-btn modern-btn" data-func="cos(x)">cos(x)</button>
                         <button class="preset-btn modern-btn" data-func="exp(x)">e^x</button>
                         <button class="preset-btn modern-btn" data-func="log(x+1)">ln(x+1)</button>
-                        <!-- NUEVAS FUNCIONES -->
                         <button class="preset-btn modern-btn" data-func="1/(1-x)">1/(1-x)</button>
                         <button class="preset-btn modern-btn" data-func="atan(x)">atan(x)</button>
                     </div>
@@ -302,8 +334,9 @@
                     <label for="show-error-toggle" class="input-label" style="margin-bottom: 0;">Mostrar Error</label>
                     <input type="checkbox" id="show-error-toggle" />
                 </div>
-                <div class="input-group">
-                    <button id="show-formula-btn" class="modern-btn">Ver Fórmula</button>
+                <div class="input-group" style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                    <button id="show-formula-btn" class="modern-btn">📜 Fórmulas</button>
+                    <button id="show-help-btn" class="modern-btn">❓ Ayuda</button>
                 </div>
             </div>
         </div>
@@ -316,28 +349,76 @@
         </div>
 
         <!-- Modal de Fórmulas -->
-        <div id="formula-modal">
+        <div id="formula-modal" class="modal-backdrop">
             <div class="modal-content">
                 <header class="modal-header">
                     <h2 class="modal-title">Desarrollo de la Serie</h2>
                     <button id="close-formula-btn" class="modern-btn" style="width: 40px; height: 40px; padding: 0;">X</button>
                 </header>
-                <div class="formula-section">
-                    <h3 class="input-label">Fórmula General de Taylor</h3>
-                    <div class="formula-content">$$ f(x) \approx \sum_{n=0}^{N} \frac{f^{(n)}(a)}{n!} (x-a)^n $$</div>
+                <div class="modal-body">
+                    <div class="formula-section">
+                        <h3 class="input-label">Fórmula General de Taylor</h3>
+                        <div class="formula-content">$$ f(x) \approx \sum_{n=0}^{N} \frac{f^{(n)}(a)}{n!} (x-a)^n $$</div>
+                    </div>
+                    <div class="formula-section" id="textbook-formula-section" style="display: none;">
+                        <h3 class="input-label">Expansión de Maclaurin Conocida</h3>
+                        <div class="formula-content" id="textbook-formula-content"></div>
+                    </div>
+                     <div class="formula-section">
+                        <h3 class="input-label">Serie Calculada para <span id="modal-function-name"></span></h3>
+                        <div class="formula-content" id="expanded-terms"></div>
+                    </div>
+                    <div class="formula-section">
+                        <h3 class="input-label">Término de Error (Residuo de Lagrange)</h3>
+                        <div class="formula-content">$$ R_n(x) = \frac{f^{(n+1)}(c)}{(n+1)!} (x-a)^{n+1} $$</div>
+                    </div>
                 </div>
-                <!-- NUEVA SECCIÓN PARA FÓRMULA DE LIBRO -->
-                <div class="formula-section" id="textbook-formula-section" style="display: none;">
-                    <h3 class="input-label">Expansión de Maclaurin Conocida</h3>
-                    <div class="formula-content" id="textbook-formula-content"></div>
-                </div>
-                 <div class="formula-section">
-                    <h3 class="input-label">Serie Calculada para <span id="modal-function-name"></span></h3>
-                    <div class="formula-content" id="expanded-terms"></div>
-                </div>
-                <div class="formula-section">
-                    <h3 class="input-label">Término de Error (Residuo de Lagrange)</h3>
-                    <div class="formula-content">$$ R_n(x) = \frac{f^{(n+1)}(c)}{(n+1)!} (x-a)^{n+1} $$</div>
+            </div>
+        </div>
+        
+        <!-- Modal de Ayuda -->
+        <div id="help-modal" class="modal-backdrop">
+            <div class="modal-content">
+                <header class="modal-header">
+                    <h2 class="modal-title" style="color: var(--yellow-accent);">Guía de la Holocubierta</h2>
+                    <button id="close-help-btn" class="modern-btn" style="width: 40px; height: 40px; padding: 0;">X</button>
+                </header>
+                <div class="modal-body">
+                    <div class="help-section">
+                        <h3 class="help-title">🚀 Misión: Series de Taylor</h3>
+                        <p>¡Bienvenido, cadete! Tu misión es explorar cómo funciones complejas pueden ser aproximadas por polinomios más simples. Una Serie de Taylor es como un "plano de construcción" matemático que nos permite predecir el comportamiento de una función cerca de un punto específico.</p>
+                    </div>
+                    <div class="help-section">
+                        <h3 class="help-title">✨ La Teoría Detrás de la Magia</h3>
+                        <p>El objetivo es construir un polinomio que imite a la función original <code>f(x)</code> alrededor de un punto de expansión <code>a</code>. Para lograrlo, nos aseguramos de que el polinomio y la función original tengan el mismo valor y las mismas derivadas en ese punto.</p>
+                        <ul>
+                            <li><b>Término 0 (Posición):</b> El primer término, <code>f(a)</code>, asegura que ambas gráficas pasen por el mismo punto.</li>
+                            <li><b>Término 1 (Velocidad):</b> El segundo término, con <code>f'(a)</code>, iguala las pendientes (la "velocidad" de cambio) de ambas gráficas.</li>
+                            <li><b>Término 2 (Aceleración):</b> El tercer término, con <code>f''(a)</code>, iguala la concavidad (la "aceleración").</li>
+                            <li><b>Y así sucesivamente...</b> Cada término adicional hace que la aproximación sea cada vez mejor en las cercanías del punto <code>a</code>.</li>
+                            <li><b>Serie de Maclaurin:</b> Es simplemente un caso especial de la Serie de Taylor donde el punto de expansión es <code>a = 0</code>.</li>
+                        </ul>
+                    </div>
+                    <div class="help-section">
+                        <h3 class="help-title">🔭 El Lienzo Cósmico</h3>
+                        <p>Esta es tu ventana al universo matemático. ¡Interactúa con él!</p>
+                        <ul>
+                            <li><b>Navegación 🖱️:</b> Haz clic y arrastra para moverte por el espacio-tiempo del gráfico.</li>
+                            <li><b>Zoom de Curvatura 휠:</b> Usa la rueda del mouse para acercarte o alejarte.</li>
+                            <li><b>Manipulación del Eje X ↔️:</b> Acerca el cursor al eje Y (vertical) y arrastra para estirar el universo horizontalmente.</li>
+                            <li><b>Manipulación del Eje Y ↕️:</b> Acerca el cursor al eje X (horizontal) y arrastra para expandir la dimensión vertical.</li>
+                            <li><b>Controles Táctiles 🖐️:</b> En tu PADD, usa un dedo para navegar y dos para hacer zoom.</li>
+                        </ul>
+                    </div>
+                    <div class="help-section">
+                        <h3 class="help-title">⚙️ Panel de Mando</h3>
+                        <ul>
+                            <li><b>Función <code>f(x)</code>:</b> Elige una función predefinida o introduce la tuya. ¡El motor de cálculo puede con casi todo!</li>
+                            <li><b>Punto de Expansión <code>(a)</code>:</b> Este es el "punto de anclaje" de tu aproximación. La serie será más precisa cerca de este valor. ¡Desliza y observa cómo cambia la aproximación!</li>
+                            <li><b>Número de Términos:</b> La cantidad de "piezas" que usas para construir tu polinomio. Más términos = más precisión, pero también más complejidad.</li>
+                            <li><b>Mostrar Error:</b> Activa esta opción para visualizar la "zona de divergencia" (el área roja), que muestra la diferencia entre la función real y tu aproximación.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -366,6 +447,9 @@
             closeFormulaBtn: document.getElementById('close-formula-btn'),
             textbookFormulaSection: document.getElementById('textbook-formula-section'),
             textbookFormulaContent: document.getElementById('textbook-formula-content'),
+            helpModal: document.getElementById('help-modal'),
+            showHelpBtn: document.getElementById('show-help-btn'),
+            closeHelpBtn: document.getElementById('close-help-btn'),
         };
         const ctx = dom.canvas.getContext('2d');
         let currentFunction = 'sin(x)';
@@ -375,7 +459,6 @@
         let taylorPolynomialLatex;
         let showError = false;
 
-        // NUEVO: Mapa de fórmulas de libro
         const textbookFormulas = {
             'sin(x)': '$$ \\sin(x) = \\sum_{n=0}^{\\infty} \\frac{(-1)^n}{(2n+1)!} x^{2n+1} = x - \\frac{x^3}{3!} + \\frac{x^5}{5!} - \\cdots $$',
             'cos(x)': '$$ \\cos(x) = \\sum_{n=0}^{\\infty} \\frac{(-1)^n}{(2n)!} x^{2n} = 1 - \\frac{x^2}{2!} + \\frac{x^4}{4!} - \\cdots $$',
@@ -468,12 +551,19 @@
             });
             updateLegendColors();
 
-            // Modal
+            // Modals
             dom.showFormulaBtn.addEventListener('click', showFormulaModal);
             dom.closeFormulaBtn.addEventListener('click', hideFormulaModal);
             dom.formulaModal.addEventListener('click', (e) => {
                 if (e.target === dom.formulaModal) hideFormulaModal();
             });
+            
+            dom.showHelpBtn.addEventListener('click', showHelpModal);
+            dom.closeHelpBtn.addEventListener('click', hideHelpModal);
+            dom.helpModal.addEventListener('click', (e) => {
+                if (e.target === dom.helpModal) hideHelpModal();
+            });
+
 
             // Eventos del Canvas (Mouse)
             dom.canvas.addEventListener('mousedown', e => {
@@ -830,7 +920,6 @@
             return { x: wx, y: wy };
         }
 
-        // MODIFICADO: Muestra la fórmula de libro si aplica
         function showFormulaModal() {
             dom.modalFunctionName.textContent = currentFunction;
             dom.expandedTerms.textContent = `$$ f(x) \\approx ${taylorPolynomialLatex || ''} $$`;
@@ -853,7 +942,15 @@
         function hideFormulaModal() {
             dom.formulaModal.classList.remove('active');
         }
+
+        // NUEVO: Funciones para el modal de ayuda
+        function showHelpModal() {
+            dom.helpModal.classList.add('active');
+        }
+        function hideHelpModal() {
+            dom.helpModal.classList.remove('active');
+        }
         
     </script>
 </body>
-</html>
+</ht
