@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador Interactivo: Método de Newton-Raphson</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Plotly.js (Updated to a specific, newer version) -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <!-- Math.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f2f5;
+        }
+        .modal-enter {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .modal-leave {
+            animation: fadeOut 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes fadeOut {
+            from { opacity: 1; transform: scale(1); }
+            to { opacity: 0; transform: scale(0.95); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        /* For the toggle switch */
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4f46e5;
+        }
+        .toggle-checkbox:checked + .toggle-label::after {
+            transform: translateX(100%);
+        }
+        /* For collapsible sections */
+        .collapsible-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="min-h-screen w-full p-4 lg:p-8 flex flex-col lg:flex-row gap-8">
+
+        <!-- CONTROLS PANEL -->
+        <div class="w-full lg:w-1/3 lg:max-w-md flex-shrink-0">
+            <div class="bg-white rounded-2xl shadow-xl p-6 sticky top-8">
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="bg-indigo-500 p-3 rounded-xl text-white">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 14h.01M9 11h.01M12 11h.01M15 11h.01M5.828 21.172a4 4 0 01-5.656 0A4 4 0 010 18.343V5.657a4 4 0 014-4h12a4 4 0 014 4v12.686a4 4 0 01-1.172 2.828 4 4 0 01-5.656 0l-2.828-2.828-2.828 2.828z" /></svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-800">Newton-Raphson</h1>
+                            <p class="text-gray-500">Visualizador Interactivo</p>
+                        </div>
+                    </div>
+                    <button id="help-btn" class="text-gray-400 hover:text-indigo-600 transition duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.546-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </button>
+                </div>
+
+                <!-- Input Form -->
+                <div class="space-y-6">
+                    <div>
+                        <label for="function-input" class="font-semibold text-gray-600">Función f(x) = 0</label>
+                        <input type="text" id="function-input" value="x^3 - x - 1" class="w-full mt-2 p-3 rounded-lg border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition duration-200 outline-none" placeholder="Ej: x^2 - 4">
+                    </div>
+                    <div>
+                        <label for="x0-input" class="font-semibold text-gray-600">Aproximación Inicial (x₀)</label>
+                        <input type="number" id="x0-input" value="1.5" step="0.1" class="w-full mt-2 p-3 rounded-lg border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition duration-200 outline-none">
+                    </div>
+                    <div>
+                        <label for="iterations-input" class="font-semibold text-gray-600">Máximo de Iteraciones</label>
+                        <input type="number" id="iterations-input" value="10" min="1" max="50" class="w-full mt-2 p-3 rounded-lg border-2 border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition duration-200 outline-none">
+                    </div>
+                </div>
+
+                <button id="calculate-btn" class="w-full mt-8 bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg shadow-lg hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-300 transform hover:-translate-y-0.5 transition-all duration-300">
+                    Calcular y Visualizar
+                </button>
+
+                <!-- Display Options -->
+                <div class="mt-6 border-t pt-6 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="font-semibold">Mostrar Línea Tangente</span>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" id="tangent-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer" checked/>
+                            <label for="tangent-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div id="color-customizer">
+                        <button id="toggle-colors" class="w-full flex justify-between items-center p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                            <span class="font-semibold">🎨 Personalizar Colores</span>
+                            <svg id="color-arrow" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+                        <div id="color-options" class="hidden mt-4 space-y-3 pl-4 border-l-2 border-gray-200">
+                            <div class="flex items-center justify-between">
+                                <label for="color-function" class="text-sm">Función f(x):</label>
+                                <input type="color" id="color-function" value="#4f46e5" class="w-10 h-8 rounded border-none cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="color-tangent" class="text-sm">Línea Tangente:</label>
+                                <input type="color" id="color-tangent" value="#ec4899" class="w-10 h-8 rounded border-none cursor-pointer">
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <label for="color-points" class="text-sm">Puntos (xₙ):</label>
+                                <input type="color" id="color-points" value="#f59e0b" class="w-10 h-8 rounded border-none cursor-pointer">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLOT AND CONTROLS -->
+        <div class="w-full lg:w-2/3 flex-grow flex flex-col gap-6">
+            <div id="plot-container" class="bg-white rounded-2xl shadow-xl flex-grow min-h-[400px] md:min-h-[600px] p-4">
+                <div id="plot" class="w-full h-full"></div>
+            </div>
+            <div id="iteration-controls" class="bg-white rounded-2xl shadow-xl p-4 flex items-center justify-center gap-4 flex-wrap">
+                <button id="reset-btn" class="control-btn" disabled>⏮️ Reiniciar</button>
+                <button id="prev-btn" class="control-btn" disabled>⬅️ Anterior</button>
+                <span id="iteration-display" class="font-mono text-lg font-bold text-gray-700 w-32 text-center">Iteración 0</span>
+                <button id="next-btn" class="control-btn" disabled>Siguiente ➡️</button>
+                <button id="results-btn" class="control-btn" disabled>📊 Ver Tabla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- RESULTS MODAL -->
+    <div id="results-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
+        <div id="modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col modal-enter">
+            <div class="flex justify-between items-center p-5 border-b">
+                <h2 class="text-xl font-bold">Tabla de Resultados del Método</h2>
+                <button id="close-results-modal-btn" class="text-gray-500 hover:text-red-500 text-3xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[600px] text-left">
+                        <thead class="bg-gray-100">
+                            <tr>
+                                <th class="p-3 font-semibold">Iteración (n)</th>
+                                <th class="p-3 font-semibold">xₙ</th>
+                                <th class="p-3 font-semibold">f(xₙ)</th>
+                                <th class="p-3 font-semibold">f'(xₙ)</th>
+                                <th class="p-3 font-semibold">xₙ₊₁</th>
+                            </tr>
+                        </thead>
+                        <tbody id="results-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- HELP MODAL -->
+    <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 hidden">
+        <div id="help-modal-content" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col modal-enter">
+            <div class="flex justify-between items-center p-5 border-b">
+                <h2 class="text-xl font-bold">Ayuda y Guía</h2>
+                <button id="close-help-modal-btn" class="text-gray-500 hover:text-red-500 text-3xl">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4">
+                <!-- Collapsible Section 1 -->
+                <div>
+                    <button class="collapsible-trigger w-full flex justify-between items-center text-left font-semibold p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                        <span>El Método de Newton-Raphson</span>
+                        <svg class="w-5 h-5 transition-transform transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="collapsible-content mt-2">
+                        <div class="p-4 bg-gray-50 rounded-lg text-gray-700 space-y-3">
+                            <p>El método de Newton-Raphson es un algoritmo eficiente para encontrar aproximaciones de las raíces (o ceros) de una función real.</p>
+                            <p>La idea es comenzar con una suposición inicial (x₀) y luego mejorarla iterativamente. En cada paso, se traza la línea tangente a la curva de la función en el punto actual. El siguiente punto de aproximación (xₙ₊₁) es la intersección de esta línea tangente con el eje X.</p>
+                            <p>La fórmula de iteración es:</p>
+                            <p class="text-center font-mono bg-gray-200 p-2 rounded">xₙ₊₁ = xₙ - f(xₙ) / f'(xₙ)</p>
+                            <p>Donde f'(xₙ) es la derivada de la función evaluada en xₙ. El proceso se repite hasta que la diferencia entre iteraciones sucesivas sea muy pequeña, lo que indica que hemos convergido a una raíz.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Collapsible Section 2 -->
+                <div>
+                    <button class="collapsible-trigger w-full flex justify-between items-center text-left font-semibold p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition">
+                        <span>Cómo Usar la Aplicación</span>
+                        <svg class="w-5 h-5 transition-transform transform" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div class="collapsible-content mt-2">
+                        <div class="p-4 bg-gray-50 rounded-lg text-gray-700 space-y-3">
+                            <ol class="list-decimal list-inside space-y-2">
+                                <li><b>Función f(x):</b> Ingresa la función para la cual quieres encontrar la raíz. Usa la sintaxis de math.js (ej. <code>x^2 - 4</code>, <code>cos(x) - x</code>).</li>
+                                <li><b>Aproximación Inicial (x₀):</b> Elige un punto de partida cercano a la raíz que buscas.</li>
+                                <li><b>Calcular y Visualizar:</b> Presiona este botón para iniciar el cálculo y generar la gráfica.</li>
+                                <li><b>Controles de Iteración:</b> Usa los botones (⏮️, ⬅️, ➡️) para navegar entre los pasos del método y ver cómo cambia la aproximación.</li>
+                                <li><b>Ver Tabla:</b> Haz clic para ver una tabla detallada con los valores de cada iteración.</li>
+                                <li><b>Personalización:</b> Activa/desactiva la línea tangente o despliega el panel de colores para cambiar la apariencia de la gráfica.</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ERROR TOAST -->
+    <div id="error-toast" class="fixed bottom-5 right-5 bg-red-500 text-white py-3 px-6 rounded-lg shadow-xl translate-x-[120%] transition-transform duration-500">
+      <p id="error-message"></p>
+    </div>
+
+
+    <script>
+        // --- DOM Element Selection ---
+        const functionInput = document.getElementById('function-input');
+        const x0Input = document.getElementById('x0-input');
+        const iterationsInput = document.getElementById('iterations-input');
+        const calculateBtn = document.getElementById('calculate-btn');
+        const plotDiv = document.getElementById('plot');
+        
+        // Iteration Controls
+        const resetBtn = document.getElementById('reset-btn');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const resultsBtn = document.getElementById('results-btn');
+        const iterationDisplay = document.getElementById('iteration-display');
+
+        // Results Modal
+        const resultsModal = document.getElementById('results-modal');
+        const resultsModalContent = document.getElementById('modal-content');
+        const closeResultsModalBtn = document.getElementById('close-results-modal-btn');
+        const resultsTableBody = document.getElementById('results-table-body');
+        
+        // Help Modal
+        const helpBtn = document.getElementById('help-btn');
+        const helpModal = document.getElementById('help-modal');
+        const helpModalContent = document.getElementById('help-modal-content');
+        const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
+        const collapsibles = document.querySelectorAll('.collapsible-trigger');
+
+        // Display Options
+        const tangentToggle = document.getElementById('tangent-toggle');
+        const toggleColorsBtn = document.getElementById('toggle-colors');
+        const colorOptions = document.getElementById('color-options');
+        const colorArrow = document.getElementById('color-arrow');
+        const colorFunctionInput = document.getElementById('color-function');
+        const colorTangentInput = document.getElementById('color-tangent');
+        const colorPointsInput = document.getElementById('color-points');
+
+        // Error Toast
+        const errorToast = document.getElementById('error-toast');
+        const errorMessage = document.getElementById('error-message');
+
+        // --- Global State ---
+        let f, f_prime;
+        let iterationData = [];
+        let currentIteration = 0;
+        let showTangent = true;
+        let plotColors = {
+            function: '#4f46e5',
+            tangent: '#ec4899',
+            points: '#f59e0b'
+        };
+
+        // --- Math & Calculation Logic ---
+        function parseFunction(expression) {
+            try {
+                const node = math.parse(expression);
+                f = node.compile();
+                const derivativeNode = math.derivative(node, 'x');
+                f_prime = derivativeNode.compile();
+                return true;
+            } catch (err) {
+                showError(`Error al parsear la función: ${err.message}`);
+                return false;
+            }
+        }
+
+        function runNewtonRaphson() {
+            const expression = functionInput.value;
+            if (!parseFunction(expression)) return;
+
+            const x0 = parseFloat(x0Input.value);
+            const maxIter = parseInt(iterationsInput.value);
+            
+            if (isNaN(x0) || isNaN(maxIter)) {
+                showError("El valor inicial y las iteraciones deben ser números.");
+                return;
+            }
+
+            iterationData = [];
+            let xn = x0;
+
+            for (let i = 0; i < maxIter; i++) {
+                const scope = { x: xn };
+                let fxn, fpxn;
+                try {
+                    fxn = f.evaluate(scope);
+                    fpxn = f_prime.evaluate(scope);
+                } catch (err) {
+                    showError(`Error al evaluar en x=${xn.toFixed(4)}: ${err.message}`);
+                    return;
+                }
+
+                if (Math.abs(fpxn) < 1e-10) {
+                    showError(`La derivada es cero en x=${xn.toFixed(4)}. El método no puede continuar.`);
+                    break; 
+                }
+
+                const xn1 = xn - fxn / fpxn;
+                
+                iterationData.push({ n: i, xn, fxn, fpxn, xn1 });
+
+                if (Math.abs(xn1 - xn) < 1e-7) {
+                    break; // Converged
+                }
+                xn = xn1;
+            }
+
+            if (iterationData.length > 0) {
+                currentIteration = 0;
+                updateUI();
+                drawPlot();
+            } else {
+                 showError("No se pudieron generar iteraciones. Revise la función y el punto inicial.");
+            }
+        }
+
+        // --- Plotting Logic ---
+        function drawPlot() {
+            if (!f) return;
+
+            const traces = [];
+            
+            let minX = iterationData.length > 0 ? Math.min(...iterationData.map(d => d.xn)) : parseFloat(x0Input.value) - 5;
+            let maxX = iterationData.length > 0 ? Math.max(...iterationData.map(d => d.xn)) : parseFloat(x0Input.value) + 5;
+            const range = maxX - minX;
+            minX -= range * 0.2;
+            maxX += range * 0.2;
+
+            const x_vals = [];
+            const step = (maxX - minX) / 400;
+            for (let x = minX; x <= maxX; x += step) {
+                x_vals.push(x);
+            }
+            const y_vals = x_vals.map(x => f.evaluate({x}));
+
+            traces.push({
+                x: x_vals,
+                y: y_vals,
+                mode: 'lines',
+                name: 'f(x)',
+                line: { color: plotColors.function, width: 3.5 },
+                hoverinfo: 'x+y'
+            });
+
+            const pointsX = [];
+            const pointsY = [];
+            for (let i = 0; i <= currentIteration && i < iterationData.length; i++) {
+                const data = iterationData[i];
+                pointsX.push(data.xn);
+                pointsY.push(data.fxn);
+
+                if (i === currentIteration && showTangent) {
+                    traces.push({
+                        x: [data.xn, data.xn],
+                        y: [0, data.fxn],
+                        mode: 'lines',
+                        line: { color: 'black', width: 1, dash: 'dot' },
+                        hoverinfo: 'none',
+                        showlegend: false
+                    });
+
+                    const dx = data.xn - data.xn1;
+                    const dy = data.fxn - 0;
+                    const extensionFactor = 0.2;
+                    const tangent_x0 = data.xn1 - dx * extensionFactor;
+                    const tangent_y0 = 0 - dy * extensionFactor;
+                    const tangent_x1 = data.xn + dx * extensionFactor;
+                    const tangent_y1 = data.fxn + dy * extensionFactor;
+                    
+                    traces.push({
+                        x: [tangent_x0, tangent_x1],
+                        y: [tangent_y0, tangent_y1],
+                        mode: 'lines',
+                        name: `Tangente en x_${i}`,
+                        line: { color: plotColors.tangent, width: 2.5 },
+                        hoverinfo: 'name'
+                    });
+                    
+                    traces.push({
+                        x: [data.xn1],
+                        y: [0],
+                        mode: 'markers',
+                        name: `x_${i+1} ≈ ${data.xn1.toFixed(4)}`,
+                        marker: { color: plotColors.tangent, size: 10, symbol: 'x' },
+                        hoverinfo: 'name'
+                    });
+                }
+            }
+            
+            if (pointsX.length > 0) {
+                traces.push({
+                    x: pointsX,
+                    y: pointsY,
+                    mode: 'markers',
+                    name: 'Puntos de iteración (xₙ)',
+                    marker: { color: plotColors.points, size: 10, symbol: 'circle' },
+                    hoverinfo: 'text',
+                    text: pointsX.map((x, i) => `x_${i}: ${x.toFixed(4)}<br>f(x_${i}): ${pointsY[i].toFixed(4)}`)
+                });
+            }
+
+            const layout = {
+                title: {
+                    text: `Visualización de f(x) = ${functionInput.value}`,
+                    font: { size: 18, color: '#374151' }
+                },
+                paper_bgcolor: 'white',
+                plot_bgcolor: 'white',
+                xaxis: { 
+                    title: 'x', 
+                    zeroline: true, 
+                    zerolinecolor: '#6b7280',
+                    gridcolor: '#e5e7eb',
+                    linecolor: '#000000', // Intense black for axis line
+                    linewidth: 1.5,
+                    tickcolor: '#000000', // Intense black for ticks
+                    tickfont: { color: '#000000' }, // Intense black for numbers
+                    titlefont: { color: '#000000' } // Intense black for axis title
+                },
+                yaxis: { 
+                    title: 'f(x)', 
+                    zeroline: true, 
+                    zerolinecolor: '#6b7280',
+                    gridcolor: '#e5e7eb',
+                    linecolor: '#000000', // Intense black for axis line
+                    linewidth: 1.5,
+                    tickcolor: '#000000', // Intense black for ticks
+                    tickfont: { color: '#000000' }, // Intense black for numbers
+                    titlefont: { color: '#000000' } // Intense black for axis title
+                },
+                showlegend: true,
+                legend: { x: 0.05, y: 0.95, bgcolor: 'rgba(255,255,255,0.6)' },
+                margin: { l: 50, r: 20, b: 50, t: 50 },
+                hovermode: 'closest',
+                dragmode: 'pan' // Set default drag mode to pan
+            };
+            
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                scrollZoom: true // Explicitly enable scroll wheel zoom
+            };
+
+            Plotly.newPlot(plotDiv, traces, layout, config);
+        }
+        
+        // --- UI Update & Event Handlers ---
+        function updateUI() {
+            const hasData = iterationData.length > 0;
+            [resetBtn, prevBtn, nextBtn, resultsBtn].forEach(btn => btn.disabled = !hasData);
+            if (hasData) {
+                prevBtn.disabled = currentIteration === 0;
+                nextBtn.disabled = currentIteration >= iterationData.length - 1;
+                iterationDisplay.textContent = `Iteración ${currentIteration}`;
+            } else {
+                iterationDisplay.textContent = '---';
+            }
+        }
+
+        function handleIterationChange(step) {
+            const newIteration = currentIteration + step;
+            if (newIteration >= 0 && newIteration < iterationData.length) {
+                currentIteration = newIteration;
+                updateUI();
+                drawPlot();
+            }
+        }
+
+        function showModal(modal, content) {
+            modal.classList.remove('hidden');
+            content.classList.remove('modal-leave');
+            content.classList.add('modal-enter');
+        }
+
+        function hideModal(modal, content) {
+            content.classList.add('modal-leave');
+            content.classList.remove('modal-enter');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+        
+        function showError(message) {
+            errorMessage.textContent = message;
+            errorToast.classList.remove('translate-x-[120%]');
+            setTimeout(() => {
+                errorToast.classList.add('translate-x-[120%]');
+            }, 4000);
+        }
+
+        // Event Listeners
+        calculateBtn.addEventListener('click', runNewtonRaphson);
+        nextBtn.addEventListener('click', () => handleIterationChange(1));
+        prevBtn.addEventListener('click', () => handleIterationChange(-1));
+        resetBtn.addEventListener('click', () => {
+            currentIteration = 0;
+            updateUI();
+            drawPlot();
+        });
+        
+        // Results Modal Listeners
+        resultsBtn.addEventListener('click', () => {
+            resultsTableBody.innerHTML = '';
+            iterationData.forEach(d => {
+                const row = `<tr class="border-b hover:bg-gray-50"><td class="p-3">${d.n}</td><td class="p-3 font-mono">${d.xn.toPrecision(8)}</td><td class="p-3 font-mono">${d.fxn.toPrecision(8)}</td><td class="p-3 font-mono">${d.fpxn.toPrecision(8)}</td><td class="p-3 font-mono text-indigo-600 font-bold">${d.xn1.toPrecision(8)}</td></tr>`;
+                resultsTableBody.innerHTML += row;
+            });
+            showModal(resultsModal, resultsModalContent);
+        });
+        closeResultsModalBtn.addEventListener('click', () => hideModal(resultsModal, resultsModalContent));
+        resultsModal.addEventListener('click', (e) => {
+            if (e.target === resultsModal) hideModal(resultsModal, resultsModalContent);
+        });
+
+        // Help Modal Listeners
+        helpBtn.addEventListener('click', () => showModal(helpModal, helpModalContent));
+        closeHelpModalBtn.addEventListener('click', () => hideModal(helpModal, helpModalContent));
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) hideModal(helpModal, helpModalContent);
+        });
+
+        // Collapsible sections in help modal
+        collapsibles.forEach(button => {
+            button.addEventListener('click', () => {
+                const content = button.nextElementSibling;
+                const icon = button.querySelector('svg');
+                if (content.style.maxHeight) {
+                    content.style.maxHeight = null;
+                    icon.classList.remove('rotate-180');
+                } else {
+                    content.style.maxHeight = content.scrollHeight + "px";
+                    icon.classList.add('rotate-180');
+                }
+            });
+        });
+
+        // Display Options Listeners
+        tangentToggle.addEventListener('change', (e) => {
+            showTangent = e.target.checked;
+            if (iterationData.length > 0) drawPlot();
+        });
+        toggleColorsBtn.addEventListener('click', () => {
+            colorOptions.classList.toggle('hidden');
+            colorArrow.classList.toggle('rotate-180');
+        });
+        [colorFunctionInput, colorTangentInput, colorPointsInput].forEach(input => {
+            input.addEventListener('input', () => {
+                plotColors.function = colorFunctionInput.value;
+                plotColors.tangent = colorTangentInput.value;
+                plotColors.points = colorPointsInput.value;
+                if (iterationData.length > 0) drawPlot();
+            });
+        });
+        
+        // Initial state
+        window.onload = () => runNewtonRaphson();
+        window.onresize = () => {
+            if (iterationData.length > 0) Plotly.Plots.resize(plotDiv);
+        };
+
+    </script>
+</body>
+</html>
