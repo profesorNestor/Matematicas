@@ -2,908 +2,1096 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador de Series de Taylor y Maclaurin</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Fourier Series - Pro Visualizer</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js" id="MathJax-script" async></script>
-    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/nerdamer.core.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/Calculus.js"></script>
-
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
         :root {
-            --bg-dark: #020617;
-            --bg-panel: rgba(15, 23, 42, 0.6);
-            --glass-border: rgba(56, 189, 248, 0.2);
-            --text-primary: #e2e8f0;
-            --text-secondary: #94a3b8;
-            --accent-primary: #22d3ee;
-            --accent-glow: rgba(34, 211, 238, 0.5);
-            --shadow-color: rgba(0, 0, 0, 0.5);
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --accent-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --dark-bg: #0a0a0f;
+            --card-bg: rgba(20, 20, 35, 0.6);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --border-color: rgba(255, 255, 255, 0.15);
+            --text-primary: #f0f0f5;
+            --text-secondary: #a0a0b0;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
         }
 
-        html, body {
-            height: 100%;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
             font-family: 'Inter', sans-serif;
-            background-color: var(--bg-dark);
+            background: var(--dark-bg);
+            background-image: 
+                radial-gradient(circle at 15% 20%, rgba(102, 126, 234, 0.1) 0%, transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(245, 87, 108, 0.1) 0%, transparent 40%);
             color: var(--text-primary);
-            overflow: hidden;
+            min-height: 100vh;
         }
 
-        #particle-canvas {
+        .app-container {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            grid-template-rows: 100px 1fr;
+            grid-template-areas: 
+                "header header"
+                "sidebar main";
+            min-height: 100vh;
+            gap: 1rem;
+            padding: 1rem;
+        }
+
+        .header {
+            grid-area: header;
+            text-align: center;
+        }
+
+        .main-title {
+            font-size: 3rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 40px rgba(102, 126, 234, 0.5);
+            animation: titleGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes titleGlow {
+            from { filter: brightness(1) drop-shadow(0 0 20px rgba(102, 126, 234, 0.3)); }
+            to { filter: brightness(1.2) drop-shadow(0 0 35px rgba(102, 126, 234, 0.6)); }
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        .sidebar {
+            grid-area: sidebar;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 25px;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            min-height: 500px;
+        }
+
+        .main-content {
+            grid-area: main;
+            border-radius: 24px;
+            overflow: hidden;
+            position: relative;
+            background: var(--dark-bg);
+            border: 1px solid var(--border-color);
+            min-height: 500px; 
+        }
+        
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: grab;
+            touch-action: none;
+        }
+
+        #canvas:active { cursor: grabbing; }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .input-group { margin-bottom: 20px; }
+        .input-label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .modern-input {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--glass-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+        .modern-input:focus {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+        }
+
+        .modern-btn {
+            background: var(--glass-bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 12px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .modern-btn:hover {
+            border-color: #667eea;
+            color: white;
+        }
+
+        .modern-btn.primary {
+            background: var(--primary-gradient);
+            border: none;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .modern-btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .harmonics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .harmonic-btn {
+            width: 100%;
+            height: 45px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--glass-bg);
+            color: var(--text-secondary);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .harmonic-btn:hover { border-color: #667eea; color: var(--text-primary); }
+        .harmonic-btn.active {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        /* Modals */
+        .modal-backdrop {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 0;
-            opacity: 0.3;
-        }
-
-        .app-container {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            grid-template-columns: 380px 1fr;
-            gap: 1.5rem;
-            height: 100vh;
-            padding: 1.5rem;
-        }
-
-        .glass-panel {
-            background: var(--bg-panel);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px var(--shadow-color);
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-
-        .control-panel {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            padding: 1.5rem;
-            overflow-y: auto;
-        }
-
-        .main-content {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .panel-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 1rem;
-            text-shadow: 0 0 10px var(--accent-glow);
-        }
-
-        .input-group {
-            margin-bottom: 1rem;
-        }
-
-        .input-label {
-            display: block;
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-            font-size: 0.9rem;
-        }
-
-        .modern-input {
-            width: 100%;
-            padding: 12px 16px;
-            background: rgba(0,0,0,0.3);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            outline: none;
-        }
-
-        .modern-input:focus {
-            border-color: var(--accent-primary);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .action-button {
-            background: linear-gradient(135deg, var(--accent-primary) 0%, #0ea5e9 100%);
-            color: var(--bg-dark);
-            font-weight: 700;
-            padding: 14px;
-            border-radius: 12px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(34, 211, 238, 0.2);
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.5rem;
-        }
-        .action-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 30px var(--accent-glow);
-        }
-        
-        .slider-group {
-            padding: 1rem 0.5rem;
-        }
-        .slider {
-            -webkit-appearance: none;
-            width: 100%;
-            height: 4px;
-            background: var(--glass-border);
-            outline: none;
-            border-radius: 2px;
-            transition: opacity .2s;
-        }
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 20px;
-            height: 20px;
-            background: var(--accent-primary);
-            cursor: pointer;
-            border-radius: 50%;
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-        .slider::-moz-range-thumb {
-            width: 20px;
-            height: 20px;
-            background: var(--accent-primary);
-            cursor: pointer;
-            border-radius: 50%;
-        }
-
-        .graph-container {
-            flex-grow: 1;
-            position: relative;
-            background: rgba(0,0,0,0.3);
-            border-radius: 16px;
-            overflow: hidden;
-            border: 1px solid var(--glass-border);
-        }
-        #canvas {
-            width: 100%;
-            height: 100%;
-            cursor: grab;
-        }
-        #canvas:active { cursor: grabbing; }
-
-        .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(2, 6, 23, 0.8);
-            backdrop-filter: blur(10px);
-            display: none;
-            align-items: center; justify-content: center;
-            z-index: 1000; padding: 20px;
             opacity: 0;
+            pointer-events: none;
             transition: opacity 0.3s ease;
         }
-        .modal-overlay.active { display: flex; opacity: 1; }
-        
+        .modal-backdrop.visible {
+            opacity: 1;
+            pointer-events: all;
+        }
         .modal-content {
-            background: var(--bg-panel);
-            padding: 2rem;
-            border-radius: 24px;
-            border: 1px solid var(--glass-border);
-            max-width: 900px;
-            width: 100%;
-            max-height: 90vh;
-            box-shadow: 0 10px 40px var(--shadow-color);
-            display: flex;
-            flex-direction: column;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             transform: scale(0.95);
             transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
-        .modal-overlay.active .modal-content {
+        .modal-backdrop.visible .modal-content {
             transform: scale(1);
         }
-
-        #formulas-content {
-            font-size: 1.1rem;
-            line-height: 2.5;
-            overflow: auto;
-            padding-right: 1rem;
-        }
-        #formulas-content h3 {
-            font-size: 1.5rem;
-            color: var(--accent-primary);
-            margin-top: 1.5rem;
-            margin-bottom: 1rem;
-            border-bottom: 1px solid var(--glass-border);
-            padding-bottom: 0.5rem;
-        }
-        
-        .loading-spinner {
-            width: 50px; height: 50px;
-            border: 4px solid var(--glass-border);
-            border-top: 4px solid var(--accent-primary);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        .collapsible-header {
+        .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            cursor: pointer;
-            padding: 0.75rem;
-            background: rgba(0,0,0,0.2);
-            border-radius: 12px;
-            transition: background 0.2s ease;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+            flex-shrink: 0;
         }
-        .collapsible-header:hover {
-            background: rgba(0,0,0,0.4);
-        }
-        .collapsible-title {
-            font-weight: 600;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .collapsible-icon {
-            transition: transform 0.3s ease-out;
-            font-style: normal;
-        }
-        .collapsible-content {
-            padding: 1rem 0.5rem 0.5rem;
-            display: none;
-        }
-        .color-control {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-        }
-        .modern-color-picker {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            width: 32px;
-            height: 32px;
-            background-color: transparent;
+        .modal-title { font-size: 1.5rem; }
+        .close-btn {
+            background: none;
             border: none;
+            color: var(--text-secondary);
+            font-size: 1.8rem;
             cursor: pointer;
+            transition: color 0.2s;
         }
-        .modern-color-picker::-webkit-color-swatch {
-            border-radius: 50%;
-            border: 2px solid var(--glass-border);
-        }
-        .modern-color-picker::-moz-color-swatch {
-            border-radius: 50%;
-            border: 2px solid var(--glass-border);
+        .close-btn:hover { color: white; }
+        
+        .modal-body {
+            overflow: auto;
+            padding-right: 15px;
         }
 
-        @media (max-width: 1024px) {
+        #coefficients-container, #formulas-container, #help-container {
+            max-height: 70vh;
+        }
+        .coefficient-item {
+            background: var(--glass-bg);
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 10px;
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 0.95rem;
+        }
+        .coefficient-value { color: #4facfe; font-weight: 600; }
+
+        #formulas-modal .modal-content, #help-modal .modal-content {
+            max-width: 800px;
+        }
+        .formula-section, .help-section {
+            margin-bottom: 25px;
+        }
+        .formula-title, .help-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+        .help-section p, .help-section li {
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+         .help-section ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .help-section li {
+            margin-bottom: 10px;
+        }
+        .help-section code {
+            background-color: var(--glass-bg);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Menlo', 'Monaco', monospace;
+            color: var(--accent-gradient);
+        }
+
+        /* Color Picker */
+        #color-picker-modal .modal-content { max-width: 340px; }
+        .color-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 15px 20px;
+            align-items: center;
+        }
+        .color-swatches { display: flex; gap: 8px; flex-wrap: wrap; }
+        .swatch {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .swatch:hover { transform: scale(1.1); }
+        .swatch.active { border-color: white; }
+
+        /* Overlay & Controls */
+        .canvas-overlay {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 10px 15px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
             .app-container {
                 grid-template-columns: 1fr;
+                grid-template-rows: auto auto 1fr;
+                grid-template-areas: "header" "sidebar" "main";
                 height: auto;
-                padding: 1rem;
+                overflow-y: auto;
+                padding: 0.5rem;
             }
-            html, body { overflow: auto; }
-            .control-panel { order: 2; }
-            .main-content { order: 1; min-height: 60vh; }
+            .sidebar { 
+                max-height: none;
+                border-radius: 16px;
+            }
+            .main-content {
+                border-radius: 16px;
+            }
+            .main-title { font-size: 2.2rem; }
+            .subtitle { font-size: 1rem; }
         }
-        
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
     </style>
 </head>
 <body>
-    <canvas id="particle-canvas"></canvas>
-
     <div class="app-container">
-        <!-- Panel de Control (Izquierda) -->
-        <aside class="glass-panel control-panel">
-            <h1 class="panel-title text-2xl">Series de Taylor</h1>
+        <div class="header">
+            <h1 class="main-title">Visualizador de Series de Fourier</h1>
+            <p class="subtitle">Una herramienta de cálculo y visualización interactiva</p>
+        </div>
+
+        <div class="sidebar">
+            <div class="section-title">⚙️ Controles</div>
             
             <div class="input-group">
-                <div class="collapsible-header">
-                    <span class="collapsible-title">🎨 Paleta de Colores</span>
-                    <i class="collapsible-icon">+</i>
-                </div>
-                <div class="collapsible-content">
-                    <div class="color-control">
-                        <label>Función Original</label>
-                        <input type="color" id="original-color-picker" class="modern-color-picker" value="#ffc700">
-                    </div>
-                    <div class="color-control">
-                        <label>Polinomio de Taylor</label>
-                        <input type="color" id="series-color-picker" class="modern-color-picker" value="#22d3ee">
-                    </div>
-                </div>
-            </div>
-            
-            <div id="normal-input-container">
-                <div class="input-group">
-                    <label for="function-input" class="input-label">Función f(x)</label>
-                    <input type="text" class="modern-input" id="function-input" placeholder="Ej: sin(x), exp(x), log(x+1)" value="sin(x)">
-                </div>
-                 <div class="input-group">
-                    <label for="expansion-point" class="input-label">Punto de Expansión (a)</label>
-                    <input type="number" class="modern-input" id="expansion-point" value="0" step="0.1">
-                </div>
+                <label class="input-label">Función f(x)</label>
+                <input type="text" class="modern-input" id="function-input" placeholder="Ej: x, sin(x), x^2" value="x > 0 ? 1 : -1">
             </div>
 
-            <div class="input-group slider-group">
-                <div class="flex justify-between items-center mb-2">
-                    <label for="terms-slider" class="input-label mb-0">Número de Términos (N)</label>
-                    <span id="terms-value" class="font-bold text-lg text-accent-primary">5</span>
+            <div class="input-group">
+                <label class="input-label">Límite del Período (L)</label>
+                <input type="number" class="modern-input" id="period-input" value="3.14159" step="0.1">
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Número de Armónicos (N)</label>
+                <input type="number" class="modern-input" id="max-terms" value="20" min="1" max="100">
+            </div>
+
+            <div class="button-grid">
+                <button class="modern-btn primary" onclick="runCalculation()"><span>🚀</span>Calcular y Visualizar</button>
+                <div class="button-group">
+                    <button class="modern-btn" id="results-btn"><span>📊</span>Resultados</button>
+                    <button class="modern-btn" id="formulas-btn"><span>📜</span>Fórmulas</button>
+                    <button class="modern-btn" id="help-btn"><span>❓</span>Ayuda</button>
                 </div>
-                <input type="range" min="0" max="20" value="5" class="slider" id="terms-slider">
+                 <button class="modern-btn" id="color-palette-btn"><span>🎨</span>Colores</button>
             </div>
 
-            <div class="flex gap-4 mt-2">
-                <button id="calculate-button" class="action-button w-full">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
-                    <span>Calcular</span>
-                </button>
-                <button id="show-formulas-btn" class="action-button w-full" style="background: var(--bg-panel); color: var(--text-primary); display:none;">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
-                    <span>Fórmulas</span>
-                </button>
-            </div>
-            
-            <div id="status-container" class="text-center text-sm text-text-secondary mt-4 h-5"></div>
-
-            <div class="mt-auto pt-4 border-t border-glass-border">
-                <h3 class="panel-title text-lg">Coeficientes Calculados</h3>
-                <div class="h-48 overflow-y-auto pr-2" id="coefficients-container">
-                    <p class="text-center text-text-secondary text-sm">Los coeficientes aparecerán aquí...</p>
+            <div>
+                <label class="input-label">Armónicos a Visualizar</label>
+                <div class="button-group">
+                    <button class="modern-btn" onclick="selectAllHarmonics()">Todos</button>
+                    <button class="modern-btn" onclick="selectOddHarmonics()">Impares</button>
+                    <button class="modern-btn" onclick="clearHarmonics()">Ninguno</button>
                 </div>
+                <div class="harmonics-grid" id="harmonics-grid"></div>
             </div>
-        </aside>
+        </div>
 
-        <!-- Panel Principal (Derecha) -->
-        <main class="main-content">
-            <div class="graph-container">
-                <canvas id="canvas"></canvas>
+        <div class="main-content">
+            <canvas id="canvas"></canvas>
+            <div class="canvas-overlay">
+                <p>🖱️ Arrastrar para mover | Rueda para zoom</p>
+                <p>🖐️ Pellizcar para zoom | Arrastrar ejes para escalar</p>
             </div>
-        </main>
+        </div>
     </div>
-    
-    <!-- Modal para Fórmulas -->
-    <div id="formulas-modal" class="modal-overlay">
+
+    <!-- Modal de Coeficientes -->
+    <div id="results-modal" class="modal-backdrop">
         <div class="modal-content">
-            <div id="formulas-content"></div>
-            <button id="close-formulas-modal" class="action-button mt-6 self-center">Cerrar</button>
+            <div class="modal-header">
+                <h2 class="modal-title">Coeficientes de Fourier</h2>
+                <button class="close-btn" onclick="closeModal('results-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="coefficients-container"></div>
         </div>
     </div>
     
-    <!-- Modal para Carga -->
-    <div id="loading-modal" class="modal-overlay">
-        <div class="loading-spinner"></div>
+    <!-- Modal de Fórmulas -->
+    <div id="formulas-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Desarrollo Matemático</h2>
+                <button class="close-btn" onclick="closeModal('formulas-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="formulas-container"></div>
+        </div>
+    </div>
+    
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Guía Interactiva 🚀</h2>
+                <button class="close-btn" onclick="closeModal('help-modal')">&times;</button>
+            </div>
+            <div class="modal-body" id="help-container">
+                <div class="help-section">
+                    <div class="help-title">🎨 El Lienzo Interactivo</div>
+                    <p>El lienzo es tu área de juegos. Aquí puedes manipular la visualización de las funciones:</p>
+                    <ul>
+                        <li><b>🖱️ Arrastrar (Pan):</b> Haz clic y arrastra con el mouse para moverte por el plano cartesiano.</li>
+                        <li><b>휠 Zoom:</b> Usa la rueda del mouse para acercar o alejar la vista.</li>
+                        <li><b>↔️ Escalar Eje X:</b> Acerca el cursor al eje Y (la línea vertical) hasta que cambie a ↔️, luego arrastra para estirar o encoger el eje horizontal.</li>
+                        <li><b>↕️ Escalar Eje Y:</b> Acerca el cursor al eje X (la línea horizontal) hasta que cambie a ↕️, luego arrastra para estirar o encoger el eje vertical.</li>
+                        <li><b>🖐️ Gestos Táctiles:</b> En dispositivos móviles, usa un dedo para arrastrar (pan), y dos dedos para pellizcar (zoom). ¡También puedes arrastrar los ejes para escalarlos!</li>
+                    </ul>
+                </div>
+                <div class="help-section">
+                    <div class="help-title">⚙️ Panel de Control</div>
+                     <ul>
+                        <li><b>Función f(x):</b> ¡El corazón de todo! Escribe aquí tu función. Puedes usar operadores (+, -, *, /, ^), constantes como <code>pi</code> y <code>e</code>, y funciones como <code>sin(x)</code>, <code>cos(x)</code>, <code>abs(x)</code>, y <code>sqrt(x)</code>. También puedes usar condiciones ternarias para funciones a trozos, por ejemplo: <code>x > 0 ? x : -x</code> para `abs(x)`.</li>
+                        <li><b>Límite del Período (L):</b> Define el intervalo <code>[-L, L]</code> sobre el cual se analiza la función. La longitud total del período es 2L. Un valor común es <code>pi</code> (3.14159...).</li>
+                        <li><b>Número de Armónicos (N):</b> ¿Cuántas ondas (senos y cosenos) quieres sumar para aproximar tu función? A mayor número, más precisa será la aproximación, ¡pero el cálculo será más intenso!</li>
+                    </ul>
+                </div>
+                 <div class="help-section">
+                    <div class="help-title">🤔 ¿Qué es una Serie de Fourier?</div>
+                    <p>
+                        ¡Es una idea matemática poderosa y fascinante! Imagina que cualquier función periódica, sin importar cuán extraña o compleja sea, puede ser descompuesta y reconstruida sumando un montón de ondas simples (senos y cosenos).
+                    </p>
+                    <p>
+                        Esta herramienta calcula cuáles son esas ondas base (los <b>armónicos</b>) y qué tan "importante" o "fuerte" es cada una (los <b>coeficientes a<sub>n</sub> y b<sub>n</sub></b>). Al sumarlas todas, obtenemos una aproximación de la función original. ¡Es como tener un set infinito de bloques LEGO para construir cualquier forma de onda!
+                    </p>
+                </div>
+                <div class="help-section">
+                    <div class="help-title">✨ Los Botones Mágicos</div>
+                     <ul>
+                        <li><b>🚀 Calcular y Visualizar:</b> El botón principal. Inicia la magia, calcula todo y actualiza el lienzo.</li>
+                        <li><b>📊 Resultados:</b> Muestra una lista con los valores numéricos calculados para los coeficientes a<sub>0</sub>, a<sub>n</sub>, y b<sub>n</sub>.</li>
+                        <li><b>📜 Fórmulas:</b> ¡Tu acordeón personal! Muestra el desarrollo matemático completo, con las integrales y la serie expandida, usando tu propia función y valores.</li>
+                        <li><b>🎨 Colores:</b> Abre una paleta para que personalices los colores de la función original, la serie de Fourier y los armónicos.</li>
+                         <li><b>❓ Ayuda:</b> ¡Estás aquí! 😉</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Paleta de Colores -->
+    <div id="color-picker-modal" class="modal-backdrop">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title">Personalizar Colores</h2>
+                <button class="close-btn" onclick="closeModal('color-picker-modal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="color-grid">
+                    <label>Función Original</label>
+                    <div class="color-swatches" data-target="original"></div>
+                    <label>Serie de Fourier</label>
+                    <div class="color-swatches" data-target="fourier"></div>
+                    <label>Armónicos</label>
+                    <div class="color-swatches" data-target="harmonics"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
-    // --- PARTICLE ANIMATION ---
-    const particleCanvas = document.getElementById('particle-canvas');
-    const particleCtx = particleCanvas.getContext('2d');
-    let particles = [];
-    
-    function setupParticleCanvas() {
-        particleCanvas.width = window.innerWidth;
-        particleCanvas.height = window.innerHeight;
-    }
-    setupParticleCanvas();
+        // --- CONFIGURACIÓN Y ESTADO GLOBAL ---
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
 
-    class Particle {
-        constructor(x, y, dirX, dirY, size, color) {
-            this.x = x; this.y = y; this.dirX = dirX; this.dirY = dirY;
-            this.size = size; this.color = color;
-        }
-        draw() {
-            particleCtx.beginPath();
-            particleCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
-            particleCtx.fillStyle = this.color;
-            particleCtx.fill();
-        }
-        update() {
-            if (this.x > particleCanvas.width || this.x < 0) this.dirX = -this.dirX;
-            if (this.y > particleCanvas.height || this.y < 0) this.dirY = -this.dirY;
-            this.x += this.dirX; this.y += this.dirY;
-            this.draw();
-        }
-    }
-
-    function initParticles() {
-        particles = [];
-        let numParticles = (particleCanvas.height * particleCanvas.width) / 30000;
-        for (let i = 0; i < numParticles; i++) {
-            let size = Math.random() * 2 + 1;
-            let x = Math.random() * (innerWidth - size * 2) + size * 2;
-            let y = Math.random() * (innerHeight - size * 2) + size * 2;
-            let dirX = (Math.random() * 0.4) - 0.2;
-            let dirY = (Math.random() * 0.4) - 0.2;
-            let color = 'rgba(34, 211, 238, ' + (Math.random() * 0.5) + ')';
-            particles.push(new Particle(x, y, dirX, dirY, size, color));
-        }
-    }
-
-    function animateParticles() {
-        requestAnimationFrame(animateParticles);
-        particleCtx.clearRect(0, 0, innerWidth, innerHeight);
-        particles.forEach(p => p.update());
-    }
-    initParticles();
-    animateParticles();
-    window.addEventListener('resize', () => {
-        setupParticleCanvas();
-        initParticles();
-    });
-
-    // --- TAYLOR SERIES SCRIPT ---
-    document.addEventListener('DOMContentLoaded', () => {
-        const dom = {
-            canvas: document.getElementById('canvas'),
-            functionInput: document.getElementById('function-input'),
-            expansionPointInput: document.getElementById('expansion-point'),
-            termsSlider: document.getElementById('terms-slider'),
-            termsValue: document.getElementById('terms-value'),
-            calculateButton: document.getElementById('calculate-button'),
-            showFormulasBtn: document.getElementById('show-formulas-btn'),
-            closeFormulasModal: document.getElementById('close-formulas-modal'),
-            formulasModal: document.getElementById('formulas-modal'),
-            formulasContent: document.getElementById('formulas-content'),
-            loadingModal: document.getElementById('loading-modal'),
-            statusContainer: document.getElementById('status-container'),
-            coefficientsContainer: document.getElementById('coefficients-container'),
-            originalColorPicker: document.getElementById('original-color-picker'),
-            seriesColorPicker: document.getElementById('series-color-picker'),
+        const state = {
+            coefficients: null,
+            compiledFunc: null,
+            funcStr: '',
+            selectedHarmonics: new Set(),
+            maxTerms: 20,
+            period: Math.PI,
         };
 
-        const ctx = dom.canvas.getContext('2d');
-        let taylorData = []; // Almacenará { derivative: string, value: number, coeff: number }
+        const view = {
+            zoomX: 50,
+            zoomY: 50,
+            offsetX: 0,
+            offsetY: 0,
+            isDragging: false,
+            isResizingAxis: null, // 'x' or 'y'
+            lastMouse: { x: 0, y: 0 },
+            touchCache: [],
+            lastTouchDistance: null,
+        };
         
-        let view = {
-            zoomX: 50, zoomY: 50, offsetX: 0, offsetY: 0,
-            isDragging: false, isScaling: false, scalingAxis: 'none',
-            hoveringAxis: 'none', lastX: 0, lastY: 0
+        const plotColors = {
+            original: '#ff6b6b',
+            fourier: '#4ecdc4',
+            harmonics: '#ffe66d',
+            grid: 'rgba(255, 255, 255, 0.1)',
+            axis: 'rgba(255, 255, 255, 0.4)',
+            text: 'rgba(255, 255, 255, 0.7)',
         };
 
-        let redrawQueued = false;
-        let originalFunctionColor = dom.originalColorPicker.value;
-        let seriesColor = dom.seriesColorPicker.value;
+        const availableColors = ['#ff6b6b', '#4ecdc4', '#ffe66d', '#45b7d1', '#fca311', '#74b9ff', '#f093fb', '#a9def9'];
 
-        // --- Initialization ---
-        function initialize() {
-            setupMainCanvas();
-            addEventListeners();
-            dom.calculateButton.click(); // Initial calculation
-        }
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            setupCanvas();
+            setupEventListeners();
+            generateHarmonicsGrid();
+            populateColorPicker();
+            requestAnimationFrame(drawLoop);
+            runCalculation();
+        });
 
-        function setupMainCanvas() {
+        function setupCanvas() {
+            const container = canvas.parentElement;
             const dpr = window.devicePixelRatio || 1;
-            const rect = dom.canvas.parentElement.getBoundingClientRect();
-            dom.canvas.width = rect.width * dpr;
-            dom.canvas.height = rect.height * dpr;
-            dom.canvas.style.width = `${rect.width}px`;
-            dom.canvas.style.height = `${rect.height}px`;
+            canvas.width = container.clientWidth * dpr;
+            canvas.height = container.clientHeight * dpr;
+            ctx.scale(dpr, dpr);
+            view.offsetX = 0;
+            view.offsetY = 0;
         }
 
-        function addEventListeners() {
-            window.addEventListener('resize', () => {
-                setupMainCanvas();
-                requestRedraw();
-            });
+        function setupEventListeners() {
+            window.addEventListener('resize', setupCanvas);
             
-            dom.calculateButton.addEventListener('click', handleCalculation);
-            dom.termsSlider.addEventListener('input', () => {
-                dom.termsValue.textContent = dom.termsSlider.value;
-                requestRedraw();
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mouseleave', handleMouseUp);
+            canvas.addEventListener('wheel', handleWheel, { passive: false });
+
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+            canvas.addEventListener('touchend', handleTouchEnd);
+            canvas.addEventListener('touchcancel', handleTouchEnd);
+
+            document.getElementById('max-terms').addEventListener('change', () => {
+                state.maxTerms = parseInt(document.getElementById('max-terms').value);
+                generateHarmonicsGrid();
             });
-
-            document.querySelectorAll('.collapsible-header').forEach(header => {
-                header.addEventListener('click', () => {
-                    const content = header.nextElementSibling;
-                    const icon = header.querySelector('.collapsible-icon');
-                    const isHidden = content.style.display === 'none' || content.style.display === '';
-                    content.style.display = isHidden ? 'block' : 'none';
-                    icon.style.transform = isHidden ? 'rotate(45deg)' : 'rotate(0deg)';
-                });
-            });
-
-            dom.originalColorPicker.addEventListener('input', (e) => {
-                originalFunctionColor = e.target.value;
-                requestRedraw();
-            });
-            dom.seriesColorPicker.addEventListener('input', (e) => {
-                seriesColor = e.target.value;
-                requestRedraw();
-            });
-
-            // Eventos del Canvas para interactividad
-            dom.canvas.addEventListener('mousedown', e => {
-                if (view.hoveringAxis !== 'none') {
-                    view.isScaling = true;
-                    view.scalingAxis = view.hoveringAxis;
-                    view.isDragging = false;
-                } else {
-                    view.isDragging = true;
-                    view.isScaling = false;
-                }
-                view.lastX = e.offsetX;
-                view.lastY = e.offsetY;
-            });
-
-            dom.canvas.addEventListener('mousemove', e => {
-                const AXIS_HOVER_THRESHOLD = 10;
-                const logicalMouseX = e.offsetX;
-                const logicalMouseY = e.offsetY;
-
-                if (view.isScaling) {
-                    const worldCoords = screenToWorld(logicalMouseX, logicalMouseY);
-                    const dx = logicalMouseX - view.lastX;
-                    const dy = logicalMouseY - view.lastY;
-
-                    if (view.scalingAxis === 'x') {
-                        const scaleFactor = 1 - (dx * 0.01);
-                        view.zoomX *= scaleFactor;
-                        dom.canvas.style.cursor = 'ew-resize';
-                    } else if (view.scalingAxis === 'y') {
-                        const scaleFactor = 1 - (dy * 0.01);
-                        view.zoomY *= scaleFactor;
-                        dom.canvas.style.cursor = 'ns-resize';
-                    }
-                    
-                    const newWorldCoords = screenToWorld(logicalMouseX, logicalMouseY);
-                    view.offsetX += worldCoords.x - newWorldCoords.x;
-                    view.offsetY += worldCoords.y - newWorldCoords.y;
-
-                    view.lastX = logicalMouseX;
-                    view.lastY = logicalMouseY;
-                    requestRedraw();
-
-                } else if (view.isDragging) {
-                    const dx = logicalMouseX - view.lastX;
-                    const dy = logicalMouseY - view.lastY;
-                    view.offsetX += dx / view.zoomX;
-                    view.offsetY -= dy / view.zoomY;
-                    view.lastX = logicalMouseX;
-                    view.lastY = logicalMouseY;
-                    dom.canvas.style.cursor = 'grabbing';
-                    requestRedraw();
-                } else {
-                    const origin = worldToScreen(0, 0);
-                    if (Math.abs(logicalMouseY - origin.y) < AXIS_HOVER_THRESHOLD) {
-                        view.hoveringAxis = 'x';
-                        dom.canvas.style.cursor = 'ew-resize';
-                    } else if (Math.abs(logicalMouseX - origin.x) < AXIS_HOVER_THRESHOLD) {
-                        view.hoveringAxis = 'y';
-                        dom.canvas.style.cursor = 'ns-resize';
-                    } else {
-                        view.hoveringAxis = 'none';
-                        dom.canvas.style.cursor = 'grab';
-                    }
-                }
-            });
-            
-            dom.canvas.addEventListener('mouseup', () => { view.isDragging = false; view.isScaling = false; });
-            dom.canvas.addEventListener('mouseleave', () => { view.isDragging = false; view.isScaling = false; dom.canvas.style.cursor = 'grab'; });
-
-            dom.canvas.addEventListener('wheel', e => {
-                e.preventDefault();
-                const worldCoords = screenToWorld(e.offsetX, e.offsetY);
-                const zoomFactor = e.deltaY < 0 ? 1.1 : 0.9;
-                view.zoomX *= zoomFactor;
-                view.zoomY *= zoomFactor;
-                const newWorldCoords = screenToWorld(e.offsetX, e.offsetY);
-                view.offsetX += worldCoords.x - newWorldCoords.x;
-                view.offsetY += worldCoords.y - newWorldCoords.y;
-                requestRedraw();
-            });
-            
-            dom.showFormulasBtn.addEventListener('click', () => dom.formulasModal.classList.add('active'));
-            dom.closeFormulasModal.addEventListener('click', () => dom.formulasModal.classList.remove('active'));
-            dom.formulasModal.addEventListener('click', e => {
-                if (e.target === dom.formulasModal) dom.formulasModal.classList.remove('active');
-            });
+            document.getElementById('results-btn').addEventListener('click', () => openModal('results-modal'));
+            document.getElementById('formulas-btn').addEventListener('click', () => openModal('formulas-modal'));
+            document.getElementById('help-btn').addEventListener('click', () => openModal('help-modal'));
+            document.getElementById('color-palette-btn').addEventListener('click', () => openModal('color-picker-modal'));
         }
-        
-        function factorial(n) {
-            if (n === 0 || n === 1) return 1;
-            let result = 1;
-            for (let i = 2; i <= n; i++) {
-                result *= i;
+
+        // --- LÓGICA DE CÁLCULO ---
+        function runCalculation() {
+            state.funcStr = document.getElementById('function-input').value;
+            state.period = parseFloat(document.getElementById('period-input').value);
+            state.maxTerms = parseInt(document.getElementById('max-terms').value);
+
+            if (!state.funcStr || !state.period) {
+                alert("Por favor, introduce una función y un período válidos.");
+                return;
             }
-            return result;
-        }
-
-        async function handleCalculation() {
-            dom.loadingModal.classList.add('active');
-            dom.statusContainer.textContent = "Calculando derivadas...";
-            await new Promise(resolve => setTimeout(resolve, 50));
 
             try {
-                const funcStr = dom.functionInput.value;
-                const a = parseFloat(dom.expansionPointInput.value);
-                const maxTerms = 20;
-                
-                taylorData = [];
-                let currentDerivative = funcStr;
-
-                for (let n = 0; n <= maxTerms; n++) {
-                    // Evaluar la derivada en el punto 'a'
-                    const derivativeValue = math.evaluate(currentDerivative.toString(), {x: a, pi: Math.PI, e: Math.E});
-                    
-                    // Calcular el coeficiente de Taylor
-                    const coeff = derivativeValue / factorial(n);
-                    
-                    taylorData.push({
-                        derivative: nerdamer(currentDerivative).toTeX(),
-                        value: derivativeValue,
-                        coeff: coeff
-                    });
-
-                    // Calcular la siguiente derivada para la próxima iteración
-                    if (n < maxTerms) {
-                       currentDerivative = nerdamer.diff(currentDerivative, 'x').toString();
-                    }
-                }
-                
+                state.compiledFunc = math.parse(state.funcStr).compile();
+            } catch (e) {
+                alert(`Error en la función: ${e.message}`);
+                return;
+            }
+            
+            setTimeout(() => {
+                calculateFourierCoefficients();
                 displayCoefficients();
-                updateFormulasDisplay(funcStr, a);
-                dom.showFormulasBtn.style.display = 'flex';
-                dom.statusContainer.textContent = "Cálculo completado.";
-                requestRedraw();
-
-            } catch (error) {
-                console.error("Calculation Error:", error);
-                dom.statusContainer.textContent = "Error en la función o el punto.";
-                taylorData = [];
-                requestRedraw();
-            } finally {
-                dom.loadingModal.classList.remove('active');
-            }
+                displayFormulas();
+                selectAllHarmonics();
+            }, 50);
         }
-        
-        function requestRedraw() {
-            if (!redrawQueued) {
-                redrawQueued = true;
-                requestAnimationFrame(() => {
-                    drawScene();
-                    redrawQueued = false;
-                });
+
+        function evaluateFunction(x) {
+            try {
+                return state.compiledFunc.evaluate({x: x});
+            } catch {
+                return 0;
             }
         }
 
-        function drawScene() {
-            const dpr = window.devicePixelRatio || 1;
-            const { width, height } = dom.canvas;
-
-            ctx.save();
-            ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.clearRect(0, 0, width, height);
-            ctx.scale(dpr, dpr);
-
-            drawGrid();
-
-            if (taylorData.length > 0) {
-                const funcStr = dom.functionInput.value;
-                const evalFunc = (x) => math.evaluate(funcStr, { x, pi: Math.PI, e: Math.E });
-                drawFunction(evalFunc, originalFunctionColor, 3.5);
-                drawFunction(taylorPolynomial, seriesColor, 2.5);
-            }
-
-            ctx.restore();
-        }
-
-        function drawGrid() {
-            const { width, height } = dom.canvas;
-            const dpr = window.devicePixelRatio || 1;
-            const w = width / dpr;
-            const h = height / dpr;
-
-            const { x: xMin, y: yMax } = screenToWorld(0, 0);
-            const { x: xMax, y: yMin } = screenToWorld(w, h);
-
-            ctx.strokeStyle = "rgba(56, 189, 248, 0.15)";
-            ctx.lineWidth = 1;
+        function calculateFourierCoefficients() {
+            const L = state.period;
+            const N = state.maxTerms;
+            const numPoints = 2000;
+            const dx = (2 * L) / numPoints;
             
-            const xStep = Math.pow(10, Math.floor(Math.log10(w / view.zoomX)) - 1) * 5;
-            const yStep = Math.pow(10, Math.floor(Math.log10(h / view.zoomY)) - 1) * 5;
+            let a0 = 0;
+            for (let i = 0; i < numPoints; i++) {
+                const x = -L + i * dx;
+                a0 += evaluateFunction(x);
+            }
+            a0 = (a0 * dx) / L;
 
-            for (let i = Math.floor(xMin / xStep) * xStep; i <= xMax; i += xStep) {
-                const sx = worldToScreen(i, 0).x;
-                ctx.beginPath(); ctx.moveTo(sx, 0); ctx.lineTo(sx, h); ctx.stroke();
-            }
-            for (let i = Math.floor(yMin / yStep) * yStep; i <= yMax; i += yStep) {
-                const sy = worldToScreen(0, i).y;
-                ctx.beginPath(); ctx.moveTo(0, sy); ctx.lineTo(w, sy); ctx.stroke();
-            }
-
-            ctx.strokeStyle = "rgba(226, 232, 240, 0.8)";
-            ctx.lineWidth = 2;
-            const origin = worldToScreen(0, 0);
-            ctx.beginPath();
-            ctx.moveTo(0, origin.y); ctx.lineTo(w, origin.y);
-            ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, h);
-            ctx.stroke();
-            
-            ctx.fillStyle = "rgba(226, 232, 240, 0.9)";
-            ctx.font = `${12}px Inter`;
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'top';
-            for (let i = Math.floor(xMin / xStep) * xStep; i <= xMax; i += xStep) {
-                if (Math.abs(i) < 1e-9) continue;
-                ctx.fillText(i.toPrecision(2), worldToScreen(i, 0).x, origin.y + 5);
-            }
-            
-            ctx.textAlign = 'right';
-            ctx.textBaseline = 'middle';
-            for (let i = Math.floor(yMin / yStep) * yStep; i <= yMax; i += yStep) {
-                if (Math.abs(i) < 1e-9) continue;
-                const sy = worldToScreen(0, i).y;
-                if (sy > 0 && sy < h) {
-                    ctx.fillText(i.toPrecision(2), origin.x - 5, sy);
+            const an = [], bn = [];
+            for (let n = 1; n <= N; n++) {
+                let sumAn = 0, sumBn = 0;
+                for (let i = 0; i < numPoints; i++) {
+                    const x = -L + i * dx;
+                    const y = evaluateFunction(x);
+                    const angle = (n * Math.PI * x) / L;
+                    sumAn += y * Math.cos(angle);
+                    sumBn += y * Math.sin(angle);
                 }
+                an.push((sumAn * dx) / L);
+                bn.push((sumBn * dx) / L);
             }
+            state.coefficients = { a0, an, bn };
         }
 
-        function drawFunction(evalFunc, color, lineWidth) {
-            const { width } = dom.canvas;
-            const dpr = window.devicePixelRatio || 1;
-            const w = width / dpr;
-            
-            ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 10;
-            ctx.beginPath();
-            
-            let firstPoint = true;
-            for (let sx = 0; sx <= w; sx += 1) {
-                const worldX = screenToWorld(sx, 0).x;
-                try {
-                    const worldY = evalFunc(worldX);
-                    if (isFinite(worldY)) {
-                        const { x, y } = worldToScreen(worldX, worldY);
-                        if (firstPoint) {
-                            ctx.moveTo(x, y);
-                            firstPoint = false;
-                        } else {
-                            ctx.lineTo(x, y);
-                        }
-                    } else { firstPoint = true; }
-                } catch (e) { firstPoint = true; }
-            }
-            ctx.stroke();
-            ctx.shadowBlur = 0;
-        }
-        
-        function taylorPolynomial(x) {
-            const a = parseFloat(dom.expansionPointInput.value);
-            const N = parseInt(dom.termsSlider.value);
-            let sum = 0;
-            for (let n = 0; n <= N; n++) {
-                if(taylorData[n] && isFinite(taylorData[n].coeff)) {
-                    sum += taylorData[n].coeff * Math.pow(x - a, n);
+        function fourierSeries(x) {
+            if (!state.coefficients) return 0;
+            const { a0, an, bn } = state.coefficients;
+            const L = state.period;
+            let sum = a0 / 2;
+            for (let n of state.selectedHarmonics) {
+                if (n > 0 && n <= an.length) {
+                    const angle = (n * Math.PI * x) / L;
+                    sum += an[n - 1] * Math.cos(angle) + bn[n - 1] * Math.sin(angle);
                 }
             }
             return sum;
         }
 
-        function displayCoefficients() {
-            let html = '';
-            const a = parseFloat(dom.expansionPointInput.value);
-            for (let i = 0; i < 10; i++) {
-                if (!taylorData[i]) break;
-                const data = taylorData[i];
-                let derivativeSymbol = i === 0 ? `f(${a})` : `f^{(${i})}(${a})`;
-                html += `<div class="p-2 mt-2 rounded-lg bg-black/20">
-                            <div><strong>${derivativeSymbol} =</strong> <span class="font-mono text-accent-primary">${data.value.toFixed(4)}</span></div>
-                            <div><strong>c<sub>${i}</sub> =</strong> <span class="font-mono text-accent-primary">${data.coeff.toFixed(4)}</span></div>
-                         </div>`;
+        // --- LÓGICA DE DIBUJO (CANVAS) ---
+        function drawLoop() {
+            const { width, height } = canvas.getBoundingClientRect();
+            ctx.clearRect(0, 0, width, height);
+            drawGrid();
+            
+            if (state.compiledFunc) {
+                drawFunction(evaluateFunction, plotColors.original, 3);
             }
-            dom.coefficientsContainer.innerHTML = html;
-        }
-        
-        function updateFormulasDisplay(funcStr, a) {
-            const seriesType = a === 0 ? "Maclaurin" : "Taylor";
-            const a_str = a.toString();
-
-            dom.formulasContent.innerHTML = `
-                <h3>Definición General (Serie de ${seriesType})</h3>
-                <p>\\[ P(x) = \\sum_{n=0}^{\\infty} \\frac{f^{(n)}(a)}{n!}(x-a)^n \\]</p>
-                <p>\\[ P(x) = f(a) + f'(a)(x-a) + \\frac{f''(a)}{2!}(x-a)^2 + \\dots \\]</p>
+            if (state.coefficients) {
+                drawFunction(fourierSeries, plotColors.fourier, 2);
                 
-                <h3>Cálculo para <span class="text-accent-primary">f(x) = ${funcStr}</span> en <span class="text-accent-primary">a = ${a_str}</span></h3>
-                <div id="derivative-calcs"></div>
-
-                <h3>Polinomio Resultante (N = ${dom.termsSlider.value})</h3>
-                <p>\\[ P_{${dom.termsSlider.value}}(x) \\approx ${generateSeriesString(a_str)} \\]</p>
-            `;
-
-            let derivativeCalcsHTML = '';
-            for(let n=0; n<=3; n++) {
-                if(!taylorData[n]) break;
-                let derivSymbol = n === 0 ? `f(x)` : `f^{(${n})}(x)`;
-                let evalSymbol = n === 0 ? `f(${a_str})` : `f^{(${n})}(${a_str})`;
-                derivativeCalcsHTML += `<p>\\[ ${derivSymbol} = ${taylorData[n].derivative} \\quad \\Rightarrow \\quad ${evalSymbol} = ${taylorData[n].value.toFixed(5)} \\]</p>`;
-            }
-            document.getElementById('derivative-calcs').innerHTML = derivativeCalcsHTML;
-
-            if (window.MathJax) {
-                MathJax.typesetPromise([dom.formulasContent]).catch(err => console.error('MathJax Error:', err));
-            }
-        }
-        
-        function generateSeriesString(a_str) {
-            let str = '';
-            const N = parseInt(dom.termsSlider.value);
-            for (let n = 0; n <= N; n++) {
-                if (!taylorData[n]) break;
-                const coeff = taylorData[n].coeff;
-
-                if (Math.abs(coeff) > 1e-6) {
-                    let termStr = '';
-                    // Signo
-                    if (n > 0) {
-                        termStr += coeff > 0 ? ' + ' : ' - ';
-                    } else if (coeff < 0) {
-                        termStr += ' - ';
-                    }
-                    
-                    // Coeficiente
-                    const absCoeff = Math.abs(coeff);
-                    if (n === 0 || Math.abs(absCoeff - 1) > 1e-6) {
-                        termStr += absCoeff.toFixed(4);
-                    }
-                    
-                    // Parte (x-a)^n
-                    if (n > 0) {
-                        if (a_str === '0') {
-                             termStr += `x`;
-                        } else {
-                             termStr += `(x - ${a_str})`;
+                if (state.selectedHarmonics.size < 5 && state.selectedHarmonics.size > 0) {
+                     for (let n of state.selectedHarmonics) {
+                        const harmonicFunc = (x) => {
+                             if (n > 0 && n <= state.coefficients.an.length) {
+                                const angle = (n * Math.PI * x) / state.period;
+                                return state.coefficients.an[n-1] * Math.cos(angle) + state.coefficients.bn[n-1] * Math.sin(angle);
+                            }
+                            return 0;
                         }
-                       
-                        if (n > 1) {
-                            termStr += `^${n}`;
-                        }
+                        drawFunction(harmonicFunc, plotColors.harmonics, 1);
                     }
-                    str += termStr;
                 }
             }
-            return str.length > 0 ? str : "0";
+            requestAnimationFrame(drawLoop);
         }
 
-        function worldToScreen(x, y) {
-            const { width, height } = dom.canvas;
-            const dpr = window.devicePixelRatio || 1;
-            return { 
-                x: (width / dpr / 2) + (x + view.offsetX) * view.zoomX, 
-                y: (height / dpr / 2) - (y - view.offsetY) * view.zoomY 
+        function drawGrid() {
+            const { width, height } = canvas.getBoundingClientRect();
+            const origin = worldToScreen(0, 0);
+
+            const topLeft = screenToWorld(0, 0);
+            const bottomRight = screenToWorld(width, height);
+
+            ctx.strokeStyle = plotColors.grid;
+            ctx.lineWidth = 1;
+
+            const xGridStep = getGridStep(view.zoomX);
+            const startX = Math.floor(topLeft.x / xGridStep) * xGridStep;
+            for (let x = startX; x <= bottomRight.x; x += xGridStep) {
+                const screenX = worldToScreen(x, 0).x;
+                ctx.beginPath();
+                ctx.moveTo(screenX, 0);
+                ctx.lineTo(screenX, height);
+                ctx.stroke();
+            }
+
+            const yGridStep = getGridStep(view.zoomY);
+            const startY = Math.floor(bottomRight.y / yGridStep) * yGridStep;
+            for (let y = startY; y <= topLeft.y; y += yGridStep) {
+                const screenY = worldToScreen(0, y).y;
+                ctx.beginPath();
+                ctx.moveTo(0, screenY);
+                ctx.lineTo(width, screenY);
+                ctx.stroke();
+            }
+
+            ctx.strokeStyle = plotColors.axis;
+            ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(0, origin.y); ctx.lineTo(width, origin.y); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, height); ctx.stroke();
+            
+            ctx.fillStyle = plotColors.text;
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+            for (let x = startX; x <= bottomRight.x; x += xGridStep) {
+                 if (Math.abs(x) > 1e-9) ctx.fillText(x.toFixed(getPrecision(xGridStep)), worldToScreen(x, 0).x, origin.y + 5);
+            }
+
+            ctx.textAlign = 'right';
+            ctx.textBaseline = 'middle';
+            for (let y = startY; y <= topLeft.y; y += yGridStep) {
+                if (Math.abs(y) > 1e-9) ctx.fillText(y.toFixed(getPrecision(yGridStep)), origin.x - 5, worldToScreen(0, y).y);
+            }
+        }
+        
+        function getGridStep(zoom) {
+            const minSpacingPx = 80;
+            const targetValue = minSpacingPx / zoom;
+            const powerOf10 = Math.pow(10, Math.floor(Math.log10(targetValue)));
+            const mag = targetValue / powerOf10;
+            if (mag >= 5) return 5 * powerOf10;
+            if (mag >= 2) return 2 * powerOf10;
+            return 1 * powerOf10;
+        }
+        
+        function getPrecision(step) {
+            const s = String(step);
+            return s.includes('.') ? s.split('.')[1].length : 0;
+        }
+
+        function drawFunction(func, color, lineWidth) {
+            const { width } = canvas.getBoundingClientRect();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = lineWidth;
+            ctx.beginPath();
+            let firstPoint = true;
+            for (let sx = 0; sx <= width; sx++) {
+                const wx = screenToWorld(sx, 0).x;
+                const wy = func(wx);
+                if (isFinite(wy)) {
+                    const { y: sy } = worldToScreen(wx, wy);
+                    if (firstPoint) {
+                        ctx.moveTo(sx, sy);
+                        firstPoint = false;
+                    } else {
+                        ctx.lineTo(sx, sy);
+                    }
+                } else {
+                    firstPoint = true;
+                }
+            }
+            ctx.stroke();
+        }
+
+        // --- MANEJO DE INTERACCIÓN (MOUSE Y TÁCTIL) ---
+        function handleMouseDown(e) {
+            const { x, y } = getCanvasCoords(e);
+            view.lastMouse = { x, y };
+            const axisHotzone = 15;
+            const origin = worldToScreen(0, 0);
+
+            if (Math.abs(x - origin.x) < axisHotzone && Math.abs(y - origin.y) > axisHotzone) {
+                view.isResizingAxis = 'y';
+            } else if (Math.abs(y - origin.y) < axisHotzone && Math.abs(x - origin.x) > axisHotzone) {
+                view.isResizingAxis = 'x';
+            } else {
+                view.isDragging = true;
+            }
+        }
+
+        function handleMouseMove(e) {
+            const { x, y } = getCanvasCoords(e);
+            const dx = x - view.lastMouse.x;
+            const dy = y - view.lastMouse.y;
+
+            if (view.isDragging) {
+                view.offsetX -= dx / view.zoomX;
+                view.offsetY += dy / view.zoomY;
+            } else if (view.isResizingAxis) {
+                if (view.isResizingAxis === 'x') view.zoomX *= Math.pow(1.01, dx);
+                if (view.isResizingAxis === 'y') view.zoomY *= Math.pow(1.01, -dy);
+            } else {
+                updateCursor(x, y);
+            }
+            view.lastMouse = { x, y };
+        }
+
+        function handleMouseUp() {
+            view.isDragging = false;
+            view.isResizingAxis = null;
+        }
+
+        function handleWheel(e) {
+            e.preventDefault();
+            const { x, y } = getCanvasCoords(e);
+            const worldCoords = screenToWorld(x, y);
+            const zoomFactor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+            view.zoomX *= zoomFactor;
+            view.zoomY *= zoomFactor;
+            const newWorldCoords = screenToWorld(x, y);
+            view.offsetX += worldCoords.x - newWorldCoords.x;
+            view.offsetY += worldCoords.y - newWorldCoords.y;
+        }
+        
+        function handleTouchStart(e) {
+            e.preventDefault();
+            view.touchCache = Array.from(e.touches).map(t => ({ id: t.identifier, x: t.clientX, y: t.clientY }));
+            if (view.touchCache.length === 1) {
+                const { x, y } = getCanvasCoords(e.touches[0]);
+                const axisHotzone = 20;
+                const origin = worldToScreen(0, 0);
+                if (Math.abs(x - origin.x) < axisHotzone && Math.abs(y - origin.y) > axisHotzone) {
+                    view.isResizingAxis = 'y';
+                } else if (Math.abs(y - origin.y) < axisHotzone && Math.abs(x - origin.x) > axisHotzone) {
+                    view.isResizingAxis = 'x';
+                } else {
+                    view.isDragging = true;
+                }
+            } else if (view.touchCache.length === 2) {
+                view.isDragging = false;
+                view.isResizingAxis = null;
+                view.lastTouchDistance = getTouchDistance();
+            }
+        }
+
+        function handleTouchMove(e) {
+            e.preventDefault();
+            const currentTouches = Array.from(e.touches);
+            if (currentTouches.length === 1 && view.touchCache.length === 1) {
+                const lastTouch = view.touchCache[0];
+                const currentTouch = currentTouches[0];
+                const dx = currentTouch.clientX - lastTouch.x;
+                const dy = currentTouch.clientY - lastTouch.y;
+                if (view.isDragging) {
+                    view.offsetX -= dx / view.zoomX;
+                    view.offsetY += dy / view.zoomY;
+                } else if (view.isResizingAxis) {
+                    if (view.isResizingAxis === 'x') view.zoomX *= Math.pow(1.01, dx);
+                    if (view.isResizingAxis === 'y') view.zoomY *= Math.pow(1.01, -dy);
+                }
+                view.touchCache[0] = { id: currentTouch.identifier, x: currentTouch.clientX, y: currentTouch.clientY };
+            } else if (currentTouches.length === 2 && view.touchCache.length === 2) {
+                const newDist = getTouchDistance(currentTouches);
+                if (view.lastTouchDistance) {
+                    const zoomFactor = newDist / view.lastTouchDistance;
+                    const { x, y } = getTouchCenter(currentTouches);
+                    const worldCoords = screenToWorld(x, y);
+                    view.zoomX *= zoomFactor;
+                    view.zoomY *= zoomFactor;
+                    const newWorldCoords = screenToWorld(x, y);
+                    view.offsetX += worldCoords.x - newWorldCoords.x;
+                    view.offsetY += worldCoords.y - newWorldCoords.y;
+                }
+                view.lastTouchDistance = newDist;
+            }
+        }
+
+        function handleTouchEnd(e) {
+            view.isDragging = false;
+            view.isResizingAxis = null;
+            view.lastTouchDistance = null;
+            if (e.touches.length < 2) view.lastTouchDistance = null;
+            if (e.touches.length < 1) {
+                view.isDragging = false;
+                view.isResizingAxis = null;
+            }
+        }
+        
+        function updateCursor(x, y) {
+            const axisHotzone = 15;
+            const origin = worldToScreen(0, 0);
+            if (Math.abs(x - origin.x) < axisHotzone && Math.abs(y - origin.y) > axisHotzone) {
+                canvas.style.cursor = 'ns-resize';
+            } else if (Math.abs(y - origin.y) < axisHotzone && Math.abs(x - origin.x) > axisHotzone) {
+                canvas.style.cursor = 'ew-resize';
+            } else {
+                canvas.style.cursor = 'grab';
+            }
+        }
+        
+        function getCanvasCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+        }
+        function getTouchDistance(touches = view.touchCache) {
+            const t = Array.from(touches).map(touch => ({x: touch.clientX, y: touch.clientY}));
+            return Math.hypot(t[0].x - t[1].x, t[0].y - t[1].y);
+        }
+        function getTouchCenter(touches) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: (touches[0].clientX + touches[1].clientX) / 2 - rect.left,
+                y: (touches[0].clientY + touches[1].clientY) / 2 - rect.top,
             };
+        }
+        function worldToScreen(wx, wy) {
+            const { width, height } = canvas.getBoundingClientRect();
+            const sx = (wx - view.offsetX) * view.zoomX + width / 2;
+            const sy = -(wy - view.offsetY) * view.zoomY + height / 2;
+            return { x: sx, y: sy };
         }
         function screenToWorld(sx, sy) {
-            const { width, height } = dom.canvas;
-            const dpr = window.devicePixelRatio || 1;
-            return { 
-                x: (sx - width / dpr / 2) / view.zoomX - view.offsetX,
-                y: (height / dpr / 2 - sy) / view.zoomY + view.offsetY
-            };
+            const { width, height } = canvas.getBoundingClientRect();
+            const wx = (sx - width / 2) / view.zoomX + view.offsetX;
+            const wy = -(sy - height / 2) / view.zoomY + view.offsetY;
+            return { x: wx, y: wy };
         }
 
-        initialize();
-    });
+        // --- MANEJO DE UI (MODALES, BOTONES, ETC.) ---
+        function openModal(id) { document.getElementById(id).classList.add('visible'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('visible'); }
+
+        function displayCoefficients() {
+            const container = document.getElementById('coefficients-container');
+            if (!state.coefficients) {
+                container.innerHTML = '<p>Aún no se han calculado los coeficientes.</p>'; return;
+            }
+            const { a0, an, bn } = state.coefficients;
+            let html = `<div class="coefficient-item"><strong>a₀ =</strong> <span class="coefficient-value">${a0.toFixed(5)}</span></div>`;
+            for (let i = 0; i < an.length; i++) {
+                html += `<div class="coefficient-item">
+                            <strong>a<sub>${i+1}</sub> =</strong> <span class="coefficient-value">${an[i].toFixed(5)}</span><br>
+                            <strong>b<sub>${i+1}</sub> =</strong> <span class="coefficient-value">${bn[i].toFixed(5)}</span>
+                         </div>`;
+            }
+            container.innerHTML = html;
+        }
+        
+        function displayFormulas() {
+            const container = document.getElementById('formulas-container');
+            if (!state.coefficients) {
+                container.innerHTML = '<p>Calcular primero para ver el desarrollo.</p>';
+                return;
+            }
+            
+            const { a0, an, bn } = state.coefficients;
+            const L = state.period;
+            const func = state.funcStr.replace(/\*/g, '\\cdot');
+
+            let expandedSeries = `\\frac{${a0.toFixed(3)}}{2}`;
+            for(let i=0; i<Math.min(an.length, 4); i++) {
+                if (Math.abs(an[i]) > 1e-4) {
+                   expandedSeries += ` ${an[i] > 0 ? '+' : ''} ${an[i].toFixed(3)} \\cos\\left(\\frac{${i+1}\\pi x}{${L}}\\right)`;
+                }
+                if (Math.abs(bn[i]) > 1e-4) {
+                   expandedSeries += ` ${bn[i] > 0 ? '+' : ''} ${bn[i].toFixed(3)} \\sin\\left(\\frac{${i+1}\\pi x}{${L}}\\right)`;
+                }
+            }
+            expandedSeries += ' + \\dots';
+
+            container.innerHTML = `
+                <div class="formula-section">
+                    <div class="formula-title">Definición de la Serie</div>
+                    <p>\\[ f(x) = \\frac{a_0}{2} + \\sum_{n=1}^{\\infty} \\left( a_n \\cos\\left(\\frac{n\\pi x}{L}\\right) + b_n \\sin\\left(\\frac{n\\pi x}{L}\\right) \\right) \\]</p>
+                </div>
+                <div class="formula-section">
+                    <div class="formula-title">Cálculo de Coeficientes</div>
+                    <p>\\[ a_0 = \\frac{1}{L} \\int_{-L}^{L} f(x) \\,dx = \\frac{1}{${L}} \\int_{-${L}}^{${L}} (${func}) \\,dx = ${a0.toFixed(5)} \\]</p>
+                    <p>\\[ a_n = \\frac{1}{L} \\int_{-L}^{L} f(x) \\cos\\left(\\frac{n\\pi x}{L}\\right) \\,dx = \\frac{1}{${L}} \\int_{-${L}}^{${L}} (${func}) \\cos\\left(\\frac{n\\pi x}{${L}}\\right) \\,dx \\]</p>
+                    <p>\\[ b_n = \\frac{1}{L} \\int_{-L}^{L} f(x) \\sin\\left(\\frac{n\\pi x}{L}\\right) \\,dx = \\frac{1}{${L}} \\int_{-${L}}^{${L}} (${func}) \\sin\\left(\\frac{n\\pi x}{${L}}\\right) \\,dx \\]</p>
+                </div>
+                 <div class="formula-section">
+                    <div class="formula-title">Serie Resultante (Forma Compacta)</div>
+                    <p>\\[ f(x) \\approx \\frac{${a0.toFixed(3)}}{2} + \\sum_{n=1}^{${state.maxTerms}} \\left( a_n \\cos\\left(\\frac{n\\pi x}{${L}}\\right) + b_n \\sin\\left(\\frac{n\\pi x}{${L}}\\right) \\right) \\]</p>
+                </div>
+                <div class="formula-section">
+                    <div class="formula-title">Serie Resultante (Forma Expandida)</div>
+                    <p>\\[ f(x) \\approx ${expandedSeries} \\]</p>
+                </div>
+            `;
+            
+            if (window.MathJax) {
+                MathJax.typesetPromise([container]).catch((err) => console.log('MathJax error: ', err));
+            }
+        }
+
+        function generateHarmonicsGrid() {
+            const grid = document.getElementById('harmonics-grid');
+            grid.innerHTML = '';
+            for (let i = 1; i <= state.maxTerms; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'harmonic-btn';
+                btn.textContent = i;
+                btn.dataset.n = i;
+                if (state.selectedHarmonics.has(i)) btn.classList.add('active');
+                btn.onclick = () => toggleHarmonic(i);
+                grid.appendChild(btn);
+            }
+        }
+        
+        function toggleHarmonic(n) {
+            const btn = document.querySelector(`.harmonic-btn[data-n='${n}']`);
+            if (state.selectedHarmonics.has(n)) {
+                state.selectedHarmonics.delete(n);
+                btn.classList.remove('active');
+            } else {
+                state.selectedHarmonics.add(n);
+                btn.classList.add('active');
+            }
+        }
+
+        function selectAllHarmonics() {
+            state.selectedHarmonics.clear();
+            for (let i = 1; i <= state.maxTerms; i++) state.selectedHarmonics.add(i);
+            updateHarmonicsUI();
+        }
+        function selectOddHarmonics() {
+            state.selectedHarmonics.clear();
+            for (let i = 1; i <= state.maxTerms; i += 2) state.selectedHarmonics.add(i);
+            updateHarmonicsUI();
+        }
+        function clearHarmonics() {
+            state.selectedHarmonics.clear();
+            updateHarmonicsUI();
+        }
+        function updateHarmonicsUI() {
+            document.querySelectorAll('.harmonic-btn').forEach(btn => {
+                const n = parseInt(btn.dataset.n);
+                if (state.selectedHarmonics.has(n)) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+        
+        function populateColorPicker() {
+            document.querySelectorAll('.color-swatches').forEach(container => {
+                const target = container.dataset.target;
+                container.innerHTML = '';
+                availableColors.forEach(color => {
+                    const swatch = document.createElement('div');
+                    swatch.className = 'swatch';
+                    swatch.style.backgroundColor = color;
+                    if (plotColors[target] === color) swatch.classList.add('active');
+                    swatch.onclick = () => {
+                        plotColors[target] = color;
+                        container.querySelector('.active')?.classList.remove('active');
+                        swatch.classList.add('active');
+                    };
+                    container.appendChild(swatch);
+                });
+            });
+        }
     </script>
 </body>
 </html>
