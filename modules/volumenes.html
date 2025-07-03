@@ -17,6 +17,8 @@
     <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
 
     <style>
         /* Definición de variables de CSS para Theming */
@@ -24,7 +26,6 @@
             --bg-primary: #ffffff; --bg-secondary: #f0f2f5; --bg-control: #ffffff; --bg-modal: #ffffff; --bg-input: #ffffff; --bg-hover: #f9fafb;
             --text-primary: #1f2937; --text-secondary: #4b5563; --border-color: #d1d5db;
             --accent-color: #4f46e5; --accent-hover: #4338ca; --shadow-color: rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease, color 0.3s ease;
         }
         body.theme-dark {
             --bg-primary: #111827; --bg-secondary: #030712; --bg-control: #1f2937; --bg-modal: #1f2937; --bg-input: #374151; --bg-hover: #374151;
@@ -73,6 +74,24 @@
         /* Estilos adicionales */
         #plot-2d, #plot-3d canvas { width: 100% !important; height: 100% !important; }
         select:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        /* Estilos para el panel de control 3D */
+        #view-controls-panel {
+            background-color: rgba(var(--bg-control-rgb), 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        .control-switch {
+            width: 44px; height: 24px; background-color: var(--bg-input);
+            border-radius: 9999px; position: relative; cursor: pointer;
+            border: 1px solid var(--border-color);
+        }
+        .control-switch .slider {
+            position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+            background-color: var(--text-secondary); border-radius: 50%;
+            transition: transform 0.2s ease-in-out;
+        }
+        .control-switch.active .slider { transform: translateX(20px); background-color: var(--accent-color); }
     </style>
 </head>
 <body class="theme-light">
@@ -98,7 +117,11 @@
                     
                     <!-- Popover de Colores -->
                     <div id="color-popover" class="absolute top-16 right-6 w-64 p-4 rounded-lg shadow-xl z-20 hidden">
-                        <h4 class="font-semibold mb-2">Paletas de Colores</h4>
+                        <h4 class="font-semibold mb-2">Gradiente de Color</h4>
+                        <div class="flex items-center gap-2 mb-2">
+                            <input type="checkbox" id="rainbow-toggle" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                            <label for="rainbow-toggle" class="text-sm">Usar Arcoíris</label>
+                        </div>
                         <div id="palette-presets" class="grid grid-cols-3 gap-2 mb-4"></div>
                         <h4 class="font-semibold mb-2">Personalizado</h4>
                         <div class="flex gap-2 items-center">
@@ -161,9 +184,38 @@
                         <h2 class="text-xl font-semibold mb-2 text-center">1. Región Plana a Rotar</h2>
                         <div id="plot-2d" class="w-full h-64 md:h-full min-h-[300px]"></div>
                     </div>
-                    <div class="p-4 rounded-xl plot-panel flex-1">
+                    <div class="p-4 rounded-xl plot-panel flex-1 relative">
                         <h2 class="text-xl font-semibold mb-2 text-center">2. Sólido de Revolución</h2>
-                        <div id="plot-3d" class="w-full h-64 md:h-full min-h-[300px] cursor-move"></div>
+                        <div id="plot-3d" class="w-full h-64 md:h-full min-h-[400px] cursor-move"></div>
+                        
+                        <!-- Botón para mostrar controles del visor -->
+                        <button id="show-view-controls-btn" class="absolute top-4 left-4 z-10 p-2 rounded-full bg-[var(--bg-control)] shadow-lg text-2xl text-[var(--accent-color)] hover:bg-[var(--bg-hover)] transition-colors">⚙️</button>
+
+                        <!-- Panel de Control 3D Flotante -->
+                        <div id="view-controls-panel" class="absolute top-16 left-4 w-52 rounded-lg shadow-lg border border-[var(--border-color)] hidden p-4 space-y-3">
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm">Zoom</label>
+                                <div class="flex gap-1">
+                                    <button id="zoom-in-btn" class="px-2 py-1 rounded bg-[var(--bg-hover)]"><i class="fas fa-search-plus"></i></button>
+                                    <button id="zoom-out-btn" class="px-2 py-1 rounded bg-[var(--bg-hover)]"><i class="fas fa-search-minus"></i></button>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm">Mostrar Rejilla</label>
+                                <div id="toggle-grid" class="control-switch active"><div class="slider"></div></div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm">Permitir Rotación</label>
+                                <div id="toggle-rotate" class="control-switch active"><div class="slider"></div></div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label class="text-sm">Permitir Paneo</label>
+                                <div id="toggle-pan" class="control-switch active"><div class="slider"></div></div>
+                            </div>
+                            <button id="reset-view-btn" class="w-full mt-2 py-2 px-4 rounded-md bg-[var(--accent-color)] text-white font-semibold text-sm">
+                                <i class="fas fa-sync-alt mr-2"></i>Reiniciar Vista
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -175,21 +227,21 @@
     
     <!-- Modals -->
     <div id="calculation-modal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden">
-        <div class="modal-content rounded-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform transition-all duration-300 scale-95 opacity-0">
+        <div class="modal-content rounded-2xl w-full max-w-4xl max-h-[90vh] flex flex-col transform transition-all duration-300 scale-95 opacity-0">
             <div class="flex justify-between items-center p-5 border-b border-[var(--border-color)]">
-                <h2 class="text-2xl font-bold">Desglose del Cálculo</h2>
-                <button class="close-modal-btn text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition">&times;</button>
+                <h2 class="text-2xl font-bold">Desglose Detallado del Cálculo</h2>
+                <button class="close-modal-btn text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition text-3xl leading-none">&times;</button>
             </div>
             <div class="p-6 space-y-6 overflow-y-auto modal-body">
                 <!-- Card de Volumen Aproximado -->
                 <div class="bg-[var(--bg-secondary)] p-5 rounded-lg border border-[var(--border-color)]">
                     <h3 class="font-semibold text-xl mb-3">Volumen Aproximado (Suma de Riemann)</h3>
-                    <div id="approx-volume-details" class="space-y-3 text-[var(--text-secondary)]"></div>
+                    <div id="approx-volume-details" class="space-y-4 text-[var(--text-secondary)]"></div>
                 </div>
                 <!-- Card de Volumen Exacto -->
                 <div class="bg-[var(--bg-secondary)] p-5 rounded-lg border border-[var(--border-color)]">
                      <h3 class="font-semibold text-xl mb-3">Volumen Exacto (Integral Definida)</h3>
-                    <div id="exact-volume-details" class="space-y-3 text-[var(--text-secondary)]"></div>
+                    <div id="exact-volume-details" class="space-y-4 text-[var(--text-secondary)]"></div>
                 </div>
             </div>
         </div>
@@ -199,7 +251,7 @@
         <div class="modal-content rounded-2xl w-full max-w-lg max-h-[90vh] flex flex-col transform transition-all duration-300 scale-95 opacity-0">
             <div class="flex justify-between items-center p-5 border-b border-[var(--border-color)]">
                 <h2 class="text-2xl font-bold">Seleccionar Tema</h2>
-                <button class="close-modal-btn text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition">&times;</button>
+                <button class="close-modal-btn text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition text-3xl leading-none">&times;</button>
             </div>
             <div id="theme-selector" class="p-6 grid grid-cols-2 md:grid-cols-4 gap-4"></div>
         </div>
@@ -207,9 +259,10 @@
 
     <script type="module">
         // --- GLOBAL STATE & CONFIG ---
-        let scene, camera, renderer, controls, solidGroup, labeledAxes;
+        let scene, camera, renderer, controls, solidGroup, labeledAxes, groundPlane, gridHelper;
         let gradientStart = new THREE.Color("#3b82f6");
         let gradientEnd = new THREE.Color("#a855f7");
+        let useRainbowColors = false;
         let materialOpacity = 1.0;
 
         const PALETTES = { "Océano": ["#0077b6", "#90e0ef"], "Atardecer": ["#f77f00", "#d62828"], "Bosque": ["#2d6a4f", "#b7e4c7"], "Neón": ["#ea00d9", "#0abdc6"], "Grises": ["#495057", "#dee2e6"] };
@@ -223,9 +276,16 @@
             opacitySlider: document.getElementById('opacity-slider'), opacityValue: document.getElementById('opacity-value'),
             formulaDiv: document.getElementById('formula'), volumeDiv: document.getElementById('volume'),
             colorPaletteBtn: document.getElementById('color-palette-btn'), colorPopover: document.getElementById('color-popover'), palettePresets: document.getElementById('palette-presets'),
+            rainbowToggle: document.getElementById('rainbow-toggle'),
             colorStart: document.getElementById('color-start'), colorEnd: document.getElementById('color-end'), themeBtn: document.getElementById('theme-btn'), themeModal: document.getElementById('theme-modal'),
             themeSelector: document.getElementById('theme-selector'), calculationModal: document.getElementById('calculation-modal'), approxVolumeDetails: document.getElementById('approx-volume-details'),
             exactVolumeDetails: document.getElementById('exact-volume-details'), showCalcBtn: document.getElementById('show-calc-btn'),
+            showViewControlsBtn: document.getElementById('show-view-controls-btn'),
+            viewControlsPanel: document.getElementById('view-controls-panel'),
+            zoomInBtn: document.getElementById('zoom-in-btn'), zoomOutBtn: document.getElementById('zoom-out-btn'),
+            toggleGrid: document.getElementById('toggle-grid'),
+            toggleRotate: document.getElementById('toggle-rotate'), togglePan: document.getElementById('toggle-pan'),
+            resetViewBtn: document.getElementById('reset-view-btn')
         };
 
         // --- INITIALIZATION ---
@@ -251,6 +311,8 @@
                 btn.style.backgroundColor = style.getPropertyValue('--bg-control');
                 btn.style.color = style.getPropertyValue('--text-primary');
                 btn.style.border = `2px solid ${style.getPropertyValue('--border-color')}`;
+                const rgb = style.backgroundColor.match(/\d+/g).slice(0, 3).join(', ');
+                btn.dataset.bgRgb = rgb;
                 tempBody.remove();
                 ui.themeSelector.appendChild(btn);
             });
@@ -258,19 +320,46 @@
             // 3D Scene Setup
             scene = new THREE.Scene();
             const { width, height } = ui.plot3dContainer.getBoundingClientRect();
-            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-            camera.position.set(5, 5, 5);
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+            camera.position.set(8, 8, 8);
             renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             renderer.setSize(width, height);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
             ui.plot3dContainer.appendChild(renderer.domElement);
             
-            const ambientLight = new THREE.AmbientLight(0xffffff, 1.5); scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5); directionalLight.position.set(5, 10, 7.5); scene.add(directionalLight);
+            // Lighting
+            const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.5);
+            hemisphereLight.position.set(0, 20, 0);
+            scene.add(hemisphereLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(10, 20, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.camera.top = 10; directionalLight.shadow.camera.bottom = -10;
+            directionalLight.shadow.camera.left = -10; directionalLight.shadow.camera.right = 10;
+            directionalLight.shadow.mapSize.width = 2048; directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
             
-            controls = new THREE.OrbitControls(camera, renderer.domElement); controls.enableDamping = true;
-            solidGroup = new THREE.Group(); scene.add(solidGroup);
+            // Ground
+            const planeGeometry = new THREE.PlaneGeometry(20, 20);
+            const planeMaterial = new THREE.ShadowMaterial({ opacity: 0.3 });
+            groundPlane = new THREE.Mesh(planeGeometry, planeMaterial);
+            groundPlane.rotation.x = -Math.PI / 2;
+            groundPlane.receiveShadow = true;
+            scene.add(groundPlane);
+
+            gridHelper = new THREE.GridHelper(20, 20);
+            scene.add(gridHelper);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
             
-            labeledAxes = createLabeledAxes(10, 1);
+            solidGroup = new THREE.Group();
+            scene.add(solidGroup);
+            
+            labeledAxes = createLabeledAxes(10, 2);
             scene.add(labeledAxes);
             
             setupEventListeners();
@@ -283,16 +372,8 @@
         // --- EVENT LISTENERS ---
         function setupEventListeners() {
             ui.rotationAxis.addEventListener('change', updateAvailableMethods);
-            
-            // Listener for the method dropdown to update UI and regenerate
-            ui.method.addEventListener('change', () => {
-                updateUI();
-                generateVisualization();
-            });
-
-            // Listeners for other inputs that only need to regenerate the visualization
+            ui.method.addEventListener('change', () => { updateUI(); generateVisualization(); });
             [ui.func1, ui.func2, ui.limitA, ui.limitB].forEach(el => el.addEventListener('change', generateVisualization));
-            
             ui.slices.addEventListener('input', () => ui.slicesValue.textContent = ui.slices.value);
             ui.slices.addEventListener('change', generateVisualization);
             
@@ -304,11 +385,45 @@
 
             ui.colorPaletteBtn.addEventListener('click', (e) => { e.stopPropagation(); ui.colorPopover.classList.toggle('hidden'); });
             document.addEventListener('click', (e) => { if (!ui.colorPopover.contains(e.target) && !ui.colorPaletteBtn.contains(e.target)) ui.colorPopover.classList.add('hidden'); });
+            ui.rainbowToggle.addEventListener('change', (e) => { useRainbowColors = e.target.checked; generateVisualization(); });
             ui.colorStart.addEventListener('input', updateGradientColors);
             ui.colorEnd.addEventListener('input', updateGradientColors);
 
             setupModal(ui.themeBtn, ui.themeModal);
             setupModal(ui.showCalcBtn, ui.calculationModal);
+
+            // 3D View Controls
+            ui.showViewControlsBtn.addEventListener('click', () => {
+                ui.viewControlsPanel.classList.toggle('hidden');
+            });
+
+            ui.zoomInBtn.addEventListener('click', () => {
+                const scale = Math.pow(0.95, controls.zoomSpeed);
+                const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+                offset.multiplyScalar(scale);
+                camera.position.copy(controls.target).add(offset);
+            });
+            ui.zoomOutBtn.addEventListener('click', () => {
+                const scale = Math.pow(0.95, controls.zoomSpeed);
+                const offset = new THREE.Vector3().subVectors(camera.position, controls.target);
+                offset.multiplyScalar(1 / scale);
+                camera.position.copy(controls.target).add(offset);
+            });
+
+            ui.resetViewBtn.addEventListener('click', () => { controls.reset(); });
+            
+            function setupSwitch(element, callback) {
+                element.addEventListener('click', () => {
+                    element.classList.toggle('active');
+                    callback(element.classList.contains('active'));
+                });
+            }
+            setupSwitch(ui.toggleGrid, (active) => {
+                gridHelper.visible = active;
+                groundPlane.visible = active;
+            });
+            setupSwitch(ui.toggleRotate, (active) => controls.enableRotate = active);
+            setupSwitch(ui.togglePan, (active) => controls.enablePan = active);
 
             window.addEventListener('resize', onWindowResize, false);
         }
@@ -349,70 +464,84 @@
             
             let approxVolume = 0;
             const delta = (b - a) / n;
+            const calculationSteps = [];
 
             for (let i = 0; i < n; i++) {
                 const x_mid = a + (i + 0.5) * delta;
-                const color = new THREE.Color().lerpColors(gradientStart, gradientEnd, n > 1 ? i / (n - 1) : 1);
+                const color = new THREE.Color();
+                if (useRainbowColors) {
+                    color.setHSL(i / n, 0.9, 0.6);
+                } else {
+                    color.lerpColors(gradientStart, gradientEnd, n > 1 ? i / (n - 1) : 1);
+                }
+
                 const material = new THREE.MeshStandardMaterial({
-                    color, side: THREE.DoubleSide, roughness: 0.6, metalness: 0.1,
+                    color, side: THREE.DoubleSide, roughness: 0.4, metalness: 0.3,
                     transparent: materialOpacity < 1.0, opacity: materialOpacity
                 });
-                const edgeMaterial = new THREE.LineBasicMaterial({ color: new THREE.Color(0x000000), transparent: true, opacity: materialOpacity * 0.5 });
-
 
                 try {
-                    const r1 = Math.abs(f1.evaluate({ x: x_mid }));
-                    if (!isFinite(r1)) continue;
+                    const r1_val = f1.evaluate({ x: x_mid });
+                    if (!isFinite(r1_val)) continue;
+                    const r1 = Math.abs(r1_val);
 
                     let element;
+                    let step = { i: i + 1, x_i: x_mid.toFixed(4), vol_i: 0 };
+
                     if (rotationAxis === 'x' && (method === 'disk' || method === 'washer')) {
                          if (method === 'disk') {
                             const geometry = new THREE.CylinderGeometry(r1, r1, delta, 48);
                             geometry.rotateZ(Math.PI / 2);
                             element = new THREE.Mesh(geometry, material);
                             element.position.set(x_mid, 0, 0);
-                            approxVolume += Math.PI * r1**2 * delta;
+                            step.vol_i = Math.PI * r1**2 * delta;
+                            step.details = `r = |f(${step.x_i})| = ${r1.toFixed(4)}`;
                         } else { // Washer
-                            const r2 = Math.abs(f2.evaluate({ x: x_mid }));
-                            if (!isFinite(r2)) continue;
+                            const r2_val = f2.evaluate({ x: x_mid });
+                            if (!isFinite(r2_val)) continue;
+                            const r2 = Math.abs(r2_val);
                             const [outerR, innerR] = [Math.max(r1, r2), Math.min(r1, r2)];
                             const shape = new THREE.Shape().absarc(0, 0, outerR, 0, Math.PI * 2, false);
                             shape.holes.push(new THREE.Path().absarc(0, 0, innerR, 0, Math.PI * 2, true));
-                            const geometry = new THREE.ExtrudeGeometry(shape, { depth: delta, bevelEnabled: false });
+                            const geometry = new THREE.ExtrudeGeometry(shape, { depth: delta, bevelEnabled: false, steps: 1 });
+                            geometry.center();
                             geometry.rotateY(Math.PI / 2);
                             element = new THREE.Mesh(geometry, material);
                             element.position.set(x_mid, 0, 0);
-                            approxVolume += Math.PI * (outerR**2 - innerR**2) * delta;
+                            step.vol_i = Math.PI * (outerR**2 - innerR**2) * delta;
+                            step.details = `R=${outerR.toFixed(4)}, r=${innerR.toFixed(4)}`;
                         }
                     } else if (rotationAxis === 'y' && method === 'shell') {
-                        const geometry = new THREE.CylinderGeometry(x_mid + delta / 2, x_mid - delta / 2, r1, 48, 1, false);
-                        element = new THREE.Mesh(geometry, material);
+                        const geometry = new THREE.CylinderGeometry(x_mid, x_mid, r1, 48, 1, true);
+                        element = new THREE.Mesh(geometry, material.clone());
                         element.position.set(0, r1 / 2, 0);
-                        approxVolume += 2 * Math.PI * x_mid * r1 * delta;
+                        step.vol_i = 2 * Math.PI * x_mid * r1 * delta;
+                        step.details = `r(radio)=${step.x_i}, h=${r1.toFixed(4)}`;
                     }
                     
                     if (element) {
-                        element.add(new THREE.LineSegments(new THREE.EdgesGeometry(element.geometry), edgeMaterial));
+                        element.castShadow = true;
+                        element.receiveShadow = true;
                         solidGroup.add(element);
+                        approxVolume += step.vol_i;
+                        if (i < 5 || i > n - 3) calculationSteps.push(step); // Store first 5 and last 2
                     }
                 } catch (e) { console.warn(e); }
             }
-            updateCalculations(method, rotationAxis, a, b, n, approxVolume);
+            updateCalculations(method, rotationAxis, a, b, n, approxVolume, calculationSteps);
         }
 
         // --- UI & THEME MANAGEMENT ---
         function updateAvailableMethods() {
             const axis = ui.rotationAxis.value;
             const currentMethod = ui.method.value;
-            ui.method.innerHTML = ''; // Clear options
+            ui.method.innerHTML = '';
             
             if (axis === 'x') {
-                // For X-axis rotation, Disks and Washers are standard
                 ui.method.add(new Option('Discos', 'disk'));
                 ui.method.add(new Option('Arandelas', 'washer'));
                 ui.method.value = (currentMethod === 'disk' || currentMethod === 'washer') ? currentMethod : 'disk';
-            } else { // axis === 'y'
-                // For Y-axis rotation, Shells are standard
+            } else {
                 ui.method.add(new Option('Cascarones Cilíndricos', 'shell'));
                 ui.method.value = 'shell';
             }
@@ -426,105 +555,118 @@
 
         function applyTheme(themeClass) {
             ui.body.className = themeClass;
-            // Update axes colors based on new theme
+            const themeBtn = Array.from(ui.themeSelector.children).find(btn => btn.textContent === Object.keys(THEMES).find(key => THEMES[key] === themeClass));
+            if (themeBtn && themeBtn.dataset.bgRgb) {
+                document.documentElement.style.setProperty('--bg-control-rgb', themeBtn.dataset.bgRgb);
+            }
             if(labeledAxes) {
                 scene.remove(labeledAxes);
-                labeledAxes = createLabeledAxes(10, 1);
+                labeledAxes = createLabeledAxes(10, 2);
                 scene.add(labeledAxes);
             }
             updatePlotBackgrounds();
         }
 
         function updateGradientColors() {
+            useRainbowColors = false;
+            ui.rainbowToggle.checked = false;
             gradientStart.set(ui.colorStart.value);
             gradientEnd.set(ui.colorEnd.value);
             generateVisualization();
         }
 
         // --- PLOTTING & RENDERING ---
-        function createLabeledAxes(size, divisions) {
-            const axes = new THREE.Group();
+        function createLabeledAxes(size, step) {
+            const axesGroup = new THREE.Group();
             const style = getComputedStyle(document.body);
-            const secondaryTextColor = style.getPropertyValue('--text-secondary').trim();
+            const textColor = style.getPropertyValue('--text-primary').trim();
+            const axisRadius = 0.05;
+            const coneHeight = 0.4;
+            const coneRadius = 0.15;
+
+            const xMat = new THREE.MeshStandardMaterial({ color: 0xdc2626 });
+            const yMat = new THREE.MeshStandardMaterial({ color: 0x16a34a });
+            const zMat = new THREE.MeshStandardMaterial({ color: 0x2563eb });
+            const tickMat = new THREE.MeshBasicMaterial({ color: textColor });
+
+            function createAxis(direction, material) {
+                const axis = new THREE.Group();
+                const cylinderGeom = new THREE.CylinderGeometry(axisRadius, axisRadius, size, 8);
+                const cylinder = new THREE.Mesh(cylinderGeom, material);
+                const coneGeom = new THREE.ConeGeometry(coneRadius, coneHeight, 8);
+                const cone = new THREE.Mesh(coneGeom, material);
+                cone.position.y = size / 2;
+                axis.add(cylinder, cone);
+                if (direction === 'x') axis.rotation.z = -Math.PI / 2;
+                else if (direction === 'z') axis.rotation.x = Math.PI / 2;
+                return axis;
+            }
+            
+            axesGroup.add(createAxis('x', xMat), createAxis('y', yMat), createAxis('z', zMat));
 
             function makeTextSprite(message, opts = {}) {
-                const {
-                    fontface = 'Inter, sans-serif',
-                    fontsize = 64,
-                    textColor = secondaryTextColor,
-                    scale = 0.3
-                } = opts;
-
+                const { fontface = 'Inter, sans-serif', fontsize = 64, color = textColor, scale = 0.3 } = opts;
                 const canvas = document.createElement('canvas');
                 const context = canvas.getContext('2d');
-                
                 context.font = `Bold ${fontsize}px ${fontface}`;
                 const metrics = context.measureText(message);
-                const textWidth = metrics.width;
-
-                canvas.width = textWidth;
-                canvas.height = fontsize * 1.2;
-
+                canvas.width = metrics.width; canvas.height = fontsize * 1.2;
                 context.font = `Bold ${fontsize}px ${fontface}`;
-                context.fillStyle = textColor;
-                context.textAlign = 'center';
-                context.textBaseline = 'middle';
+                context.fillStyle = color;
+                context.textAlign = 'center'; context.textBaseline = 'middle';
                 context.fillText(message, canvas.width / 2, canvas.height / 2);
-
                 const texture = new THREE.Texture(canvas);
-                texture.minFilter = THREE.LinearFilter;
-                texture.needsUpdate = true;
-                
-                const spriteMaterial = new THREE.SpriteMaterial({ map: texture });
+                texture.minFilter = THREE.LinearFilter; texture.needsUpdate = true;
+                const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false });
                 const sprite = new THREE.Sprite(spriteMaterial);
-                
-                const aspect = canvas.width / canvas.height;
-                sprite.scale.set(scale * aspect, scale, 1);
-                
+                sprite.scale.set(scale * (canvas.width / canvas.height), scale, 1);
                 return sprite;
             }
-
-            // Axis lines
-            axes.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-size, 0, 0), new THREE.Vector3(size, 0, 0)]), new THREE.LineBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.8 })));
-            axes.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, -size, 0), new THREE.Vector3(0, size, 0)]), new THREE.LineBasicMaterial({ color: 0x33ff33, transparent: true, opacity: 0.8 })));
-            axes.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, -size), new THREE.Vector3(0, 0, size)]), new THREE.LineBasicMaterial({ color: 0x3333ff, transparent: true, opacity: 0.8 })));
-
-            // Axis labels (X, Y, Z)
-            const xLabel = makeTextSprite("X", { fontsize: 96, textColor: '#ff3333', scale: 0.5 });
-            xLabel.position.set(size + 0.8, 0, 0);
-            axes.add(xLabel);
-            const yLabel = makeTextSprite("Y", { fontsize: 96, textColor: '#33ff33', scale: 0.5 });
-            yLabel.position.set(0, size + 0.8, 0);
-            axes.add(yLabel);
-            const zLabel = makeTextSprite("Z", { fontsize: 96, textColor: '#3333ff', scale: 0.5 });
-            zLabel.position.set(0, 0, size + 0.8);
-            axes.add(zLabel);
             
-            // Ticks and numbers
-            const tickSize = 0.2;
-            const tickMaterial = new THREE.LineBasicMaterial({ color: secondaryTextColor });
-            for (let i = -size; i <= size; i += divisions) {
+            const labelOffset = size / 2 + coneHeight + 0.5;
+            
+            const xLabel = makeTextSprite("X", { fontsize: 96, color: xMat.color.getStyle(), scale: 0.5 });
+            xLabel.position.set(labelOffset, 0, 0);
+            axesGroup.add(xLabel);
+
+            const yLabel = makeTextSprite("Y", { fontsize: 96, color: yMat.color.getStyle(), scale: 0.5 });
+            yLabel.position.set(0, labelOffset, 0);
+            axesGroup.add(yLabel);
+
+            const zLabel = makeTextSprite("Z", { fontsize: 96, color: zMat.color.getStyle(), scale: 0.5 });
+            zLabel.position.set(0, 0, labelOffset);
+            axesGroup.add(zLabel);
+
+
+            // Ticks and Numbers
+            const tickGeom = new THREE.CylinderGeometry(axisRadius * 1.5, axisRadius * 1.5, 0.2, 8);
+            for (let i = -size/2 + step; i < size/2; i += step) {
                 if (i === 0) continue;
-                
                 // X-axis
-                axes.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(i, -tickSize, 0), new THREE.Vector3(i, tickSize, 0)]), tickMaterial));
-                const xNum = makeTextSprite(String(i));
-                xNum.position.set(i, -tickSize - 0.4, 0);
-                axes.add(xNum);
+                const xTick = new THREE.Mesh(tickGeom.clone(), tickMat);
+                xTick.position.x = i;
+                xTick.rotation.z = Math.PI / 2;
+                const xNum = makeTextSprite(String(i), {scale: 0.5});
+                xNum.position.set(i, -0.7, 0);
+                axesGroup.add(xTick, xNum);
 
                 // Y-axis
-                axes.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-tickSize, i, 0), new THREE.Vector3(tickSize, i, 0)]), tickMaterial));
-                const yNum = makeTextSprite(String(i));
-                yNum.position.set(-tickSize - 0.5, i, 0);
-                axes.add(yNum);
+                const yTick = new THREE.Mesh(tickGeom.clone(), tickMat);
+                yTick.position.y = i;
+                const yNum = makeTextSprite(String(i), {scale: 0.5});
+                yNum.position.set(-0.7, i, 0);
+                axesGroup.add(yTick, yNum);
 
                 // Z-axis
-                axes.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-tickSize, 0, i), new THREE.Vector3(tickSize, 0, i)]), tickMaterial));
-                const zNum = makeTextSprite(String(i));
-                zNum.position.set(tickSize, 0, i);
-                axes.add(zNum);
+                const zTick = new THREE.Mesh(tickGeom.clone(), tickMat);
+                zTick.position.z = i;
+                zTick.rotation.x = Math.PI / 2;
+                const zNum = makeTextSprite(String(i), {scale: 0.5});
+                zNum.position.set(0, -0.7, i);
+                axesGroup.add(zTick, zNum);
             }
-            return axes;
+            
+            return axesGroup;
         }
 
         function onWindowResize() {
@@ -545,6 +687,8 @@
             const gridColor = style.getPropertyValue('--border-color').trim();
 
             scene.background = new THREE.Color(bgColor);
+            gridHelper.material.color.set(gridColor); gridHelper.material.needsUpdate = true;
+            
             Plotly.relayout('plot-2d', {
                 paper_bgcolor: bgColor, plot_bgcolor: bgColor, 'font.color': textColor,
                 'xaxis.gridcolor': gridColor, 'yaxis.gridcolor': gridColor,
@@ -564,37 +708,69 @@
             Plotly.newPlot('plot-2d', traces, layout, { responsive: true }).then(updatePlotBackgrounds);
         }
 
-        function updateCalculations(method, axis, a, b, n, approxVol) {
+        function updateCalculations(method, axis, a, b, n, approxVol, steps) {
             const f1_str = ui.func1.value.replace(/\*/g, '');
-            const f2_str = ui.func2.value.replace(/\*/g, '');
-            let formulaStr = 'V = ', approxFormula = `$$V_{aprox} = \\sum_{i=1}^{${n}} `, integrandStr = '';
+            const f2_str = ui.method.value === 'washer' ? ui.func2.value.replace(/\*/g, '') : '';
+            let formulaStr = 'V = ', approxFormula = '', integrandStr = '', method_name = '';
 
             if (axis === 'x' && method === 'disk') {
+                method_name = 'Discos';
                 formulaStr += `\\pi \\int_{${a}}^{${b}} \\left(${f1_str}\\right)^2 \\, dx`;
-                approxFormula += `\\pi (f(x_i))^2 \\Delta x$$`;
+                approxFormula = `V_i = \\pi [f(x_i)]^2 \\Delta x`;
                 integrandStr = `pi * (${f1_str})^2`;
             } else if (axis === 'x' && method === 'washer') {
+                method_name = 'Arandelas';
                 formulaStr += `\\pi \\int_{${a}}^{${b}} \\left[ \\left(${f1_str}\\right)^2 - \\left(${f2_str}\\right)^2 \\right] \\, dx`;
-                approxFormula += `\\pi ((f(x_i))^2 - (g(x_i))^2) \\Delta x$$`;
+                approxFormula = `V_i = \\pi ([f(x_i)]^2 - [g(x_i)]^2) \\Delta x`;
                 integrandStr = `pi * ((${f1_str})^2 - (${f2_str})^2)`;
             } else if (axis === 'y' && method === 'shell') {
+                 method_name = 'Cascarones';
                  formulaStr += `2\\pi \\int_{${a}}^{${b}} x \\left(${f1_str}\\right) \\, dx`;
-                 approxFormula += `2\\pi x_i f(x_i) \\Delta x$$`;
+                 approxFormula = `V_i = 2\\pi x_i f(x_i) \\Delta x`;
                  integrandStr = `2 * pi * x * (${f1_str})`;
             }
             
-            let exactVolText = '';
+            // --- Exact Volume ---
+            let exactVolText = '', antiderivativeText = '';
             if (integrandStr) {
                 try {
-                    const exactVol = math.integral(integrandStr, 'x').evaluate({x: b}) - math.integral(integrandStr, 'x').evaluate({x: a});
-                    exactVolText = `$$V = ${math.format(exactVol, {notation: 'fixed', precision: 5})} \\text{ u}^3$$`;
-                } catch (e) { exactVolText = `<p class="text-sm text-red-500">Cálculo simbólico no disponible.</p>`; }
+                    const antiderivativeNode = math.integral(integrandStr, 'x');
+                    antiderivativeText = `$$F(x) = \\int \\left( ${antiderivativeNode.toTex()} \\right) \\, dx$$`;
+                    const exactVol = antiderivativeNode.evaluate({x: b}) - antiderivativeNode.evaluate({x: a});
+                    exactVolText = `$$V = F(${b}) - F(${a}) = ${math.format(exactVol, {notation: 'fixed', precision: 5})} \\text{ u}^3$$`;
+                } catch (e) { 
+                    exactVolText = `<p class="text-sm text-red-500">Cálculo simbólico no disponible para esta función.</p>`; 
+                    antiderivativeText = `<p class="text-sm text-red-500">No se pudo encontrar la antiderivada simbólica.</p>`;
+                }
             }
             
+            // --- UI Update ---
             ui.formulaDiv.innerHTML = `$$${formulaStr}$$`;
             ui.volumeDiv.innerHTML = `$$V \\approx ${approxVol.toFixed(5)} \\text{ u}^3$$`;
-            ui.approxVolumeDetails.innerHTML = `<p>La fórmula de la suma de Riemann para esta configuración es:</p><div class="math-container text-center my-2 p-3 bg-[var(--bg-input)] rounded-md">${approxFormula}</div><p>Donde $\\Delta x = \\frac{b-a}{n} = \\frac{${b}-${a}}{${n}} = ${((b-a)/n).toFixed(4)}$ y $x_i$ es el punto medio de cada subintervalo.</p>`;
-            ui.exactVolumeDetails.innerHTML = `<p>El volumen exacto se calcula con la integral definida:</p><div class="math-container text-center my-2 p-3 bg-[var(--bg-input)] rounded-md">$$${formulaStr}$$</div><p class="font-bold text-lg mt-3">Resultado: ${exactVolText}</p>`;
+
+            // --- Modal Content ---
+            // Approx Volume
+            const deltaX = (b - a) / n;
+            const tableRows = steps.map(s => `<tr><td class="p-2 border-t">${s.i}</td><td class="p-2 border-t">${s.x_i}</td><td class="p-2 border-t">${s.details}</td><td class="p-2 border-t">${s.vol_i.toFixed(5)}</td></tr>`).join('');
+            ui.approxVolumeDetails.innerHTML = `
+                <p>El volumen se aproxima sumando el volumen de ${n} ${method_name}, cada uno con un grosor de $\\Delta x$. Esto es una <strong>Suma de Riemann</strong>.</p>
+                <p>1. <strong>Grosor del elemento ($\\Delta x$):</strong> $$ \\Delta x = \\frac{b-a}{n} = \\frac{${b}-${a}}{${n}} = ${deltaX.toFixed(5)} $$</p>
+                <p>2. <strong>Fórmula del volumen del elemento i-ésimo ($V_i$):</strong> $$ ${approxFormula} $$</p>
+                <p>3. <strong>Suma total:</strong> $$ V_{aprox} = \\sum_{i=1}^{${n}} V_i $$</p>
+                <h4 class="font-semibold text-lg mt-4">Ejemplo de Cálculos de Elementos:</h4>
+                <div class="overflow-x-auto"><table class="w-full text-sm text-left">
+                    <thead class="bg-[var(--bg-input)]"><tr><th class="p-2">Elemento (i)</th><th class="p-2">Punto Medio (x_i)</th><th class="p-2">Dimensiones</th><th class="p-2">Volumen (V_i)</th></tr></thead>
+                    <tbody>${tableRows}</tbody>
+                </table></div>`;
+
+            // Exact Volume
+            ui.exactVolumeDetails.innerHTML = `
+                <p>El volumen exacto se encuentra tomando el límite cuando el número de elementos tiende a infinito ($n \\to \\infty$), lo que convierte la suma en una <strong>integral definida</strong>.</p>
+                <p>1. <strong>Configuración de la Integral:</strong> $$ ${formulaStr} $$</p>
+                <p>2. <strong>Antiderivada (Integral Indefinida):</strong> Se busca una función $F(x)$ tal que $F'(x)$ sea el integrando.</p>
+                <div class="math-container text-center my-2 p-3 bg-[var(--bg-input)] rounded-md">${antiderivativeText}</div>
+                <p>3. <strong>Teorema Fundamental del Cálculo:</strong> Se evalúa la antiderivada en los límites de integración.</p>
+                <p class="font-bold text-lg mt-3 text-center">Resultado Final: ${exactVolText}</p>`;
 
             if (window.MathJax?.typesetPromise) {
                 window.MathJax.typesetPromise([ui.formulaDiv, ui.volumeDiv, ui.approxVolumeDetails, ui.exactVolumeDetails])
