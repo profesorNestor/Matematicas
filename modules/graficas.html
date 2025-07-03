@@ -2,1081 +2,1195 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Graficador Matemático ProfeNestor - Ultra Edition</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.11.0/math.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.32.0/plotly.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graficador de Funciones Quantum</title>
+
+    <!-- BIBLIOTECAS EXTERNAS (CDN) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+    
+    <!-- FUENTES Y ESTILOS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-            --bg-gradient: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
-            --glass-bg: rgba(255, 255, 255, 0.05);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.8);
-            --accent-color: #667eea;
-            --success-color: #4ade80;
-            --error-color: #f87171;
-            --shadow-color: rgba(0, 0, 0, 0.2);
-            --shadow-glow: 0 0 30px rgba(102, 126, 234, 0.5);
-        }
-
+        /* --- CONFIGURACIÓN GENERAL --- */
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: var(--bg-gradient);
-            min-height: 100vh;
-            color: var(--text-primary);
-            overflow-x: hidden;
-            position: relative;
-        }
-
-        /* Partículas animadas de fondo */
-        .particles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-        }
-
-        .particle {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: rgba(255, 255, 255, 0.5);
-            border-radius: 50%;
-            animation: float 20s infinite;
-        }
-
-        @keyframes float {
-            0%, 100% {
-                transform: translateY(100vh) rotate(0deg);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(-100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
-
-        /* Contenedor principal con glassmorphism */
-        .main-container {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            gap: 2rem;
-            padding: 2rem;
-            max-width: 1600px;
-            margin: 0 auto;
-            min-height: 100vh;
-            align-items: center;
-        }
-
-        /* Panel de control con efectos glass */
-        .control-panel {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            padding: 2.5rem;
-            min-width: 400px;
-            box-shadow: 0 8px 32px var(--shadow-color), var(--shadow-glow);
-            animation: slideInLeft 0.6s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .control-panel::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.03), transparent);
-            transform: rotate(45deg);
-            animation: shimmer 3s infinite;
-        }
-
-        @keyframes shimmer {
-            0% {
-                transform: translateX(-100%) translateY(-100%) rotate(45deg);
-            }
-            100% {
-                transform: translateX(100%) translateY(100%) rotate(45deg);
-            }
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        /* Título con gradiente animado */
-        .title {
-            font-size: 2.5rem;
-            font-weight: 800;
-            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #f5576c);
-            background-size: 300% 300%;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: gradientMove 3s ease infinite;
-            margin-bottom: 2rem;
-            text-align: center;
-            letter-spacing: -1px;
-        }
-
-        @keyframes gradientMove {
-            0% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-            100% {
-                background-position: 0% 50%;
-            }
-        }
-
-        /* Tarjeta de tips con efecto hover */
-        .tips-card {
-            background: rgba(102, 126, 234, 0.1);
-            border: 1px solid rgba(102, 126, 234, 0.3);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 2rem;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .tips-card:hover {
-            background: rgba(102, 126, 234, 0.15);
-            box-shadow: 0 8px 32px rgba(102, 126, 234, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .tips-card::before {
-            content: '💡';
-            position: absolute;
-            top: -20px;
-            right: -20px;
-            font-size: 60px;
-            opacity: 0.1;
-            transform: rotate(-15deg);
-        }
-
-        /* Grupos de formulario mejorados */
-        .form-group {
-            margin-bottom: 1.8rem;
-            position: relative;
-        }
-
-        .form-label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin-bottom: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* Inputs y textareas con efectos de neón */
-        .form-input,
-        .form-textarea {
-            width: 100%;
-            padding: 1rem 1.5rem;
-            background: rgba(255, 255, 255, 0.05);
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-        }
-
-        .form-textarea {
-            min-height: 100px;
-            resize: vertical;
-            font-family: 'Monaco', 'Consolas', monospace;
-        }
-
-        .form-input:focus,
-        .form-textarea:focus {
-            outline: none;
-            border-color: var(--accent-color);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2), 0 0 20px rgba(102, 126, 234, 0.3);
-        }
-
-        /* Grupo de inputs para rango */
-        .range-inputs {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .range-inputs .form-input {
-            flex: 1;
-        }
-
-        /* Color pickers estilizados */
-        .color-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            gap: 1rem;
-            margin-top: 1rem;
-        }
-
-        .color-item {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 12px;
-            transition: all 0.3s ease;
-        }
-
-        .color-item:hover {
-            background: rgba(255, 255, 255, 0.08);
-            transform: translateY(-2px);
-        }
-
-        .color-picker {
-            width: 50px;
-            height: 50px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            overflow: hidden;
-            position: relative;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: all 0.3s ease;
-        }
-
-        .color-picker:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        }
-
-        .color-label {
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-
-        /* Switches modernos */
-        .switch-group {
-            display: flex;
-            gap: 2rem;
-            margin: 2rem 0;
-        }
-
-        .switch-item {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-
-        .switch {
-            position: relative;
-            width: 60px;
-            height: 30px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 30px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .switch input {
-            display: none;
-        }
-
-        .switch-slider {
-            position: absolute;
-            top: 3px;
-            left: 3px;
-            width: 24px;
-            height: 24px;
-            background: white;
-            border-radius: 50%;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-        }
-
-        .switch input:checked ~ .switch-slider {
-            transform: translateX(30px);
-            background: var(--accent-color);
-        }
-
-        .switch input:checked ~ .switch {
-            background: rgba(102, 126, 234, 0.3);
-        }
-
-        /* Sliders de tamaño modernos */
-        .size-controls {
-            margin: 2rem 0;
-        }
-
-        .slider-container {
-            margin-bottom: 1.5rem;
-        }
-
-        .slider-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.8rem;
-        }
-
-        .slider-label {
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
-        .slider-value {
-            font-weight: 600;
-            color: var(--accent-color);
-        }
-
-        .modern-slider {
-            width: 100%;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 4px;
-            outline: none;
-            -webkit-appearance: none;
-            appearance: none;
-            cursor: pointer;
-        }
-
-        .modern-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 24px;
-            height: 24px;
-            background: var(--accent-color);
-            border-radius: 50%;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.5);
-            transition: all 0.3s ease;
-        }
-
-        .modern-slider::-webkit-slider-thumb:hover {
-            transform: scale(1.2);
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.7);
-        }
-
-        /* Botón principal con efectos */
-        .btn-primary {
-            width: 100%;
-            padding: 1.2rem 2rem;
-            background: var(--primary-gradient);
-            border: none;
-            border-radius: 16px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 600;
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .btn-primary::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
-        }
-
-        .btn-primary:active::before {
-            width: 300px;
-            height: 300px;
-        }
-
-        /* Contenedor del gráfico */
-        .plot-wrapper {
-            flex: 1;
-            animation: slideInRight 0.6s ease-out;
-        }
-
-        @keyframes slideInRight {
-            from {
-                opacity: 0;
-                transform: translateX(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .plot-container {
-            width: 100%;
-            height: 600px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 24px;
-            box-shadow: 0 8px 32px var(--shadow-color), var(--shadow-glow);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .plot-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            gap: 2rem;
-        }
-
-        .placeholder-icon {
-            font-size: 80px;
-            opacity: 0.3;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% {
-                transform: scale(1);
-                opacity: 0.3;
-            }
-            50% {
-                transform: scale(1.1);
-                opacity: 0.5;
-            }
-        }
-
-        .placeholder-text {
-            font-size: 1.2rem;
-            color: var(--text-secondary);
-            text-align: center;
-        }
-
-        /* Toggle de modo oscuro flotante */
-        .theme-toggle {
-            position: fixed;
-            bottom: 2rem;
-            right: 2rem;
-            width: 60px;
-            height: 60px;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            transition: all 0.3s ease;
-            z-index: 1000;
-        }
-
-        .theme-toggle:hover {
-            transform: scale(1.1);
-            box-shadow: 0 6px 30px var(--shadow-color);
-        }
-
-        .theme-icon {
-            font-size: 24px;
-            transition: all 0.3s ease;
-        }
-
-        /* Efectos de loading */
-        .loading {
-            display: none;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: var(--accent-color);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        /* Responsive design */
-        @media (max-width: 1200px) {
-            .main-container {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .control-panel {
-                min-width: unset;
-                width: 100%;
-                max-width: 600px;
-                margin: 0 auto;
-            }
-
-            .plot-container {
-                height: 500px;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .title {
-                font-size: 2rem;
-            }
-
-            .control-panel {
-                padding: 1.5rem;
-            }
-
-            .color-grid {
-                grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-            }
-
-            .switch-group {
-                flex-direction: column;
-                gap: 1rem;
-            }
-        }
-
-        /* Animación de entrada para elementos */
-        .fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Efectos de notificación */
-        .notification {
-            position: fixed;
-            top: 2rem;
-            right: 2rem;
-            padding: 1rem 2rem;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 12px;
-            box-shadow: 0 4px 20px var(--shadow-color);
-            transform: translateX(400px);
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-
-        .notification.show {
-            transform: translateX(0);
-        }
-
-        .notification.success {
-            border-color: var(--success-color);
-            box-shadow: 0 4px 20px rgba(74, 222, 128, 0.3);
-        }
-
-        .notification.error {
-            border-color: var(--error-color);
-            box-shadow: 0 4px 20px rgba(248, 113, 113, 0.3);
-        }
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* --- VARIABLES DE TEMA --- */
+        :root {
+            --bg-primary: #f0f2f5; --bg-secondary: rgba(255, 255, 255, 0.9); --bg-accent: #e2e8f0;
+            --text-primary: #1a202c; --text-secondary: #4a5568; --border-color: #cbd5e1;
+            --accent-color: #4f46e5; --accent-text: #ffffff; --shadow-color: rgba(0, 0, 0, 0.1);
+            --plot-bg: #ffffff; --plot-grid: #e2e8f0; --plot-axes: #334155; --plot-text: #1a202c;
+            --success-color: #10b981; --danger-color: #ef4444; --warning-color: #f59e0b;
+        }
+        .theme-dark {
+            --bg-primary: #111827; --bg-secondary: rgba(31, 41, 55, 0.8); --bg-accent: #374151;
+            --text-primary: #f9fafb; --text-secondary: #d1d5db; --border-color: #4b5563;
+            --accent-color: #818cf8; --accent-text: #111827; --shadow-color: rgba(0, 0, 0, 0.3);
+            --plot-bg: #1f2937; --plot-grid: #4b5563; --plot-axes: #9ca3af; --plot-text: #f9fafb;
+        }
+        .theme-neon {
+            --bg-primary: #0d0221; --bg-secondary: rgba(12, 0, 31, 0.7); --bg-accent: #26174a;
+            --text-primary: #f0f2f5; --text-secondary: #a7aed3; --border-color: #4a00e0;
+            --accent-color: #ff00ff; --accent-text: #ffffff; --shadow-color: rgba(74, 0, 224, 0.5);
+            --plot-bg: #0c001f; --plot-grid: #2e2e68; --plot-axes: #a7aed3; --plot-text: #f0f2f5;
+        }
+        .theme-quantum {
+            --bg-primary: #0a0a1a; --bg-secondary: rgba(20, 20, 40, 0.6); --bg-accent: rgba(40, 40, 80, 0.5);
+            --text-primary: #e0e0ff; --text-secondary: #a0a0c0; --border-color: #303060;
+            --accent-color: #00f2ea; --accent-text: #0a0a1a; --shadow-color: rgba(0, 242, 234, 0.2);
+            --plot-bg: rgba(10, 10, 26, 0.8); --plot-grid: #2a2a5a; --plot-axes: #8080a0; --plot-text: #e0e0ff;
+        }
+
+        /* --- ESTILOS DE COMPONENTES Y ANIMACIONES --- */
+        .transition-all-smooth { transition: all 0.3s ease-in-out; }
+        .backdrop-blur-lg { backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+        .shadow-quantum { box-shadow: 0 8px 32px 0 var(--shadow-color); }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.5); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        .animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        
+        @keyframes slideInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-slide-in-up { animation: slideInUp 0.4s ease-out forwards; }
+
+        /* Estilos para inputs de números */
+        input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type=number] { -moz-appearance: textfield; }
+
+        /* Estilo para el toast de notificaciones */
+        #toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 100; display: flex; flex-direction: column; gap: 0.75rem; }
+        .toast {
+            display: flex; align-items: center; padding: 1rem; border-radius: 0.75rem;
+            color: var(--accent-text); border: 1px solid rgba(255, 255, 255, 0.2);
+            opacity: 0; transform: translateX(100%);
+            animation: slideInToast 0.5s forwards, fadeOutToast 0.5s 4.5s forwards;
+        }
+        .toast.success { background-color: var(--success-color); }
+        .toast.error { background-color: var(--danger-color); }
+        .toast.info { background-color: var(--accent-color); }
+        @keyframes slideInToast { to { opacity: 1; transform: translateX(0); } }
+        @keyframes fadeOutToast { from { opacity: 1; transform: translateX(0); } to { opacity: 0; transform: translateX(100%); } }
     </style>
 </head>
-<body>
-    <!-- Partículas de fondo -->
-    <div class="particles" id="particles"></div>
 
-    <!-- Contenedor principal -->
-    <div class="main-container">
-        <!-- Panel de control -->
-        <aside class="control-panel">
-            <h1 class="title">
-                <i class="fas fa-chart-line"></i> MathGraph Pro
-            </h1>
+<body class="transition-all-smooth" style="background-color: var(--bg-primary); color: var(--text-primary);">
 
-            <div class="tips-card fade-in">
-                <h3 style="margin-bottom: 0.8rem; color: var(--accent-color);">
-                    <i class="fas fa-lightbulb"></i> Consejos Pro
-                </h3>
-                <p style="font-size: 0.9rem; line-height: 1.6;">
-                    • Funciones: <code>sin(x)</code>, <code>x^2</code>, <code>log(x)</code><br>
-                    • Múltiples: separa con comas<br>
-                    • Operadores: +, -, *, /, ^, sqrt(), abs()
-                </p>
-            </div>
-
-            <div class="form-group fade-in">
-                <label class="form-label">
-                    <i class="fas fa-function"></i> Funciones f(x)
-                </label>
-                <textarea 
-                    id="plot-funcs" 
-                    class="form-textarea" 
-                    placeholder="sin(x), cos(x), x^2 - 4*x + 3"
-                    rows="3"
-                ></textarea>
-            </div>
-
-            <div class="form-group fade-in">
-                <label class="form-label">
-                    <i class="fas fa-palette"></i> Colores de las funciones
-                </label>
-                <div id="color-pickers" class="color-grid"></div>
-            </div>
-
-            <div class="form-group fade-in">
-                <label class="form-label">
-                    <i class="fas fa-arrows-alt-h"></i> Rango del eje X
-                </label>
-                <div class="range-inputs">
-                    <input type="number" id="plot-xmin" class="form-input" value="-10" step="0.1">
-                    <input type="number" id="plot-xmax" class="form-input" value="10" step="0.1">
+    <!-- CONTENEDOR PRINCIPAL -->
+    <div id="app-container" class="min-h-screen flex flex-col bg-cover bg-center" style="background-image: url('https://placehold.co/1920x1080/0a0a1a/0a0a1a?text=');">
+        
+        <!-- BARRA SUPERIOR -->
+        <header class="p-3 sticky top-0 z-40 transition-all-smooth backdrop-blur-lg" style="background-color: var(--bg-secondary); border-bottom: 1px solid var(--border-color);">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-xl md:text-2xl font-bold" style="color: var(--text-primary);">
+                    <span class="font-black" style="color: var(--accent-color);">Quantum</span> Plotter
+                </h1>
+                <div class="flex items-center space-x-2">
+                    <button id="theme-toggle-btn" title="Cambiar Tema" class="p-2 rounded-full transition-all-smooth hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)] focus:ring-[var(--accent-color)]" style="background-color: var(--bg-accent); color: var(--text-primary);">
+                        <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+                    </button>
+                    <button id="help-btn" title="Ayuda" class="p-2 rounded-full transition-all-smooth hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[var(--bg-secondary)] focus:ring-[var(--accent-color)]" style="background-color: var(--bg-accent); color: var(--text-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                    </button>
                 </div>
             </div>
+        </header>
 
-            <div class="switch-group fade-in">
-                <div class="switch-item">
-                    <label class="switch">
-                        <input type="checkbox" id="show-grid" checked>
-                        <span class="switch-slider"></span>
-                    </label>
-                    <span>Cuadrícula</span>
-                </div>
-                <div class="switch-item">
-                    <label class="switch">
-                        <input type="checkbox" id="show-legend" checked>
-                        <span class="switch-slider"></span>
-                    </label>
-                    <span>Leyenda</span>
-                </div>
+        <!-- PANEL DE TEMAS (OCULTO) -->
+        <div id="theme-panel" class="hidden absolute top-20 right-3 z-50 p-4 rounded-xl shadow-quantum backdrop-blur-lg animate-fade-in" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+            <h3 class="font-bold mb-3 text-lg">Temas Visuales</h3>
+            <div class="grid grid-cols-2 gap-3">
+                <button data-theme="light" class="theme-btn p-2 rounded-lg border-2 border-gray-300 font-semibold">Claro</button>
+                <button data-theme="dark" class="theme-btn p-2 rounded-lg bg-gray-800 text-white font-semibold">Oscuro</button>
+                <button data-theme="neon" class="theme-btn p-2 rounded-lg bg-indigo-900 text-pink-400 font-semibold" style="text-shadow: 0 0 5px #ff00ff;">Neón</button>
+                <button data-theme="quantum" class="theme-btn p-2 rounded-lg bg-blue-900 text-cyan-300 font-semibold" style="background: linear-gradient(45deg, #00f2ea, #4a00e0); color: white;">Quantum</button>
             </div>
+        </div>
 
-            <div class="size-controls fade-in">
-                <div class="slider-container">
-                    <div class="slider-header">
-                        <span class="slider-label">Ancho</span>
-                        <span class="slider-value" id="width-value">900px</span>
-                    </div>
-                    <input type="range" id="width-slider" class="modern-slider" min="400" max="1200" value="900">
+        <!-- CONTENIDO PRINCIPAL -->
+        <main class="flex-grow container mx-auto p-4 flex flex-col lg:flex-row gap-4">
+
+            <!-- PANEL DE CONTROLES -->
+            <div class="w-full lg:w-1/3 xl:w-1/4 flex-shrink-0 space-y-4">
+                <div class="p-4 rounded-xl shadow-quantum backdrop-blur-lg animate-slide-in-up" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2" style="border-color: var(--border-color);">Funciones</h2>
+                    <div id="functions-container" class="space-y-4 max-h-[40vh] overflow-y-auto pr-2"></div>
+                    <button id="add-function-btn" class="mt-4 w-full flex items-center justify-center p-2 rounded-lg font-semibold transition-transform hover:scale-105" style="background-color: var(--bg-accent); color: var(--text-primary);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="mr-2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Añadir Función
+                    </button>
                 </div>
-                <div class="slider-container">
-                    <div class="slider-header">
-                        <span class="slider-label">Alto</span>
-                        <span class="slider-value" id="height-value">600px</span>
-                    </div>
-                    <input type="range" id="height-slider" class="modern-slider" min="300" max="800" value="600">
+                <div id="sliders-panel" class="p-4 rounded-xl shadow-quantum backdrop-blur-lg hidden" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2" style="border-color: var(--border-color);">Parámetros Dinámicos</h2>
+                    <div id="sliders-container" class="space-y-4"></div>
                 </div>
-            </div>
-
-            <button id="plot-calculate" class="btn-primary fade-in">
-                <i class="fas fa-rocket"></i> Graficar Funciones
-            </button>
-        </aside>
-
-        <!-- Área del gráfico -->
-        <main class="plot-wrapper">
-            <div id="plot-container" class="plot-container">
-                <div class="plot-placeholder">
-                    <div class="placeholder-icon">📊</div>
-                    <div class="placeholder-text">
-                        <strong>¡Bienvenido a MathGraph Pro!</strong><br>
-                        Ingresa tus funciones y presiona "Graficar"
+                <div class="p-4 rounded-xl shadow-quantum backdrop-blur-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                    <h2 class="text-xl font-bold mb-4 border-b pb-2" style="border-color: var(--border-color);">Acciones</h2>
+                    <div class="space-y-3">
+                        <button id="plot-btn" class="w-full p-3 rounded-lg text-lg font-bold transition-transform hover:scale-105" style="background-color: var(--accent-color); color: var(--accent-text);">Graficar</button>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button id="analysis-btn" title="Análisis de Función" class="p-3 rounded-lg flex items-center justify-center transition-transform hover:scale-105" style="background-color: var(--bg-accent);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></button>
+                            <button id="table-btn" title="Tabla de Valores" class="p-3 rounded-lg flex items-center justify-center transition-transform hover:scale-105" style="background-color: var(--bg-accent);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h4v18H4Z"/><path d="M12 8h8"/><path d="M12 12h8"/><path d="M12 16h8"/></svg></button>
+                            <button id="color-palette-btn" title="Paleta de Colores" class="p-3 rounded-lg flex items-center justify-center transition-transform hover:scale-105" style="background-color: var(--bg-accent);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a7 7 0 1 0 10 10"/></svg></button>
+                            <button id="export-btn" title="Exportar Gráfica" class="p-3 rounded-lg flex items-center justify-center transition-transform hover:scale-105" style="background-color: var(--bg-accent);"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                        </div>
+                        <div id="spinner" class="hidden flex items-center justify-center p-3">
+                            <svg class="animate-spin h-5 w-5" style="color: var(--accent-color);" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/></svg>
+                            <span class="ml-2" style="color: var(--text-secondary);">Calculando...</span>
+                        </div>
                     </div>
                 </div>
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                </div>
+            </div>
+
+            <!-- ÁREA DE GRÁFICA -->
+            <div id="plot-container" class="flex-grow w-full lg:w-2/3 xl:w-3/4 min-h-[500px] lg:min-h-0 rounded-xl shadow-quantum backdrop-blur-lg animate-fade-in" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                <div id="plotter" class="w-full h-full rounded-xl"></div>
             </div>
         </main>
     </div>
 
-    <!-- Toggle de tema -->
-    <div class="theme-toggle" id="theme-toggle">
-        <i class="fas fa-moon theme-icon" id="theme-icon"></i>
+    <!-- MODALES -->
+    <div id="help-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop">
+        <div class="w-full max-w-3xl max-h-[90vh] overflow-y-auto p-6 rounded-xl shadow-quantum animate-fade-in backdrop-blur-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+            <div class="flex justify-between items-center border-b pb-3 mb-4" style="border-color: var(--border-color);">
+                <h2 class="text-2xl font-bold" style="color: var(--accent-color);">Guía de Usuario Quantum</h2>
+                <button onclick="App.toggleModal('help-modal')" class="p-2 rounded-full hover:bg-[var(--bg-accent)]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+            <div class="space-y-4 text-sm" style="color: var(--text-secondary);">
+                <p>¡Bienvenido al Graficador Quantum! Esta herramienta te permite visualizar funciones matemáticas de forma interactiva y profesional.</p>
+                 <details class="p-3 rounded-lg" style="background-color: var(--bg-accent);" open>
+                    <summary class="font-semibold cursor-pointer text-base" style="color: var(--text-primary);">Interacción Avanzada</summary>
+                    <div class="p-2 mt-2 rounded space-y-2" style="background-color: var(--bg-primary);">
+                         <p><strong>Zoom con Rueda:</strong> Usa la rueda del ratón sobre la gráfica para acercar o alejar. El zoom se centra en el cursor.</p>
+                         <p><strong>Arrastrar Ejes (Zoom Fino):</strong> Mueve el cursor cerca de un eje (X o Y) hasta que cambie. Luego, haz clic y arrastra para escalar en ese eje específico.</p>
+                        <p><strong>Arrastrar Plano (Pan):</strong> Haz clic y arrastra en cualquier otra parte de la gráfica para mover toda la vista.</p>
+                    </div>
+                </details>
+                <details class="p-3 rounded-lg" style="background-color: var(--bg-accent);" open>
+                    <summary class="font-semibold cursor-pointer text-base" style="color: var(--text-primary);">Tipos de Gráficas</summary>
+                    <div class="p-2 mt-2 rounded space-y-2" style="background-color: var(--bg-primary);">
+                        <ul class="list-disc list-inside mt-2 space-y-1">
+                            <li><strong>Cartesiana (2D/3D):</strong> Modo estándar. Usa `x` para 2D (`sin(x)`) y `x, y` para 3D (`sin(sqrt(x^2+y^2))`).</li>
+                            <li><strong>Implícita (2D):</strong> Ecuaciones donde `x` e `y` están mezcladas. Ej: `x^2+y^2=4`.</li>
+                            <li><strong>A Trozos (2D):</strong> Usa `piecewise(cond1, func1, ..., por_defecto)`. Ej: `piecewise(x<0, -1, 1)`.</li>
+                            <li><strong>Polar:</strong> Función en términos de `t` (ángulo θ). Ej: `2*cos(4*t)`.</li>
+                            <li><strong>Paramétrica (2D/3D):</strong> Componentes `x(t)`, `y(t)` y `z(t)` en sus campos.</li>
+                        </ul>
+                    </div>
+                </details>
+                <details class="p-3 rounded-lg" style="background-color: var(--bg-accent);">
+                    <summary class="font-semibold cursor-pointer text-base" style="color: var(--text-primary);">Funciones Avanzadas</summary>
+                    <div class="p-2 mt-2 rounded space-y-2" style="background-color: var(--bg-primary);">
+                        <p><strong>Parámetros Dinámicos:</strong> Usa letras como `a, b, k` en tus funciones (`a*sin(b*x)`). Aparecerán deslizadores para controlarlas en tiempo real.</p>
+                        <p><strong>Análisis de Función:</strong> El botón de análisis (📈) calcula raíces, extremos, derivadas e integrales para funciones 2D, marcando los puntos en la gráfica.</p>
+                        <p><strong>Persistencia:</strong> ¡Tu sesión se guarda! Las funciones, colores y tema se restaurarán la próxima vez que visites la página.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
     </div>
+    
+    <!-- OTROS MODALES (Tabla, Color, Análisis, Exportar) -->
+    <div id="table-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"></div>
+    <div id="color-palette-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"></div>
+    <div id="analysis-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"></div>
+    <div id="export-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop"></div>
 
-    <!-- Notificaciones -->
-    <div class="notification" id="notification"></div>
+    <!-- CONTENEDOR DE NOTIFICACIONES -->
+    <div id="toast-container"></div>
 
+    <!-- SCRIPT PRINCIPAL -->
     <script>
-        // Generación de partículas
-        const particlesContainer = document.getElementById('particles');
-        for (let i = 0; i < 50; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle';
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 20 + 's';
-            particle.style.animationDuration = (Math.random() * 10 + 20) + 's';
-            particlesContainer.appendChild(particle);
-        }
-
-        // Variables globales
-        const funcsInput = document.getElementById('plot-funcs');
-        const xMinInput = document.getElementById('plot-xmin');
-        const xMaxInput = document.getElementById('plot-xmax');
-        const calculateBtn = document.getElementById('plot-calculate');
-        const plotContainer = document.getElementById('plot-container');
-        const showGridCheck = document.getElementById('show-grid');
-        const showLegendCheck = document.getElementById('show-legend');
-        const colorPickersDiv = document.getElementById('color-pickers');
-        const widthSlider = document.getElementById('width-slider');
-        const heightSlider = document.getElementById('height-slider');
-        const widthValue = document.getElementById('width-value');
-        const heightValue = document.getElementById('height-value');
-        const notification = document.getElementById('notification');
-
-        // Colores modernos predefinidos
-        const modernColors = [
-            '#667eea', '#f093fb', '#4facfe', '#43e97b', '#fa709a',
-            '#fee140', '#30cfd0', '#764ba2', '#f5576c', '#4481eb',
-            '#04befe', '#c471f5', '#feada6', '#a8edea', '#13547a'
-        ];
-
-        // Funciones de ejemplo
-        funcsInput.value = "sin(x), cos(x), x^2/10, sqrt(abs(x))";
-
-        // Actualizar color pickers
-        function updateColorPickers() {
-            const funcArr = funcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
-            colorPickersDiv.innerHTML = "";
-            
-            funcArr.forEach((f, i) => {
-                const colorItem = document.createElement('div');
-                colorItem.className = 'color-item';
-                
-                const colorPicker = document.createElement('input');
-                colorPicker.type = 'color';
-                colorPicker.className = 'color-picker';
-                colorPicker.value = modernColors[i % modernColors.length];
-                colorPicker.id = `color-func-${i}`;
-                colorPicker.addEventListener('input', plotFunctions);
-                
-                const label = document.createElement('span');
-                label.className = 'color-label';
-                label.innerText = `f${i + 1}`;
-                
-                colorItem.appendChild(colorPicker);
-                colorItem.appendChild(label);
-                colorPickersDiv.appendChild(colorItem);
-            });
-        }
-
-        // Actualizar valores de los sliders
-        widthSlider.addEventListener('input', () => {
-            widthValue.textContent = widthSlider.value + 'px';
-            plotFunctions();
-        });
-
-        heightSlider.addEventListener('input', () => {
-            heightValue.textContent = heightSlider.value + 'px';
-            plotFunctions();
-        });
-
-        // Mostrar notificación
-        function showNotification(message, type = 'success') {
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
-            notification.classList.add('show');
-            
-            setTimeout(() => {
-                notification.classList.remove('show');
-            }, 3000);
-        }
-
-        // Layout del gráfico con tema moderno
-        function getPlotLayout() {
-            const isDark = document.body.classList.contains('dark-theme');
-            
-            return {
-                title: {
-                    text: 'Visualización de Funciones Matemáticas',
-                    font: {
-                        family: 'Inter, sans-serif',
-                        size: 24,
-                        color: '#ffffff'
-                    }
-                },
-                xaxis: {
-                    title: {
-                        text: 'x',
-                        font: { size: 16, color: '#ffffff' }
-                    },
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    showgrid: showGridCheck.checked,
-                    zerolinecolor: 'rgba(255, 255, 255, 0.3)',
-                    zerolinewidth: 2,
-                    tickfont: { color: 'rgba(255, 255, 255, 0.8)' }
-                },
-                yaxis: {
-                    title: {
-                        text: 'f(x)',
-                        font: { size: 16, color: '#ffffff' }
-                    },
-                    gridcolor: 'rgba(255, 255, 255, 0.1)',
-                    showgrid: showGridCheck.checked,
-                    zerolinecolor: 'rgba(255, 255, 255, 0.3)',
-                    zerolinewidth: 2,
-                    tickfont: { color: 'rgba(255, 255, 255, 0.8)' }
-                },
-                paper_bgcolor: 'rgba(0, 0, 0, 0)',
-                plot_bgcolor: 'rgba(0, 0, 0, 0.2)',
-                font: {
-                    family: 'Inter, sans-serif',
-                    color: '#ffffff'
-                },
-                legend: {
-                    bgcolor: 'rgba(0, 0, 0, 0.3)',
-                    bordercolor: 'rgba(255, 255, 255, 0.1)',
-                    borderwidth: 1,
-                    font: { color: '#ffffff' },
-                    x: 1,
-                    xanchor: 'right',
-                    y: 1,
-                    yanchor: 'top'
-                },
-                showlegend: showLegendCheck.checked,
-                margin: { l: 60, r: 30, b: 60, t: 80 },
-                hovermode: 'x unified',
-                hoverlabel: {
-                    bgcolor: 'rgba(0, 0, 0, 0.8)',
-                    bordercolor: 'rgba(255, 255, 255, 0.2)',
-                    font: { color: '#ffffff' }
-                },
-                width: parseInt(widthSlider.value),
-                height: parseInt(heightSlider.value)
-            };
-        }
-
-        // Función principal para graficar
-        function plotFunctions() {
-            const funcStrings = funcsInput.value.split(',').map(s => s.trim()).filter(Boolean);
-            const xmin = parseFloat(xMinInput.value);
-            const xmax = parseFloat(xMaxInput.value);
-
-            // Actualizar color pickers si es necesario
-            if (colorPickersDiv.children.length !== funcStrings.length) {
-                updateColorPickers();
+    const App = {
+        // --- ESTADO Y CONFIGURACIÓN ---
+        state: {
+            functionCount: 0,
+            plotDataCache: [],
+            analysisPoints: [],
+            parameterValues: {},
+            currentTheme: 'quantum',
+            is3D: false,
+            hasPolar: false,
+            layout: {}, // Almacenar rangos de ejes
+            scaling: {
+                isScaling: false,
+                axis: null, // 'x' or 'y'
+                startX: 0,
+                startY: 0,
+                initialRange: [],
             }
+        },
 
-            // Validaciones
-            if (funcStrings.length === 0) {
-                plotContainer.innerHTML = `
-                    <div class="plot-placeholder">
-                        <div class="placeholder-icon">📊</div>
-                        <div class="placeholder-text">
-                            <strong>¡Ingresa una función para comenzar!</strong><br>
-                            Ejemplo: sin(x), cos(x), x^2
+        // --- REFERENCIAS AL DOM (CACHEADAS) ---
+        elements: {},
+
+        // --- INICIALIZACIÓN ---
+        init() {
+            this.cacheElements();
+            this.setupEventListeners();
+            this.setupInteractiveScaling();
+            this.loadState();
+            this.updateTheme(this.state.currentTheme, true);
+            this.initializePlot();
+            
+            if (this.elements['functions-container'].children.length === 0) {
+                this.addFunctionRow();
+            }
+            this.showToast('info', 'Bienvenido al Graficador Quantum!');
+        },
+
+        cacheElements() {
+            const ids = [
+                'plotter', 'plot-btn', 'add-function-btn', 'functions-container', 'theme-toggle-btn', 
+                'theme-panel', 'help-btn', 'color-palette-btn', 'table-btn', 'analysis-btn', 'export-btn',
+                'spinner', 'sliders-panel', 'sliders-container', 'theme-icon', 'toast-container'
+            ];
+            ids.forEach(id => this.elements[id] = document.getElementById(id));
+        },
+
+        initializePlot() {
+            Plotly.newPlot(this.elements.plotter, [], this.getPlotlyLayout(), { 
+                responsive: true, 
+                displaylogo: false, 
+                displayModeBar: true 
+            });
+        },
+
+        // --- MANEJO DE EVENTOS ---
+        setupEventListeners() {
+            this.elements['plot-btn'].addEventListener('click', () => this.handlePlotRequest(true));
+            this.elements['add-function-btn'].addEventListener('click', () => this.addFunctionRow());
+            this.elements['theme-toggle-btn'].addEventListener('click', () => this.elements['theme-panel'].classList.toggle('hidden'));
+            this.elements['help-btn'].addEventListener('click', () => this.toggleModal('help-modal'));
+            this.elements['color-palette-btn'].addEventListener('click', () => this.openModal('color-palette-modal', this.buildColorPaletteModal()));
+            this.elements['table-btn'].addEventListener('click', () => this.openModal('table-modal', this.buildTableModal()));
+            this.elements['analysis-btn'].addEventListener('click', () => this.openModal('analysis-modal', this.buildAnalysisModal()));
+            this.elements['export-btn'].addEventListener('click', () => this.openModal('export-modal', this.buildExportModal()));
+
+            document.addEventListener('click', (e) => {
+                if (!this.elements['theme-panel'].classList.contains('hidden') && !this.elements['theme-panel'].contains(e.target) && !this.elements['theme-toggle-btn'].contains(e.target)) {
+                    this.elements['theme-panel'].classList.add('hidden');
+                }
+            });
+
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => this.updateTheme(e.target.dataset.theme));
+            });
+        },
+
+        // --- LÓGICA DE FUNCIONES Y GRÁFICAS ---
+        addFunctionRow(funcData = null) {
+            this.state.functionCount++;
+            const funcId = this.state.functionCount;
+            const color = funcData?.color || this.getExtendedColor(funcId);
+            const type = funcData?.type || 'cartesian-2d';
+
+            const functionRow = document.createElement('div');
+            functionRow.id = `func-row-${funcId}`;
+            functionRow.className = 'p-3 rounded-lg border space-y-3 animate-fade-in';
+            functionRow.style.borderColor = 'var(--border-color)';
+            functionRow.dataset.id = funcId;
+            functionRow.dataset.color = color;
+            functionRow.dataset.type = type;
+
+            functionRow.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <label class="font-bold" style="color: ${color};">Función ${funcId}</label>
+                    <button class="remove-func-btn p-1 rounded-full text-sm hover:bg-red-500 hover:text-white" style="background-color: var(--bg-accent);">&times;</button>
+                </div>
+                <div>
+                    <select class="type-select w-full p-2 mb-2 rounded-md" style="background-color: var(--bg-accent); border: 1px solid var(--border-color);">
+                        <option value="cartesian-2d">Cartesiana 2D</option>
+                        <option value="cartesian-3d">Cartesiana 3D</option>
+                        <option value="implicit-2d">Implícita 2D</option>
+                        <option value="piecewise">A Trozos (2D)</option>
+                        <option value="polar">Polar</option>
+                        <option value="parametric-2d">Paramétrica 2D</option>
+                        <option value="parametric-3d">Paramétrica 3D</option>
+                    </select>
+                    <div class="input-container"></div>
+                    <div class="latex-output p-2 text-lg min-h-[3rem] overflow-x-auto whitespace-nowrap flex items-center"></div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="domain-x-label text-xs">Dominio X</label>
+                        <div class="flex">
+                            <input type="number" class="x-min w-1/2 p-1 rounded-l-md text-center" style="background-color: var(--bg-accent); border: 1px solid var(--border-color);">
+                            <input type="number" class="x-max w-1/2 p-1 rounded-r-md text-center" style="background-color: var(--bg-accent); border: 1px solid var(--border-color);">
                         </div>
                     </div>
-                `;
-                return;
+                    <div class="y-domain-container hidden">
+                        <label class="text-xs">Dominio Y</label>
+                        <div class="flex">
+                            <input type="number" class="y-min w-1/2 p-1 rounded-l-md text-center" style="background-color: var(--bg-accent); border: 1px solid var(--border-color);">
+                            <input type="number" class="y-max w-1/2 p-1 rounded-r-md text-center" style="background-color: var(--bg-accent); border: 1px solid var(--border-color);">
+                        </div>
+                    </div>
+                </div>
+            `;
+            this.elements['functions-container'].appendChild(functionRow);
+            
+            functionRow.querySelector('.type-select').value = type;
+            this.handleTypeChange({ target: functionRow.querySelector('.type-select') }, funcId, funcData);
+            
+            functionRow.querySelector('.remove-func-btn').addEventListener('click', () => this.removeFunctionRow(funcId));
+            functionRow.querySelector('.type-select').addEventListener('change', (e) => this.handleTypeChange(e, funcId));
+            functionRow.querySelectorAll('input').forEach(input => input.addEventListener('change', this.saveState.bind(this)));
+        },
+
+        removeFunctionRow(id) {
+            document.getElementById(`func-row-${id}`).remove();
+            this.updateSliders();
+            this.saveState();
+        },
+
+        handleTypeChange(event, id, funcData = null) {
+            const type = event.target.value;
+            const row = document.getElementById(`func-row-${id}`);
+            row.dataset.type = type;
+
+            const inputContainer = row.querySelector('.input-container');
+            const yDomainContainer = row.querySelector('.y-domain-container');
+            const xDomainLabel = row.querySelector('.domain-x-label');
+            const xMinInput = row.querySelector('.x-min');
+            const xMaxInput = row.querySelector('.x-max');
+            const yMinInput = row.querySelector('.y-min');
+            const yMaxInput = row.querySelector('.y-max');
+
+            let inputHTML = '';
+            yDomainContainer.classList.add('hidden');
+            xDomainLabel.textContent = 'Dominio X';
+            xMinInput.value = funcData?.xMin ?? -10;
+            xMaxInput.value = funcData?.xMax ?? 10;
+            yMinInput.value = funcData?.yMin ?? -10;
+            yMaxInput.value = funcData?.yMax ?? 10;
+
+            const baseInputStyle = "w-full p-2 rounded-md"
+            const placeholderStyle = `style="background-color: var(--bg-accent); border: 1px solid var(--border-color);"`;
+            
+            switch(type) {
+                case 'cartesian-3d':
+                case 'implicit-2d':
+                    yDomainContainer.classList.remove('hidden');
+                    const placeholder3d = type === 'implicit-2d' ? 'x^2 + y^2 - 9' : 'sin(x)*cos(y)';
+                    inputHTML = `<input type="text" class="func-input ${baseInputStyle}" ${placeholderStyle} placeholder="${placeholder3d}" value="${funcData?.expr || ''}">`;
+                    break;
+                case 'polar':
+                    xDomainLabel.textContent = 'Dominio θ (t)';
+                    xMinInput.value = funcData?.xMin ?? 0;
+                    xMaxInput.value = funcData?.xMax ?? 6.28;
+                    inputHTML = `<input type="text" class="func-input ${baseInputStyle}" ${placeholderStyle} placeholder="r(t) = 2*cos(4*t)" value="${funcData?.expr || ''}">`;
+                    break;
+                case 'piecewise':
+                    inputHTML = `<input type="text" class="func-input ${baseInputStyle}" ${placeholderStyle} placeholder="piecewise(x<0, -x, x)" value="${funcData?.expr || ''}">`;
+                    break;
+                case 'parametric-2d':
+                    xDomainLabel.textContent = 'Dominio t';
+                    inputHTML = `
+                        <input type="text" class="func-input-x ${baseInputStyle} mb-1" ${placeholderStyle} placeholder="x(t) = cos(t)" value="${funcData?.exprX || ''}">
+                        <input type="text" class="func-input-y ${baseInputStyle}" ${placeholderStyle} placeholder="y(t) = sin(t)" value="${funcData?.exprY || ''}">
+                    `;
+                    break;
+                case 'parametric-3d':
+                    xDomainLabel.textContent = 'Dominio t';
+                    inputHTML = `
+                        <input type="text" class="func-input-x ${baseInputStyle} mb-1" ${placeholderStyle} placeholder="x(t) = cos(t)" value="${funcData?.exprX || ''}">
+                        <input type="text" class="func-input-y ${baseInputStyle} mb-1" ${placeholderStyle} placeholder="y(t) = sin(t)" value="${funcData?.exprY || ''}">
+                        <input type="text" class="func-input-z ${baseInputStyle}" ${placeholderStyle} placeholder="z(t) = t" value="${funcData?.exprZ || ''}">
+                    `;
+                    break;
+                case 'cartesian-2d':
+                default:
+                    inputHTML = `<input type="text" class="func-input ${baseInputStyle}" ${placeholderStyle} placeholder="sin(x)" value="${funcData?.expr || ''}">`;
+                    break;
             }
-
-            if (isNaN(xmin) || isNaN(xmax) || xmin >= xmax) {
-                showNotification('El rango del eje X no es válido', 'error');
-                return;
-            }
-
-            // Mostrar loading
-            plotContainer.querySelector('.loading').style.display = 'block';
-            plotContainer.querySelector('.plot-placeholder')?.remove();
-
-            const traces = [];
-            const colorPickers = colorPickersDiv.querySelectorAll('.color-picker');
-
-            // Procesar cada función
-            funcStrings.forEach((funcStr, i) => {
-                const x = [];
-                const y = [];
-                let compiledFunc;
-
-                try {
-                    // Compilar la función con mathjs
-                    compiledFunc = math.compile(funcStr);
-                } catch (e) {
-                    traces.push({
-                        x: [xmin, xmax],
-                        y: [null, null],
-                        name: `❌ Error: "${funcStr}"`,
-                        type: 'scatter',
-                        mode: 'lines',
-                        line: {
-                            color: '#f87171',
-                            width: 3,
-                            dash: 'dot'
-                        },
-                        hoverinfo: 'skip'
-                    });
-                    return;
-                }
-
-                // Generar puntos para la función
-                const numPoints = 1000;
-                const step = (xmax - xmin) / numPoints;
-
-                for (let xVal = xmin; xVal <= xmax; xVal += step) {
-                    x.push(xVal);
-                    try {
-                        const yVal = compiledFunc.evaluate({ x: xVal });
-                        y.push(isFinite(yVal) ? yVal : null);
-                    } catch {
-                        y.push(null);
-                    }
-                }
-
-                // Añadir el trazo
-                traces.push({
-                    x: x,
-                    y: y,
-                    type: 'scatter',
-                    mode: 'lines',
-                    name: funcStr,
-                    line: {
-                        color: colorPickers[i] ? colorPickers[i].value : modernColors[i % modernColors.length],
-                        width: 3,
-                        shape: 'spline'
-                    },
-                    hovertemplate: '%{y:.3f}<extra></extra>'
-                });
+            inputContainer.innerHTML = inputHTML;
+            inputContainer.querySelectorAll('input').forEach(input => {
+                input.addEventListener('keyup', () => this.updateLatexPreview(id));
+                input.addEventListener('change', this.saveState.bind(this));
             });
+            this.updateLatexPreview(id);
+        },
 
-            // Configuración de Plotly
-            const config = {
-                responsive: true,
-                displayModeBar: true,
-                displaylogo: false,
-                modeBarButtonsToAdd: [
-                    {
-                        name: 'Descargar como PNG',
-                        icon: Plotly.Icons.camera,
-                        click: function(gd) {
-                            Plotly.downloadImage(gd, {
-                                format: 'png',
-                                width: 1920,
-                                height: 1080,
-                                filename: 'grafico-matematico'
+        updateLatexPreview(id) {
+            const row = document.getElementById(`func-row-${id}`);
+            if (!row) return;
+            const type = row.dataset.type;
+            const output = row.querySelector('.latex-output');
+            let exprs = [];
+
+            try {
+                if (type.startsWith('parametric')) {
+                    const xVal = row.querySelector('.func-input-x')?.value;
+                    const yVal = row.querySelector('.func-input-y')?.value;
+                    const zVal = row.querySelector('.func-input-z')?.value;
+                    if (xVal) exprs.push(`x(t) = ${math.parse(xVal).toTex()}`);
+                    if (yVal) exprs.push(`y(t) = ${math.parse(yVal).toTex()}`);
+                    if (zVal) exprs.push(`z(t) = ${math.parse(zVal).toTex()}`);
+                } else {
+                    const input = row.querySelector('.func-input');
+                    if (input && input.value) {
+                        let expr = input.value;
+                        if (type === 'piecewise') {
+                            let latex = expr.replace(/piecewise\((.*)\)/, (match, p1) => {
+                                const parts = p1.split(','); let tex = '\\begin{cases}';
+                                for (let i = 0; i < parts.length - 1; i += 2) {
+                                    tex += `${math.parse(parts[i+1].trim()).toTex()} & \\text{if } ${parts[i].trim().replace('<', '\\lt ').replace('>', '\\gt ')} \\\\`;
+                                }
+                                if (parts.length % 2 !== 0) tex += `${math.parse(parts[parts.length - 1].trim()).toTex()} & \\text{otherwise}`;
+                                return tex + '\\end{cases}';
                             });
+                            exprs.push(latex);
+                        } else if (type === 'polar') {
+                            exprs.push(`r(\\theta) = ${math.parse(expr.replace(/t/g, 'theta')).toTex()}`);
+                        } else if (type === 'implicit-2d') {
+                            exprs.push(`${math.parse(expr).toTex()} = 0`);
+                        } else {
+                            exprs.push(`f(x) = ${math.parse(expr).toTex()}`);
                         }
                     }
-                ],
-                modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d']
-            };
-
-            // Crear el gráfico
-            Plotly.newPlot(plotContainer, traces, getPlotLayout(), config).then(() => {
-                plotContainer.querySelector('.loading').style.display = 'none';
-                showNotification('Gráfico generado exitosamente', 'success');
-            });
-        }
-
-        // Event listeners
-        funcsInput.addEventListener('input', updateColorPickers);
-        calculateBtn.addEventListener('click', plotFunctions);
-        showGridCheck.addEventListener('change', plotFunctions);
-        showLegendCheck.addEventListener('change', plotFunctions);
-
-        // Animación del botón
-        calculateBtn.addEventListener('click', function() {
-            this.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                this.style.transform = 'scale(1)';
-            }, 200);
-        });
-
-        // Tema claro/oscuro
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-
-        themeToggle.addEventListener('click', () => {
-            document.body.classList.toggle('dark-theme');
-            if (document.body.classList.contains('dark-theme')) {
-                themeIcon.classList.remove('fa-moon');
-                themeIcon.classList.add('fa-sun');
-            } else {
-                themeIcon.classList.remove('fa-sun');
-                themeIcon.classList.add('fa-moon');
+                }
+                
+                if (exprs.length === 0) { output.innerHTML = ''; return; }
+                output.innerHTML = `\\( ${exprs.join(', \\quad ')} \\)`;
+                MathJax.typesetPromise([output]);
+            } catch (e) {
+                output.innerHTML = `<span class="text-xs text-red-500">Error de sintaxis</span>`;
             }
-            plotFunctions();
-        });
+        },
 
-        // Atajos de teclado
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey || e.metaKey) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    calculateBtn.click();
+        async handlePlotRequest(updateParams = false) {
+            this.elements.spinner.classList.remove('hidden');
+            this.elements['plot-btn'].disabled = true;
+            await new Promise(resolve => setTimeout(resolve, 50));
+            try {
+                if (updateParams) this.updateSliders();
+                await this.plotFunctions();
+                this.saveState();
+            } catch (error) {
+                console.error("Error al graficar:", error);
+                this.showToast('error', `Error: ${error.message}`);
+            } finally {
+                this.elements.spinner.classList.add('hidden');
+                this.elements['plot-btn'].disabled = false;
+            }
+        },
+
+        async plotFunctions() {
+            const functionRows = this.elements['functions-container'].querySelectorAll('[data-id]');
+            if (functionRows.length === 0) {
+                this.initializePlot();
+                this.state.plotDataCache = [];
+                return;
+            }
+
+            const traces = [];
+            this.state.plotDataCache = [];
+            this.state.analysisPoints = []; 
+            this.state.hasPolar = false;
+            this.state.is3D = false;
+            
+            const scope = { ...this.state.parameterValues, PI: Math.PI, e: Math.E };
+
+            for (const row of functionRows) {
+                const id = row.dataset.id;
+                const type = row.dataset.type;
+                const color = row.dataset.color;
+                const xMin = parseFloat(row.querySelector('.x-min').value);
+                const xMax = parseFloat(row.querySelector('.x-max').value);
+                
+                let trace;
+                try {
+                    switch(type) {
+                        case 'cartesian-3d':
+                            this.state.is3D = true;
+                            const expr3D = row.querySelector('.func-input').value;
+                            if (!expr3D) continue;
+                            const compiledExpr3D = math.parse(expr3D).compile();
+                            const yMin = parseFloat(row.querySelector('.y-min').value);
+                            const yMax = parseFloat(row.querySelector('.y-max').value);
+                            const res3D = 50;
+                            const x3d = [], y3d = [], z3d = [];
+                            for (let i = 0; i < res3D; i++) {
+                                const x_val = xMin + (xMax - xMin) * i / (res3D - 1);
+                                const z_row = [];
+                                for (let j = 0; j < res3D; j++) {
+                                    const y_val = yMin + (yMax - yMin) * j / (res3D - 1);
+                                    if (i === 0) y3d.push(y_val);
+                                    z_row.push(compiledExpr3D.evaluate({ ...scope, x: x_val, y: y_val }));
+                                }
+                                x3d.push(x_val);
+                                z3d.push(z_row);
+                            }
+                            trace = { x: x3d, y: y3d, z: z3d, type: 'surface', colorscale: [[0, color], [1, this.lightenColor(color, 60)]], showscale: false, name: `f${id}`, lighting: { ambient: 0.8, diffuse: 0.8, specular: 0.2, roughness: 0.5 } };
+                            this.state.plotDataCache.push({ id, expr: expr3D, trace, type });
+                            break;
+                        
+                        case 'implicit-2d':
+                            const exprImplicit = row.querySelector('.func-input').value;
+                            if (!exprImplicit) continue;
+                            const compiledImplicit = math.parse(exprImplicit).compile();
+                            const yMinImp = parseFloat(row.querySelector('.y-min').value);
+                            const yMaxImp = parseFloat(row.querySelector('.y-max').value);
+                            const resImp = 100;
+                            const x_imp = [], y_imp = [], z_imp = [];
+                            for (let i = 0; i < resImp; i++) {
+                                const x_val = xMin + (xMax - xMin) * i / (resImp - 1);
+                                const z_row = [];
+                                for (let j = 0; j < resImp; j++) {
+                                    const y_val = yMinImp + (yMaxImp - yMinImp) * j / (resImp - 1);
+                                    if (i === 0) y_imp.push(y_val);
+                                    z_row.push(compiledImplicit.evaluate({ ...scope, x: x_val, y: y_val }));
+                                }
+                                x_imp.push(x_val);
+                                z_imp.push(z_row);
+                            }
+                            trace = { x: x_imp, y: y_imp, z: z_imp, type: 'contour', contours: { coloring: 'lines', start: 0, end: 0, size: 0 }, line: { color, width: 3 }, name: `f${id}` };
+                            this.state.plotDataCache.push({ id, expr: exprImplicit, trace, type });
+                            break;
+
+                        case 'polar':
+                            this.state.hasPolar = true;
+                            const exprPolar = row.querySelector('.func-input').value;
+                            if (!exprPolar) continue;
+                            const compiledPolar = math.parse(exprPolar).compile();
+                            const resPolar = 500;
+                            const t_polar = [], r_polar = [];
+                            for (let i = 0; i < resPolar; i++) {
+                                const t_val = xMin + (xMax - xMin) * i / (resPolar - 1);
+                                t_polar.push(t_val * 180 / Math.PI);
+                                r_polar.push(compiledPolar.evaluate({ ...scope, t: t_val }));
+                            }
+                            trace = { r: r_polar, theta: t_polar, mode: 'lines', type: 'scatterpolar', line: { color, width: 3 } , name: `r${id}`};
+                            this.state.plotDataCache.push({ id, expr: exprPolar, trace, type });
+                            break;
+
+                        case 'parametric-2d':
+                            const exprX2d = row.querySelector('.func-input-x').value;
+                            const exprY2d = row.querySelector('.func-input-y').value;
+                            if (!exprX2d || !exprY2d) continue;
+                            const compX2d = math.parse(exprX2d).compile();
+                            const compY2d = math.parse(exprY2d).compile();
+                            const resParam2D = 500;
+                            const x_p2d = [], y_p2d = [];
+                            for (let i = 0; i < resParam2D; i++) {
+                                const t_val = xMin + (xMax - xMin) * i / (resParam2D - 1);
+                                const currentScope = { ...scope, t: t_val };
+                                x_p2d.push(compX2d.evaluate(currentScope));
+                                y_p2d.push(compY2d.evaluate(currentScope));
+                            }
+                            trace = { x: x_p2d, y: y_p2d, type: 'scatter', mode: 'lines', line: { color, width: 3 }, name: `p${id}` };
+                            this.state.plotDataCache.push({ id, expr: `(x(t), y(t))`, trace, type });
+                            break;
+                        
+                        case 'parametric-3d':
+                            this.state.is3D = true;
+                            const exprX3d = row.querySelector('.func-input-x').value;
+                            const exprY3d = row.querySelector('.func-input-y').value;
+                            const exprZ3d = row.querySelector('.func-input-z').value;
+                            if (!exprX3d || !exprY3d || !exprZ3d) continue;
+                            const compX3d = math.parse(exprX3d).compile();
+                            const compY3d = math.parse(exprY3d).compile();
+                            const compZ3d = math.parse(exprZ3d).compile();
+                            const resParam3D = 1000;
+                            const x_p3d = [], y_p3d = [], z_p3d = [];
+                            for (let i = 0; i < resParam3D; i++) {
+                                const t_val = xMin + (xMax - xMin) * i / (resParam3D - 1);
+                                const currentScope = { ...scope, t: t_val };
+                                x_p3d.push(compX3d.evaluate(currentScope));
+                                y_p3d.push(compY3d.evaluate(currentScope));
+                                z_p3d.push(compZ3d.evaluate(currentScope));
+                            }
+                            trace = { x: x_p3d, y: y_p3d, z: z_p3d, type: 'scatter3d', mode: 'lines', line: { color, width: 4 }, name: `p${id}` };
+                            this.state.plotDataCache.push({ id, expr: `(x(t), y(t), z(t))`, trace, type });
+                            break;
+
+                        case 'piecewise':
+                        case 'cartesian-2d':
+                        default:
+                            const expr2D = row.querySelector('.func-input').value;
+                            if (!expr2D) continue;
+                            if (/\by\b/.test(expr2D)) throw new Error(`Contiene 'y' pero no es tipo 3D o Implícita.`);
+                            
+                            const res2D = 500;
+                            const x2d = [], y2d = [];
+                            let compiledExpr2D;
+                            if (type !== 'piecewise') compiledExpr2D = math.parse(expr2D).compile();
+                            
+                            for (let i = 0; i < res2D; i++) {
+                                const x_val = xMin + (xMax - xMin) * i / (res2D - 1);
+                                x2d.push(x_val);
+                                let y_val;
+                                const currentScope = { ...scope, x: x_val };
+                                if (type === 'piecewise') {
+                                    const p_expr = `f(x) = ${expr2D}`;
+                                    const p_scope = { ...scope };
+                                    math.evaluate(p_expr, p_scope);
+                                    y_val = p_scope.f(x_val);
+                                } else {
+                                    y_val = compiledExpr2D.evaluate(currentScope);
+                                }
+                                y2d.push(y_val);
+                            }
+                            trace = { x: x2d, y: y2d, type: 'scatter', mode: 'lines', line: { color, width: 3 }, name: `f${id}` };
+                            this.state.plotDataCache.push({ id, expr: expr2D, trace, type });
+                            break;
+                    }
+                    if (trace) traces.push(trace);
+                } catch (e) {
+                    console.error(`Error en función ${id}:`, e);
+                    this.showToast('error', `Error en f${id}: ${e.message}`);
                 }
             }
-        });
-
-        // Inicialización
-        updateColorPickers();
-        plotFunctions();
-
-        // Efecto de parallax en las partículas con el mouse
-        document.addEventListener('mousemove', (e) => {
-            const x = e.clientX / window.innerWidth;
-            const y = e.clientY / window.innerHeight;
             
-            particlesContainer.style.transform = `translate(${x * 20}px, ${y * 20}px)`;
-        });
+            const layout = this.getPlotlyLayout();
+            await Plotly.react(this.elements.plotter, traces, layout);
+        },
 
-        // Animaciones de entrada escalonadas
-        const fadeElements = document.querySelectorAll('.fade-in');
-        fadeElements.forEach((el, index) => {
-            el.style.animationDelay = `${index * 0.1}s`;
-        });
+        // --- MANEJO DE MODALES ---
+        toggleModal(modalId) { document.getElementById(modalId).classList.toggle('hidden'); },
+
+        openModal(modalId, content) {
+            const modal = document.getElementById(modalId);
+            modal.innerHTML = content;
+            modal.classList.remove('hidden');
+            modal.querySelectorAll('.close-modal-btn').forEach(btn => btn.addEventListener('click', () => this.toggleModal(modalId)));
+        },
+
+        // --- CONSTRUCTORES DE CONTENIDO DE MODALES ---
+        buildColorPaletteModal() {
+            let content = '';
+            if (this.state.plotDataCache.length === 0) {
+                content = `<p style="color: var(--text-secondary);">Grafica una función primero.</p>`;
+            } else {
+                this.state.plotDataCache.forEach(({ id, expr }, index) => {
+                    const row = document.getElementById(`func-row-${id}`);
+                    const currentColor = row.dataset.color;
+                    const swatches = this.getExtendedColor(null).map(c => 
+                        `<button class="swatch-btn w-6 h-6 rounded-full cursor-pointer border-2" data-id="${id}" data-index="${index}" data-color="${c}" style="background-color: ${c}; border-color: ${c === currentColor ? 'var(--accent-color)' : 'transparent'};"></button>`
+                    ).join('');
+
+                    content += `
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label for="color-input-${id}" class="font-semibold">Función ${id}: <span class="text-xs font-normal">${expr.substring(0,20)}...</span></label>
+                                <input type="color" id="color-input-${id}" value="${currentColor}" class="color-picker w-10 h-10 p-1 rounded-md border-none cursor-pointer" data-id="${id}" data-index="${index}" style="background-color: transparent;">
+                            </div>
+                            <div class="grid grid-cols-8 gap-1">${swatches}</div>
+                        </div>
+                    `;
+                });
+            }
+            const modalHTML = this.getModalBaseHTML('Paleta de Colores', content);
+            setTimeout(() => {
+                document.querySelectorAll('.color-picker').forEach(picker => picker.addEventListener('input', (e) => this.updateFunctionColor(e.target.dataset.id, e.target.dataset.index, e.target.value)));
+                document.querySelectorAll('.swatch-btn').forEach(btn => btn.addEventListener('click', (e) => this.updateFunctionColor(e.target.dataset.id, e.target.dataset.index, e.target.dataset.color)));
+            }, 0);
+            return modalHTML;
+        },
+        
+        buildTableModal() {
+            let headerHTML = '';
+            let bodyHTML = '';
+            let placeholderVisible = true;
+
+            if (this.state.plotDataCache.length > 0) {
+                placeholderVisible = false;
+                const is3D = this.state.plotDataCache.some(d => d.type === 'cartesian-3d');
+                headerHTML = `<tr><th class="p-2">Función</th><th class="p-2">X</th><th class="p-2">Y ${is3D ? '' : '(f(x))'}</th>${is3D ? '<th class="p-2">Z (f(x,y))</th>' : ''}</tr>`;
+
+                this.state.plotDataCache.forEach(({id, trace, type}) => {
+                    const color = document.getElementById(`func-row-${id}`).dataset.color;
+                    if (type === 'cartesian-3d') {
+                        for (let i = 0; i < trace.x.length; i+=5) {
+                            for (let j = 0; j < trace.y.length; j+=5) {
+                                bodyHTML += `<tr class="border-t" style="border-color:var(--border-color);"><td class="p-2 font-bold" style="color:${color}">f${id}</td><td>${trace.x[i].toFixed(2)}</td><td>${trace.y[j].toFixed(2)}</td><td>${trace.z[j][i].toFixed(2)}</td></tr>`;
+                            }
+                        }
+                    } else if (type !== 'polar' && type !== 'implicit-2d') {
+                        for (let i = 0; i < trace.x.length; i+=20) {
+                            bodyHTML += `<tr class="border-t" style="border-color:var(--border-color);"><td class="p-2 font-bold" style="color:${color}">f${id}</td><td>${trace.x[i].toFixed(2)}</td><td>${trace.y[i].toFixed(2)}</td></tr>`;
+                        }
+                    }
+                });
+            }
+            
+            const content = `
+                <div class="overflow-y-auto">
+                    <table class="w-full text-left">
+                        <thead class="sticky top-0" style="background-color: var(--bg-secondary);"><tr id="table-header">${headerHTML}</tr></thead>
+                        <tbody id="table-body">${bodyHTML}</tbody>
+                    </table>
+                    <p id="table-placeholder" class="text-center py-8 ${placeholderVisible ? '' : 'hidden'}" style="color: var(--text-secondary);">No hay datos para mostrar.</p>
+                </div>`;
+            return this.getModalBaseHTML('Tabla de Valores', content, 'max-w-2xl');
+        },
+
+        buildAnalysisModal() {
+            let content = '';
+            this.state.analysisPoints = [];
+            const functions2D = this.state.plotDataCache.filter(d => (d.type === 'cartesian-2d' || d.type === 'piecewise') && d.expr);
+
+            if (functions2D.length === 0) {
+                content = `<p class="text-center py-8" style="color: var(--text-secondary);">Análisis disponible solo para funciones Cartesianas 2D.</p>`;
+            } else {
+                functions2D.forEach(({ id, expr, trace }) => {
+                    const color = document.getElementById(`func-row-${id}`).dataset.color;
+                    let resultsGridHTML = '';
+                    try {
+                        const { x, y } = trace;
+                        const compiledExpr = math.parse(expr).compile();
+                        
+                        const roots = this.findRoots(x, y);
+                        const firstDerivative = math.derivative(expr, 'x');
+                        const secondDerivative = math.derivative(firstDerivative, 'x');
+                        const criticalPoints = this.findRoots(x, x.map(val => firstDerivative.evaluate({x: val})));
+                        const extrema = this.findExtrema(criticalPoints, compiledExpr, secondDerivative.compile());
+                        
+                        resultsGridHTML += this.createAnalysisCard('Raíces (Ceros)', this.formatPoints(roots), 'var(--success-color)');
+                        this.state.analysisPoints.push({x: roots.map(p=>p.x), y: roots.map(p=>p.y), name: 'Raíces', color: 'var(--success-color)'});
+                        
+                        resultsGridHTML += this.createAnalysisCard('Máximos Locales', this.formatPoints(extrema.maxima), 'var(--warning-color)');
+                        this.state.analysisPoints.push({x: extrema.maxima.map(p=>p.x), y: extrema.maxima.map(p=>p.y), name: 'Máximos', color: 'var(--warning-color)'});
+                        
+                        resultsGridHTML += this.createAnalysisCard('Mínimos Locales', this.formatPoints(extrema.minima), 'var(--danger-color)');
+                        this.state.analysisPoints.push({x: extrema.minima.map(p=>p.x), y: extrema.minima.map(p=>p.y), name: 'Mínimos', color: 'var(--danger-color)'});
+
+                        let derivativesHTML = `<div>1ª: \\( ${firstDerivative.toTex()} \\)</div>`;
+                        derivativesHTML += `<div>2ª: \\( ${secondDerivative.toTex()} \\)</div>`;
+                        resultsGridHTML += this.createAnalysisCard('Derivadas', derivativesHTML, 'var(--accent-color)');
+                        
+                        const integral = this.integrate(x,y);
+                        resultsGridHTML += this.createAnalysisCard('Integral Definida', `<span class="text-2xl font-bold">${integral.toFixed(4)}</span> <span class="text-xs">en [${x[0].toFixed(2)}, ${x[x.length-1].toFixed(2)}]</span>`, 'var(--accent-color)');
+
+                    } catch (e) {
+                        resultsGridHTML = `<p class="text-red-500">No se pudo analizar la función. Error: ${e.message}</p>`;
+                    }
+                    
+                    content += `
+                        <div class="p-4 rounded-lg" style="background-color: var(--bg-accent);">
+                            <h3 class="font-bold text-lg mb-3" style="color: ${color};">Análisis de f${id}(x)</h3>
+                            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">${resultsGridHTML}</div>
+                        </div>`;
+                });
+                this.plotAnalysisPoints();
+            }
+
+            const modalHTML = this.getModalBaseHTML('Análisis Avanzado de Funciones (2D)', content, 'max-w-4xl');
+            setTimeout(() => MathJax.typesetPromise(), 0);
+            return modalHTML;
+        },
+
+        buildExportModal() {
+            const content = `
+                <p class="mb-4" style="color: var(--text-secondary);">Selecciona el formato de exportación.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <button id="export-png-btn" class="p-4 rounded-lg font-semibold text-lg flex flex-col items-center justify-center transition-transform hover:scale-105" style="background-color: var(--bg-accent);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span class="mt-2">PNG</span>
+                    </button>
+                    <button id="export-svg-btn" class="p-4 rounded-lg font-semibold text-lg flex flex-col items-center justify-center transition-transform hover:scale-105" style="background-color: var(--bg-accent);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        <span class="mt-2">SVG</span>
+                    </button>
+                </div>
+            `;
+            const modalHTML = this.getModalBaseHTML('Exportar Gráfica', content, 'max-w-md');
+            setTimeout(() => {
+                document.getElementById('export-png-btn').addEventListener('click', () => {
+                    Plotly.downloadImage(this.elements.plotter, {format: 'png', width: 1200, height: 800, filename: 'quantum_plot'});
+                    this.showToast('success', 'Exportando como PNG...');
+                    this.toggleModal('export-modal');
+                });
+                document.getElementById('export-svg-btn').addEventListener('click', () => {
+                    Plotly.downloadImage(this.elements.plotter, {format: 'svg', width: 1200, height: 800, filename: 'quantum_plot'});
+                    this.showToast('success', 'Exportando como SVG...');
+                    this.toggleModal('export-modal');
+                });
+            }, 0);
+            return modalHTML;
+        },
+
+        getModalBaseHTML(title, content, maxWidthClass = 'max-w-md') {
+            return `
+                <div class="w-full ${maxWidthClass} max-h-[90vh] flex flex-col p-6 rounded-xl shadow-quantum animate-fade-in backdrop-blur-lg" style="background-color: var(--bg-secondary); border: 1px solid var(--border-color);">
+                    <div class="flex justify-between items-center border-b pb-3 mb-4 flex-shrink-0" style="border-color: var(--border-color);">
+                        <h2 class="text-2xl font-bold" style="color: var(--accent-color);">${title}</h2>
+                        <button class="close-modal-btn p-2 rounded-full hover:bg-[var(--bg-accent)]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        </button>
+                    </div>
+                    <div class="overflow-y-auto space-y-4">${content}</div>
+                </div>
+            `;
+        },
+
+        // --- LÓGICA DE TEMAS Y ESTILOS ---
+        updateTheme(newTheme, isInitial = false) {
+            document.body.className = `theme-${newTheme} transition-all-smooth`;
+            if (this.elements['theme-panel']) {
+                this.elements['theme-panel'].classList.add('hidden');
+            }
+            this.state.currentTheme = newTheme;
+            
+            const iconPath = {
+                light: '<path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>',
+                dark: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>',
+                neon: '<path d="m2 16 4-4 6 6 4-4"/>',
+                quantum: '<circle cx="12" cy="12" r="2"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m4.93 19.07 1.41-1.41"/><path d="m17.66 6.34 1.41-1.41"/>'
+            };
+            this.elements['theme-icon'].innerHTML = iconPath[newTheme] || iconPath.dark;
+
+            if (!isInitial) {
+                Plotly.react(this.elements.plotter, this.elements.plotter.data, this.getPlotlyLayout());
+                this.saveState();
+            }
+        },
+
+        getPlotlyLayout() {
+            const bg = this.getCssColor('--plot-bg');
+            const grid = this.getCssColor('--plot-grid');
+            const axes = this.getCssColor('--plot-axes');
+            const text = this.getCssColor('--plot-text');
+
+            const baseLayout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: bg,
+                font: { color: text, family: 'Inter, sans-serif', size: 14 },
+                margin: { l: 50, r: 20, b: 50, t: 40 },
+                showlegend: true,
+                legend: { orientation: 'h', yanchor: 'bottom', y: 1.02, xanchor: 'right', x: 1, bgcolor: 'rgba(0,0,0,0)' }
+            };
+            if (this.state.is3D) {
+                baseLayout.scene = {
+                    xaxis: { title: 'X', gridcolor: grid, linecolor: axes, zerolinecolor: axes, tickfont: { color: text, size: 10 }, showticklabels: true, ticks: 'outside', tickcolor: axes, backgroundcolor: bg, showbackground: true },
+                    yaxis: { title: 'Y', gridcolor: grid, linecolor: axes, zerolinecolor: axes, tickfont: { color: text, size: 10 }, showticklabels: true, ticks: 'outside', tickcolor: axes, backgroundcolor: bg, showbackground: true },
+                    zaxis: { title: 'Z', gridcolor: grid, linecolor: axes, zerolinecolor: axes, tickfont: { color: text, size: 10 }, showticklabels: true, ticks: 'outside', tickcolor: axes, backgroundcolor: bg, showbackground: true },
+                    camera: { eye: {x: 1.5, y: 1.5, z: 1.5} }
+                };
+                baseLayout.dragmode = 'turntable';
+            } else if (this.state.hasPolar) {
+                baseLayout.polar = {
+                    bgcolor: bg,
+                    angularaxis: { tickfont: { color: text }, linecolor: grid, gridcolor: grid },
+                    radialaxis: { tickfont: { color: text }, linecolor: grid, gridcolor: grid }
+                };
+            } else {
+                baseLayout.xaxis = { gridcolor: grid, linecolor: axes, zerolinecolor: axes, linewidth: 2, zerolinewidth: 2, title: 'X', tickfont: { color: text, size: 12 }, showticklabels: true, ticks: 'outside', tickcolor: axes };
+                baseLayout.yaxis = { gridcolor: grid, linecolor: axes, zerolinecolor: axes, linewidth: 2, zerolinewidth: 2, title: 'Y', tickfont: { color: text, size: 12 }, showticklabels: true, ticks: 'outside', tickcolor: axes };
+                baseLayout.dragmode = 'pan';
+                
+                // Aplicar rangos guardados si existen
+                if (this.state.layout?.xaxis?.range) {
+                    baseLayout.xaxis.range = this.state.layout.xaxis.range;
+                    baseLayout.xaxis.autorange = false;
+                }
+                if (this.state.layout?.yaxis?.range) {
+                    baseLayout.yaxis.range = this.state.layout.yaxis.range;
+                    baseLayout.yaxis.autorange = false;
+                }
+            }
+            return baseLayout;
+        },
+
+        // --- LÓGICA DE PARÁMETROS ---
+        updateSliders() {
+            const allExpressions = Array.from(document.querySelectorAll('input[type="text"]')).map(input => input.value).filter(Boolean);
+            const paramRegex = /(?<![a-zA-Z0-9_])([a-df-su-wA-Z])(?![a-zA-Z0-9_])/g;
+            const foundParams = new Set();
+            
+            allExpressions.forEach(expr => {
+                let match;
+                while ((match = paramRegex.exec(expr)) !== null) {
+                    foundParams.add(match[1]);
+                }
+            });
+
+            if (foundParams.size === 0) {
+                this.elements['sliders-panel'].classList.add('hidden');
+                return;
+            }
+            
+            this.elements['sliders-panel'].classList.remove('hidden');
+            this.elements['sliders-container'].innerHTML = '';
+
+            foundParams.forEach(param => {
+                if (!(param in this.state.parameterValues)) {
+                    this.state.parameterValues[param] = 1;
+                }
+                const sliderContainer = document.createElement('div');
+                sliderContainer.innerHTML = `
+                    <label for="slider-${param}" class="flex justify-between font-semibold">
+                        <span>${param}</span>
+                        <span id="slider-value-${param}">${this.state.parameterValues[param]}</span>
+                    </label>
+                    <input type="range" id="slider-${param}" min="-5" max="5" value="${this.state.parameterValues[param]}" step="0.1" class="w-full">
+                `;
+                this.elements['sliders-container'].appendChild(sliderContainer);
+
+                document.getElementById(`slider-${param}`).addEventListener('input', (e) => {
+                    const newValue = parseFloat(e.target.value);
+                    this.state.parameterValues[param] = newValue;
+                    document.getElementById(`slider-value-${param}`).textContent = newValue;
+                    this.handlePlotRequest(false);
+                });
+            });
+        },
+        
+        // --- LÓGICA DE ANÁLISIS ---
+        createAnalysisCard(title, content, color) {
+            return `<div class="p-3 rounded-lg" style="background-color: var(--bg-primary);">
+                        <h4 class="font-bold border-b-2 pb-1 mb-2" style="border-color: ${color};">${title}</h4>
+                        <div class="text-sm" style="color: var(--text-secondary);">${content}</div>
+                    </div>`;
+        },
+        formatPoints(points, key = null) {
+            if (points.length === 0) return 'Ninguno encontrado.';
+            return points.map(p => key ? `${key}=${p[key].toFixed(3)}` : `(${p.x.toFixed(3)}, ${p.y.toFixed(3)})`).join('<br>');
+        },
+        findRoots(x, y) {
+            const roots = [];
+            for (let i = 0; i < y.length - 1; i++) {
+                if (y[i] * y[i+1] < 0) {
+                    const root = x[i] - y[i] * (x[i+1] - x[i]) / (y[i+1] - y[i]);
+                    roots.push({x: root, y: 0});
+                }
+            }
+            return roots;
+        },
+        findExtrema(criticalPoints, compiledExpr, secondDerivative) {
+            const extrema = { maxima: [], minima: [] };
+            criticalPoints.forEach(p => {
+                try {
+                    const d2y = secondDerivative.evaluate({x: p.x});
+                    const y_val = compiledExpr.evaluate({x: p.x});
+                    if (d2y < 0) extrema.maxima.push({x: p.x, y: y_val});
+                    else if (d2y > 0) extrema.minima.push({x: p.x, y: y_val});
+                } catch(e) { /* Ignorar */ }
+            });
+            return extrema;
+        },
+        integrate(x, y) {
+            return y.slice(1).reduce((acc, val, i) => acc + (val + y[i]) / 2 * (x[i+1] - x[i]), 0);
+        },
+        plotAnalysisPoints() {
+            const traces = this.state.analysisPoints.map(p => ({
+                x: p.x, y: p.y, mode: 'markers', type: 'scatter', name: p.name,
+                marker: { color: p.color, size: 10, symbol: 'circle', line: { color: 'white', width: 1 } }
+            }));
+            Plotly.addTraces(this.elements.plotter, traces);
+        },
+
+        // --- PERSISTENCIA DE ESTADO ---
+        saveState() {
+            const functions = [];
+            this.elements['functions-container'].querySelectorAll('[data-id]').forEach(row => {
+                const id = row.dataset.id;
+                const func = {
+                    id,
+                    type: row.dataset.type,
+                    color: row.dataset.color,
+                    expr: row.querySelector('.func-input')?.value,
+                    exprX: row.querySelector('.func-input-x')?.value,
+                    exprY: row.querySelector('.func-input-y')?.value,
+                    exprZ: row.querySelector('.func-input-z')?.value,
+                    xMin: row.querySelector('.x-min').value,
+                    xMax: row.querySelector('.x-max').value,
+                    yMin: row.querySelector('.y-min').value,
+                    yMax: row.querySelector('.y-max').value,
+                };
+                functions.push(func);
+            });
+            
+            const gd = this.elements.plotter;
+            const stateToSave = {
+                functions,
+                parameterValues: this.state.parameterValues,
+                theme: this.state.currentTheme,
+                layout: {
+                    xaxis: { range: gd.layout?.xaxis?.range },
+                    yaxis: { range: gd.layout?.yaxis?.range }
+                }
+            };
+            localStorage.setItem('quantumPlotterState', JSON.stringify(stateToSave));
+        },
+
+        loadState() {
+            const savedState = localStorage.getItem('quantumPlotterState');
+            if (savedState) {
+                const { functions, parameterValues, theme, layout } = JSON.parse(savedState);
+                this.state.currentTheme = theme || 'quantum';
+                this.state.parameterValues = parameterValues || {};
+                if (layout) {
+                    this.state.layout = layout;
+                }
+                if (functions && functions.length > 0) {
+                    functions.forEach(func => this.addFunctionRow(func));
+                    this.handlePlotRequest(true);
+                }
+            }
+        },
+
+        // --- UTILIDADES ---
+        showToast(type, message) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<strong>${type.charAt(0).toUpperCase() + type.slice(1)}:</strong><span class="ml-2">${message}</span>`;
+            this.elements['toast-container'].appendChild(toast);
+            setTimeout(() => toast.remove(), 5000);
+        },
+        getCssColor(variable) {
+            return getComputedStyle(document.body).getPropertyValue(variable).trim();
+        },
+        getExtendedColor(index) {
+            const colors = ['#636EFA', '#EF553B', '#00CC96', '#AB63FA', '#FFA15A', '#19D3F3', '#FF6692', '#B6E880', '#FF97FF', '#FECB52', '#2f4f4f', '#8a2be2', '#ff4500', '#2e8b57', '#d2691e', '#dc143c'];
+            return index === null ? colors : colors[index % colors.length];
+        },
+        updateFunctionColor(id, index, newColor) {
+            const row = document.getElementById(`func-row-${id}`);
+            row.dataset.color = newColor;
+            row.querySelector('label.font-bold').style.color = newColor;
+            
+            const traceToUpdate = this.elements.plotter.data[index];
+            if (traceToUpdate) {
+                if (traceToUpdate.type === 'surface') {
+                    Plotly.restyle(this.elements.plotter, { 'colorscale': [[0, newColor], [1, this.lightenColor(newColor, 60)]] }, index);
+                } else {
+                    Plotly.restyle(this.elements.plotter, { 'line.color': newColor }, index);
+                }
+            }
+            this.saveState();
+            this.openModal('color-palette-modal', this.buildColorPaletteModal());
+        },
+        lightenColor(hex, percent) {
+            hex = hex.replace(/^#/, '');
+            const r = parseInt(hex.substring(0, 2), 16);
+            const g = parseInt(hex.substring(2, 4), 16);
+            const b = parseInt(hex.substring(4, 6), 16);
+            const newR = Math.min(255, r + (255 - r) * (percent / 100));
+            const newG = Math.min(255, g + (255 - g) * (percent / 100));
+            const newB = Math.min(255, b + (255 - b) * (percent / 100));
+            return `#${Math.round(newR).toString(16).padStart(2, '0')}${Math.round(newG).toString(16).padStart(2, '0')}${Math.round(newB).toString(16).padStart(2, '0')}`;
+        },
+
+        // --- LÓGICA DE ESCALADO DE EJES Y RUEDA DEL RATÓN ---
+        setupInteractiveScaling() {
+            const gd = this.elements.plotter;
+            gd.addEventListener('mousemove', this.handleAxisMouseMove.bind(this));
+            gd.addEventListener('mousedown', this.handleAxisMouseDown.bind(this));
+            document.addEventListener('mouseup', this.handleAxisMouseUp.bind(this));
+            gd.addEventListener('wheel', this.handleMouseWheelZoom.bind(this)); // <-- NUEVO EVENTO
+        },
+
+        handleAxisMouseDown(e) {
+            if (this.state.is3D || this.state.hasPolar) return;
+            const gd = this.elements.plotter;
+            const { scaling } = this.state;
+            if (!scaling.axis) return;
+            e.preventDefault();
+            scaling.isScaling = true;
+            scaling.startX = e.clientX;
+            scaling.startY = e.clientY;
+            if (scaling.axis === 'y') scaling.initialRange = gd.layout.yaxis.range;
+            else if (scaling.axis === 'x') scaling.initialRange = gd.layout.xaxis.range;
+        },
+
+        handleAxisMouseMove(e) {
+            const gd = this.elements.plotter;
+            const { scaling } = this.state;
+            if (scaling.isScaling) {
+                e.preventDefault();
+                let newRange;
+                const center = (scaling.initialRange[0] + scaling.initialRange[1]) / 2;
+                const initialSpan = scaling.initialRange[1] - scaling.initialRange[0];
+                if (scaling.axis === 'y') {
+                    const dy = e.clientY - scaling.startY;
+                    const scaleFactor = Math.max(0.1, 1 - (dy / gd.offsetHeight) * 2);
+                    const newSpan = initialSpan / scaleFactor;
+                    newRange = [center - newSpan / 2, center + newSpan / 2];
+                    Plotly.relayout(gd, { 'yaxis.range': newRange });
+                } else if (scaling.axis === 'x') {
+                    const dx = e.clientX - scaling.startX;
+                    const scaleFactor = Math.max(0.1, 1 + (dx / gd.offsetWidth) * 2);
+                    const newSpan = initialSpan / scaleFactor;
+                    newRange = [center - newSpan / 2, center + newSpan / 2];
+                    Plotly.relayout(gd, { 'xaxis.range': newRange });
+                }
+            } else {
+                if (this.state.is3D || this.state.hasPolar || !gd._fullLayout) return;
+                const plotRect = gd.getBoundingClientRect();
+                const x = e.clientX - plotRect.left;
+                const y = e.clientY - plotRect.top;
+                const threshold = 15;
+                const yAxisX = gd._fullLayout.margin.l;
+                const xAxisY = gd._fullLayout.height - gd._fullLayout.margin.b;
+                const nearY = Math.abs(x - yAxisX) < threshold && y > gd._fullLayout.margin.t && y < xAxisY;
+                const nearX = Math.abs(y - xAxisY) < threshold && x > yAxisX && x < (gd._fullLayout.width - gd._fullLayout.margin.r);
+                if (nearY && !nearX) {
+                    gd.style.cursor = 'ns-resize';
+                    scaling.axis = 'y';
+                } else if (nearX && !nearY) {
+                    gd.style.cursor = 'ew-resize';
+                    scaling.axis = 'x';
+                } else {
+                    gd.style.cursor = 'crosshair';
+                    scaling.axis = null;
+                }
+            }
+        },
+
+        handleAxisMouseUp() {
+            if (this.state.scaling.isScaling) {
+                this.state.scaling.isScaling = false;
+                this.state.scaling.axis = null;
+                this.elements.plotter.style.cursor = 'crosshair';
+                this.saveState();
+            }
+        },
+
+        handleMouseWheelZoom(e) {
+            if (this.state.is3D || this.state.hasPolar) return;
+            e.preventDefault();
+            
+            const gd = this.elements.plotter;
+            const plotRect = gd.getBoundingClientRect();
+            const mouseX = e.clientX - plotRect.left;
+            const mouseY = e.clientY - plotRect.top;
+
+            // Convertir píxeles a coordenadas de los ejes
+            const x_in = gd._fullLayout.xaxis.p2c(mouseX);
+            const y_in = gd._fullLayout.yaxis.p2c(mouseY);
+
+            const scaleFactor = e.deltaY < 0 ? 0.85 : 1.15; // 0.85 para zoom in, 1.15 para zoom out
+
+            const newXRange = [
+                (1 - scaleFactor) * x_in + scaleFactor * gd.layout.xaxis.range[0],
+                (1 - scaleFactor) * x_in + scaleFactor * gd.layout.xaxis.range[1]
+            ];
+            const newYRange = [
+                (1 - scaleFactor) * y_in + scaleFactor * gd.layout.yaxis.range[0],
+                (1 - scaleFactor) * y_in + scaleFactor * gd.layout.yaxis.range[1]
+            ];
+
+            Plotly.relayout(gd, {
+                'xaxis.range': newXRange,
+                'yaxis.range': newYRange
+            }).then(() => this.saveState());
+        }
+    };
+
+    document.addEventListener('DOMContentLoaded', () => App.init());
     </script>
 </body>
 </html>
