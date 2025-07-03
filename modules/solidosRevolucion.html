@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador Futurista de Sólidos de Revolución</title>
+    
+    <!-- Librerías desde CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.33.0.min.js"></script>
+
+    <!-- Fuentes y Configuración de Tailwind -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        orbitron: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        'neon-blue': 'var(--title-color)',
+                        'neon-pink': 'var(--accent-color)',
+                        'dark-purple': 'var(--panel-bg-color)',
+                        'dark-bg': 'var(--bg-color)',
+                    },
+                    boxShadow: {
+                        'neon': '0 0 5px var(--title-color), 0 0 10px var(--title-color), 0 0 20px var(--accent-color), 0 0 40px var(--accent-color)',
+                        'neon-button': '0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--title-color), 0 0 20px var(--title-color)',
+                    },
+                    keyframes: {
+                        'flicker': {
+                            '0%, 100%': { opacity: 1 },
+                            '50%': { opacity: 0.8 },
+                        },
+                        'slide-in-right': {
+                            '0%': { transform: 'translateX(100%)', opacity: 0 },
+                            '100%': { transform: 'translateX(0)', opacity: 1 },
+                        },
+                        'slide-out-right': {
+                            '0%': { transform: 'translateX(0)', opacity: 1 },
+                            '100%': { transform: 'translateX(100%)', opacity: 0 },
+                        },
+                         'slide-in-left': {
+                            '0%': { transform: 'translateX(-100%)', opacity: 0 },
+                            '100%': { transform: 'translateX(0)', opacity: 1 },
+                        },
+                        'slide-out-left': {
+                            '0%': { transform: 'translateX(0)', opacity: 1 },
+                            '100%': { transform: 'translateX(-100%)', opacity: 0 },
+                        },
+                        'fade-in-up': {
+                           '0%': { opacity: 0, transform: 'translateY(20px)' },
+                           '100%': { opacity: 1, transform: 'translateY(0)' },
+                        },
+                         'fade-out-down': {
+                           '0%': { opacity: 1, transform: 'translateY(0)' },
+                           '100%': { opacity: 0, transform: 'translateY(20px)' },
+                        },
+                        'fade-in-down': {
+                           '0%': { opacity: 0, transform: 'translateY(-10px)' },
+                           '100%': { opacity: 1, transform: 'translateY(0)' },
+                        }
+                    },
+                    animation: {
+                        'flicker': 'flicker 1.5s infinite',
+                        'slide-in-right': 'slide-in-right 0.5s forwards ease-out',
+                        'slide-out-right': 'slide-out-right 0.5s forwards ease-in',
+                        'slide-in-left': 'slide-in-left 0.5s forwards ease-out',
+                        'slide-out-left': 'slide-out-left 0.5s forwards ease-in',
+                        'fade-in-down': 'fade-in-down 0.5s ease-out forwards',
+                        'fade-in-up': 'fade-in-up 0.5s ease-out forwards',
+                        'fade-out-down': 'fade-out-down 0.5s ease-out forwards',
+                    }
+                },
+            },
+        }
+    </script>
+
+    <!-- Estilos personalizados -->
+    <style>
+        :root {
+            --bg-color: #0d0514;
+            --panel-bg-color: rgba(26, 11, 46, 0.6);
+            --border-color: rgba(0, 246, 255, 0.5);
+            --text-color: #e0e0e0;
+            --title-color: #00f6ff;
+            --accent-color: #ff00ff;
+            --input-bg: rgba(26, 11, 46, 0.8);
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow: hidden;
+            transition: background-color 0.5s ease;
+        }
+        
+        .main-container {
+             background-image: radial-gradient(circle at top right, var(--accent-color-trans), transparent 40%),
+                              radial-gradient(circle at bottom left, var(--title-color-trans), transparent 40%);
+             height: 100vh;
+             overflow-y: auto;
+        }
+
+        .panel {
+            background-color: var(--panel-bg-color);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            border-radius: 1rem;
+            box-shadow: 0 0 15px rgba(0, 246, 255, 0.1);
+            transition: background-color 0.5s ease, border-color 0.5s ease;
+        }
+
+        h1, h2, h3 { font-family: 'Orbitron', sans-serif; }
+        h1 { 
+            color: var(--title-color);
+            text-shadow: 0 0 3px var(--title-color), 0 0 8px var(--accent-color);
+            transition: color 0.5s ease, text-shadow 0.5s ease;
+        }
+        
+        .futuristic-btn {
+            font-family: 'Orbitron', sans-serif;
+            background: linear-gradient(45deg, var(--accent-color), var(--title-color));
+            border: none;
+            color: white;
+            text-shadow: 0 0 5px black;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px var(--accent-color), inset 0 0 5px rgba(255,255,255,0.5);
+        }
+        .futuristic-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--title-color), inset 0 0 10px rgba(255,255,255,0.5);
+        }
+
+        .action-btn {
+            position: fixed;
+            left: 2rem;
+            z-index: 100;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: var(--panel-bg-color);
+            border: 2px solid var(--title-color);
+            box-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 15px var(--title-color), 0 0 20px var(--title-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s ease;
+        }
+        
+        .action-btn svg, .action-btn span {
+            color: var(--title-color);
+            width: 28px;
+            height: 28px;
+            font-size: 24px;
+            line-height: 28px;
+            transition: color 0.3s;
+        }
+        #controls-btn {
+            bottom: 29.5rem;
+        }
+        #controls-btn:hover {
+            transform: scale(1.15);
+        }
+        #suggestions-btn {
+            bottom: 24rem;
+        }
+        #suggestions-btn:hover {
+            transform: scale(1.15);
+            text-shadow: 0 0 15px var(--title-color);
+        }
+        #theme-btn {
+            bottom: 18.5rem;
+        }
+        #theme-btn:hover {
+            transform: scale(1.1) rotate(15deg);
+        }
+        #axis-config-btn {
+            bottom: 13rem;
+        }
+        #axis-config-btn:hover {
+            transform: scale(1.1) rotate(-90deg);
+        }
+        #settings-btn { 
+            bottom: 7.5rem;
+        }
+        #settings-btn:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+        #help-btn { 
+            bottom: 2rem; 
+        }
+        #help-btn:hover { 
+            transform: scale(1.15) translateY(-3px);
+        }
+
+
+        input, select {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+        
+        /* Custom Range Slider */
+        input[type="range"] { -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; width: 100%; }
+        input[type="range"]:focus { outline: none; }
+        input[type="range"]::-webkit-slider-runnable-track { background: var(--border-color); height: 4px; border-radius: 4px; }
+        input[type="range"]::-webkit-slider-thumb { 
+            -webkit-appearance: none; appearance: none; margin-top: -8px; 
+            height: 20px; width: 20px; border-radius: 50%; 
+            background: var(--title-color);
+            border: 2px solid var(--bg-color);
+            box-shadow: 0 0 10px var(--title-color);
+        }
+
+        /* Custom Color Input */
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 60px;
+            height: 40px;
+            padding: 0;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid var(--border-color);
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch { border: none; }
+
+        #three-container { position: relative; }
+        #three-container canvas { display: block; width: 100%; height: 100%; }
+        
+        .prose { color: var(--text-color); }
+        .prose strong { color: var(--title-color); }
+        .prose code { color: var(--accent-color); background-color: rgba(0,0,0,0.3); padding: 2px 5px; border-radius: 4px; }
+        .prose .math-container { background-color: rgba(0,0,0,0.3); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--border-color); margin-top: 1rem; }
+    
+        .theme-swatch, .suggestion-item {
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .theme-swatch:hover, .suggestion-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px var(--accent-color);
+        }
+        .theme-swatch.active {
+            box-shadow: 0 0 15px var(--title-color), 0 0 25px var(--accent-color);
+            transform: scale(1.08);
+        }
+    </style>
+</head>
+
+<body data-theme="cyber-synth">
+    <div class="main-container">
+        <div class="container mx-auto p-4 lg:p-8">
+            <header class="text-center mb-6">
+                <h1 class="text-4xl md:text-6xl font-bold animation-flicker">Sólidos de Revolución</h1>
+                <p class="text-lg mt-2 text-gray-400">Una experiencia visual con <span class="font-bold text-neon-blue">Three.js</span></p>
+            </header>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Columna de Controles -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="panel p-6">
+                        <h2 class="text-2xl font-bold text-neon-pink mb-4">Configuración</h2>
+                        <div>
+                            <label for="functionInput" class="block text-sm font-medium mb-1">Función Generatriz <span id="function-variable-label">y = f(x)</span></label>
+                            <input type="text" id="functionInput" value="sqrt(4 - x^2)" class="mt-1 block w-full px-3 py-2 rounded-md shadow-sm">
+                            <div id="math-preview" class="mt-2 p-3 rounded-md text-center text-lg min-h-[60px] bg-black/20"></div>
+                            <p id="error-message" class="text-red-400 text-sm mt-1 h-4"></p>
+                        </div>
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium">Intervalo de la variable (<span id="range-variable-label">x</span>)</label>
+                            <div class="grid grid-cols-2 gap-4 mt-1">
+                                <input type="number" id="rangeMin" value="-2" step="0.1" class="block w-full px-3 py-2 rounded-md" placeholder="Mín">
+                                <input type="number" id="rangeMax" value="2" step="0.1" class="block w-full px-3 py-2 rounded-md" placeholder="Máx">
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <button id="generate-btn" class="w-full flex items-center justify-center px-4 py-3 rounded-md text-base font-medium futuristic-btn">
+                                <svg class="w-5 h-5 mr-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
+                                Generar Sólido
+                            </button>
+                        </div>
+                    </div>
+                    <div class="panel p-4 h-[400px]">
+                        <h3 class="text-xl font-bold text-center mb-2 text-neon-pink">Curva y Eje (2D)</h3>
+                        <div id="plot2d" class="h-[calc(100%-2rem)]"></div>
+                    </div>
+                </div>
+
+                <!-- Columna del Visor 3D -->
+                <div class="panel lg:col-span-2 p-4 h-[85vh] flex flex-col">
+                   <div class="mb-4">
+                        <label for="thetaSlider" class="block text-sm font-medium">Ángulo de Revolución: <span id="thetaValue" class="font-bold text-neon-blue">0°</span></label>
+                        <input type="range" id="thetaSlider" min="0" max="360" step="1" value="0" class="mt-2 w-full">
+                    </div>
+                    <div id="three-container" class="w-full flex-grow rounded-lg overflow-hidden border border-neon-blue/30">
+                        <!-- Canvas se inserta aquí -->
+                    </div>
+                </div>
+            </div>
+            <footer class="text-center py-6 mt-8 border-t border-neon-blue/20 text-gray-400 text-sm">
+                <p>Autor: <strong>Msc. Néstor Fabio Montoya Palacios</strong> &amp; <strong>Gemini</strong></p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Botones de Acción Flotantes -->
+    <button id="controls-btn" class="action-btn" title="Mostrar Controles">
+        <span>🖱️</span>
+    </button>
+    <button id="suggestions-btn" class="action-btn" title="Sugerencias de Funciones">
+        <span>💡</span>
+    </button>
+    <button id="theme-btn" class="action-btn" title="Seleccionar Tema">
+        <span>🎨</span>
+    </button>
+    <button id="axis-config-btn" class="action-btn" title="Configurar Eje de Rotación">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+        </svg>
+    </button>
+    <button id="settings-btn" class="action-btn" title="Abrir Panel de Estilo">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.47 2.118a2.25 2.25 0 01-2.47-2.118a3 3 0 00-5.78-1.128 2.25 2.25 0 01-2.118-2.47a2.25 2.25 0 012.118-2.47a3 3 0 001.128-5.78a2.25 2.25 0 012.47-2.118a2.25 2.25 0 012.47 2.118a3 3 0 005.78 1.128a2.25 2.25 0 012.118 2.47a2.25 2.25 0 01-2.118 2.47zM12 6.75a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" />
+        </svg>
+    </button>
+    <button id="help-btn" class="action-btn" title="Abrir Ayuda">
+        <span>🔖</span>
+    </button>
+    
+    <!-- Ventana Modal de Controles -->
+    <div id="controls-modal" class="fixed bottom-8 right-8 p-4 panel z-[105] hidden animate-fade-in-up">
+        <button id="close-controls-modal-btn" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full h-6 w-6 flex items-center justify-center text-sm font-bold">&times;</button>
+        <h3 class="text-lg font-bold text-neon-pink mb-2">Controles 3D</h3>
+        <ul class="text-sm space-y-1">
+            <li><strong>Rotar:</strong> Clic Izquierdo + Arrastrar</li>
+            <li><strong>Zoom:</strong> Rueda del Ratón</li>
+            <li><strong>Arrastrar:</strong> Clic Derecho + Arrastrar</li>
+        </ul>
+    </div>
+
+    <!-- Ventana Modal de Sugerencias -->
+    <div id="suggestions-modal" class="fixed top-0 left-0 h-full w-full max-w-lg bg-dark-purple/80 backdrop-blur-xl border-r-2 border-neon-blue shadow-neon z-[110] p-8 transform -translate-x-full transition-transform duration-500 ease-in-out overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-neon-pink">Sugerencias de Funciones</h2>
+            <button id="close-suggestions-modal-btn" class="text-gray-400 hover:text-white">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div id="suggestions-container" class="space-y-4">
+            <!-- Las sugerencias se insertarán aquí dinámicamente -->
+        </div>
+    </div>
+
+
+    <!-- Ventana Modal de Tema -->
+    <div id="theme-modal" class="fixed top-0 left-0 h-full w-full max-w-lg bg-dark-purple/80 backdrop-blur-xl border-r-2 border-neon-blue shadow-neon z-[110] p-8 transform -translate-x-full transition-transform duration-500 ease-in-out overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-neon-pink">Seleccionar Tema de Interfaz</h2>
+            <button id="close-theme-modal-btn" class="text-gray-400 hover:text-white">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="theme-selector-container">
+            <!-- Los temas se insertarán aquí dinámicamente -->
+        </div>
+    </div>
+
+
+    <!-- Ventana Modal de Eje -->
+    <div id="axis-modal" class="fixed top-0 left-0 h-full w-full max-w-lg bg-dark-purple/80 backdrop-blur-xl border-r-2 border-neon-blue shadow-neon z-[110] p-8 transform -translate-x-full transition-transform duration-500 ease-in-out overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-neon-pink">Configurar Eje de Rotación</h2>
+            <button id="close-axis-modal-btn" class="text-gray-400 hover:text-white">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="space-y-6">
+            <p class="text-sm text-gray-400 -mt-4">
+                Defina aquí los parámetros del eje de rotación. La función generatriz se escribe en el panel principal.
+            </p>
+            <div>
+                <label for="axis-type-select" class="block text-sm font-medium mb-2">Tipo de Eje</label>
+                <select id="axis-type-select" class="w-full p-2 rounded-md">
+                    <option value="y">Eje Y (Estándar)</option>
+                    <option value="x">Eje X</option>
+                    <option value="z">Eje Z</option>
+                    <option value="custom-y">Paralelo al Eje Y</option>
+                    <option value="custom-x">Paralelo al Eje X</option>
+                    <option value="custom-z">Paralelo al Eje Z</option>
+                </select>
+            </div>
+            <div id="axis-function-helper" class="p-3 rounded-md bg-black/20 border border-neon-blue/30 text-sm hidden">
+                <!-- Ayuda contextual se insertará aquí -->
+            </div>
+            <div id="custom-axis-params" class="space-y-4 hidden">
+                <p class="text-sm text-gray-400" id="custom-axis-helper-text"></p>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="custom-axis-h" class="block text-sm font-medium" id="custom-axis-h-label">x = h</label>
+                        <input type="number" id="custom-axis-h" value="0" step="0.1" class="w-full mt-1 p-2 rounded-md">
+                    </div>
+                    <div>
+                        <label for="custom-axis-k" class="block text-sm font-medium" id="custom-axis-k-label">z = m</label>
+                        <input type="number" id="custom-axis-k" value="0" step="0.1" class="w-full mt-1 p-2 rounded-md">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold mb-2 text-neon-blue">Previsualización 2D</h3>
+                <div id="axis-preview-plot" class="h-64 w-full bg-black/20 rounded-md border border-neon-blue/30"></div>
+            </div>
+            <button id="apply-axis-btn" class="w-full futuristic-btn py-3 rounded-md">Aplicar y Generar</button>
+        </div>
+    </div>
+
+
+    <!-- Ventana Modal de Ayuda -->
+    <div id="help-modal" class="fixed top-0 left-0 h-full w-full max-w-lg bg-dark-purple/80 backdrop-blur-xl border-r-2 border-neon-blue shadow-neon z-[110] p-8 transform -translate-x-full transition-transform duration-500 ease-in-out overflow-y-auto">
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-2xl font-bold text-neon-pink">Ayuda y Fundamento Matemático</h2>
+            <button id="close-help-modal-btn" class="text-gray-400 hover:text-white">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        <div class="prose max-w-none">
+            <p>Un <strong>sólido de revolución</strong> se genera al rotar una curva plana, conocida como la <strong>generatriz</strong>, alrededor de una línea recta contenida en el mismo plano, llamada <strong>eje de revolución</strong>.</p>
+            
+            <h4>Uso de la Aplicación</h4>
+            <p>Esta aplicación visualiza la rotación de una función <code>y = f(x)</code> o <code>x = f(y)</code> alrededor de un eje especificado. Puedes definir la función, el intervalo, y el eje de rotación, y controlar el ángulo con el deslizador.</p>
+
+            <h4>Ecuaciones Paramétricas (Rotación sobre Eje Y)</h4>
+            <p>Para una curva generatriz $y = f(x)$ rotada alrededor del eje Y, las coordenadas $(X, Y, Z)$ de la superficie se describen así:</p>
+            
+            <div class="math-container">
+            $$ X(x, \theta) = x \cos(\theta) $$
+            $$ Y(x, \theta) = f(x) $$
+            $$ Z(x, \theta) = x \sin(\theta) $$
+            </div>
+
+            <p class="mt-4">Para ejes paralelos o diferentes, se aplican transformaciones de translación y rotación a estas ecuaciones base.</p>
+        </div>
+    </div>
+
+
+    <!-- Ventana Modal de Estilo -->
+    <div id="style-modal" class="fixed top-0 right-0 h-full w-full max-w-sm bg-dark-purple/80 backdrop-blur-xl border-l-2 border-neon-blue shadow-neon z-[110] p-6 transform translate-x-full transition-transform duration-500 ease-in-out">
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold text-neon-pink">Panel de Estilo</h2>
+            <button id="close-style-modal-btn" class="text-gray-400 hover:text-white">
+                <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+        
+        <div class="space-y-6">
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-neon-blue">Colores del Sólido</h3>
+                <div class="flex items-center justify-between">
+                    <label for="surfaceColor" class="font-medium">Color de Superficie</label>
+                    <input type="color" id="surfaceColor" value="#ff00ff">
+                </div>
+                 <div class="flex items-center justify-between mt-4">
+                    <label for="curveColor" class="font-medium">Color de Generatriz</label>
+                    <input type="color" id="curveColor" value="#00f6ff">
+                </div>
+            </div>
+            
+            <hr class="border-neon-blue/30"/>
+
+            <div>
+                <h3 class="text-lg font-semibold mb-3 text-neon-blue">Visor 3D</h3>
+                <div class="flex items-center justify-between">
+                    <label for="bgColor" class="font-medium">Color de Fondo</label>
+                    <input type="color" id="bgColor" value="#0d0514">
+                </div>
+                <div class="flex items-center justify-between mt-4">
+                    <label for="transparent-toggle" class="font-medium">Superficie Transparente</label>
+                    <label class="switch"><input type="checkbox" id="transparent-toggle"><span class="slider"></span></label>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="modal-overlay" class="fixed inset-0 bg-black/50 z-[105] hidden"></div>
+
+    <!-- Switch CSS (reutilizado para simplicidad) -->
+    <style>
+        .switch { position: relative; display: inline-block; width: 50px; height: 28px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #333; transition: .4s; border-radius: 28px; border: 1px solid var(--border-color); }
+        .slider:before { position: absolute; content: ""; height: 20px; width: 20px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(22px); }
+    </style>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Elements ---
+        const dom = {
+            functionInput: document.getElementById('functionInput'),
+            mathPreview: document.getElementById('math-preview'),
+            errorMessage: document.getElementById('error-message'),
+            rangeMinInput: document.getElementById('rangeMin'),
+            rangeMaxInput: document.getElementById('rangeMax'),
+            thetaSlider: document.getElementById('thetaSlider'),
+            thetaValueSpan: document.getElementById('thetaValue'),
+            generateBtn: document.getElementById('generate-btn'),
+            threeContainer: document.getElementById('three-container'),
+            plot2dContainer: document.getElementById('plot2d'),
+            functionVariableLabel: document.getElementById('function-variable-label'),
+            rangeVariableLabel: document.getElementById('range-variable-label'),
+            // Modal elements
+            controlsBtn: document.getElementById('controls-btn'),
+            controlsModal: document.getElementById('controls-modal'),
+            closeControlsModalBtn: document.getElementById('close-controls-modal-btn'),
+            suggestionsBtn: document.getElementById('suggestions-btn'),
+            suggestionsModal: document.getElementById('suggestions-modal'),
+            closeSuggestionsModalBtn: document.getElementById('close-suggestions-modal-btn'),
+            suggestionsContainer: document.getElementById('suggestions-container'),
+            themeBtn: document.getElementById('theme-btn'),
+            themeModal: document.getElementById('theme-modal'),
+            closeThemeModalBtn: document.getElementById('close-theme-modal-btn'),
+            themeSelectorContainer: document.getElementById('theme-selector-container'),
+            settingsBtn: document.getElementById('settings-btn'),
+            styleModal: document.getElementById('style-modal'),
+            closeStyleModalBtn: document.getElementById('close-style-modal-btn'),
+            helpBtn: document.getElementById('help-btn'),
+            helpModal: document.getElementById('help-modal'),
+            closeHelpModalBtn: document.getElementById('close-help-modal-btn'),
+            axisConfigBtn: document.getElementById('axis-config-btn'),
+            axisModal: document.getElementById('axis-modal'),
+            closeAxisModalBtn: document.getElementById('close-axis-modal-btn'),
+            modalOverlay: document.getElementById('modal-overlay'),
+            // Axis Config Modal
+            axisTypeSelect: document.getElementById('axis-type-select'),
+            axisFunctionHelper: document.getElementById('axis-function-helper'),
+            customAxisParams: document.getElementById('custom-axis-params'),
+            customAxisHelperText: document.getElementById('custom-axis-helper-text'),
+            customAxisHLabel: document.getElementById('custom-axis-h-label'),
+            customAxisHInput: document.getElementById('custom-axis-h'),
+            customAxisKLabel: document.getElementById('custom-axis-k-label'),
+            customAxisKInput: document.getElementById('custom-axis-k'),
+            axisPreviewPlot: document.getElementById('axis-preview-plot'),
+            applyAxisBtn: document.getElementById('apply-axis-btn'),
+            // Style controls
+            surfaceColorPicker: document.getElementById('surfaceColor'),
+            curveColorPicker: document.getElementById('curveColor'),
+            bgColorPicker: document.getElementById('bgColor'),
+            transparentToggle: document.getElementById('transparent-toggle'),
+        };
+
+        // --- App State ---
+        const themes = {
+            'cyber-synth': { name: 'Cyber Synth', bg: '#0d0514', panel: 'rgba(26, 11, 46, 0.6)', border: 'rgba(0, 246, 255, 0.5)', text: '#e0e0e0', title: '#00f6ff', accent: '#ff00ff' },
+            'quantum-blue': { name: 'Quantum Blue', bg: '#0A192F', panel: 'rgba(13, 37, 63, 0.6)', border: 'rgba(100, 255, 218, 0.5)', text: '#ccd6f6', title: '#64ffda', accent: '#ff6489' },
+            'solar-flare': { name: 'Solar Flare', bg: '#24292E', panel: 'rgba(45, 50, 54, 0.6)', border: 'rgba(249, 133, 64, 0.5)', text: '#e1e4e8', title: '#f98540', accent: '#f0c674' },
+            'emerald-matrix': { name: 'Emerald Matrix', bg: '#001400', panel: 'rgba(0, 30, 0, 0.6)', border: 'rgba(0, 255, 0, 0.5)', text: '#00ff00', title: '#39ff14', accent: '#a2ff91' },
+        };
+
+        let appState = {
+            colors: {
+                surface: '#ff00ff',
+                curve: '#00f6ff',
+                background: '#0d0514',
+            },
+            options: {
+                isTransparent: false,
+            },
+            axis: {
+                type: 'y', // 'x', 'y', 'z', 'custom-x', 'custom-y', 'custom-z'
+                h: 0, // Corresponds to x-offset or y-offset depending on axis
+                k: 0, // Corresponds to z-offset or y-offset
+            },
+            generatrixPoints: [],
+            three: {
+                scene: null, camera: null, renderer: null, controls: null,
+                surfaceMesh: null, generatrixLine: null, axisLine: null, axesGroup: null,
+                animationFrameId: null,
+            },
+            currentTheta: 0, // Iniciar ángulo en 0
+        };
+
+        // --- Initialization ---
+        function initializeApp() {
+            populateThemeSelector();
+            initThreeJS();
+            animate();
+            setupEventListeners();
+            applyTheme('cyber-synth');
+            updateMathPreview();
+            
+            // Show controls hint on first load, then hide it
+            toggleControlsModal(true);
+            setTimeout(() => {
+                toggleControlsModal(false);
+            }, 6000);
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            dom.generateBtn.addEventListener('click', runGeneration);
+            dom.thetaSlider.addEventListener('input', handleSliderChange);
+            dom.functionInput.addEventListener('input', () => updateMathPreview());
+            
+            // Modal events
+            dom.controlsBtn.addEventListener('click', () => toggleControlsModal());
+            dom.closeControlsModalBtn.addEventListener('click', () => toggleControlsModal(false));
+
+            dom.suggestionsBtn.addEventListener('click', () => openModal(dom.suggestionsModal, 'left'));
+            dom.closeSuggestionsModalBtn.addEventListener('click', () => closeModal(dom.suggestionsModal, 'left'));
+
+            dom.themeBtn.addEventListener('click', () => openModal(dom.themeModal, 'left'));
+            dom.closeThemeModalBtn.addEventListener('click', () => closeModal(dom.themeModal, 'left'));
+
+            dom.settingsBtn.addEventListener('click', () => openModal(dom.styleModal, 'right'));
+            dom.closeStyleModalBtn.addEventListener('click', () => closeModal(dom.styleModal, 'right'));
+            
+            dom.helpBtn.addEventListener('click', () => openModal(dom.helpModal, 'left'));
+            dom.closeHelpModalBtn.addEventListener('click', () => closeModal(dom.helpModal, 'left'));
+
+            dom.axisConfigBtn.addEventListener('click', () => openModal(dom.axisModal, 'left'));
+            dom.closeAxisModalBtn.addEventListener('click', () => closeModal(dom.axisModal, 'left'));
+            
+            dom.axisTypeSelect.addEventListener('change', updateAxisModalUI);
+            dom.applyAxisBtn.addEventListener('click', () => {
+                applyAxisSettings();
+                closeModal(dom.axisModal, 'left');
+            });
+            
+            [dom.customAxisHInput, dom.customAxisKInput].forEach(input => {
+                input.addEventListener('input', () => drawAxisPreviewPlot());
+            });
+
+
+            dom.modalOverlay.addEventListener('click', () => {
+                closeModal(dom.suggestionsModal, 'left');
+                closeModal(dom.themeModal, 'left');
+                closeModal(dom.styleModal, 'right');
+                closeModal(dom.helpModal, 'left');
+                closeModal(dom.axisModal, 'left');
+            });
+
+            // Style controls events
+            dom.surfaceColorPicker.addEventListener('input', (e) => updateColor('surface', e.target.value));
+            dom.curveColorPicker.addEventListener('input', (e) => updateColor('curve', e.target.value));
+            dom.bgColorPicker.addEventListener('input', (e) => updateColor('background', e.target.value));
+            dom.transparentToggle.addEventListener('change', (e) => {
+                appState.options.isTransparent = e.target.checked;
+                updateSurfaceMaterial();
+            });
+
+            window.addEventListener('resize', onWindowResize, false);
+        }
+
+        // --- Core Logic ---
+        function runGeneration() {
+            dom.errorMessage.textContent = '';
+            const settings = getUISettings();
+            if (!settings) return;
+
+            let compiledFunc;
+            try {
+                compiledFunc = math.compile(settings.funcStr);
+            } catch (e) {
+                dom.errorMessage.textContent = 'Error de sintaxis en la función.';
+                return;
+            }
+
+            appState.generatrixPoints = generate2DPlotData(compiledFunc, settings);
+            draw2DPlot(appState.generatrixPoints, settings);
+            update3DScene(appState.generatrixPoints, settings);
+            centerView();
+        }
+
+        function handleSliderChange() {
+            const angleDegrees = parseFloat(dom.thetaSlider.value);
+            appState.currentTheta = THREE.MathUtils.degToRad(angleDegrees);
+            dom.thetaValueSpan.textContent = `${angleDegrees.toFixed(0)}°`;
+            updateSurfaceDrawing();
+        }
+
+        // --- 3D Visualization (Three.js) ---
+        function initThreeJS() {
+            const container = dom.threeContainer;
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(appState.colors.background);
+
+            const camera = new THREE.PerspectiveCamera(60, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(5, 4, 8);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            const controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.target.set(0, 0, 0);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            appState.three = { ...appState.three, scene, camera, renderer, controls };
+        }
+
+        function animate() {
+            appState.three.animationFrameId = requestAnimationFrame(animate);
+            appState.three.controls.update();
+            appState.three.renderer.render(appState.three.scene, appState.three.camera);
+        }
+        
+        function update3DScene(points, settings) {
+            const { scene } = appState.three;
+            // Clean up previous objects
+            if (appState.three.surfaceMesh) scene.remove(appState.three.surfaceMesh);
+            if (appState.three.axesGroup) scene.remove(appState.three.axesGroup);
+            if (appState.three.generatrixLine) scene.remove(appState.three.generatrixLine);
+            if (appState.three.axisLine) scene.remove(appState.three.axisLine);
+
+            if (!points || points.length < 2) return;
+
+            const geometry = createRevolutionGeometry(points, settings);
+            
+            const material = new THREE.MeshPhongMaterial({
+                color: appState.colors.surface,
+                side: THREE.DoubleSide,
+                shininess: 80,
+                transparent: appState.options.isTransparent,
+                opacity: appState.options.isTransparent ? 0.75 : 1.0,
+            });
+
+            const surfaceMesh = new THREE.Mesh(geometry, material);
+            scene.add(surfaceMesh);
+            appState.three.surfaceMesh = surfaceMesh;
+            
+            const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
+            const lineMat = new THREE.LineBasicMaterial({ color: appState.colors.curve, linewidth: 8 });
+            
+            const generatrixLine = new THREE.Line(lineGeom, lineMat);
+            scene.add(generatrixLine);
+            appState.three.generatrixLine = generatrixLine;
+
+            const box = new THREE.Box3().setFromPoints(points);
+            const size = box.getSize(new THREE.Vector3()).length();
+            const helperSize = Math.ceil(Math.max(5, size * 1.5));
+            createCoordinateAxes(helperSize);
+            
+            updateSurfaceDrawing();
+        }
+        
+        function createRevolutionGeometry(points, settings) {
+            // This is the core mathematical transformation
+            const transformedPoints = [];
+            const { type, h, k } = appState.axis;
+            const variable = type.includes('x') || type.includes('z') ? 'y' : 'x';
+
+            for (const p of points) {
+                let radius, height;
+                if (variable === 'x') { // Rotating y=f(x)
+                    radius = p.x;
+                    height = p.y;
+                } else { // Rotating x=f(y)
+                    radius = p.y;
+                    height = p.x;
+                }
+                
+                let transformedPoint;
+                switch (type) {
+                    case 'x':
+                    case 'custom-x':
+                        // Rotate around X-axis (or parallel). Curve is in XY plane.
+                        // Radius is y, height is x. We shift by k (y-offset) and h (z-offset)
+                        transformedPoint = new THREE.Vector2(radius - k, height - h);
+                        break;
+                    case 'z':
+                    case 'custom-z':
+                         // Rotate around Z-axis (or parallel). Curve is in ZY plane.
+                         // Radius is y, height is z. We shift by k (y-offset) and h (x-offset)
+                        transformedPoint = new THREE.Vector2(radius - k, height - h);
+                        break;
+                    case 'y':
+                    case 'custom-y':
+                    default:
+                        // Rotate around Y-axis (or parallel). Curve is in XY plane.
+                        // Radius is x, height is y. We shift by h (x-offset) and k (z-offset)
+                        transformedPoint = new THREE.Vector2(radius - h, height);
+                        break;
+                }
+                transformedPoints.push(transformedPoint);
+            }
+
+            const latheGeom = new THREE.LatheGeometry(transformedPoints, 60, 0, 2 * Math.PI);
+            const mesh = new THREE.Mesh(latheGeom);
+
+            // Apply rotations and translations to the entire mesh
+            switch (type) {
+                case 'x':
+                case 'custom-x':
+                    mesh.rotation.z = -Math.PI / 2;
+                    mesh.position.set(h, k, 0);
+                    break;
+                case 'z':
+                case 'custom-z':
+                    mesh.rotation.x = Math.PI / 2;
+                    mesh.position.set(h, k, 0);
+                    break;
+                case 'y':
+                case 'custom-y':
+                default:
+                    mesh.position.set(h, 0, k);
+                    break;
+            }
+            mesh.updateMatrix();
+            return mesh.geometry.applyMatrix4(mesh.matrix);
+        }
+
+
+        function updateSurfaceDrawing() {
+            if (!appState.three.surfaceMesh) return;
+            // Update the visible part of the surface
+            const totalSegments = 60;
+            const numPoints = appState.generatrixPoints.length;
+            const segmentsToDraw = Math.ceil(totalSegments * (appState.currentTheta / (2 * Math.PI)));
+            appState.three.surfaceMesh.geometry.setDrawRange(0, segmentsToDraw * (numPoints > 0 ? numPoints -1 : 0) * 6);
+        }
+        
+        function createAxisLabel(text, color, position, scale = [1.0, 0.5, 1.0]) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 128;
+            canvas.height = 64;
+            context.font = `bold 40px Inter, sans-serif`;
+            context.fillStyle = color;
+            context.textAlign = "center";
+            context.textBaseline = "middle";
+            context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(...scale);
+            sprite.position.set(...position);
+            return sprite;
+        }
+
+        function createCoordinateAxes(size) {
+            const { scene } = appState.three;
+            if (appState.three.axesGroup) scene.remove(appState.three.axesGroup);
+            
+            const axesGroup = new THREE.Group();
+            const axisRadius = size * 0.0025; // Ejes delgados
+            const axisLength = size * 2.2;
+
+            // Materiales
+            const xAxisMat = new THREE.MeshBasicMaterial({ color: 0xff3333 });
+            const yAxisMat = new THREE.MeshBasicMaterial({ color: 0x33ff33 });
+            const zAxisMat = new THREE.MeshBasicMaterial({ color: 0x3366ff });
+            const tickMat = new THREE.MeshBasicMaterial({ color: 0xbbbbbb });
+
+            // Geometrías
+            const axisGeo = new THREE.CylinderGeometry(axisRadius, axisRadius, axisLength, 8);
+            const tickGeo = new THREE.CylinderGeometry(axisRadius * 1.5, axisRadius * 1.5, axisRadius * 8, 8);
+
+            // Eje X
+            const xAxis = new THREE.Mesh(axisGeo, xAxisMat);
+            xAxis.rotation.z = -Math.PI / 2;
+            axesGroup.add(xAxis);
+            axesGroup.add(createAxisLabel('X', '#ff3333', [size * 1.2, 0, 0]));
+
+            // Eje Y
+            const yAxis = new THREE.Mesh(axisGeo, yAxisMat);
+            axesGroup.add(yAxis);
+            axesGroup.add(createAxisLabel('Y', '#33ff33', [0, size * 1.2, 0]));
+
+            // Eje Z
+            const zAxis = new THREE.Mesh(axisGeo, zAxisMat);
+            zAxis.rotation.x = Math.PI / 2;
+            axesGroup.add(zAxis);
+            axesGroup.add(createAxisLabel('Z', '#3366ff', [0, 0, size * 1.2]));
+            
+            // Marcas y números
+            const labelScale = [0.8, 0.4, 1.0];
+            const roundedSize = Math.floor(size);
+            for (let i = -roundedSize; i <= roundedSize; i++) {
+                if (i === 0) continue;
+
+                // Marcas en X
+                const xTick = new THREE.Mesh(tickGeo, tickMat);
+                xTick.position.set(i, 0, 0);
+                xTick.rotation.z = Math.PI / 2;
+                axesGroup.add(xTick);
+                axesGroup.add(createAxisLabel(`${i}`, '#ffaaaa', [i, -size*0.08, 0], labelScale));
+
+                // Marcas en Y
+                const yTick = new THREE.Mesh(tickGeo, tickMat);
+                yTick.position.set(0, i, 0);
+                axesGroup.add(yTick);
+                axesGroup.add(createAxisLabel(`${i}`, '#aaffaa', [size*0.08, i, 0], labelScale));
+
+                // Marcas en Z
+                const zTick = new THREE.Mesh(tickGeo, tickMat);
+                zTick.position.set(0, 0, i);
+                zTick.rotation.x = Math.PI / 2;
+                axesGroup.add(zTick);
+                axesGroup.add(createAxisLabel(`${i}`, '#aaaaff', [0, -size*0.08, i], labelScale));
+            }
+
+            scene.add(axesGroup);
+            appState.three.axesGroup = axesGroup;
+        }
+
+        // --- 2D Plotting (Plotly) ---
+        function draw2DPlot(points, settings) {
+            const { type, h, k } = appState.axis;
+            let plotX, plotY, axisTrace;
+            const variable = type.includes('x') || type.includes('z') ? 'y' : 'x'; // Determine independent variable for the function
+
+            if (variable === 'x') { // y = f(x)
+                plotX = points.map(p => p.x);
+                plotY = points.map(p => p.y);
+            } else { // x = f(y)
+                plotX = points.map(p => p.y);
+                plotY = points.map(p => p.x);
+            }
+
+            const curveTrace = { x: plotX, y: plotY, mode: 'lines', type: 'scatter', name: 'Generatriz', line: { color: appState.colors.curve, width: 3 } };
+            
+            // Determine how to draw the axis line in 2D
+            switch (type) {
+                case 'x':
+                case 'custom-x': // Axis is horizontal in XY plane
+                    axisTrace = { x: [Math.min(...plotX), Math.max(...plotX)], y: [k, k], mode: 'lines', name: `Eje y=${k}` };
+                    break;
+                case 'y':
+                case 'custom-y': // Axis is vertical in XY plane
+                    axisTrace = { x: [h, h], y: [Math.min(...plotY), Math.max(...plotY)], mode: 'lines', name: `Eje x=${h}` };
+                    break;
+                 case 'z':
+                 case 'custom-z': // Not directly visible in XY plane, show as a point
+                    axisTrace = { x: [h], y: [k], mode: 'markers', name: `Eje en (x=${h}, y=${k})`, marker: { size: 10 } };
+                    break;
+            }
+            Object.assign(axisTrace, { line: { color: '#ffffff', dash: 'dash' }, marker: { color: '#ffffff' } });
+
+            const layout = {
+                margin: { l: 40, r: 20, b: 40, t: 20 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0.2)',
+                font: { color: 'var(--text-color)' },
+                xaxis: { gridcolor: 'var(--border-color)', zerolinecolor: 'var(--border-color)' },
+                yaxis: { gridcolor: 'var(--border-color)', zerolinecolor: 'var(--border-color)', scaleanchor: "x", scaleratio: 1 },
+                showlegend: false
+            };
+            Plotly.react(dom.plot2dContainer, [curveTrace, axisTrace], layout, {responsive: true, displaylogo: false});
+        }
+        
+        function drawAxisPreviewPlot() {
+            const settings = getUISettings();
+            if (!settings) return;
+            
+            let compiledFunc;
+            try {
+                compiledFunc = math.compile(settings.funcStr);
+            } catch(e) {
+                // Can't draw if function is invalid
+                Plotly.purge(dom.axisPreviewPlot);
+                return;
+            }
+            
+            const points = generate2DPlotData(compiledFunc, settings);
+            
+            const tempAxisState = {
+                type: dom.axisTypeSelect.value,
+                h: parseFloat(dom.customAxisHInput.value) || 0,
+                k: parseFloat(dom.customAxisKInput.value) || 0,
+            };
+
+            // This is a simplified version of draw2DPlot for the preview
+            let plotX, plotY, axisTrace;
+            const variable = tempAxisState.type.includes('x') || tempAxisState.type.includes('z') ? 'y' : 'x';
+
+            if (variable === 'x') {
+                plotX = points.map(p => p.x);
+                plotY = points.map(p => p.y);
+            } else {
+                plotX = points.map(p => p.y);
+                plotY = points.map(p => p.x);
+            }
+            
+            const curveTrace = { x: plotX, y: plotY, mode: 'lines', line: { color: appState.colors.curve } };
+            
+            switch (tempAxisState.type) {
+                case 'x':
+                case 'custom-x':
+                    axisTrace = { x: [Math.min(...plotX), Math.max(...plotX)], y: [tempAxisState.k, tempAxisState.k], mode: 'lines' };
+                    break;
+                case 'y':
+                case 'custom-y':
+                    axisTrace = { x: [tempAxisState.h, tempAxisState.h], y: [Math.min(...plotY), Math.max(...plotY)], mode: 'lines' };
+                    break;
+                case 'z':
+                case 'custom-z':
+                    axisTrace = { x: [tempAxisState.h], y: [tempAxisState.k], mode: 'markers', marker: { size: 10 } };
+                    break;
+            }
+            Object.assign(axisTrace, { line: { color: '#ffffff', dash: 'dash' }, marker: { color: '#ffffff' } });
+
+            const layout = {
+                margin: { l: 30, r: 10, b: 30, t: 10 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0.1)',
+                font: { color: 'var(--text-color)', size: 10 },
+                xaxis: { gridcolor: 'var(--border-color)', zeroline: false },
+                yaxis: { gridcolor: 'var(--border-color)', zeroline: false, scaleanchor: "x", scaleratio: 1 },
+                showlegend: false
+            };
+            Plotly.react(dom.axisPreviewPlot, [curveTrace, axisTrace], layout, {responsive: true, displaylogo: false});
+        }
+
+
+        // --- UI & Style Management ---
+        function openModal(modal, direction) {
+            dom.modalOverlay.classList.remove('hidden');
+            if (direction === 'right') {
+                modal.classList.remove('translate-x-full');
+            } else {
+                modal.classList.remove('-translate-x-full');
+            }
+            if (modal.id === 'help-modal') MathJax.typesetPromise();
+            if (modal.id === 'axis-modal') {
+                updateAxisModalUI(); // Update UI and then draw plot
+            }
+            if (modal.id === 'suggestions-modal') {
+                populateSuggestions();
+            }
+        }
+
+        function closeModal(modal, direction) {
+            let anyModalOpen = false;
+            if (direction === 'right') {
+                modal.classList.add('translate-x-full');
+                if(!dom.helpModal.classList.contains('-translate-x-full') || !dom.axisModal.classList.contains('-translate-x-full') || !dom.themeModal.classList.contains('-translate-x-full') || !dom.suggestionsModal.classList.contains('-translate-x-full')) anyModalOpen = true;
+            } else {
+                modal.classList.add('-translate-x-full');
+                if(!dom.styleModal.classList.contains('translate-x-full')) anyModalOpen = true;
+            }
+
+            if (!anyModalOpen) {
+                dom.modalOverlay.classList.add('hidden');
+            }
+        }
+        
+        function toggleControlsModal(forceShow) {
+            const modal = dom.controlsModal;
+            if (forceShow === true || modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                modal.style.animation = 'fade-in-up 0.5s ease-out forwards';
+            } else if (forceShow === false || !modal.classList.contains('hidden')) {
+                modal.style.animation = 'fade-out-down 0.5s ease-out forwards';
+                setTimeout(() => modal.classList.add('hidden'), 500);
+            }
+        }
+
+        function populateThemeSelector() {
+            const container = dom.themeSelectorContainer;
+            container.innerHTML = '';
+            for (const [id, theme] of Object.entries(themes)) {
+                const swatchHTML = `
+                    <div class="p-4 rounded-lg border-2 theme-swatch" data-theme-id="${id}" style="border-color: ${theme.border}; background-color: ${theme.panel};">
+                        <h4 class="font-orbitron text-lg mb-2" style="color: ${theme.title};">${theme.name}</h4>
+                        <div class="flex space-x-2">
+                            <div class="w-1/4 h-8 rounded" style="background-color: ${theme.bg};"></div>
+                            <div class="w-1/4 h-8 rounded" style="background-color: ${theme.text};"></div>
+                            <div class="w-1/4 h-8 rounded" style="background-color: ${theme.title};"></div>
+                            <div class="w-1/4 h-8 rounded" style="background-color: ${theme.accent};"></div>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += swatchHTML;
+            }
+            container.querySelectorAll('.theme-swatch').forEach(swatch => {
+                swatch.addEventListener('click', (e) => {
+                    const themeId = e.currentTarget.dataset.themeId;
+                    applyTheme(themeId);
+                    closeModal(dom.themeModal, 'left');
+                });
+            });
+        }
+
+        function applyTheme(themeId) {
+            const theme = themes[themeId];
+            if (!theme) return;
+
+            document.body.dataset.theme = themeId;
+
+            const root = document.documentElement;
+            root.style.setProperty('--bg-color', theme.bg);
+            root.style.setProperty('--panel-bg-color', theme.panel);
+            root.style.setProperty('--border-color', theme.border);
+            root.style.setProperty('--text-color', theme.text);
+            root.style.setProperty('--title-color', theme.title);
+            root.style.setProperty('--accent-color', theme.accent);
+            root.style.setProperty('--input-bg', theme.panel.replace('0.6', '0.8'));
+            root.style.setProperty('--title-color-trans', theme.title + '33');
+            root.style.setProperty('--accent-color-trans', theme.accent + '33');
+            
+            // Update active swatch
+            dom.themeSelectorContainer.querySelectorAll('.theme-swatch').forEach(s => s.classList.remove('active'));
+            dom.themeSelectorContainer.querySelector(`[data-theme-id="${themeId}"]`).classList.add('active');
+
+            // Update 3D scene background
+            if (appState.three.scene) {
+                appState.three.scene.background = new THREE.Color(theme.bg);
+            }
+            // Redraw plots to apply new theme colors
+            runGeneration();
+        }
+        
+        function updateAxisModalUI() {
+            const type = dom.axisTypeSelect.value;
+            const paramsDiv = dom.customAxisParams;
+            const hLabel = dom.customAxisHLabel;
+            const kLabel = dom.customAxisKLabel;
+            const helper = dom.customAxisHelperText;
+            const functionHelper = dom.axisFunctionHelper;
+
+            if (type === 'x' || type === 'y' || type === 'z') {
+                paramsDiv.classList.add('hidden');
+            } else {
+                paramsDiv.classList.remove('hidden');
+            }
+
+            const variable = type.includes('x') || type.includes('z') ? 'y' : 'x';
+            if (variable === 'x') {
+                functionHelper.innerHTML = `💡 Para este eje, use una función de la forma <strong>y = f(x)</strong>.`;
+            } else {
+                functionHelper.innerHTML = `💡 Para este eje, use una función de la forma <strong>x = f(y)</strong>.`;
+            }
+            functionHelper.classList.remove('hidden');
+            functionHelper.classList.add('animate-fade-in-down');
+
+
+            switch (type) {
+                case 'custom-y':
+                    helper.textContent = "Eje paralelo a Y, definido por su posición en el plano XZ.";
+                    hLabel.textContent = "x = h";
+                    kLabel.textContent = "z = k";
+                    break;
+                case 'custom-x':
+                    helper.textContent = "Eje paralelo a X, definido por su posición en el plano YZ.";
+                    hLabel.textContent = "y = h";
+                    kLabel.textContent = "z = k";
+                    break;
+                case 'custom-z':
+                    helper.textContent = "Eje paralelo a Z, definido por su posición en el plano XY.";
+                    hLabel.textContent = "x = h";
+                    kLabel.textContent = "y = k";
+                    break;
+            }
+            
+            // Immediately update main panel labels
+            applyAxisSettings(false); // Apply but don't regenerate
+            drawAxisPreviewPlot();
+        }
+        
+        function applyAxisSettings(regenerate = true) {
+            const type = dom.axisTypeSelect.value;
+            appState.axis.type = type;
+            
+            const variable = type.includes('x') || type.includes('z') ? 'y' : 'x';
+            dom.functionVariableLabel.textContent = variable === 'x' ? 'y = f(x)' : 'x = f(y)';
+            dom.rangeVariableLabel.textContent = variable;
+
+            if (type.startsWith('custom')) {
+                appState.axis.h = parseFloat(dom.customAxisHInput.value) || 0;
+                appState.axis.k = parseFloat(dom.customAxisKInput.value) || 0;
+            } else {
+                appState.axis.h = 0;
+                appState.axis.k = 0;
+            }
+            updateMathPreview();
+            if (regenerate) {
+                runGeneration();
+            }
+        }
+
+        function populateSuggestions() {
+            const container = dom.suggestionsContainer;
+            container.innerHTML = '';
+            const variable = appState.axis.type.includes('x') || appState.axis.type.includes('z') ? 'y' : 'x';
+            
+            const suggestions = {
+                'x': [ // Suggestions for y = f(x)
+                    { name: 'Semiesfera', func: 'sqrt(4 - x^2)', min: -2, max: 2 },
+                    { name: 'Cono', func: '2 - abs(x)', min: -2, max: 2 },
+                    { name: 'Cilindro', func: '2', min: -3, max: 3 },
+                    { name: 'Paraboloide', func: 'x^2', min: 0, max: 2 },
+                    { name: 'Toroide (Dona)', func: '2 + sqrt(1 - x^2)', min: -1, max: 1 },
+                ],
+                'y': [ // Suggestions for x = f(y)
+                    { name: 'Semiesfera', func: 'sqrt(4 - y^2)', min: -2, max: 2 },
+                    { name: 'Cono', func: '2 - abs(y)', min: -2, max: 2 },
+                    { name: 'Cilindro', func: '2', min: -3, max: 3 },
+                    { name: 'Paraboloide', func: 'y^2', min: 0, max: 2 },
+                    { name: 'Toroide (Dona)', func: '2 + sqrt(1 - y^2)', min: -1, max: 1 },
+                ]
+            };
+
+            const list = suggestions[variable];
+            list.forEach(item => {
+                const itemHTML = `
+                    <div class="p-4 rounded-lg border-2 suggestion-item" style="border-color: var(--border-color); background-color: var(--panel-bg-color);">
+                        <h4 class="font-orbitron text-lg mb-1" style="color: var(--title-color);">${item.name}</h4>
+                        <p class="text-sm text-gray-400">Función: <code>${item.func}</code></p>
+                        <p class="text-sm text-gray-400">Intervalo: <code>[${item.min}, ${item.max}]</code></p>
+                    </div>
+                `;
+                const el = document.createElement('div');
+                el.innerHTML = itemHTML;
+                el.firstElementChild.addEventListener('click', () => {
+                    dom.functionInput.value = item.func;
+                    dom.rangeMinInput.value = item.min;
+                    dom.rangeMaxInput.value = item.max;
+                    runGeneration();
+                    closeModal(dom.suggestionsModal, 'left');
+                });
+                container.appendChild(el.firstElementChild);
+            });
+        }
+
+
+        function updateColor(type, value) {
+            appState.colors[type] = value;
+            switch(type) {
+                case 'surface':
+                    updateSurfaceMaterial();
+                    break;
+                case 'curve':
+                    if (appState.three.generatrixLine) {
+                        appState.three.generatrixLine.material.color.set(value);
+                    }
+                    runGeneration(); // Redraw 2D plot
+                    break;
+                case 'background':
+                    if (appState.three.scene) {
+                        appState.three.scene.background.set(value);
+                    }
+                    break;
+            }
+        }
+        function updateSurfaceMaterial() {
+            if (appState.three.surfaceMesh) {
+                appState.three.surfaceMesh.material.color.set(appState.colors.surface);
+                appState.three.surfaceMesh.material.transparent = appState.options.isTransparent;
+                appState.three.surfaceMesh.material.opacity = appState.options.isTransparent ? 0.75 : 1.0;
+                appState.three.surfaceMesh.material.needsUpdate = true;
+            }
+        }
+        function updateMathPreview() {
+            try {
+                const node = math.parse(dom.functionInput.value);
+                const variable = appState.axis.type.includes('x') || appState.axis.type.includes('z') ? 'y' : 'x';
+                dom.mathPreview.innerHTML = `\\( ${variable === 'x' ? 'y =' : 'x ='} ${node.toTex()} \\)`;
+                MathJax.typesetPromise([dom.mathPreview]);
+            } catch (e) {
+                dom.mathPreview.innerHTML = '';
+            }
+        }
+
+        // --- Helpers ---
+        function getUISettings() {
+            const rangeMin = parseFloat(dom.rangeMinInput.value);
+            const rangeMax = parseFloat(dom.rangeMaxInput.value);
+            if (isNaN(rangeMin) || isNaN(rangeMax) || rangeMin >= rangeMax) {
+                dom.errorMessage.textContent = 'Intervalo inválido.';
+                return null;
+            }
+            return {
+                funcStr: dom.functionInput.value,
+                rangeMin: rangeMin, rangeMax: rangeMax, numPoints: 100
+            };
+        }
+        function generate2DPlotData(compiledFunc, settings) {
+            const points = [];
+            const step = (settings.rangeMax - settings.rangeMin) / (settings.numPoints - 1);
+            const variable = appState.axis.type.includes('x') || appState.axis.type.includes('z') ? 'y' : 'x';
+
+            for (let i = 0; i < settings.numPoints; i++) {
+                const t = settings.rangeMin + i * step;
+                try {
+                    const result = compiledFunc.evaluate({ [variable]: t });
+                    if (isFinite(result)) {
+                        let p;
+                        if (variable === 'x') { // y = f(x)
+                            p = new THREE.Vector3(t, result, 0);
+                        } else { // x = f(y)
+                            p = new THREE.Vector3(result, t, 0);
+                        }
+                        points.push(p);
+                    }
+                } catch (e) { /* Ignore points where function is undefined */ }
+            }
+            return points;
+        }
+        function onWindowResize() {
+            const { camera, renderer } = appState.three;
+            const container = dom.threeContainer;
+            if (camera && renderer && container) {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            }
+        }
+        function centerView() {
+            if (!appState.three.surfaceMesh) return;
+            const { camera, controls } = appState.three;
+            
+            const box = new THREE.Box3().setFromObject(appState.three.surfaceMesh);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / (2 * Math.tan(fov / 2)));
+            cameraZ *= 1.8; // Zoom out a bit for better framing
+            
+            camera.position.set(center.x, center.y + cameraZ * 0.5, center.z + cameraZ);
+            controls.target.copy(center);
+            controls.update();
+        }
+
+        // --- Start the App ---
+        initializeApp();
+    });
+    </script>
+</body>
+</html>
