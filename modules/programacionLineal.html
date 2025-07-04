@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" class="light">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -184,6 +184,20 @@
             border-radius: 50%;
             border: 2px solid white;
         }
+
+        /* Custom style for modal text to ensure contrast */
+        .modal-text-content {
+            color: var(--text-primary-light);
+        }
+        html.dark .modal-text-content {
+            color: var(--text-primary-dark);
+        }
+        
+        /* FIX for select/option dropdown colors */
+        select option {
+            color: #1a202c;
+            background-color: #ffffff;
+        }
     </style>
 </head>
 
@@ -361,10 +375,6 @@
                     <i data-lucide="palette" class="w-5 h-5"></i>
                     <input type="color" id="feasible-region-color" value="#4f46e5">
                  </div>
-                 <div class="flex items-center gap-2 color-input-wrapper" title="Color de Restricciones">
-                    <i data-lucide="pencil-ruler" class="w-5 h-5"></i>
-                    <input type="color" id="constraint-lines-color" value="#9ca3af">
-                 </div>
             </div>
         </div>
     </div>
@@ -377,7 +387,7 @@
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            <div class="p-6 overflow-y-auto space-y-6 text-gray-700 dark:text-gray-200">
+            <div class="p-6 overflow-y-auto space-y-6 modal-text-content">
                 <section>
                     <h3 class="text-lg font-semibold mb-2">Pasos para Resolver un Problema</h3>
                     <ol class="list-decimal list-inside space-y-2 text-sm">
@@ -585,7 +595,6 @@
             constraints: [],
             theme: 'light',
             feasibleRegionColor: '#4f46e5',
-            constraintLinesColor: '#9ca3af',
             lastProblemData: null,
             lastSolution: null
         };
@@ -625,7 +634,6 @@
                     modalPlotContainer: document.getElementById('modal-plot-container'),
                     toastContainer: document.getElementById('toast-container'),
                     feasibleRegionColorInput: document.getElementById('feasible-region-color'),
-                    constraintLinesColorInput: document.getElementById('constraint-lines-color'),
                 };
                 this.initializeEventListeners();
                 this.initializeState();
@@ -675,10 +683,6 @@
                     appState.feasibleRegionColor = e.target.value;
                     this.redrawGraph();
                 });
-                this.dom.constraintLinesColorInput.addEventListener('input', (e) => {
-                    appState.constraintLinesColor = e.target.value;
-                    this.redrawGraph();
-                });
             }
             
             redrawGraph() {
@@ -689,7 +693,11 @@
 
             setTheme(theme) {
                 appState.theme = theme;
-                document.documentElement.className = theme;
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
                 localStorage.setItem('theme', theme);
                 lucide.createIcons();
                 this.redrawGraph();
@@ -791,7 +799,7 @@
                 if (firstTerm) objectiveString += '0';
 
                 this.dom.objectiveDisplay.textContent = `$${objectiveString}$`;
-                if (window.MathJax) {
+                if (window.MathJax && window.MathJax.typesetPromise) {
                     MathJax.typesetPromise([this.dom.objectiveDisplay]);
                 }
             }
@@ -875,7 +883,7 @@
                 
                 constraintString += ` ${type} ${rhs}`;
                 display.textContent = `$${constraintString}$`;
-                if (window.MathJax) {
+                if (window.MathJax && window.MathJax.typesetPromise) {
                     MathJax.typesetPromise([display]);
                 }
             }
@@ -1044,6 +1052,7 @@
                 const { A_orig, b_orig, types_orig } = problemData;
                 const traces = [];
                 const epsilon = 1e-9;
+                const constraintColors = ['#16a34a', '#ca8a04', '#db2777', '#6d28d9', '#2563eb'];
 
                 // 1. Gather all constraint lines, including axes
                 const lines = A_orig.map((coeffs, i) => ({ a: coeffs[0], b: coeffs[1], c: b_orig[i], type: types_orig[i] }));
@@ -1095,33 +1104,34 @@
                         y: intersections.map(p => p.y),
                         type: 'scatter', mode: 'lines',
                         fill: 'toself',
-                        fillcolor: `${appState.feasibleRegionColor}40`, // Add alpha
-                        line: { color: `${appState.feasibleRegionColor}80` },
+                        fillcolor: `${appState.feasibleRegionColor}60`, // Increased alpha
+                        line: { color: `${appState.feasibleRegionColor}CC`, width: 2.5 }, // Increased alpha and width
                         hoverinfo: 'none', name: 'Región Factible'
                     });
                 }
 
                 // Add constraint lines and intercept points
-                const interceptPoints = { x: [], y: [], text: [] };
+                const interceptPoints = { x: [], y: [], text: [], colors: [] };
                 A_orig.forEach((constraint, i) => {
                     const [a, b] = constraint;
                     const rhs = b_orig[i];
+                    const color = constraintColors[i % constraintColors.length];
                     let x_vals = [0, rangeX], y_vals = [];
                     if (Math.abs(b) < epsilon) { // Vertical line
                         x_vals = [rhs/a, rhs/a]; y_vals = [0, rangeY];
-                        if (rhs/a >= 0 && rhs/a <= rangeX) { interceptPoints.x.push(rhs/a); interceptPoints.y.push(0); interceptPoints.text.push(`(${ (rhs/a).toFixed(2) }, 0)`); }
+                        if (rhs/a >= 0 && rhs/a <= rangeX) { interceptPoints.x.push(rhs/a); interceptPoints.y.push(0); interceptPoints.text.push(`(${(rhs/a).toFixed(2)}, 0)`); interceptPoints.colors.push(color); }
                     } else if (Math.abs(a) < epsilon) { // Horizontal line
                         x_vals = [0, rangeX]; y_vals = [rhs/b, rhs/b];
-                        if (rhs/b >= 0 && rhs/b <= rangeY) { interceptPoints.x.push(0); interceptPoints.y.push(rhs/b); interceptPoints.text.push(`(0, ${ (rhs/b).toFixed(2) })`); }
+                        if (rhs/b >= 0 && rhs/b <= rangeY) { interceptPoints.x.push(0); interceptPoints.y.push(rhs/b); interceptPoints.text.push(`(0, ${(rhs/b).toFixed(2)})`); interceptPoints.colors.push(color); }
                     } else {
                         x_vals = [0, rangeX]; y_vals = x_vals.map(x => (rhs - a * x) / b);
-                        if (rhs/a >= 0 && rhs/a <= rangeX) { interceptPoints.x.push(rhs/a); interceptPoints.y.push(0); interceptPoints.text.push(`(${ (rhs/a).toFixed(2) }, 0)`); }
-                        if (rhs/b >= 0 && rhs/b <= rangeY) { interceptPoints.x.push(0); interceptPoints.y.push(rhs/b); interceptPoints.text.push(`(0, ${ (rhs/b).toFixed(2) })`); }
+                        if (rhs/a >= 0 && rhs/a <= rangeX) { interceptPoints.x.push(rhs/a); interceptPoints.y.push(0); interceptPoints.text.push(`(${(rhs/a).toFixed(2)}, 0)`); interceptPoints.colors.push(color); }
+                        if (rhs/b >= 0 && rhs/b <= rangeY) { interceptPoints.x.push(0); interceptPoints.y.push(rhs/b); interceptPoints.text.push(`(0, ${(rhs/b).toFixed(2)})`); interceptPoints.colors.push(color); }
                     }
                     traces.push({
                         x: x_vals, y: y_vals, mode: 'lines',
                         name: `$${a}x_1 + ${b}x_2 ${types_orig[i].replace('<=', '\\le').replace('>=', '\\ge')} ${rhs}$`,
-                        line: { dash: 'dot', width: 2, color: appState.constraintLinesColor },
+                        line: { dash: 'solid', width: 3.5, color: color }, // Increased width and solid line
                         hoverinfo: 'name'
                     });
                 });
@@ -1130,15 +1140,23 @@
                 traces.push({
                     x: interceptPoints.x, y: interceptPoints.y, text: interceptPoints.text,
                     mode: 'markers+text', name: 'Interceptos',
-                    marker: { color: appState.constraintLinesColor, size: 8, symbol: 'circle-open' },
-                    textposition: 'top right', textfont: { size: 10, color: appState.constraintLinesColor }
+                    marker: { 
+                        color: interceptPoints.colors, 
+                        size: 12, 
+                        symbol: 'circle',
+                        line: {
+                            color: 'white',
+                            width: 2
+                        }
+                    },
+                    textposition: 'top right', textfont: { size: 12, color: '#000000' }
                 });
 
                 // Add solution point
                 traces.push({
                     x: [solution.variables[0]], y: [solution.variables[1]],
                     mode: 'markers', name: 'Solución Óptima',
-                    marker: { color: 'crimson', size: 14, symbol: 'star' }
+                    marker: { color: 'crimson', size: 20, symbol: 'star', line: {color: 'white', width: 2} } 
                 });
 
                 const layout = {
