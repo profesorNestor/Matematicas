@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantumOptima - Programación Lineal Avanzada</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Plotly.js for Graphs -->
+    <script src="https://cdn.plot.ly/plotly-2.29.1.min.js"></script>
+    
+    <!-- MathJax for LaTeX Rendering -->
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <style>
+        :root {
+            --bg-light: #f0f2f5;
+            --bg-dark: #0B1120;
+            --glass-light: rgba(255, 255, 255, 0.5);
+            --glass-dark: rgba(23, 31, 51, 0.5);
+            --border-light: rgba(255, 255, 255, 0.8);
+            --border-dark: rgba(255, 255, 255, 0.1);
+            --text-primary-light: #1a202c;
+            --text-primary-dark: #e2e8f0;
+            --text-secondary-light: #4a5568;
+            --text-secondary-dark: #a0aec0;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+
+        html.dark {
+            color-scheme: dark;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary-light);
+            transition: background-color 0.5s ease, color 0.5s ease;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0),
+                radial-gradient(circle at 10px 10px, rgba(0,0,0,0.05) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        
+        html.dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary-dark);
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0),
+                radial-gradient(circle at 10px 10px, rgba(255,255,255,0.05) 1px, transparent 0);
+        }
+
+        .glass-panel {
+            background-color: var(--glass-light);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 8px 32px 0 var(--shadow-color);
+            transition: all 0.5s ease;
+        }
+        
+        html.dark .glass-panel {
+            background-color: var(--glass-dark);
+            border-color: var(--border-dark);
+        }
+        
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            transition: opacity 0.3s ease;
+        }
+        
+        .toast {
+            animation: toast-in 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+        }
+
+        @keyframes toast-in {
+            from { transform: translateY(100%) scale(0.8); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        /* Custom Toggle Switch */
+        .toggle-switch input { display: none; }
+        .toggle-switch label {
+            width: 160px; height: 40px;
+            background-color: #e2e8f0;
+            border-radius: 20px;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s ease;
+        }
+        html.dark .toggle-switch label { background-color: #1e293b; }
+        .toggle-switch label:after {
+            content: 'MAX';
+            position: absolute;
+            top: 5px; left: 5px;
+            width: 70px; height: 30px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center; justify-content: center;
+            font-weight: 600; font-size: 12px;
+            color: #2563eb;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+        .toggle-switch input:checked + label:after {
+            content: 'MIN';
+            transform: translateX(80px);
+            color: #dc2626;
+        }
+
+        /* Accordion for Simplex Details */
+        .accordion-item details[open] summary {
+            background-color: var(--primary);
+            color: white;
+        }
+        .accordion-item summary { transition: background-color 0.2s ease; }
+
+        /* Custom Input Number */
+        .custom-number-input input[type=number]::-webkit-inner-spin-button,
+        .custom-number-input input[type=number]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .custom-number-input {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            background-color: #e2e8f0;
+            dark:bg-gray-700;
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+        }
+        .custom-number-input input {
+            text-align: center;
+            background: transparent;
+            border: none;
+            outline: none;
+            width: 4rem;
+            font-weight: 600;
+        }
+        html.dark .custom-number-input { background-color: #1e293b; }
+        html.dark .custom-number-input input { color: white; }
+        
+        /* Custom Color Input */
+        .color-input-wrapper input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 32px;
+            height: 32px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
+        .color-input-wrapper input[type="color"]::-webkit-color-swatch {
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .color-input-wrapper input[type="color"]::-moz-color-swatch {
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[100] space-y-3"></div>
+    
+    <!-- Header -->
+    <header class="sticky top-0 z-40">
+        <div class="container mx-auto px-4">
+            <div class="my-4 flex items-center justify-between glass-panel rounded-2xl p-3">
+                <h1 class="text-xl md:text-2xl font-bold tracking-tight">
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">QuantumOptima</span>
+                </h1>
+                <div class="flex items-center gap-2">
+                    <button id="theme-toggle" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                        <i data-lucide="sun" class="block dark:hidden"></i>
+                        <i data-lucide="moon" class="hidden dark:block"></i>
+                    </button>
+                    <button id="help-btn" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                        <i data-lucide="help-circle"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            <!-- Input Panel -->
+            <div class="lg:col-span-3 space-y-6">
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i data-lucide="sliders-horizontal" class="text-indigo-500"></i>
+                        1. Configuración del Problema
+                    </h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                        <div>
+                           <label for="num-variables-input" class="block text-sm font-medium mb-2">Número de Variables (2-10)</label>
+                           <input id="num-variables-input" type="number" value="2" min="2" max="10" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-transparent rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-2">Tipo de Optimización</label>
+                             <div class="toggle-switch">
+                                <input type="checkbox" id="optimization-type">
+                                <label for="optimization-type"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <label for="example-select" class="block text-sm font-medium mb-2 flex items-center gap-2"><i data-lucide="file-check"></i>Cargar Ejemplo</label>
+                        <select id="example-select" class="w-full p-2 border border-gray-300 dark:border-gray-600 bg-transparent rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition">
+                            <option value="">Selecciona un ejemplo...</option>
+                            <option value="confiteria">Problema de la Confitería</option>
+                            <option value="reddy-mikks">Reddy Mikks (Maximizar)</option>
+                            <option value="diet">Problema de Dieta (Minimizar)</option>
+                            <option value="production">Producción 3 Variables (Maximizar)</option>
+                            <option value="infeasible">Ejemplo Inviable</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i data-lucide="function-square" class="text-indigo-500"></i>
+                        2. Función Objetivo
+                    </h2>
+                    <div id="objective-function-display" class="p-4 bg-black/5 dark:bg-white/5 rounded-lg flex items-center justify-center min-h-[60px] text-lg">
+                        <!-- MathJax will render here -->
+                    </div>
+                    <div id="objective-container" class="mt-4 flex items-center justify-center flex-wrap gap-4">
+                        <!-- Inputs will be generated here -->
+                    </div>
+                </div>
+
+                <div class="glass-panel p-6 rounded-2xl">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold flex items-center gap-2">
+                            <i data-lucide="list-checks" class="text-indigo-500"></i>
+                            3. Restricciones
+                        </h2>
+                        <button id="add-constraint" class="flex items-center gap-1 px-3 py-2 text-sm font-medium text-white bg-indigo-500 rounded-lg hover:bg-indigo-600 transition-all shadow-md hover:shadow-lg">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            Agregar
+                        </button>
+                    </div>
+                    <div id="constraints-container" class="space-y-4">
+                        <!-- Constraints will be generated here -->
+                    </div>
+                </div>
+                
+                <button id="solve-btn" class="w-full py-4 px-4 text-white rounded-lg font-semibold text-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:-translate-y-1">
+                    <i data-lucide="play-circle" class="inline-block mr-2"></i>
+                    Resolver Problema
+                </button>
+            </div>
+            
+            <!-- Results Panel -->
+            <div class="lg:col-span-2">
+                 <div id="results-panel" class="glass-panel p-6 rounded-2xl sticky top-24 flex flex-col min-h-[75vh]">
+                    <!-- Content Area -->
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold flex items-center gap-2">
+                                <i data-lucide="bar-chart-2" class="text-indigo-500"></i>
+                                Resultados
+                            </h2>
+                        </div>
+                        
+                        <div id="welcome-message" class="text-center py-12 text-gray-500 dark:text-gray-400 transition-opacity">
+                            <i data-lucide="calculator" class="w-16 h-16 mx-auto opacity-50"></i>
+                            <h3 class="text-lg font-medium mt-4">Listo para optimizar</h3>
+                            <p class="text-sm">Configure su problema y presione "Resolver".</p>
+                        </div>
+                        
+                        <div id="results-content" class="hidden space-y-6 transition-opacity">
+                            <div id="status-display" class="p-4 rounded-lg text-center"></div>
+                            <div id="solution-values"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons Area -->
+                    <div id="results-buttons" class="mt-auto pt-6 border-t border-black/10 dark:border-white/10 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button id="show-graph-btn" class="hidden w-full items-center justify-center gap-2 px-3 py-3 text-sm font-medium text-white bg-teal-500 rounded-lg hover:bg-teal-600 transition-all shadow-md hover:shadow-lg">
+                            <i data-lucide="area-chart" class="w-4 h-4"></i>
+                            Ver Gráfico
+                        </button>
+                        <button id="show-details-btn" class="hidden w-full items-center justify-center gap-2 px-3 py-3 text-sm font-medium text-white bg-purple-500 rounded-lg hover:bg-purple-600 transition-all shadow-md hover:shadow-lg">
+                            <i data-lucide="eye" class="w-4 h-4"></i>
+                            Ver Detalles
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-16 text-center py-6">
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+            Autor: <span class="font-semibold">Msc Néstor Fabio Montoya Palacios</span>
+        </p>
+    </footer>
+
+    <!-- Modals -->
+    <div id="details-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
+        <div class="glass-panel rounded-2xl shadow-xl max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10 flex-shrink-0">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="list-ordered" class="text-purple-400"></i>Detalles del Método Simplex</h2>
+                <button class="modal-close-btn p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto">
+                <div id="details-content" class="space-y-4 accordion-item"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="graph-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
+        <div class="glass-panel rounded-2xl shadow-xl max-w-6xl w-full h-[90vh] overflow-hidden flex flex-col relative">
+            <div class="flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10 flex-shrink-0">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="area-chart" class="text-teal-400"></i>Visualización Gráfica</h2>
+                <button class="modal-close-btn p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div id="modal-plot-container" class="p-6 flex-grow">
+                <!-- Plotly graph will be rendered here -->
+            </div>
+            <!-- Graph Customization Panel -->
+            <div class="absolute bottom-6 right-6 glass-panel p-3 rounded-full flex items-center gap-4">
+                 <div class="flex items-center gap-2 color-input-wrapper" title="Color de Región Factible">
+                    <i data-lucide="palette" class="w-5 h-5"></i>
+                    <input type="color" id="feasible-region-color" value="#4f46e5">
+                 </div>
+                 <div class="flex items-center gap-2 color-input-wrapper" title="Color de Restricciones">
+                    <i data-lucide="pencil-ruler" class="w-5 h-5"></i>
+                    <input type="color" id="constraint-lines-color" value="#9ca3af">
+                 </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="fixed inset-0 modal-backdrop hidden items-center justify-center z-50 p-4">
+         <div class="glass-panel rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="flex items-center justify-between p-4 border-b border-black/10 dark:border-white/10 flex-shrink-0">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="book-open" class="text-indigo-400"></i>Guía Rápida</h2>
+                <button class="modal-close-btn p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-6 text-gray-700 dark:text-gray-200">
+                <section>
+                    <h3 class="text-lg font-semibold mb-2">Pasos para Resolver un Problema</h3>
+                    <ol class="list-decimal list-inside space-y-2 text-sm">
+                        <li>Usa el widget para seleccionar el <strong>número de variables</strong>.</li>
+                        <li>Elige si quieres <strong>Maximizar</strong> o <strong>Minimizar</strong> con el interruptor.</li>
+                        <li>Ingresa los coeficientes en la <strong>Función Objetivo</strong>. La fórmula se actualizará en tiempo real.</li>
+                        <li>Usa el botón <strong>"+ Agregar"</strong> para añadir restricciones.</li>
+                        <li>Completa los coeficientes, el tipo de desigualdad y el valor derecho de cada restricción.</li>
+                        <li>Presiona el botón <strong>"Resolver Problema"</strong>.</li>
+                        <li>Los resultados aparecerán a la derecha. Para problemas de 2 variables, se mostrará un gráfico.</li>
+                        <li>Haz clic en <strong>"Ver Detalles"</strong> para explorar las tablas de cada iteración del método Simplex.</li>
+                    </ol>
+                </section>
+                <section>
+                    <h3 class="text-lg font-semibold mb-2">Consejos Útiles</h3>
+                     <ul class="list-disc list-inside space-y-1 text-sm">
+                        <li>Puedes cargar ejemplos predefinidos para familiarizarte con la herramienta.</li>
+                        <li>La condición de no negatividad ($x_i \ge 0$) se asume para todas las variables.</li>
+                        <li>Usa la rueda del mouse o los botones para cambiar los valores numéricos.</li>
+                    </ul>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // CORE LOGIC (UNCHANGED)
+        class SimplexSolver {
+             constructor() {
+                this.iterations = [];
+                this.tableau = [];
+                this.basicVars = [];
+                this.nonBasicVars = [];
+            }
+            solve(c, A, b, isMaximizing = true, originalNumVars) {
+                this.iterations = [];
+                const originalObjective = [...c];
+
+                if (isMaximizing) {
+                    c = c.map(x => -x);
+                }
+
+                const { tableau, basicVars, nonBasicVars, status: setupStatus } = this.createInitialTableau(c, A, b, originalNumVars);
+                
+                if (setupStatus === 'infeasible') {
+                    return { status: 'infeasible', iterations: this.iterations, solution: null };
+                }
+
+                this.tableau = tableau;
+                this.basicVars = basicVars;
+                this.nonBasicVars = nonBasicVars;
+
+                this.saveIteration(0, "Tableau Inicial");
+
+                let iteration = 1;
+                const maxIterations = 100;
+
+                while (iteration <= maxIterations) {
+                    if (this.isOptimal()) break;
+
+                    const enteringCol = this.findEnteringVariable();
+                    if (enteringCol === -1) {
+                         return { status: 'unbounded', iterations: this.iterations, solution: null };
+                    }
+
+                    const leavingRow = this.findLeavingVariable(enteringCol);
+                    if (leavingRow === -1) {
+                        return { status: 'unbounded', iterations: this.iterations, solution: null };
+                    }
+                    
+                    const enteringVarName = this.getVariableName(this.nonBasicVars[enteringCol], originalNumVars);
+                    const leavingVarName = this.getVariableName(this.basicVars[leavingRow], originalNumVars);
+
+                    this.pivot(leavingRow, enteringCol);
+                    this.basicVars[leavingRow] = this.nonBasicVars[enteringCol];
+                    
+                    this.saveIteration(iteration, `Entra ${enteringVarName}, Sale ${leavingVarName}`);
+                    iteration++;
+                }
+
+                if (iteration > maxIterations) {
+                    return { status: 'max_iterations', iterations: this.iterations, solution: null };
+                }
+
+                const solution = this.extractSolution(isMaximizing, originalNumVars);
+                return { status: 'optimal', solution, iterations: this.iterations };
+            }
+            createInitialTableau(c, A, b, originalNumVars) {
+                const m = A.length;
+                const n = originalNumVars;
+
+                for (let i = 0; i < m; i++) {
+                    if (b[i] < 0) {
+                         console.warn("RHS negativo encontrado. El problema podría ser inviable.");
+                         return { status: 'infeasible' };
+                    }
+                }
+
+                const numSlackVars = m;
+                const tableau = [];
+
+                for (let i = 0; i < m; i++) {
+                    const row = [...A[i]];
+                    for (let j = 0; j < numSlackVars; j++) {
+                        row.push(i === j ? 1 : 0);
+                    }
+                    row.push(b[i]);
+                    tableau.push(row);
+                }
+                
+                const objectiveRow = [...c];
+                for(let i = 0; i < numSlackVars + 1; i++) objectiveRow.push(0);
+                tableau.push(objectiveRow);
+
+                const basicVars = Array.from({ length: m }, (_, i) => n + i);
+                const nonBasicVars = Array.from({ length: n + numSlackVars }, (_, i) => i);
+                
+                return { tableau, basicVars, nonBasicVars, status: 'ok' };
+            }
+            isOptimal() {
+                const objectiveRow = this.tableau[this.tableau.length - 1];
+                for (let j = 0; j < objectiveRow.length - 1; j++) {
+                    if (objectiveRow[j] < -1e-9) return false;
+                }
+                return true;
+            }
+            findEnteringVariable() {
+                const objectiveRow = this.tableau[this.tableau.length - 1];
+                let minValue = 0;
+                let enteringCol = -1;
+                for (let j = 0; j < objectiveRow.length - 1; j++) {
+                    if (objectiveRow[j] < minValue) {
+                        minValue = objectiveRow[j];
+                        enteringCol = j;
+                    }
+                }
+                return enteringCol;
+            }
+            findLeavingVariable(enteringCol) {
+                let minRatio = Infinity;
+                let leavingRow = -1;
+                const rhsIndex = this.tableau[0].length - 1;
+
+                for (let i = 0; i < this.tableau.length - 1; i++) {
+                    const pivotCandidate = this.tableau[i][enteringCol];
+                    if (pivotCandidate > 1e-9) {
+                        const ratio = this.tableau[i][rhsIndex] / pivotCandidate;
+                        if (ratio < minRatio) {
+                            minRatio = ratio;
+                            leavingRow = i;
+                        }
+                    }
+                }
+                return leavingRow;
+            }
+            pivot(pivotRow, pivotCol) {
+                const pivotElement = this.tableau[pivotRow][pivotCol];
+                const pivotRowData = this.tableau[pivotRow];
+                for (let j = 0; j < pivotRowData.length; j++) {
+                    pivotRowData[j] /= pivotElement;
+                }
+                for (let i = 0; i < this.tableau.length; i++) {
+                    if (i !== pivotRow) {
+                        const factor = this.tableau[i][pivotCol];
+                        for (let j = 0; j < this.tableau[i].length; j++) {
+                            this.tableau[i][j] -= factor * pivotRowData[j];
+                        }
+                    }
+                }
+            }
+            extractSolution(isMaximizing, numOriginalVars) {
+                const solution = new Array(numOriginalVars).fill(0);
+                const rhsIndex = this.tableau[0].length - 1;
+
+                for (let i = 0; i < this.basicVars.length; i++) {
+                    const varIndex = this.basicVars[i];
+                    if (varIndex < numOriginalVars) {
+                        solution[varIndex] = this.tableau[i][rhsIndex];
+                    }
+                }
+                
+                let objectiveValue = this.tableau[this.tableau.length - 1][rhsIndex];
+                if (isMaximizing) objectiveValue *= -1;
+                
+                return { variables: solution, objectiveValue };
+            }
+            saveIteration(iterNum, description) {
+                this.iterations.push({
+                    iteration: iterNum,
+                    description: description,
+                    tableau: this.tableau.map(row => [...row]),
+                    basicVars: [...this.basicVars],
+                    nonBasicVars: [...this.nonBasicVars]
+                });
+            }
+            getVariableName(index, numOriginalVars) {
+                return index < numOriginalVars ? `x_{${index + 1}}` : `s_{${index - numOriginalVars + 1}}`;
+            }
+        }
+        
+        // GLOBAL STATE & EXAMPLES
+        const appState = {
+            numVariables: 2,
+            isMaximizing: true,
+            constraints: [],
+            theme: 'light',
+            feasibleRegionColor: '#4f46e5',
+            constraintLinesColor: '#9ca3af',
+            lastProblemData: null,
+            lastSolution: null
+        };
+
+        const EXAMPLES = {
+            'confiteria': { numVars: 2, isMax: true, objective: [8, 10], constraints: [{ coeffs: [1, 2], type: '<=', rhs: 20 }, { coeffs: [1, 1], type: '<=', rhs: 15 }] },
+            'reddy-mikks': { numVars: 2, isMax: true, objective: [5, 4], constraints: [{ coeffs: [6, 4], type: '<=', rhs: 24 }, { coeffs: [1, 2], type: '<=', rhs: 6 }, { coeffs: [-1, 1], type: '<=', rhs: 1 }, { coeffs: [0, 1], type: '<=', rhs: 2 }] },
+            'diet': { numVars: 2, isMax: false, objective: [0.6, 0.35], constraints: [{ coeffs: [2, 3], type: '>=', rhs: 8 }, { coeffs: [4, 2], type: '>=', rhs: 10 }] },
+            'production': { numVars: 3, isMax: true, objective: [7, 8, 10], constraints: [{ coeffs: [2, 3, 2], type: '<=', rhs: 1000 }, { coeffs: [1, 1, 2], type: '<=', rhs: 800 }] },
+            'infeasible': { numVars: 2, isMax: true, objective: [1, 1], constraints: [{ coeffs: [1, 1], type: '>=', rhs: 10 }, { coeffs: [1, 1], type: '<=', rhs: 5 }] }
+        };
+
+        // UI MANAGER (REBUILT FOR NEW INTERFACE)
+        class UIManager {
+            constructor() {
+                this.dom = {
+                    themeToggle: document.getElementById('theme-toggle'),
+                    helpBtn: document.getElementById('help-btn'),
+                    numVariablesInput: document.getElementById('num-variables-input'),
+                    optimizationType: document.getElementById('optimization-type'),
+                    exampleSelect: document.getElementById('example-select'),
+                    objectiveContainer: document.getElementById('objective-container'),
+                    objectiveDisplay: document.getElementById('objective-function-display'),
+                    constraintsContainer: document.getElementById('constraints-container'),
+                    addConstraintBtn: document.getElementById('add-constraint'),
+                    solveBtn: document.getElementById('solve-btn'),
+                    welcomeMessage: document.getElementById('welcome-message'),
+                    resultsContent: document.getElementById('results-content'),
+                    statusDisplay: document.getElementById('status-display'),
+                    solutionValues: document.getElementById('solution-values'),
+                    showGraphBtn: document.getElementById('show-graph-btn'),
+                    showDetailsBtn: document.getElementById('show-details-btn'),
+                    detailsModal: document.getElementById('details-modal'),
+                    graphModal: document.getElementById('graph-modal'),
+                    helpModal: document.getElementById('help-modal'),
+                    detailsContent: document.getElementById('details-content'),
+                    modalPlotContainer: document.getElementById('modal-plot-container'),
+                    toastContainer: document.getElementById('toast-container'),
+                    feasibleRegionColorInput: document.getElementById('feasible-region-color'),
+                    constraintLinesColorInput: document.getElementById('constraint-lines-color'),
+                };
+                this.initializeEventListeners();
+                this.initializeState();
+            }
+
+            initializeState() {
+                const preferredTheme = localStorage.getItem('theme') || 'light';
+                this.setTheme(preferredTheme);
+                this.updateVariableInputs();
+                this.addConstraint();
+                lucide.createIcons();
+            }
+
+            initializeEventListeners() {
+                this.dom.themeToggle.addEventListener('click', () => this.toggleTheme());
+                this.dom.helpBtn.addEventListener('click', () => this.showModal('help-modal'));
+                this.dom.numVariablesInput.addEventListener('input', (e) => this.handleVarCountChange(e));
+                this.dom.optimizationType.addEventListener('change', (e) => {
+                    appState.isMaximizing = !e.target.checked;
+                    this.updateObjectiveDisplay();
+                });
+                this.dom.addConstraintBtn.addEventListener('click', () => this.addConstraint());
+                this.dom.solveBtn.addEventListener('click', () => this.solveProblem());
+                this.dom.exampleSelect.addEventListener('change', (e) => this.loadExample(e.target.value));
+                this.dom.showDetailsBtn.addEventListener('click', () => this.showModal('details-modal'));
+                this.dom.showGraphBtn.addEventListener('click', () => this.showModal('graph-modal'));
+                
+                // Modal close logic
+                document.querySelectorAll('.modal-backdrop').forEach(modal => {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal || e.target.closest('.modal-close-btn')) {
+                            this.hideModal(modal.id);
+                        }
+                    });
+                });
+                
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.hideModal('details-modal');
+                        this.hideModal('help-modal');
+                        this.hideModal('graph-modal');
+                    }
+                });
+
+                // Graph color customization
+                this.dom.feasibleRegionColorInput.addEventListener('input', (e) => {
+                    appState.feasibleRegionColor = e.target.value;
+                    this.redrawGraph();
+                });
+                this.dom.constraintLinesColorInput.addEventListener('input', (e) => {
+                    appState.constraintLinesColor = e.target.value;
+                    this.redrawGraph();
+                });
+            }
+            
+            redrawGraph() {
+                 if (appState.lastSolution && appState.lastProblemData && appState.numVariables === 2) {
+                    this.create2DPlot(appState.lastSolution, appState.lastProblemData);
+                }
+            }
+
+            setTheme(theme) {
+                appState.theme = theme;
+                document.documentElement.className = theme;
+                localStorage.setItem('theme', theme);
+                lucide.createIcons();
+                this.redrawGraph();
+            }
+
+            toggleTheme() {
+                this.setTheme(appState.theme === 'light' ? 'dark' : 'light');
+            }
+
+            showModal(modalId) {
+                const modal = document.getElementById(modalId);
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => {
+                    modal.style.opacity = 1;
+                    if (modalId === 'graph-modal') {
+                        Plotly.Plots.resize(this.dom.modalPlotContainer);
+                    }
+                }, 10);
+            }
+            
+            hideModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (!modal) return;
+                modal.style.opacity = 0;
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }, 300);
+            }
+
+            handleVarCountChange(e) {
+                let newVars = parseInt(e.target.value);
+
+                if (isNaN(newVars)) {
+                    return; 
+                }
+                
+                if (newVars < 2) {
+                    e.target.value = 2;
+                    newVars = 2;
+                }
+                if (newVars > 10) {
+                    e.target.value = 10;
+                    newVars = 10;
+                }
+                
+                if (newVars !== appState.numVariables) {
+                    appState.numVariables = newVars;
+                    this.updateVariableInputs();
+                    this.dom.constraintsContainer.innerHTML = '';
+                    this.addConstraint();
+                    this.showToast(`Número de variables actualizado a ${newVars}.`, 'info');
+                }
+            }
+
+            updateVariableInputs() {
+                this.dom.objectiveContainer.innerHTML = '';
+                
+                for (let i = 0; i < appState.numVariables; i++) {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center gap-2';
+                    div.innerHTML = `
+                        <div class="custom-number-input">
+                            <input type="number" step="any" value="1" class="obj-coeff" data-index="${i}">
+                        </div>
+                        <span class="font-mono text-lg">x<sub>${i+1}</sub></span>
+                        ${i < appState.numVariables - 1 ? '<span class="text-gray-500 text-xl font-light">+</span>' : ''}
+                    `;
+                    this.dom.objectiveContainer.appendChild(div);
+                }
+                
+                this.dom.objectiveContainer.querySelectorAll('.obj-coeff').forEach(input => {
+                    input.addEventListener('input', () => this.updateObjectiveDisplay());
+                });
+
+                this.updateObjectiveDisplay();
+            }
+
+            updateObjectiveDisplay() {
+                const typeText = appState.isMaximizing ? 'Max \\ Z = ' : 'Min \\ Z = ';
+                let objectiveString = typeText;
+                const coeffs = Array.from(document.querySelectorAll('.obj-coeff')).map(el => parseFloat(el.value) || 0);
+
+                let firstTerm = true;
+                coeffs.forEach((c, i) => {
+                    if (c !== 0) {
+                        if (!firstTerm && c > 0) {
+                           objectiveString += ' + ';
+                        } else if (!firstTerm && c < 0) {
+                            objectiveString += ' - ';
+                        } else if (firstTerm && c < 0) {
+                            objectiveString += '-';
+                        }
+                        objectiveString += `${Math.abs(c)}x_{${i+1}}`;
+                        firstTerm = false;
+                    }
+                });
+                if (firstTerm) objectiveString += '0';
+
+                this.dom.objectiveDisplay.textContent = `$${objectiveString}$`;
+                if (window.MathJax) {
+                    MathJax.typesetPromise([this.dom.objectiveDisplay]);
+                }
+            }
+
+            addConstraint(data = null) {
+                const index = this.dom.constraintsContainer.children.length;
+                const constraintDiv = document.createElement('div');
+                constraintDiv.className = 'constraint-row p-4 rounded-lg bg-black/5 dark:bg-white/5';
+                constraintDiv.id = `constraint-${index}`;
+                
+                let inputsHTML = '';
+                for (let i = 0; i < appState.numVariables; i++) {
+                    const val = data ? data.coeffs[i] : 1;
+                    inputsHTML += `
+                        <div class="custom-number-input">
+                           <input type="number" step="any" value="${val}" class="const-coeff" data-index="${i}">
+                        </div>
+                        <span class="font-mono text-lg">x<sub>${i+1}</sub></span>
+                        ${i < appState.numVariables - 1 ? '<span class="text-gray-500 text-xl font-light">+</span>' : ''}
+                    `;
+                }
+                
+                const type = data ? data.type : '<=';
+                const rhsVal = data ? data.rhs : 10;
+
+                constraintDiv.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="math-display text-lg"></div>
+                        <button class="remove-constraint-btn text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-500/10">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-4 flex-wrap mt-3">
+                        <div class="flex items-center gap-2 flex-wrap">${inputsHTML}</div>
+                        <select class="const-type p-2 bg-transparent border border-gray-300 dark:border-gray-600 rounded-md">
+                            <option value="<=" ${type === '<=' ? 'selected' : ''}>&le;</option>
+                            <option value=">=" ${type === '>=' ? 'selected' : ''}>&ge;</option>
+                            <option value="=" ${type === '=' ? 'selected' : ''}>=</option>
+                        </select>
+                        <div class="custom-number-input">
+                           <input type="number" step="any" value="${rhsVal}" class="const-rhs">
+                        </div>
+                    </div>
+                `;
+                
+                this.dom.constraintsContainer.appendChild(constraintDiv);
+                this.updateConstraintDisplay(constraintDiv);
+
+                constraintDiv.querySelectorAll('input, select').forEach(el => {
+                    el.addEventListener('input', () => this.updateConstraintDisplay(constraintDiv));
+                });
+                constraintDiv.querySelector('.remove-constraint-btn').addEventListener('click', () => {
+                    constraintDiv.remove();
+                    this.updateAllConstraintDisplays();
+                });
+                lucide.createIcons();
+            }
+
+            updateConstraintDisplay(constraintDiv) {
+                const display = constraintDiv.querySelector('.math-display');
+                let constraintString = '';
+                const coeffs = Array.from(constraintDiv.querySelectorAll('.const-coeff')).map(el => parseFloat(el.value) || 0);
+                const type = constraintDiv.querySelector('.const-type').value.replace('<=', '\\le').replace('>=', '\\ge');
+                const rhs = constraintDiv.querySelector('.const-rhs').value;
+                
+                let firstTerm = true;
+                coeffs.forEach((c, i) => {
+                     if (c !== 0) {
+                        if (!firstTerm && c > 0) {
+                           constraintString += ' + ';
+                        } else if (!firstTerm && c < 0) {
+                            constraintString += ' - ';
+                        } else if (firstTerm && c < 0) {
+                            constraintString += '-';
+                        }
+                        constraintString += `${Math.abs(c)}x_{${i+1}}`;
+                        firstTerm = false;
+                    }
+                });
+                if (firstTerm) constraintString += '0';
+                
+                constraintString += ` ${type} ${rhs}`;
+                display.textContent = `$${constraintString}$`;
+                if (window.MathJax) {
+                    MathJax.typesetPromise([display]);
+                }
+            }
+            
+            updateAllConstraintDisplays() {
+                this.dom.constraintsContainer.querySelectorAll('.constraint-row').forEach(row => {
+                    this.updateConstraintDisplay(row);
+                });
+            }
+            
+            loadExample(key) {
+                if (!key || !EXAMPLES[key]) return;
+                const example = EXAMPLES[key];
+                
+                appState.numVariables = example.numVars;
+                this.dom.numVariablesInput.value = example.numVars;
+
+                appState.isMaximizing = example.isMax;
+                this.dom.optimizationType.checked = !example.isMax;
+
+                this.updateVariableInputs();
+
+                for (let i = 0; i < example.objective.length; i++) {
+                    document.getElementById(`objective-container`).querySelector(`[data-index="${i}"]`).value = example.objective[i];
+                }
+                this.updateObjectiveDisplay();
+
+                this.dom.constraintsContainer.innerHTML = '';
+                example.constraints.forEach(c => this.addConstraint(c));
+
+                this.showToast(`Ejemplo "${key}" cargado.`, 'success');
+                this.dom.exampleSelect.value = '';
+            }
+            
+            parseProblem() {
+                const c = Array.from(document.querySelectorAll('.obj-coeff')).map(el => parseFloat(el.value) || 0);
+
+                const A_orig = [], b_orig = [], types_orig = [];
+                document.querySelectorAll('.constraint-row').forEach(row => {
+                    const coeffs = Array.from(row.querySelectorAll('.const-coeff')).map(el => parseFloat(el.value) || 0);
+                    const type = row.querySelector('.const-type').value;
+                    const rhs = parseFloat(row.querySelector('.const-rhs').value) || 0;
+                    A_orig.push(coeffs);
+                    b_orig.push(rhs);
+                    types_orig.push(type);
+                });
+
+                const A = [], b = [];
+                A_orig.forEach((coeffs, i) => {
+                    const type = types_orig[i];
+                    const rhs = b_orig[i];
+                    if (type === '>=') {
+                        A.push(coeffs.map(x => -x));
+                        b.push(-rhs);
+                    } else if (type === '=') {
+                        A.push([...coeffs]); b.push(rhs);
+                        A.push(coeffs.map(x => -x)); b.push(-rhs);
+                    } else { // <=
+                        A.push(coeffs); b.push(rhs);
+                    }
+                });
+                
+                return { c, A, b, A_orig, b_orig, types_orig };
+            }
+            
+            async solveProblem() {
+                try {
+                    const problemData = this.parseProblem();
+                    const { c, A, b } = problemData;
+                    
+                    if (A.length === 0) {
+                        this.showToast('Agrega al menos una restricción.', 'warning');
+                        return;
+                    }
+
+                    const solver = new SimplexSolver();
+                    const result = solver.solve(c, A, b, appState.isMaximizing, appState.numVariables);
+                    
+                    appState.lastProblemData = problemData;
+                    appState.lastSolution = result.solution;
+
+                    this.dom.welcomeMessage.classList.add('hidden');
+                    this.dom.resultsContent.classList.remove('hidden');
+                    this.dom.showDetailsBtn.classList.remove('hidden');
+
+                    this.displayResults(result, problemData);
+
+                } catch (error) {
+                    console.error('Error al resolver:', error);
+                    this.showToast('Ocurrió un error inesperado al resolver.', 'error');
+                }
+            }
+
+            displayResults(result, problemData) {
+                let statusHTML = '';
+                this.dom.solutionValues.innerHTML = '';
+                this.dom.showGraphBtn.classList.add('hidden');
+                this.dom.showDetailsBtn.classList.add('hidden');
+                
+                switch(result.status) {
+                    case 'optimal':
+                        const objValue = result.solution.objectiveValue.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 4});
+                        statusHTML = `
+                            <div class="bg-green-100 dark:bg-green-900/50 border border-green-400 text-green-800 dark:text-green-300 p-4 rounded-lg">
+                                <h3 class="font-bold text-center text-lg">
+                                    <i data-lucide="check-circle" class="inline-block mr-2"></i> Solución Óptima
+                                </h3>
+                                <p class="text-center text-2xl font-mono mt-2">Z = ${objValue}</p>
+                            </div>
+                        `;
+                        this.displaySolutionTable(result.solution.variables);
+                        this.dom.showDetailsBtn.classList.remove('hidden');
+
+                        if (appState.numVariables === 2) {
+                            this.dom.showGraphBtn.classList.remove('hidden');
+                            this.create2DPlot(result.solution, problemData);
+                        }
+                        this.showToast('Solución óptima encontrada.', 'success');
+                        break;
+                    case 'infeasible':
+                        statusHTML = `<div class="bg-red-100 dark:bg-red-900/50 border border-red-400 text-red-800 dark:text-red-300 p-4 rounded-lg"><h3 class="font-bold text-center"><i data-lucide="x-octagon" class="inline-block mr-2"></i>Problema Inviable</h3><p class="text-center text-sm mt-1">No existe una solución que satisfaga todas las restricciones.</p></div>`;
+                        this.showToast('El problema es inviable.', 'error');
+                        break;
+                    case 'unbounded':
+                        statusHTML = `<div class="bg-yellow-100 dark:bg-yellow-900/50 border border-yellow-400 text-yellow-800 dark:text-yellow-300 p-4 rounded-lg"><h3 class="font-bold text-center"><i data-lucide="alert-triangle" class="inline-block mr-2"></i>Problema No Acotado</h3><p class="text-center text-sm mt-1">La función objetivo puede crecer (o decrecer) infinitamente.</p></div>`;
+                        this.showToast('El problema no está acotado.', 'warning');
+                        break;
+                    case 'max_iterations':
+                         statusHTML = `<div class="bg-orange-100 dark:bg-orange-900/50 border border-orange-400 text-orange-800 dark:text-orange-300 p-4 rounded-lg"><h3 class="font-bold text-center"><i data-lucide="timer-off" class="inline-block mr-2"></i>Límite de Iteraciones</h3><p class="text-center text-sm mt-1">El algoritmo superó el límite de iteraciones.</p></div>`;
+                        this.showToast('Se alcanzó el límite de iteraciones.', 'warning');
+                        break;
+                }
+                this.dom.statusDisplay.innerHTML = statusHTML;
+                this.prepareSimplexDetails(result);
+                lucide.createIcons();
+            }
+
+            displaySolutionTable(variables) {
+                let tableHTML = `
+                    <h4 class="font-semibold mb-2">Valores de las Variables</h4>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="text-xs text-gray-700 dark:text-gray-300 uppercase bg-gray-50 dark:bg-gray-700/50">
+                                <tr>
+                                    <th scope="col" class="px-4 py-2 rounded-l-lg">Variable</th>
+                                    <th scope="col" class="px-4 py-2 rounded-r-lg">Valor</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                `;
+                variables.forEach((val, i) => {
+                    tableHTML += `
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <td class="px-4 py-2 font-mono">x${i+1}</td>
+                            <td class="px-4 py-2 font-mono">${val.toLocaleString('es-CO', {minimumFractionDigits: 2, maximumFractionDigits: 4})}</td>
+                        </tr>
+                    `;
+                });
+                tableHTML += '</tbody></table></div>';
+                this.dom.solutionValues.innerHTML = tableHTML;
+            }
+
+            async create2DPlot(solution, problemData) {
+                this.dom.modalPlotContainer.innerHTML = '';
+                
+                const { A_orig, b_orig, types_orig } = problemData;
+                const traces = [];
+                const epsilon = 1e-9;
+
+                // 1. Gather all constraint lines, including axes
+                const lines = A_orig.map((coeffs, i) => ({ a: coeffs[0], b: coeffs[1], c: b_orig[i], type: types_orig[i] }));
+                lines.push({ a: 1, b: 0, c: 0, type: '>=' }); // x1 >= 0
+                lines.push({ a: 0, b: 1, c: 0, type: '>=' }); // x2 >= 0
+
+                const isFeasible = (p) => lines.every(line => {
+                    const val = line.a * p.x + line.b * p.y;
+                    if (line.type === '<=') return val < line.c + epsilon;
+                    if (line.type === '>=') return val > line.c - epsilon;
+                    if (line.type === '=') return Math.abs(val - line.c) < epsilon;
+                    return true;
+                });
+
+                // 2. Find all intersection points
+                const intersections = [];
+                for (let i = 0; i < lines.length; i++) {
+                    for (let j = i + 1; j < lines.length; j++) {
+                        const l1 = lines[i], l2 = lines[j];
+                        const D = l1.a * l2.b - l2.a * l1.b;
+                        if (Math.abs(D) > epsilon) {
+                            const x = (l1.c * l2.b - l2.c * l1.b) / D;
+                            const y = (l1.a * l2.c - l2.a * l1.c) / D;
+                            if (isFeasible({ x, y }) && !intersections.some(v => Math.abs(v.x - x) < epsilon && Math.abs(v.y - y) < epsilon)) {
+                                intersections.push({ x, y });
+                            }
+                        }
+                    }
+                }
+
+                // 4. Order vertices to form a convex polygon
+                if (intersections.length > 2) {
+                    const centroid = intersections.reduce((acc, p) => ({ x: acc.x + p.x, y: acc.y + p.y }), { x: 0, y: 0 });
+                    centroid.x /= intersections.length;
+                    centroid.y /= intersections.length;
+                    intersections.sort((a, b) => Math.atan2(a.y - centroid.y, a.x - centroid.x) - Math.atan2(b.y - centroid.y, b.x - centroid.x));
+                }
+
+                const allPoints = [...intersections, {x: solution.variables[0], y: solution.variables[1]}];
+                const maxX = Math.max(...allPoints.map(p => p.x).filter(v => isFinite(v)), 0);
+                const maxY = Math.max(...allPoints.map(p => p.y).filter(v => isFinite(v)), 0);
+                const rangeX = Math.max(10, maxX * 1.2);
+                const rangeY = Math.max(10, maxY * 1.2);
+
+                // 5. Add feasible region trace
+                if (intersections.length > 1) {
+                    traces.push({
+                        x: intersections.map(p => p.x),
+                        y: intersections.map(p => p.y),
+                        type: 'scatter', mode: 'lines',
+                        fill: 'toself',
+                        fillcolor: `${appState.feasibleRegionColor}40`, // Add alpha
+                        line: { color: `${appState.feasibleRegionColor}80` },
+                        hoverinfo: 'none', name: 'Región Factible'
+                    });
+                }
+
+                // Add constraint lines and intercept points
+                const interceptPoints = { x: [], y: [], text: [] };
+                A_orig.forEach((constraint, i) => {
+                    const [a, b] = constraint;
+                    const rhs = b_orig[i];
+                    let x_vals = [0, rangeX], y_vals = [];
+                    if (Math.abs(b) < epsilon) { // Vertical line
+                        x_vals = [rhs/a, rhs/a]; y_vals = [0, rangeY];
+                        if (rhs/a >= 0 && rhs/a <= rangeX) { interceptPoints.x.push(rhs/a); interceptPoints.y.push(0); interceptPoints.text.push(`(${ (rhs/a).toFixed(2) }, 0)`); }
+                    } else if (Math.abs(a) < epsilon) { // Horizontal line
+                        x_vals = [0, rangeX]; y_vals = [rhs/b, rhs/b];
+                        if (rhs/b >= 0 && rhs/b <= rangeY) { interceptPoints.x.push(0); interceptPoints.y.push(rhs/b); interceptPoints.text.push(`(0, ${ (rhs/b).toFixed(2) })`); }
+                    } else {
+                        x_vals = [0, rangeX]; y_vals = x_vals.map(x => (rhs - a * x) / b);
+                        if (rhs/a >= 0 && rhs/a <= rangeX) { interceptPoints.x.push(rhs/a); interceptPoints.y.push(0); interceptPoints.text.push(`(${ (rhs/a).toFixed(2) }, 0)`); }
+                        if (rhs/b >= 0 && rhs/b <= rangeY) { interceptPoints.x.push(0); interceptPoints.y.push(rhs/b); interceptPoints.text.push(`(0, ${ (rhs/b).toFixed(2) })`); }
+                    }
+                    traces.push({
+                        x: x_vals, y: y_vals, mode: 'lines',
+                        name: `$${a}x_1 + ${b}x_2 ${types_orig[i].replace('<=', '\\le').replace('>=', '\\ge')} ${rhs}$`,
+                        line: { dash: 'dot', width: 2, color: appState.constraintLinesColor },
+                        hoverinfo: 'name'
+                    });
+                });
+                
+                // Add intercept points trace
+                traces.push({
+                    x: interceptPoints.x, y: interceptPoints.y, text: interceptPoints.text,
+                    mode: 'markers+text', name: 'Interceptos',
+                    marker: { color: appState.constraintLinesColor, size: 8, symbol: 'circle-open' },
+                    textposition: 'top right', textfont: { size: 10, color: appState.constraintLinesColor }
+                });
+
+                // Add solution point
+                traces.push({
+                    x: [solution.variables[0]], y: [solution.variables[1]],
+                    mode: 'markers', name: 'Solución Óptima',
+                    marker: { color: 'crimson', size: 14, symbol: 'star' }
+                });
+
+                const layout = {
+                    title: 'Visualización Gráfica de la Solución',
+                    xaxis: { title: '$x_1$', range: [0, rangeX] },
+                    yaxis: { title: '$x_2$', range: [0, rangeY] },
+                    showlegend: true,
+                    legend: { x: 1, xanchor: 'left', y: 1 },
+                    margin: { l: 50, r: 20, b: 50, t: 50 },
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    font: { color: appState.theme === 'dark' ? '#e2e8f0' : '#1a202c' },
+                    dragmode: 'pan', // Enable panning
+                    scrollZoom: true, // Enable zooming
+                };
+
+                Plotly.newPlot(this.dom.modalPlotContainer, traces, layout, { responsive: true, displaylogo: false, scrollZoom: true });
+                
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+            }
+            
+            async prepareSimplexDetails(result) {
+                if (!result.iterations || result.iterations.length === 0) {
+                    this.dom.detailsContent.innerHTML = '<p>No hay detalles de iteraciones disponibles.</p>';
+                    return;
+                }
+                let html = '';
+                const numVars = appState.numVariables;
+                const numConstraints = result.iterations[0].basicVars.length;
+
+                result.iterations.forEach((iter, idx) => {
+                    const { tableau, basicVars } = iter;
+                    
+                    html += `
+                        <details ${idx === 0 ? 'open' : ''}>
+                            <summary class="font-semibold cursor-pointer p-3 rounded-lg hover:bg-black/10 dark:hover:bg-white/10">
+                                Iteración ${iter.iteration}: ${iter.description}
+                            </summary>
+                            <div class="p-4 mt-2 bg-black/5 dark:bg-white/5 rounded-lg overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr>
+                                            <th class="p-2">Base</th>
+                                            ${Array.from({length: numVars}, (_, i) => `<th class="p-2">$x_{${i+1}}$</th>`).join('')}
+                                            ${Array.from({length: numConstraints}, (_, i) => `<th class="p-2">$s_{${i+1}}$</th>`).join('')}
+                                            <th class="p-2">RHS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                    `;
+                    
+                    // Constraint rows
+                    for(let i = 0; i < numConstraints; i++) {
+                        const baseVarIndex = basicVars[i];
+                        const baseVarName = baseVarIndex < numVars ? `$x_{${baseVarIndex+1}}$` : `$s_{${baseVarIndex - numVars + 1}}$`;
+                        html += `
+                            <tr>
+                                <td class="font-bold p-2">${baseVarName}</td>
+                                ${tableau[i].map(v => `<td class="p-2 text-center font-mono">${v.toFixed(3)}</td>`).join('')}
+                            </tr>
+                        `;
+                    }
+                    
+                    // Z row
+                    const zRow = tableau[tableau.length-1];
+                    html += `
+                                        <tr class="border-t-2">
+                                            <td class="font-bold p-2">$Z$</td>
+                                            ${zRow.map(v => `<td class="p-2 text-center font-mono font-bold">${v.toFixed(3)}</td>`).join('')}
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </details>
+                    `;
+                });
+                this.dom.detailsContent.innerHTML = html;
+                if (window.MathJax) {
+                    MathJax.typesetPromise([this.dom.detailsContent]);
+                }
+            }
+
+            showToast(message, type = 'info') {
+                const icons = {
+                    info: 'info', success: 'check-circle', warning: 'alert-triangle', error: 'x-circle'
+                };
+                const colors = {
+                    info: 'bg-blue-500', success: 'bg-green-500', warning: 'bg-yellow-500', error: 'bg-red-500'
+                };
+
+                const toast = document.createElement('div');
+                toast.className = `toast flex items-center gap-3 text-white text-sm font-semibold px-4 py-3 rounded-lg shadow-2xl ${colors[type]}`;
+                toast.innerHTML = `<i data-lucide="${icons[type]}"></i><p>${message}</p>`;
+                
+                this.dom.toastContainer.appendChild(toast);
+                lucide.createIcons();
+
+                setTimeout(() => {
+                    toast.style.opacity = 0;
+                    toast.style.transform = 'translateY(20px)';
+                    setTimeout(() => toast.remove(), 300);
+                }, 4000);
+            }
+        }
+
+        // INITIALIZATION
+        let uiManager;
+        document.addEventListener('DOMContentLoaded', () => {
+            uiManager = new UIManager();
+            uiManager.showToast('QuantumOptima listo para operar.', 'success');
+        });
+    </script>
+</body>
+</html>
