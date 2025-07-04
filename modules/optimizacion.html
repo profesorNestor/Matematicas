@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analizador de Funciones f(x) v8</title>
+  
+  <!-- SEO & OpenGraph Meta Tags -->
+  <meta name="description" content="Una herramienta interactiva para analizar funciones reales. Calcula y visualiza derivadas, puntos críticos, y puntos de inflexión con gráficas dinámicas.">
+  <meta name="author" content="Msc Néstor Fabio Montoya, con asistencia de IA">
+  <meta property="og:title" content="Analizador de Funciones Interactivo">
+  <meta property="og:description" content="Calcula derivadas, puntos críticos e inflexiones de cualquier función f(x) y visualízala al instante.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://placehold.co/1200x630/1e293b/ffffff?text=f(x)%20Analyzer%20v8">
+  <meta property="og:url" content="#">
+  
+  <!-- Favicon (Emoji) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📈</text></svg>">
+
+  <!-- External Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/13.0.0/math.min.js"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
+  <!-- MathJax Configuration -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: {
+        fontCache: 'global'
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Custom Styles & Tailwind Config -->
+  <style type="text/tailwindcss">
+    @layer base {
+      :root, .light {
+        --background: 0 0% 100%;
+        --foreground: 224 71.4% 4.1%;
+        --card: 0 0% 100%;
+        --card-foreground: 224 71.4% 4.1%;
+        --popover: 0 0% 100%;
+        --popover-foreground: 224 71.4% 4.1%;
+        --primary: 220.9 39.3% 11%;
+        --primary-foreground: 210 20% 98%;
+        --secondary: 220 14.3% 95.9%;
+        --secondary-foreground: 220.9 39.3% 11%;
+        --muted: 220 14.3% 95.9%;
+        --muted-foreground: 225 8.9% 46.1%;
+        --accent: 220 14.3% 95.9%;
+        --accent-foreground: 220.9 39.3% 11%;
+        --destructive: 0 84.2% 60.2%;
+        --destructive-foreground: 210 20% 98%;
+        --border: 220 13% 91%;
+        --input: 220 13% 91%;
+        --ring: 224 71.4% 4.1%;
+        --radius: 0.75rem;
+        --plot-bg: 210 20% 98%;
+        --plot-grid: 220 13% 85%;
+        --plot-zeroline: 220 13% 65%;
+        --plot-line: 220.9 39.3% 11%;
+        --plot-text: 224 71.4% 4.1%;
+      }
+      .dark {
+        --background: 224 71.4% 4.1%;
+        --foreground: 210 20% 98%;
+        --card: 224 71.4% 4.1%;
+        --card-foreground: 210 20% 98%;
+        --popover: 224 71.4% 4.1%;
+        --popover-foreground: 210 20% 98%;
+        --primary: 210 20% 98%;
+        --primary-foreground: 220.9 39.3% 11%;
+        --secondary: 215 27.9% 16.9%;
+        --secondary-foreground: 210 20% 98%;
+        --muted: 215 27.9% 16.9%;
+        --muted-foreground: 217.9 10.6% 64.9%;
+        --accent: 215 27.9% 16.9%;
+        --accent-foreground: 210 20% 98%;
+        --destructive: 0 62.8% 30.6%;
+        --destructive-foreground: 210 20% 98%;
+        --border: 215 27.9% 16.9%;
+        --input: 215 27.9% 16.9%;
+        --ring: 216 12.2% 83.9%;
+        --plot-bg: 224 71.4% 4.1%;
+        --plot-grid: 215 27.9% 25%;
+        --plot-zeroline: 215 27.9% 50%;
+        --plot-line: 210 20% 98%;
+        --plot-text: 210 20% 98%;
+      }
+      .neon {
+        --background: 257 100% 3%;
+        --foreground: 300 100% 97%;
+        --card: 260 83% 11%;
+        --card-foreground: 300 100% 97%;
+        --popover: 257 100% 3%;
+        --popover-foreground: 300 100% 97%;
+        --primary: 325 100% 50%;
+        --primary-foreground: 325 100% 95%;
+        --secondary: 260 83% 11%;
+        --secondary-foreground: 300 100% 97%;
+        --muted: 260 83% 11%;
+        --muted-foreground: 248 9% 65%;
+        --accent: 180 100% 50%;
+        --accent-foreground: 180 100% 95%;
+        --destructive: 0 100% 50%;
+        --destructive-foreground: 0 100% 95%;
+        --border: 260 83% 20%;
+        --input: 260 83% 20%;
+        --ring: 325 100% 50%;
+        --plot-bg: 257 100% 3%;
+        --plot-grid: 260 83% 20%;
+        --plot-zeroline: 260 83% 45%;
+        --plot-line: 180 100% 50%;
+        --plot-text: 300 100% 97%;
+      }
+    }
+    @layer utilities {
+      .fade-in { animation: fadeIn 0.5s ease-in-out; }
+      .fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
+      .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+      .toast-in { animation: toastIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+      .toast-out { animation: toastOut 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      @keyframes toastIn { from { transform: translateY(-100%) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+      @keyframes toastOut { from { transform: translateY(0) scale(1); opacity: 1; } to { transform: translateY(-100%) scale(0.9); opacity: 0; } }
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))', input: 'hsl(var(--input))', ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+            primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+            secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+            destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))' },
+            muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+            accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+            popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))' },
+            card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+          },
+          borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },
+          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Fira+Code&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-background text-foreground font-sans antialiased overscroll-none">
+
+  <div class="flex flex-col lg:flex-row w-full h-screen">
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-full lg:w-96 bg-card border-r border-border p-6 flex flex-col gap-6 transition-transform duration-300 ease-in-out transform -translate-x-full lg:translate-x-0 fixed lg:relative h-full z-40">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-primary">Analizador f(x)</h1>
+        <button id="close-sidebar-btn" class="lg:hidden p-2 rounded-md hover:bg-secondary">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      
+      <form id="analysis-form" class="flex flex-col gap-4 flex-grow overflow-y-auto pr-2">
+        <div>
+          <label for="function-input" class="text-sm font-medium text-muted-foreground">Función f(x)</label>
+          <input type="text" id="function-input" value="sin(x) * x^2" class="mt-1 w-full p-2 bg-secondary border border-border rounded-md font-mono focus:ring-2 focus:ring-ring focus:outline-none">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="xmin-input" class="text-sm font-medium text-muted-foreground">x min</label>
+            <input type="number" id="xmin-input" value="-10" class="mt-1 w-full p-2 bg-secondary border border-border rounded-md focus:ring-2 focus:ring-ring focus:outline-none">
+          </div>
+          <div>
+            <label for="xmax-input" class="text-sm font-medium text-muted-foreground">x max</label>
+            <input type="number" id="xmax-input" value="10" class="mt-1 w-full p-2 bg-secondary border border-border rounded-md focus:ring-2 focus:ring-ring focus:outline-none">
+          </div>
+        </div>
+
+        <div>
+          <label for="step-input" class="text-sm font-medium text-muted-foreground">Paso de muestreo</label>
+          <input type="number" id="step-input" value="0.1" step="0.01" min="0.01" class="mt-1 w-full p-2 bg-secondary border border-border rounded-md focus:ring-2 focus:ring-ring focus:outline-none">
+        </div>
+
+        <div class="pt-4 space-y-2">
+          <button type="submit" id="analyze-btn" class="w-full flex items-center justify-center gap-2 p-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-colors focus:ring-2 focus:ring-ring focus:outline-none">
+            <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+            <span>Analizar y Graficar</span>
+          </button>
+          <div class="grid grid-cols-2 gap-2">
+            <button type="button" id="color-modal-btn" class="w-full flex items-center justify-center gap-2 p-3 bg-secondary text-secondary-foreground font-bold rounded-lg hover:bg-secondary/80 transition-colors focus:ring-2 focus:ring-ring focus:outline-none">
+              <i data-lucide="palette" class="w-5 h-5"></i>
+              <span>Paleta</span>
+            </button>
+            <button type="button" id="export-pdf-btn" class="w-full flex items-center justify-center gap-2 p-3 bg-secondary text-secondary-foreground font-bold rounded-lg hover:bg-secondary/80 transition-colors focus:ring-2 focus:ring-ring focus:outline-none">
+              <i data-lucide="file-down" class="w-5 h-5"></i>
+              <span>PDF</span>
+            </button>
+          </div>
+          <div class="space-y-2 pt-2">
+            <button type="button" id="details-modal-btn" disabled class="w-full flex items-center justify-center gap-2 p-3 bg-secondary text-secondary-foreground font-bold rounded-lg hover:bg-secondary/80 transition-colors focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+              <i data-lucide="calculator" class="w-5 h-5"></i>
+              <span>Cálculos Detallados</span>
+            </button>
+            <button type="button" id="derivatives-modal-btn" disabled class="w-full flex items-center justify-center gap-2 p-3 bg-secondary text-secondary-foreground font-bold rounded-lg hover:bg-secondary/80 transition-colors focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+              <i data-lucide="function-square" class="w-5 h-5"></i>
+              <span>Tabla de Derivadas</span>
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <footer class="text-center lg:text-right p-4 text-xs text-muted-foreground/50 mt-auto">
+        Creado por Msc. Néstor Fabio Montoya
+      </footer>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content" class="relative flex-1 flex flex-col bg-background transition-all duration-300 ease-in-out lg:ml-0">
+      <header class="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+        <button id="open-sidebar-btn" class="p-2 rounded-md hover:bg-secondary">
+          <i data-lucide="menu"></i>
+        </button>
+        <h1 class="text-lg font-bold text-primary">Analizador f(x)</h1>
+        <div class="w-8"></div>
+      </header>
+
+      <!-- Top Right Controls -->
+      <div class="absolute top-4 right-4 z-30 flex items-center gap-2 bg-card/50 backdrop-blur-sm p-2 rounded-full border border-border">
+        <button id="theme-switcher" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Cambiar tema">
+          <i data-lucide="sun" class="light-icon w-5 h-5"></i>
+          <i data-lucide="moon" class="dark-icon hidden w-5 h-5"></i>
+          <i data-lucide="zap" class="neon-icon hidden w-5 h-5"></i>
+        </button>
+        <a href="https://github.com/nestor-fabian-montoya/function-analyzer" target="_blank" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Ver código fuente en GitHub">
+          <i data-lucide="github" class="w-5 h-5"></i>
+        </a>
+        <button id="help-modal-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Mostrar ayuda">
+          <i data-lucide="help-circle" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <div id="output" class="flex-1 flex w-full h-full p-4">
+        <div id="plot-container" class="w-full h-full rounded-lg border border-border bg-secondary/30">
+          <div id="plot-message-layer" class="w-full h-full flex items-center justify-center">
+            <div id="loader" class="text-center hidden">
+              <svg class="animate-spin h-10 w-10 text-primary mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <p class="mt-4 text-muted-foreground">Realizando cálculos complejos...</p>
+            </div>
+            <p id="plot-placeholder" class="text-muted-foreground">La gráfica de la función aparecerá aquí.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modals Container -->
+  <div id="modal-container">
+    <!-- Color Palette Modal -->
+    <div id="color-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in modal">
+      <div class="bg-card border border-border rounded-2xl p-6 w-full max-w-md shadow-2xl slide-up modal-content">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="palette"></i> Paleta de Colores</h2>
+          <button class="p-2 rounded-md hover:bg-secondary transition-colors close-modal-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div class="flex items-center justify-between p-3 bg-secondary rounded-lg"><label for="line-color-picker" class="font-medium">Curva</label><input type="color" id="line-color-picker" value="#1e293b" class="w-10 h-10 bg-transparent border-none rounded-md cursor-pointer"></div>
+          <div class="flex items-center justify-between p-3 bg-secondary rounded-lg"><label for="max-point-color-picker" class="font-medium">Máximos</label><input type="color" id="max-point-color-picker" value="#ef4444" class="w-10 h-10 bg-transparent border-none rounded-md cursor-pointer"></div>
+          <div class="flex items-center justify-between p-3 bg-secondary rounded-lg"><label for="min-point-color-picker" class="font-medium">Mínimos</label><input type="color" id="min-point-color-picker" value="#3b82f6" class="w-10 h-10 bg-transparent border-none rounded-md cursor-pointer"></div>
+          <div class="flex items-center justify-between p-3 bg-secondary rounded-lg"><label for="inflection-point-color-picker" class="font-medium">Inflexión</label><input type="color" id="inflection-point-color-picker" value="#eab308" class="w-10 h-10 bg-transparent border-none rounded-md cursor-pointer"></div>
+        </div>
+        <p class="text-xs text-muted-foreground mt-4 text-center">Los colores del fondo y la rejilla se adaptan al tema actual.</p>
+      </div>
+    </div>
+
+    <!-- Details Modal -->
+    <div id="details-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in modal">
+      <div class="bg-card border border-border rounded-2xl p-6 w-full max-w-2xl shadow-2xl slide-up modal-content max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between mb-4 pb-4 border-b border-border">
+          <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="calculator"></i> Cálculos Detallados</h2>
+          <button class="p-2 rounded-md hover:bg-secondary transition-colors close-modal-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div id="details-modal-body" class="overflow-y-auto"></div>
+      </div>
+    </div>
+    
+    <!-- Derivatives Modal -->
+    <div id="derivatives-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in modal">
+      <div class="bg-card border border-border rounded-2xl p-6 w-full max-w-3xl shadow-2xl slide-up modal-content max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between mb-4 pb-4 border-b border-border">
+          <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="function-square"></i> Tabla de Derivadas</h2>
+          <button class="p-2 rounded-md hover:bg-secondary transition-colors close-modal-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div id="derivatives-modal-body" class="overflow-y-auto"></div>
+      </div>
+    </div>
+
+    <!-- Help Modal -->
+    <div id="help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in modal">
+        <div class="bg-card border border-border rounded-2xl p-6 w-full max-w-3xl shadow-2xl slide-up modal-content max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-border">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="help-circle"></i> Guía de Usuario</h2>
+                <button class="p-2 rounded-md hover:bg-secondary transition-colors close-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div id="help-modal-body" class="overflow-y-auto prose prose-sm dark:prose-invert max-w-none"></div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="fixed top-4 right-4 z-[100] w-full max-w-xs space-y-2"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- DOM Elements ---
+      const sidebar = document.getElementById('sidebar');
+      const openSidebarBtn = document.getElementById('open-sidebar-btn');
+      const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+      const form = document.getElementById('analysis-form');
+      const functionInput = document.getElementById('function-input');
+      const xminInput = document.getElementById('xmin-input');
+      const xmaxInput = document.getElementById('xmax-input');
+      const stepInput = document.getElementById('step-input');
+      const plotContainer = document.getElementById('plot-container');
+      const plotMessageLayer = document.getElementById('plot-message-layer');
+      const plotPlaceholder = document.getElementById('plot-placeholder');
+      const loader = document.getElementById('loader');
+      const toastContainer = document.getElementById('toast-container');
+      const themeSwitcher = document.getElementById('theme-switcher');
+      const exportPdfBtn = document.getElementById('export-pdf-btn');
+      
+      // Modal Buttons
+      const colorModalBtn = document.getElementById('color-modal-btn');
+      const detailsModalBtn = document.getElementById('details-modal-btn');
+      const derivativesModalBtn = document.getElementById('derivatives-modal-btn');
+      const helpModalBtn = document.getElementById('help-modal-btn');
+
+      // Modals
+      const colorModal = document.getElementById('color-modal');
+      const detailsModal = document.getElementById('details-modal');
+      const derivativesModal = document.getElementById('derivatives-modal');
+      const helpModal = document.getElementById('help-modal');
+      const allModals = [colorModal, detailsModal, derivativesModal, helpModal];
+
+      // Modal Bodies
+      const detailsModalBody = document.getElementById('details-modal-body');
+      const derivativesModalBody = document.getElementById('derivatives-modal-body');
+      const helpModalBody = document.getElementById('help-modal-body');
+      
+      // Color pickers
+      const lineColorPicker = document.getElementById('line-color-picker');
+      const maxPointColorPicker = document.getElementById('max-point-color-picker');
+      const minPointColorPicker = document.getElementById('min-point-color-picker');
+      const inflectionPointColorPicker = document.getElementById('inflection-point-color-picker');
+
+      // --- State Management ---
+      let currentTheme = 'light';
+      const themes = ['light', 'dark', 'neon'];
+      const { jsPDF } = window.jspdf;
+      let plotInitialized = false;
+
+      // --- Utility Functions ---
+      const showToast = (message, type = 'info') => {
+        const icons = { success: 'check-circle', error: 'x-circle', info: 'info' };
+        const colors = { success: 'text-green-500', error: 'text-red-500', info: 'text-blue-500' };
+        const toast = document.createElement('div');
+        toast.className = `flex items-center gap-4 p-4 w-full bg-card border border-border rounded-lg shadow-lg toast-in`;
+        toast.innerHTML = `<i data-lucide="${icons[type]}" class="${colors[type]}"></i><p class="text-sm font-medium">${message}</p>`;
+        toastContainer.appendChild(toast);
+        lucide.createIcons();
+        setTimeout(() => {
+          toast.classList.replace('toast-in', 'toast-out');
+          toast.addEventListener('animationend', () => toast.remove());
+        }, 4000);
+      };
+
+      // --- Theme Management ---
+      const applyTheme = (theme) => {
+        document.documentElement.classList.remove(...themes);
+        document.documentElement.classList.add(theme);
+        currentTheme = theme;
+        localStorage.setItem('analyzer-theme', theme);
+        document.querySelectorAll('#theme-switcher i').forEach(i => i.style.display = 'none');
+        document.querySelector(`#theme-switcher .${theme}-icon`).style.display = 'block';
+        if (plotInitialized) updatePlotLayout();
+      };
+      
+      themeSwitcher.addEventListener('click', () => {
+        applyTheme(themes[(themes.indexOf(currentTheme) + 1) % themes.length]);
+      });
+
+      // --- Sidebar Management ---
+      openSidebarBtn.addEventListener('click', () => sidebar.classList.remove('-translate-x-full'));
+      closeSidebarBtn.addEventListener('click', () => sidebar.classList.add('-translate-x-full'));
+      document.addEventListener('click', (e) => {
+        if (window.innerWidth < 1024 && !sidebar.contains(e.target) && !openSidebarBtn.contains(e.target) && !openSidebarBtn.contains(e.target.closest('button'))) {
+          sidebar.classList.add('-translate-x-full');
+        }
+      });
+      
+      // --- Modal Management ---
+      const openModal = (modal) => {
+        modal.classList.replace('hidden', 'flex');
+        document.body.style.overflow = 'hidden';
+      };
+      const closeModal = (modal) => {
+        modal.classList.add('fade-out');
+        modal.addEventListener('animationend', () => {
+          modal.classList.replace('flex', 'hidden');
+          modal.classList.remove('fade-out');
+          if (!document.querySelector('.modal.flex')) {
+            document.body.style.overflow = '';
+          }
+        }, { once: true });
+      };
+
+      allModals.forEach(modal => {
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal) closeModal(modal);
+        });
+        modal.querySelector('.close-modal-btn').addEventListener('click', () => closeModal(modal));
+      });
+      
+      colorModalBtn.addEventListener('click', () => openModal(colorModal));
+      detailsModalBtn.addEventListener('click', () => openModal(detailsModal));
+      derivativesModalBtn.addEventListener('click', () => openModal(derivativesModal));
+      helpModalBtn.addEventListener('click', () => openModal(helpModal));
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          allModals.forEach(modal => {
+            if (modal.classList.contains('flex')) closeModal(modal);
+          });
+        }
+        if (e.ctrlKey && e.key === 'Enter') {
+          e.preventDefault();
+          form.requestSubmit();
+        }
+      });
+
+      // --- Core Analysis Logic ---
+      const analyzeAndGraph = async (event) => {
+        if (event) event.preventDefault();
+        
+        // Show loading state
+        plotMessageLayer.classList.remove('hidden');
+        loader.classList.remove('hidden');
+        plotPlaceholder.classList.add('hidden');
+        
+        if (plotInitialized) {
+            Plotly.purge(plotContainer);
+            plotInitialized = false;
+        }
+        
+        detailsModalBtn.disabled = true;
+        derivativesModalBtn.disabled = true;
+
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(runAnalysis, { timeout: 2000 });
+        } else {
+          setTimeout(runAnalysis, 0);
+        }
+      };
+
+      const runAnalysis = () => {
+        try {
+          const expr = functionInput.value.trim().toLowerCase();
+          if (!expr) throw new Error('Por favor, introduce una función.');
+          
+          const xMin = parseFloat(xminInput.value), xMax = parseFloat(xmaxInput.value), step = parseFloat(stepInput.value);
+          if (isNaN(xMin) || isNaN(xMax) || isNaN(step)) throw new Error('Los rangos y el paso deben ser números.');
+          if (xMin >= xMax) throw new Error('x min debe ser menor que x max.');
+          if (step <= 0) throw new Error('El paso debe ser positivo.');
+
+          const node = math.parse(expr);
+          const f_prime_node = math.derivative(node, 'x');
+          const f_second_node = math.derivative(f_prime_node, 'x');
+
+          const f = x => node.evaluate({ x });
+          const f_prime = x => f_prime_node.evaluate({ x });
+          const f_second = x => f_second_node.evaluate({ x });
+
+          const epsilon = 1e-7;
+          const criticalPoints = findRoots(f_prime, xMin, xMax, Math.max(step / 5, 0.01));
+          const inflectionPoints = findRoots(f_second, xMin, xMax, Math.max(step / 5, 0.01));
+
+          const classifiedPoints = { maxima: [], minima: [], saddle: [], inflections: [] };
+          criticalPoints.forEach(x => {
+            const y = f(x);
+            const second_deriv_val = f_second(x);
+            if (Math.abs(second_deriv_val) < epsilon) classifiedPoints.saddle.push({ x, y });
+            else if (second_deriv_val < 0) classifiedPoints.maxima.push({ x, y });
+            else classifiedPoints.minima.push({ x, y });
+          });
+          inflectionPoints.forEach(x => {
+            const sign_before = Math.sign(f_second(x - epsilon * 10));
+            const sign_after = Math.sign(f_second(x + epsilon * 10));
+            if (sign_before !== sign_after && sign_before !== 0 && sign_after !== 0) {
+              classifiedPoints.inflections.push({ x, y: f(x) });
+            }
+          });
+          
+          const x_values = [], y_values = [];
+          for (let x = xMin; x <= xMax; x += step) {
+            try {
+              const y = f(x);
+              if (isFinite(y) && Math.abs(y) < 1e5) {
+                x_values.push(x);
+                y_values.push(y);
+              } else {
+                x_values.push(x, null);
+                y_values.push(null, null);
+              }
+            } catch (e) {
+              x_values.push(x, null);
+              y_values.push(null, null);
+            }
+          }
+
+          renderPlot(x_values, y_values, classifiedPoints);
+          renderDetailsModal(classifiedPoints);
+          renderDerivativesModal(node, f_prime_node, f_second_node);
+          detailsModalBtn.disabled = false;
+          derivativesModalBtn.disabled = false;
+          showToast('Análisis completado con éxito.', 'success');
+        } catch (error) {
+          console.error("Analysis Error:", error);
+          showToast(error.message, 'error');
+          plotMessageLayer.classList.remove('hidden');
+          plotPlaceholder.textContent = `Error al procesar la función. Verifica la sintaxis.`;
+          plotPlaceholder.classList.remove('hidden');
+          loader.classList.add('hidden');
+        }
+      };
+      
+      const findRoots = (func, start, end, step) => {
+        const roots = new Set();
+        const maxIter = 20, tolerance = 1e-8;
+        for (let i = start; i < end; i += step) {
+          let y0, y1;
+          try {
+            y0 = func(i); y1 = func(i + step);
+          } catch(e) { continue; }
+          if (isFinite(y0) && isFinite(y1)) {
+            if (Math.abs(y0) < tolerance) roots.add(parseFloat(i.toPrecision(7)));
+            if (y0 * y1 < 0) {
+              let a = i, b = i + step;
+              for (let j = 0; j < maxIter; j++) {
+                let m = (a + b) / 2, ym = func(m);
+                if (Math.abs(ym) < tolerance) { a = m; break; }
+                if (func(a) * ym < 0) b = m; else a = m;
+              }
+              roots.add(parseFloat(a.toPrecision(7)));
+            }
+          }
+        }
+        return Array.from(roots).sort((a, b) => a - b);
+      };
+
+      // --- Rendering Functions ---
+      const renderPlot = (x_vals, y_vals, points) => {
+        plotMessageLayer.classList.add('hidden');
+        plotInitialized = true;
+        const traces = [
+          { x: x_vals, y: y_vals, mode: 'lines', name: 'f(x)', line: { color: lineColorPicker.value, width: 3 }, hoverinfo: 'x+y' },
+          { x: points.maxima.map(p => p.x), y: points.maxima.map(p => p.y), mode: 'markers', name: 'Máximos', marker: { symbol: 'triangle-up', color: maxPointColorPicker.value, size: 12, line: {width: 1.5, color: 'hsl(var(--background))'} }, hovertemplate: 'Máximo<br>x: %{x:.4f}<br>y: %{y:.4f}<extra></extra>' },
+          { x: points.minima.map(p => p.x), y: points.minima.map(p => p.y), mode: 'markers', name: 'Mínimos', marker: { symbol: 'triangle-down', color: minPointColorPicker.value, size: 12, line: {width: 1.5, color: 'hsl(var(--background))'} }, hovertemplate: 'Mínimo<br>x: %{x:.4f}<br>y: %{y:.4f}<extra></extra>' },
+          { x: points.inflections.map(p => p.x), y: points.inflections.map(p => p.y), mode: 'markers', name: 'Inflexión', marker: { symbol: 'star', color: inflectionPointColorPicker.value, size: 12, line: {width: 1.5, color: 'hsl(var(--background))'} }, hovertemplate: 'Inflexión<br>x: %{x:.4f}<br>y: %{y:.4f}<extra></extra>' }
+        ];
+        Plotly.newPlot(plotContainer, traces, getPlotLayout(), { responsive: true, displaylogo: false, modeBarButtonsToRemove: ['toImage', 'select2d', 'lasso2d'] });
+      };
+
+      const getPlotLayout = () => {
+        const style = getComputedStyle(document.documentElement);
+        return {
+          margin: { l: 50, r: 20, b: 50, t: 50, pad: 4 },
+          paper_bgcolor: 'transparent',
+          plot_bgcolor: 'transparent',
+          font: { color: `hsl(${style.getPropertyValue('--plot-text')})`, family: 'Inter, sans-serif' },
+          xaxis: { 
+            gridcolor: `hsl(${style.getPropertyValue('--plot-grid')})`, 
+            zeroline: true,
+            zerolinecolor: `hsl(${style.getPropertyValue('--plot-zeroline')})`,
+            zerolinewidth: 3,
+            title: 'x'
+          },
+          yaxis: { 
+            gridcolor: `hsl(${style.getPropertyValue('--plot-grid')})`,
+            zeroline: true,
+            zerolinecolor: `hsl(${style.getPropertyValue('--plot-zeroline')})`,
+            zerolinewidth: 3,
+            title: 'f(x)'
+          },
+          legend: { orientation: 'h', yanchor: 'bottom', y: 1.02, xanchor: 'right', x: 1 },
+          hovermode: 'x unified',
+          dragmode: 'pan', // Set drag mode to pan
+          scrollZoom: true // Explicitly enable scroll zoom
+        };
+      };
+
+      const updatePlotLayout = () => {
+        if (plotInitialized) Plotly.relayout(plotContainer, getPlotLayout());
+      };
+
+      const renderDetailsModal = (points) => {
+        const formatPoint = p => `( ${p.x.toFixed(4)}, ${p.y.toFixed(4)} )`;
+        const formatPointsArray = arr => arr.length > 0 ? arr.map(p => `<span class="font-mono bg-secondary p-1 rounded-md">${formatPoint(p)}</span>`).join(' ') : '<span class="text-muted-foreground">Ninguno detectado</span>';
+        detailsModalBody.innerHTML = `
+          <div class="space-y-4">
+            <div><h3 class="font-bold text-lg mb-2 text-red-500">Máximos Locales</h3><div class="flex flex-wrap gap-2">${formatPointsArray(points.maxima)}</div></div>
+            <div><h3 class="font-bold text-lg mb-2 text-blue-500">Mínimos Locales</h3><div class="flex flex-wrap gap-2">${formatPointsArray(points.minima)}</div></div>
+            <div><h3 class="font-bold text-lg mb-2 text-yellow-500">Puntos de Inflexión</h3><div class="flex flex-wrap gap-2">${formatPointsArray(points.inflections)}</div></div>
+            ${points.saddle.length > 0 ? `<div><h3 class="font-bold text-lg mb-2 text-gray-500">Posibles Puntos de Silla</h3><div class="flex flex-wrap gap-2">${formatPointsArray(points.saddle)}</div></div>` : ''}
+          </div>`;
+      };
+
+      const renderDerivativesModal = (f, fp, fpp) => {
+        derivativesModalBody.innerHTML = `
+          <div class="space-y-6 text-base">
+            <div><h3 class="font-bold text-lg mb-2">Función Original: <span class="font-mono">f(x)</span></h3><div class="p-4 bg-secondary rounded-lg overflow-x-auto">\\[ ${f.toTex()} \\]</div></div>
+            <div><h3 class="font-bold text-lg mb-2">Primera Derivada: <span class="font-mono">f'(x)</span></h3><div class="p-4 bg-secondary rounded-lg overflow-x-auto">\\[ ${fp.toTex()} \\]</div></div>
+            <div><h3 class="font-bold text-lg mb-2">Segunda Derivada: <span class="font-mono">f''(x)</span></h3><div class="p-4 bg-secondary rounded-lg overflow-x-auto">\\[ ${fpp.toTex()} \\]</div></div>
+          </div>`;
+        if (window.MathJax) MathJax.typesetPromise([derivativesModalBody]);
+      };
+
+      const renderHelpModal = () => {
+        helpModalBody.innerHTML = `
+          <h4>Bienvenido al Analizador de Funciones</h4>
+          <p>Esta herramienta te permite analizar y visualizar funciones matemáticas de una variable real.</p>
+          <h5>1. Introducir una Función</h5>
+          <p>Escribe tu función en el campo <strong>Función f(x)</strong>. Utiliza 'x' como la variable independiente. La sintaxis es similar a la de una calculadora científica.</p>
+          <ul>
+            <li><strong>Operadores:</strong> <code>+</code>, <code>-</code>, <code>*</code>, <code>/</code>, <code>^</code> (potencia).</li>
+            <li><strong>Funciones Comunes:</strong> <code>sin(x)</code>, <code>cos(x)</code>, <code>tan(x)</code>, <code>log(x)</code> (logaritmo natural), <code>sqrt(x)</code>, <code>abs(x)</code>.</li>
+            <li><strong>Constantes:</strong> <code>pi</code>, <code>e</code>.</li>
+            <li><strong>Ejemplo:</strong> <code>sin(pi * x / 2) + log(x^2 + 1)</code></li>
+          </ul>
+          <h5>2. Configurar el Análisis</h5>
+          <ul>
+            <li><strong>x min / x max:</strong> Define el rango horizontal de la gráfica.</li>
+            <li><strong>Paso de muestreo:</strong> Controla la resolución de la curva. Un valor más pequeño da una curva más suave pero tarda más en calcular.</li>
+          </ul>
+          <h5>3. Controles Principales</h5>
+          <ul>
+            <li><strong>Analizar y Graficar:</strong> Inicia el cálculo y la visualización. (Atajo: <code>Ctrl + Enter</code>)</li>
+            <li><strong>Paleta, PDF, Cálculos, Derivadas:</strong> Accede a estas funciones desde el panel izquierdo.</li>
+            <li><strong>Controles Superiores:</strong> Cambia el tema, visita el repositorio o accede a esta ayuda desde los íconos en la esquina superior derecha.</li>
+          </ul>
+          <h5>4. Interactuar con la Gráfica</h5>
+          <ul>
+            <li><strong>Zoom:</strong> Usa la rueda del ratón o el gesto de pellizcar en pantallas táctiles.</li>
+            <li><strong>Pan (Mover):</strong> Haz clic y arrastra para moverte por la gráfica.</li>
+            <li><strong>Tooltips:</strong> Pasa el ratón sobre los puntos para ver sus coordenadas exactas.</li>
+          </ul>
+        `;
+      };
+      
+      // --- Event Listeners ---
+      form.addEventListener('submit', analyzeAndGraph);
+      
+      [lineColorPicker, maxPointColorPicker, minPointColorPicker, inflectionPointColorPicker].forEach(picker => {
+          picker.addEventListener('input', () => {
+              if (!plotInitialized) return;
+              Plotly.restyle(plotContainer, {
+                  'line.color': [lineColorPicker.value],
+                  'marker.color': [null, maxPointColorPicker.value, minPointColorPicker.value, inflectionPointColorPicker.value]
+              });
+          });
+      });
+      
+      exportPdfBtn.addEventListener('click', () => {
+        if (!plotInitialized) {
+            showToast('Primero analiza una función para generar un PDF.', 'info');
+            return;
+        }
+        showToast('Generando PDF...', 'info');
+        const contentToPrint = document.getElementById('main-content');
+        html2canvas(contentToPrint, { scale: 2, useCORS: true, backgroundColor: `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--background')})` })
+        .then(canvas => {
+          const imgData = canvas.toDataURL('image/png');
+          const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+          const imgProps = doc.getImageProperties(imgData);
+          const pdfWidth = doc.internal.pageSize.getWidth();
+          const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+          doc.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+          doc.save(`analisis_${functionInput.value.replace(/[^a-z0-9]/gi, '_')}.pdf`);
+        }).catch(err => {
+          console.error("PDF Export Error:", err);
+          showToast('Error al exportar a PDF.', 'error');
+        });
+      });
+
+      // --- Initialization ---
+      const savedTheme = localStorage.getItem('analyzer-theme');
+      applyTheme(savedTheme && themes.includes(savedTheme) ? savedTheme : 'light');
+      lucide.createIcons();
+      renderHelpModal();
+      form.requestSubmit(); // Initial analysis on page load
+    });
+  </script>
+</body>
+</html>

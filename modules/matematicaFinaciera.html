@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora Financiera Avanzada</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@0.378.0/dist/umd/lucide.js"></script>
+
+    <!-- jsPDF & html2canvas for PDF Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <!-- MathJax for LaTeX Rendering -->
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* ---------------------------------- */
+        /* 1. ESTILOS BASE Y TEMAS            */
+        /* ---------------------------------- */
+        :root {
+            --bg-light: #e0e5ec;
+            --bg-dark: #1a1a1a;
+            --text-light: #333;
+            --text-dark: #e0e0e0;
+            --panel-bg-light: rgba(255, 255, 255, 0.6);
+            --panel-bg-dark: rgba(40, 40, 40, 0.6);
+            --shadow-light-1: #a3b1c6;
+            --shadow-light-2: #ffffff;
+            --shadow-dark-1: #121212;
+            --shadow-dark-2: #222222;
+            --accent-color: #4f46e5;
+            --success-color: #22c55e;
+            --danger-color: #ef4444;
+        }
+
+        html {
+            font-family: 'Inter', sans-serif;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            transition: background-color 0.5s, color 0.5s;
+            overflow-x: hidden;
+        }
+
+        /* Tema Claro */
+        html:not(.dark) body {
+            background-color: var(--bg-light);
+            color: var(--text-light);
+        }
+
+        /* Tema Oscuro */
+        html.dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+        
+        /* Estilos Neumórficos y Glassmorphism */
+        .neumorphic-inset {
+            border-radius: 1rem;
+            background: transparent;
+            transition: box-shadow 0.3s ease;
+        }
+        html:not(.dark) .neumorphic-inset {
+            box-shadow: inset 5px 5px 10px var(--shadow-light-1), inset -5px -5px 10px var(--shadow-light-2);
+        }
+        html.dark .neumorphic-inset {
+            box-shadow: inset 5px 5px 10px var(--shadow-dark-1), inset -5px -5px 10px var(--shadow-dark-2);
+        }
+
+        .glass-panel {
+            border-radius: 1.5rem; /* rounded-3xl */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            transition: background-color 0.5s, border-color 0.5s;
+        }
+        html:not(.dark) .glass-panel {
+            background-color: var(--panel-bg-light);
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+        html.dark .glass-panel {
+            background-color: var(--panel-bg-dark);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Animaciones */
+        @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slide-up { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .animate-fade-in { animation: fade-in 0.5s ease-out forwards; }
+        .animate-slide-up { animation: slide-up 0.5s ease-out forwards; }
+        
+        /* Estilos de Formularios */
+        .form-input, .form-select {
+            background-color: transparent;
+            border: none;
+            outline: none;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            color: inherit;
+        }
+        .form-input::placeholder { color: #9ca3af; }
+        html.dark .form-input::placeholder { color: #6b7280; }
+        .form-select option {
+            background-color: var(--bg-light);
+            color: var(--text-light);
+        }
+        html.dark .form-select option {
+             background-color: var(--bg-dark);
+            color: var(--text-dark);
+        }
+
+        /* Estilos de Modales */
+        .modal-backdrop {
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen w-full">
+
+    <!-- ========= HEADER ========= -->
+    <header class="fixed top-0 left-0 right-0 z-40 p-4 transition-all duration-300">
+        <div class="container mx-auto flex justify-between items-center glass-panel p-2 px-6">
+            <div class="flex items-center gap-2">
+                <i data-lucide="sigma" class="text-indigo-500"></i>
+                <h1 class="font-bold text-lg hidden sm:block">FinanzasPro</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <i data-lucide="sun" class="block dark:hidden"></i>
+                    <i data-lucide="moon" class="hidden dark:block"></i>
+                </button>
+                <button id="help-btn" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <i data-lucide="help-circle"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto pt-28 pb-12 px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- ========= PANEL DE CONTROL (IZQUIERDA) ========= -->
+            <aside class="lg:col-span-1 space-y-8 animate-slide-up">
+                <div class="glass-panel p-6">
+                    <label for="calculation-type" class="font-semibold mb-2 block">Tipo de Cálculo</label>
+                    <div class="neumorphic-inset">
+                         <select id="calculation-type" class="w-full bg-transparent p-3 border-none outline-none form-select">
+                            <option value="fv">Valor Futuro (FV)</option>
+                            <option value="pv">Valor Presente (PV)</option>
+                            <option value="annuityImmediate">Anualidad Vencida</option>
+                            <option value="annuityDue">Anualidad Anticipada</option>
+                            <option value="gradientArithmetic">Gradiente Aritmético</option>
+                            <option value="rate">Tasa de Interés (i)</option>
+                            <option value="periods">Número de Períodos (n)</option>
+                            <option value="rateConversion">Conversión de Tasas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <form id="calc-form" class="glass-panel p-6">
+                    <div id="form-fields" class="space-y-4">
+                        <!-- Los campos se inyectarán aquí dinámicamente -->
+                    </div>
+                    <button type="submit" class="w-full mt-6 flex items-center justify-center gap-2 text-white font-bold py-3 px-4 rounded-full bg-indigo-600 hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 active:scale-100">
+                        <i data-lucide="play-circle"></i>
+                        <span>Calcular</span>
+                    </button>
+                </form>
+            </aside>
+
+            <!-- ========= PANEL DE RESULTADOS (DERECHA) ========= -->
+            <section class="lg:col-span-2 space-y-8 animate-fade-in" style="animation-delay: 0.2s;">
+                <div id="results-container" class="glass-panel p-6 min-h-[200px] flex flex-col justify-center items-center text-center hidden">
+                    <h3 class="font-semibold text-lg mb-2">Resultado</h3>
+                    <p id="result-value" class="text-4xl lg:text-5xl font-extrabold text-indigo-500"></p>
+                    <p id="result-label" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
+                    <button id="details-btn" class="mt-6 flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-full border border-current hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                        Ver Detalles del Cálculo
+                    </button>
+                </div>
+                
+                <div class="glass-panel p-6 min-h-[400px]">
+                    <h3 class="font-semibold text-lg mb-4">Diagrama de Flujo de Caja</h3>
+                    <div id="cashflow-chart" class="w-full h-[350px]">
+                        <div id="chart-placeholder" class="flex items-center justify-center h-full text-gray-400 dark:text-gray-600">
+                            <p>El gráfico aparecerá aquí después del cálculo.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ========= MODALES ========= -->
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop">
+        <div class="glass-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 animate-slide-up">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Ayuda y Fórmulas</h2>
+                <button class="modal-close p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><i data-lucide="x"></i></button>
+            </div>
+            <div class="space-y-4">
+                <details class="bg-black/5 dark:bg-white/5 p-4 rounded-lg">
+                    <summary class="font-semibold cursor-pointer">¿Qué hace esta aplicación?</summary>
+                    <p class="mt-2 text-sm">FinanzasPro es una herramienta para realizar cálculos financieros comunes, como valor presente, valor futuro, anualidades y más. Ingresa los datos en el panel izquierdo y obtén el resultado y un diagrama de flujo de caja al instante.</p>
+                </details>
+                <details class="bg-black/5 dark:bg-white/5 p-4 rounded-lg">
+                    <summary class="font-semibold cursor-pointer">Fórmulas Utilizadas</summary>
+                    <div class="mt-2 text-sm space-y-2">
+                        <p><b>Valor Futuro (FV):</b> $FV = PV \cdot (1 + i)^n$</p>
+                        <p><b>Valor Presente (PV):</b> $PV = \frac{FV}{(1 + i)^n}$</p>
+                        <p><b>Anualidad Vencida:</b> $FV = R \left[ \frac{(1+i)^n - 1}{i} \right]$</p>
+                        <p><b>Conversión de Tasas:</b> $i_{eff} = \left(1 + \frac{j}{m}\right)^m - 1$</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Detalles del Cálculo -->
+    <div id="details-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop">
+        <div class="glass-panel w-full max-w-3xl max-h-[90vh] flex flex-col p-6 animate-slide-up">
+            <div class="flex justify-between items-center mb-6 flex-shrink-0">
+                <h2 class="text-2xl font-bold">Detalles del Cálculo</h2>
+                <button class="modal-close p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><i data-lucide="x"></i></button>
+            </div>
+            <div id="details-content" class="overflow-y-auto pr-2">
+                <!-- Contenido dinámico aquí -->
+            </div>
+            <div class="mt-6 pt-4 border-t border-black/10 dark:border-white/10 flex-shrink-0 flex flex-wrap gap-4 justify-end">
+                <button id="copy-result-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-full border border-current hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                    <i data-lucide="copy" class="w-4 h-4"></i> Copiar Resultado
+                </button>
+                <button id="export-pdf-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-full border border-current hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+                    <i data-lucide="file-down" class="w-4 h-4"></i> Exportar a PDF
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 glass-panel p-4 rounded-xl shadow-lg flex items-center gap-4 hidden animate-slide-up">
+        <i id="toast-icon" data-lucide="alert-circle" class="text-red-500"></i>
+        <p id="toast-message"></p>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        
+        /* ---------------------------------- */
+        /* 2. LÓGICA DE LA UI                 */
+        /* ---------------------------------- */
+
+        // --- Inicialización de Iconos ---
+        lucide.createIcons();
+
+        // --- Selector de Tema ---
+        const themeToggle = document.getElementById('theme-toggle');
+        const htmlEl = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        htmlEl.classList.toggle('dark', savedTheme === 'dark');
+
+        themeToggle.addEventListener('click', () => {
+            htmlEl.classList.toggle('dark');
+            localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
+            // Redibujar gráfico con tema nuevo
+            if (window.currentChartData) {
+                drawCashFlowDiagram(window.currentChartData.inputs, window.currentChartData.type);
+            }
+        });
+
+        // --- Manejo de Modales ---
+        const modals = document.querySelectorAll('.modal-backdrop');
+        document.getElementById('help-btn').addEventListener('click', () => openModal('help-modal'));
+        document.getElementById('details-btn').addEventListener('click', () => openModal('details-modal'));
+
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeModal(modal) {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        modals.forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal || e.target.closest('.modal-close')) {
+                    closeModal(modal);
+                }
+            });
+        });
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                modals.forEach(closeModal);
+            }
+        });
+
+        // --- Formularios Dinámicos ---
+        const calcTypeSelect = document.getElementById('calculation-type');
+        const formFieldsContainer = document.getElementById('form-fields');
+        const periodOptions = `
+            <option value="1">Anual</option>
+            <option value="2">Semestral</option>
+            <option value="4">Cuatrimestral</option>
+            <option value="6">Bimestral</option>
+            <option value="12" selected>Mensual</option>
+            <option value="365">Diario</option>
+        `;
+
+        const formTemplates = {
+            fv: `
+                <div class="neumorphic-inset"> <input type="number" id="pv" placeholder="Valor Presente (PV)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
+            `,
+            pv: `
+                <div class="neumorphic-inset"> <input type="number" id="fv" placeholder="Valor Futuro (FV)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
+            `,
+            annuityImmediate: `
+                <div class="neumorphic-inset"> <input type="number" id="r" placeholder="Renta o Anualidad (R)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
+            `,
+            annuityDue: `
+                <div class="neumorphic-inset"> <input type="number" id="r" placeholder="Renta o Anualidad (R)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
+            `,
+            gradientArithmetic: `
+                <div class="neumorphic-inset"> <input type="number" id="g" placeholder="Gradiente (G)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
+            `,
+            rate: `
+                <div class="neumorphic-inset"> <input type="number" id="fv" placeholder="Valor Futuro (FV)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="pv" placeholder="Valor Presente (PV)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
+            `,
+            periods: `
+                <div class="neumorphic-inset"> <input type="number" id="fv" placeholder="Valor Futuro (FV)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="pv" placeholder="Valor Presente (PV)" class="form-input" required> </div>
+                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
+            `,
+            rateConversion: `
+                <div class="neumorphic-inset"> <input type="number" id="j" placeholder="Tasa Nominal Anual (j) en %" class="form-input" step="any" required> </div>
+                <div> <label class="text-sm font-medium">Capitalización Actual</label> <div class="neumorphic-inset"><select id="m1" class="form-select p-3">${periodOptions}</select></div> </div>
+                <div> <label class="text-sm font-medium">Capitalización Deseada</label> <div class="neumorphic-inset"><select id="m2" class="form-select p-3">${periodOptions.replace('value="12" selected', 'value="12"')}</select></div> </div>
+            `
+        };
+
+        function updateFormFields() {
+            const selectedType = calcTypeSelect.value;
+            formFieldsContainer.innerHTML = formTemplates[selectedType] || '';
+        }
+        
+        calcTypeSelect.addEventListener('change', updateFormFields);
+        updateFormFields(); // Initial call
+
+        // --- Lógica de Cálculo y Presentación ---
+        const calcForm = document.getElementById('calc-form');
+        const resultsContainer = document.getElementById('results-container');
+        const resultValueEl = document.getElementById('result-value');
+        const resultLabelEl = document.getElementById('result-label');
+        const detailsContentEl = document.getElementById('details-content');
+        const chartPlaceholder = document.getElementById('chart-placeholder');
+        
+        let lastCalculation = {};
+
+        calcForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const type = calcTypeSelect.value;
+            const inputs = {};
+            const form = e.target;
+            
+            const visibleInputs = form.querySelectorAll('#form-fields input, #form-fields select');
+            let isValid = true;
+            visibleInputs.forEach(input => {
+                if (input.tagName === 'INPUT' && !input.value) {
+                    showToast(`El campo "${input.placeholder}" es obligatorio.`);
+                    isValid = false;
+                }
+                inputs[input.id] = parseFloat(input.value);
+            });
+            
+            if (!isValid) return;
+
+            // La tasa de interés se convierte de % a decimal
+            if (inputs.i) inputs.i /= 100;
+            if (inputs.j) inputs.j /= 100;
+            
+            const calculation = Finance[type](inputs);
+            lastCalculation = { ...calculation, inputs, type };
+            window.currentChartData = lastCalculation;
+
+            // Mostrar resultados
+            const isRate = type === 'rate' || type === 'rateConversion';
+            const isPeriod = type === 'periods';
+
+            if (isRate) {
+                resultValueEl.textContent = `${calculation.result.toFixed(4)}%`;
+            } else if (isPeriod) {
+                resultValueEl.textContent = `${calculation.result.toFixed(4)}`;
+            } else {
+                const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 2 });
+                resultValueEl.textContent = formatter.format(calculation.result);
+            }
+            
+            resultLabelEl.textContent = calculation.label || '';
+            resultsContainer.classList.remove('hidden');
+
+            // Poblar modal de detalles
+            detailsContentEl.innerHTML = calculation.steps.map(step => `
+                <div class="mb-4">
+                    <h4 class="font-semibold text-lg">${step.title}</h4>
+                    <div class="neumorphic-inset p-4 mt-2 text-sm">
+                        <p class="text-gray-500 dark:text-gray-400">${step.description}</p>
+                        <div class="font-mono text-base mt-2 break-words">${step.formula}</div>
+                    </div>
+                </div>
+            `).join('');
+            MathJax.typesetPromise([detailsContentEl]);
+
+            // Dibujar gráfico
+            drawCashFlowDiagram(inputs, type, calculation.result);
+        });
+        
+        // --- Dibujo de Gráfico (Plotly) ---
+        function drawCashFlowDiagram(inputs, type, result) {
+            const chartDiv = document.getElementById('cashflow-chart');
+            
+            if (type === 'rateConversion') {
+                chartPlaceholder.innerHTML = `<p>El diagrama de flujo de caja no aplica para la conversión de tasas.</p>`;
+                chartPlaceholder.classList.remove('hidden');
+                Plotly.purge(chartDiv);
+                return;
+            }
+            chartPlaceholder.classList.add('hidden');
+
+            const { pv, fv, n, r } = inputs;
+            let x_values = [], y_values = [];
+            const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
+
+            switch(type) {
+                case 'fv':
+                    x_values = Array.from({length: n + 1}, (_, i) => i);
+                    y_values = [ -pv, ...Array(n - 1).fill(0), result ];
+                    break;
+                case 'pv':
+                    x_values = Array.from({length: n + 1}, (_, i) => i);
+                    y_values = [ result, ...Array(n - 1).fill(0), -fv ];
+                    break;
+                case 'annuityImmediate':
+                    x_values = Array.from({length: n + 1}, (_, i) => i);
+                    y_values = [ -result, ...Array(n).fill(r) ]; // PV at 0, then payments
+                    break;
+                case 'annuityDue':
+                    x_values = Array.from({length: n + 1}, (_, i) => i);
+                    y_values = [ -result, ...Array(n).fill(r) ]; // Similar visualization for simplicity
+                    break;
+                default: // For rate, periods, etc., show the basic flow
+                    if (pv !== undefined && fv !== undefined && n !== undefined) {
+                        x_values = Array.from({length: n + 1}, (_, i) => i);
+                        y_values = [ -pv, ...Array(n - 1).fill(0), fv ];
+                    } else {
+                        chartPlaceholder.innerHTML = `<p>Datos insuficientes para generar un diagrama.</p>`;
+                        chartPlaceholder.classList.remove('hidden');
+                        Plotly.purge(chartDiv);
+                        return;
+                    }
+            }
+
+            const isDark = htmlEl.classList.contains('dark');
+            const annotations = [];
+            let maxY = 0;
+
+            y_values.forEach((val, i) => {
+                if (val !== 0) {
+                    maxY = Math.max(maxY, Math.abs(val));
+                    annotations.push({
+                        x: x_values[i],
+                        y: val,
+                        ax: x_values[i],
+                        ay: 0,
+                        xref: 'x',
+                        yref: 'y',
+                        axref: 'x',
+                        ayref: 'y',
+                        showarrow: true,
+                        arrowhead: 2,
+                        arrowsize: 1.5,
+                        arrowwidth: 2,
+                        arrowcolor: val > 0 ? 'var(--success-color)' : 'var(--danger-color)',
+                        text: `<b>${formatter.format(val)}</b>`,
+                        font: {
+                            color: isDark ? '#e0e0e0' : '#333',
+                            size: 12
+                        },
+                        yanchor: val > 0 ? 'bottom' : 'top',
+                        yashift: val > 0 ? 10 : -10
+                    });
+                }
+            });
+
+            const layout = {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                xaxis: { 
+                    title: 'Período (n)', 
+                    color: isDark ? '#e0e0e0' : '#333', 
+                    gridcolor: 'transparent',
+                    zeroline: false,
+                    range: [-0.5, Math.max(...x_values) + 0.5]
+                },
+                yaxis: { 
+                    color: 'transparent', 
+                    gridcolor: 'transparent',
+                    zeroline: false,
+                    range: [-maxY * 1.4, maxY * 1.4]
+                },
+                margin: { l: 20, r: 20, b: 40, t: 20 },
+                shapes: [{ 
+                    type: 'line', x0: -0.5, y0: 0, x1: Math.max(...x_values) + 0.5, y1: 0, 
+                    line: { color: isDark ? '#e0e0e0' : '#333', width: 2 } 
+                }],
+                annotations: annotations,
+                showlegend: false
+            };
+
+            Plotly.newPlot(chartDiv, [], layout, {responsive: true, displaylogo: false});
+        }
+
+        // --- Exportación y Copia ---
+        document.getElementById('copy-result-btn').addEventListener('click', () => {
+            navigator.clipboard.writeText(lastCalculation.result)
+                .then(() => showToast('Resultado copiado al portapapeles.', 'success'))
+                .catch(() => showToast('No se pudo copiar el resultado.'));
+        });
+
+        document.getElementById('export-pdf-btn').addEventListener('click', () => {
+            const { jsPDF } = window.jspdf;
+            const content = document.getElementById('details-content');
+            showToast('Generando PDF...', 'info');
+
+            html2canvas(content, { 
+                backgroundColor: htmlEl.classList.contains('dark') ? '#1a1a1a' : '#e0e5ec',
+                scale: 2 // Improve quality
+            }).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, pdfHeight - 20);
+                pdf.save(`calculo-${lastCalculation.type}.pdf`);
+            });
+        });
+
+        // --- Notificaciones Toast ---
+        function showToast(message, type = 'error') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toast-icon');
+            document.getElementById('toast-message').textContent = message;
+
+            icon.classList.remove('text-red-500', 'text-green-500', 'text-blue-500');
+            if (type === 'success') {
+                icon.dataset.lucide = 'check-circle';
+                icon.classList.add('text-green-500');
+            } else if (type === 'info') {
+                icon.dataset.lucide = 'info';
+                icon.classList.add('text-blue-500');
+            } else {
+                icon.dataset.lucide = 'alert-circle';
+                icon.classList.add('text-red-500');
+            }
+            lucide.createIcons();
+            
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 4000);
+        }
+
+        /* ---------------------------------- */
+        /* 3. MÓDULO DE FINANZAS              */
+        /* ---------------------------------- */
+        
+        const Finance = {
+            fv: ({ pv, i, n }) => {
+                const result = pv * Math.pow(1 + i, n);
+                return {
+                    result,
+                    label: 'Valor Futuro',
+                    steps: [
+                        { title: 'Fórmula General', description: 'El valor futuro (FV) se calcula con la fórmula de interés compuesto.', formula: '$$FV = PV \\cdot (1 + i)^n$$' },
+                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables con los valores proporcionados.', formula: `$$FV = ${pv} \\cdot (1 + ${i})^{${n}}$$` },
+                        { title: 'Resultado Final', description: 'El valor futuro calculado es:', formula: `$$FV = ${result.toFixed(4)}$$` }
+                    ]
+                };
+            },
+            pv: ({ fv, i, n }) => {
+                const result = fv / Math.pow(1 + i, n);
+                return {
+                    result,
+                    label: 'Valor Presente',
+                    steps: [
+                        { title: 'Fórmula General', description: 'El valor presente (PV) se calcula descontando el valor futuro.', formula: '$$PV = \\frac{FV}{(1 + i)^n}$$' },
+                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables con los valores proporcionados.', formula: `$$PV = \\frac{${fv}}{(1 + ${i})^{${n}}}$$` },
+                        { title: 'Resultado Final', description: 'El valor presente calculado es:', formula: `$$PV = ${result.toFixed(4)}$$` }
+                    ]
+                };
+            },
+            annuityImmediate: ({ r, i, n }) => {
+                // Formula para el valor PRESENTE de una anualidad vencida
+                const result = r * ( (1 - Math.pow(1 + i, -n)) / i );
+                return {
+                    result,
+                    label: 'Valor Presente de Anualidad Vencida',
+                    steps: [
+                        { title: 'Fórmula de Anualidad Vencida (PV)', description: 'Se calcula el valor presente de una serie de pagos iguales al final de cada período.', formula: '$$PV = R \\left[ \\frac{1 - (1+i)^{-n}}{i} \\right]$$' },
+                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$PV = ${r} \\left[ \\frac{1 - (1+${i})^{-${n}}}{${i}} \\right]$$` },
+                        { title: 'Resultado Final', description: 'El valor presente de la anualidad es:', formula: `$$PV = ${result.toFixed(4)}$$` }
+                    ]
+                };
+            },
+            annuityDue: ({ r, i, n }) => {
+                // Formula para el valor PRESENTE de una anualidad anticipada
+                const result = r * ( (1 - Math.pow(1 + i, -n)) / i ) * (1 + i);
+                 return {
+                    result,
+                    label: 'Valor Presente de Anualidad Anticipada',
+                    steps: [
+                        { title: 'Fórmula de Anualidad Anticipada (PV)', description: 'Similar a la vencida, pero cada pago se descuenta un período menos.', formula: '$$PV = R \\left[ \\frac{1 - (1+i)^{-n}}{i} \\right] (1+i)$$' },
+                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$PV = ${r} \\left[ \\frac{1 - (1+${i})^{-${n}}}{${i}} \\right] (1+${i})$$` },
+                        { title: 'Resultado Final', description: 'El valor presente de la anualidad es:', formula: `$$PV = ${result.toFixed(4)}$$` }
+                    ]
+                };
+            },
+            gradientArithmetic: ({ g, i, n }) => {
+                const result = (g / i) * (((Math.pow(1 + i, n) - 1) / (i * Math.pow(1 + i, n))) - (n / Math.pow(1 + i, n)));
+                return {
+                    result,
+                    label: 'Valor Presente de Gradiente Aritmético',
+                    steps: [
+                        { title: 'Fórmula de Gradiente Aritmético (PV)', description: 'Calcula el valor presente de una serie de pagos que aumentan en una cantidad constante.', formula: '$$PV_G = \\frac{G}{i} \\left[ \\frac{(1+i)^n - 1}{i(1+i)^n} - \\frac{n}{(1+i)^n} \\right]$$' },
+                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$PV_G = \\frac{${g}}{${i}} \\left[ \\frac{(1+${i})^{${n}} - 1}{${i}(1+${i})^{${n}}} - \\frac{${n}}{(1+${i})^{${n}}} \\right]$$` },
+                        { title: 'Resultado Final', description: 'El valor presente del gradiente es:', formula: `$$PV_G = ${result.toFixed(4)}$$` }
+                    ]
+                };
+            },
+            rate: ({ fv, pv, n }) => {
+                const result = Math.pow(fv / pv, 1 / n) - 1;
+                return {
+                    result: result * 100, // Devolver en %
+                    label: 'Tasa de Interés por Período',
+                    steps: [
+                        { title: 'Fórmula de Tasa de Interés', description: 'Se despeja la tasa (i) de la fórmula de valor futuro.', formula: '$$i = \\left( \\frac{FV}{PV} \\right)^{\\frac{1}{n}} - 1$$' },
+                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$i = \\left( \\frac{${fv}}{${pv}} \\right)^{\\frac{1}{${n}}} - 1$$` },
+                        { title: 'Resultado Final', description: 'La tasa de interés por período es:', formula: `$$i = ${(result * 100).toFixed(4)}\\%$$` }
+                    ]
+                };
+            },
+            periods: ({ fv, pv, i }) => {
+                const result = Math.log(fv / pv) / Math.log(1 + i);
+                return {
+                    result,
+                    label: 'Número de Períodos',
+                    steps: [
+                        { title: 'Fórmula de Número de Períodos', description: 'Se despeja el número de períodos (n) de la fórmula de valor futuro.', formula: '$$n = \\frac{\\ln(FV/PV)}{\\ln(1+i)}$$' },
+                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$n = \\frac{\\ln(${fv}/${pv})}{\\ln(1+${i})}$$` },
+                        { title: 'Resultado Final', description: 'El número de períodos es:', formula: `$$n = ${result.toFixed(4)}$$` }
+                    ]
+                };
+            },
+            rateConversion: ({ j, m1, m2 }) => {
+                const i_eff = Math.pow(1 + j / m1, m1) - 1;
+                const j2 = m2 * (Math.pow(1 + i_eff, 1 / m2) - 1);
+                const periodNames = {1: 'Anual', 2: 'Semestral', 4: 'Cuatrimestral', 6: 'Bimestral', 12: 'Mensual', 365: 'Diario'};
+
+                return {
+                    result: j2 * 100, // Devolver en %
+                    label: `Nominal Anual Capitalizable ${periodNames[m2] || ''}`,
+                    steps: [
+                        { 
+                            title: '1. Calcular Tasa Efectiva Anual (TEA)', 
+                            description: 'Primero, convertimos la tasa nominal original a su tasa efectiva anual equivalente para tener una base común.', 
+                            formula: `$$TEA = \\left(1 + \\frac{j}{m_1}\\right)^{m_1} - 1 = \\left(1 + \\frac{${j}}{${m1}}\\right)^{${m1}} - 1 = ${(i_eff * 100).toFixed(4)}\\%$$`
+                        },
+                        { 
+                            title: '2. Calcular Nueva Tasa Nominal (j₂)', 
+                            description: 'Luego, usamos la TEA para encontrar la nueva tasa nominal con el período de capitalización deseado.', 
+                            formula: `$$j_2 = m_2 \\left[ (1 + TEA)^{\\frac{1}{m_2}} - 1 \\right] = ${m2} \\left[ (1 + ${i_eff.toFixed(6)})^{\\frac{1}{${m2}}} - 1 \\right]$$`
+                        },
+                         { 
+                            title: 'Resultado Final', 
+                            description: `La tasa nominal anual equivalente con capitalización ${periodNames[m2] || ''} es:`, 
+                            formula: `$$j_2 = ${(j2 * 100).toFixed(4)}\\%$$`
+                        }
+                    ]
+                };
+            }
+        };
+
+    });
+    </script>
+</body>
+</html>

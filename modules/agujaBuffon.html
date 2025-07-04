@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="es" class="theme-dark-matter">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador Avanzado: Aguja de Buffon</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- D3.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos personalizados y variables de tema */
+        :root {
+            --bg-body: #111827;
+            --bg-gradient-1: #1e3a8a;
+            --bg-gradient-2: #4f46e5;
+            --bg-gradient-3: #be185d;
+            --bg-gradient-4: #b91c1c;
+            --text-primary: #F9FAFB;
+            --text-secondary: #D1D5DB;
+            --modal-text-primary: #E5E7EB;
+            --modal-text-secondary: #9CA3AF;
+            --panel-bg: rgba(31, 41, 55, 0.5);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --control-bg: #4B5563;
+            --control-thumb-bg: #3B82F6;
+            --control-thumb-border: #F9FAFB;
+            --input-bg: #374151;
+            --input-border: #4B5563;
+            --stat-label-bg: #1F2937;
+            --pi-bg: rgba(59, 130, 246, 0.2);
+            --pi-text: #93C5FD;
+            --error-bg: rgba(239, 68, 68, 0.2);
+            --error-text: #FCA5A5;
+            --needle-ok: #60A5FA;
+            --needle-cross: #F87171;
+        }
+
+        .theme-solar-flare {
+            --bg-body: #FDF2E9;
+            --bg-gradient-1: #f97316;
+            --bg-gradient-2: #ea580c;
+            --bg-gradient-3: #fde047;
+            --bg-gradient-4: #ef4444;
+            --text-primary: #1F2937;
+            --text-secondary: #4B5563;
+            --modal-text-primary: #111827;
+            --modal-text-secondary: #374151;
+            --panel-bg: rgba(255, 255, 255, 0.5);
+            --panel-border: rgba(0, 0, 0, 0.1);
+            --control-bg: #D1D5DB;
+            --control-thumb-bg: #F97316;
+            --control-thumb-border: #FFFFFF;
+            --input-bg: #E5E7EB;
+            --input-border: #D1D5DB;
+            --stat-label-bg: #F3F4F6;
+            --pi-bg: rgba(249, 115, 22, 0.1);
+            --pi-text: #FB923C;
+            --error-bg: rgba(239, 68, 68, 0.1);
+            --error-text: #F87171;
+            --needle-ok: #2563EB;
+            --needle-cross: #DC2626;
+        }
+
+        .theme-emerald-forest {
+            --bg-body: #064e3b;
+            --bg-gradient-1: #059669;
+            --bg-gradient-2: #10b981;
+            --bg-gradient-3: #34d399;
+            --bg-gradient-4: #a7f3d0;
+            --text-primary: #ECFDF5;
+            --text-secondary: #A7F3D0;
+            --modal-text-primary: #D1FAE5;
+            --modal-text-secondary: #A7F3D0;
+            --panel-bg: rgba(5, 150, 105, 0.3);
+            --panel-border: rgba(255, 255, 255, 0.15);
+            --control-bg: #047857;
+            --control-thumb-bg: #34D399;
+            --control-thumb-border: #ECFDF5;
+            --input-bg: #065f46;
+            --input-border: #059669;
+            --stat-label-bg: #022c22;
+            --pi-bg: rgba(52, 211, 153, 0.2);
+            --pi-text: #A7F3D0;
+            --error-bg: rgba(251, 113, 133, 0.2);
+            --error-text: #FBCFE8;
+            --needle-ok: #5EEAD4;
+            --needle-cross: #F9A8D4;
+        }
+        
+        .theme-deep-ocean {
+            --bg-body: #1e1b4b;
+            --bg-gradient-1: #312e81;
+            --bg-gradient-2: #4338ca;
+            --bg-gradient-3: #5b21b6;
+            --bg-gradient-4: #3b82f6;
+            --text-primary: #E0E7FF;
+            --text-secondary: #C7D2FE;
+            --modal-text-primary: #EEF2FF;
+            --modal-text-secondary: #C7D2FE;
+            --panel-bg: rgba(49, 46, 129, 0.4);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            --control-bg: #4338CA;
+            --control-thumb-bg: #818CF8;
+            --control-thumb-border: #E0E7FF;
+            --input-bg: #312E81;
+            --input-border: #4338CA;
+            --stat-label-bg: #1a183e;
+            --pi-bg: rgba(129, 140, 248, 0.2);
+            --pi-text: #A5B4FC;
+            --error-bg: rgba(250, 129, 247, 0.2);
+            --error-text: #F0ABFC;
+            --needle-ok: #7DD3FC;
+            --needle-cross: #F472B6;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            transition: background 0.5s, color 0.5s;
+        }
+
+        .animated-gradient {
+            background: linear-gradient(-45deg, var(--bg-gradient-1), var(--bg-gradient-2), var(--bg-gradient-3), var(--bg-gradient-4));
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; filter: blur(100px);
+            transition: background 0.5s;
+        }
+
+        @keyframes gradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--panel-border);
+            transition: background 0.5s, border 0.5s;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 6px; background: var(--control-bg);
+            border-radius: 3px; outline: none; transition: background 0.3s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: var(--control-thumb-bg);
+            cursor: pointer; border-radius: 50%; border: 3px solid var(--control-thumb-border);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px; background: var(--control-thumb-bg);
+            cursor: pointer; border-radius: 50%; border: 3px solid var(--control-thumb-border);
+        }
+        
+        .icon { width: 1.25rem; height: 1.25rem; display: inline-block; vertical-align: middle; }
+        .icon-small { width: 1rem; height: 1rem; display: inline-block; vertical-align: middle; }
+
+        #help-modal { transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out; }
+        #help-modal.hidden { opacity: 0; transform: scale(0.95); pointer-events: none; }
+        
+        #theme-popover { transition: opacity 0.2s ease, transform 0.2s ease; }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
+            width: 40px;
+            height: 24px;
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch {
+            border-radius: 6px;
+            border: 1px solid var(--input-border);
+        }
+        input[type="color"]::-moz-color-swatch {
+            border-radius: 6px;
+            border: 1px solid var(--input-border);
+        }
+    </style>
+</head>
+<body class="min-h-screen w-full">
+    <div class="animated-gradient"></div>
+
+    <!-- Contenedor de botones de la esquina superior -->
+    <div class="absolute top-4 right-4 flex gap-3 z-20">
+        <button id="theme-btn" class="glass-panel p-2 rounded-full text-gray-300 hover:text-white hover:scale-110 transition-transform">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path></svg>
+        </button>
+        <div id="theme-popover" class="absolute top-12 right-0 glass-panel rounded-lg p-2 space-y-1 hidden">
+            <button class="theme-option w-full text-left px-3 py-1.5 rounded-md hover:bg-white/10 flex items-center gap-2" data-theme="theme-dark-matter">Materia Oscura</button>
+            <button class="theme-option w-full text-left px-3 py-1.5 rounded-md hover:bg-white/10 flex items-center gap-2" data-theme="theme-solar-flare">Llamarada Solar</button>
+            <button class="theme-option w-full text-left px-3 py-1.5 rounded-md hover:bg-white/10 flex items-center gap-2" data-theme="theme-emerald-forest">Bosque Esmeralda</button>
+            <button class="theme-option w-full text-left px-3 py-1.5 rounded-md hover:bg-white/10 flex items-center gap-2" data-theme="theme-deep-ocean">Océano Profundo</button>
+        </div>
+        <button id="help-btn" class="glass-panel p-2 rounded-full text-gray-300 hover:text-white hover:scale-110 transition-transform">
+            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        </button>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+        <div class="glass-panel rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-8">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold" style="color: var(--modal-text-primary);">Acerca de la Aguja de Buffon</h2>
+                <button id="close-help-btn" class="p-2 rounded-full hover:bg-white/10" style="color: var(--modal-text-primary);">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <details class="bg-white/5 p-4 rounded-lg cursor-pointer">
+                    <summary class="font-semibold flex justify-between items-center" style="color: var(--modal-text-primary);">
+                        ¿Cuál es el problema?
+                        <svg class="icon-small transition-transform transform"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <p class="mt-3" style="color: var(--modal-text-secondary);">
+                        El problema de la aguja de Buffon data del siglo XVIII y es uno de los problemas más antiguos de probabilidad geométrica. Fue planteado por Georges-Louis Leclerc, Conde de Buffon, en 1733. La pregunta es: si dejamos caer una aguja de longitud $L$ sobre un suelo con líneas paralelas separadas por una distancia $D$, ¿cuál es la probabilidad de que la aguja cruce una de las líneas?
+                    </p>
+                </details>
+                 <details class="bg-white/5 p-4 rounded-lg cursor-pointer">
+                    <summary class="font-semibold flex justify-between items-center" style="color: var(--modal-text-primary);">
+                        La Solución y la Estimación de π
+                        <svg class="icon-small transition-transform transform"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </summary>
+                    <p class="mt-3" style="color: var(--modal-text-secondary);">
+                        Sorprendentemente, la respuesta involucra a π. Para el caso simple donde la longitud de la aguja es menor o igual al espaciado de las líneas ($L \le D$), la probabilidad $P$ de que la aguja cruce una línea es:
+                        $$ P = \frac{2L}{\pi D} $$
+                        Reorganizando esta fórmula, podemos estimar el valor de π a partir de un experimento:
+                        $$ \pi \approx \frac{2L \times (\text{total de agujas})}{D \times (\text{agujas que cruzan})} $$
+                        Este simulador realiza miles de "lanzamientos" virtuales para aproximar este valor. Cuantas más agujas se lancen, mejor será la estimación de π.
+                    </p>
+                </details>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-black tracking-tight" style="color: var(--text-primary);">
+                Simulador de la Aguja de Buffon
+            </h1>
+            <p class="text-lg mt-2" style="color: var(--text-secondary);">Una estimación de π usando probabilidad geométrica</p>
+        </header>
+
+        <main class="flex flex-col lg:flex-row gap-8">
+            <aside class="w-full lg:w-1/3 xl:w-1/4 glass-panel rounded-2xl p-6 shadow-2xl">
+                <h2 class="text-2xl font-bold mb-6 border-b pb-3" style="border-color: var(--panel-border); color: var(--text-primary);">Configuración</h2>
+                
+                <div class="space-y-6">
+                    <div class="control-group">
+                        <label for="needle-length" class="block mb-2 text-sm font-medium" style="color: var(--text-secondary);">Longitud de la aguja</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" id="needle-length" min="20" max="100" value="50" class="flex-grow">
+                            <input type="number" id="needle-length-value" min="20" max="100" value="50" class="border rounded-lg w-20 text-center p-1" style="background-color: var(--input-bg); border-color: var(--input-border);">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="line-spacing" class="block mb-2 text-sm font-medium" style="color: var(--text-secondary);">Espaciado entre líneas</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" id="line-spacing" min="50" max="150" value="100" class="flex-grow">
+                            <input type="number" id="line-spacing-value" min="50" max="150" value="100" class="border rounded-lg w-20 text-center p-1" style="background-color: var(--input-bg); border-color: var(--input-border);">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="num-needles" class="block mb-2 text-sm font-medium" style="color: var(--text-secondary);">Número de agujas</label>
+                        <div class="flex items-center gap-4">
+                            <input type="range" id="num-needles" min="1" max="5000" value="1000" class="flex-grow">
+                            <input type="number" id="num-needles-value" min="1" max="5000" value="1000" class="border rounded-lg w-20 text-center p-1" style="background-color: var(--input-bg); border-color: var(--input-border);">
+                        </div>
+                    </div>
+                    <div class="control-group">
+                        <label for="animation-speed" class="block mb-2 text-sm font-medium" style="color: var(--text-secondary);">Velocidad de simulación</label>
+                        <input type="range" id="animation-speed" min="1" max="100" value="80">
+                    </div>
+                    <div class="control-group">
+                        <label for="grid-color" class="block mb-2 text-sm font-medium" style="color: var(--text-secondary);">Color de la cuadrícula</label>
+                        <div class="flex items-center gap-4">
+                            <input type="color" id="grid-color" value="#888888">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 my-8">
+                    <button id="start-btn" class="flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                        <svg class="icon mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Iniciar</span>
+                    </button>
+                    <button id="pause-btn" disabled class="flex items-center justify-center bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 disabled:bg-gray-600 disabled:cursor-not-allowed disabled:transform-none">
+                        <svg class="icon mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <span>Pausar</span>
+                    </button>
+                    <button id="reset-btn" class="flex items-center justify-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105">
+                        <svg class="icon mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h5M20 20v-5h-5M4 4l16 16"></path></svg>
+                        <span>Reiniciar</span>
+                    </button>
+                </div>
+
+                <div>
+                    <h3 class="text-xl font-bold mb-4 border-b pb-2" style="border-color: var(--panel-border); color: var(--text-primary);">Resultados</h3>
+                    <div class="space-y-3" style="color: var(--text-secondary);">
+                        <div class="stat-item flex justify-between"><span>Agujas lanzadas:</span><span id="needles-thrown" class="font-mono px-2 rounded" style="background-color: var(--stat-label-bg);">0</span></div>
+                        <div class="stat-item flex justify-between"><span>Cruces:</span><span id="crossings" class="font-mono px-2 rounded" style="background-color: var(--stat-label-bg);">0</span></div>
+                        <div class="stat-item flex justify-between"><span>Estimación de π:</span><span id="pi-estimate" class="font-mono px-2 rounded" style="background-color: var(--pi-bg); color: var(--pi-text);">-</span></div>
+                        <div class="stat-item flex justify-between"><span>Error:</span><span id="error" class="font-mono px-2 rounded" style="background-color: var(--error-bg); color: var(--error-text);">-</span></div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="flex-grow glass-panel rounded-2xl p-4 shadow-2xl">
+                <div id="simulation-area" class="w-full h-[60vh] lg:h-full rounded-lg overflow-hidden"></div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- RENDERIZADO DE LATEX ---
+            const katexCss = document.createElement('link');
+            katexCss.rel = "stylesheet";
+            katexCss.href = "https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css";
+            document.head.appendChild(katexCss);
+
+            const katexJs = document.createElement('script');
+            katexJs.src = "https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js";
+            document.head.appendChild(katexJs);
+
+            katexJs.onload = () => {
+                const katexAutoRenderJs = document.createElement('script');
+                katexAutoRenderJs.src = "https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/contrib/auto-render.min.js";
+                document.head.appendChild(katexAutoRenderJs);
+
+                katexAutoRenderJs.onload = () => {
+                    renderMathInElement(document.body, {
+                        delimiters: [
+                            {left: '$$', right: '$$', display: true},
+                            {left: '$', right: '$', display: false}
+                        ]
+                    });
+                };
+            };
+            
+            // --- VARIABLES GLOBALES Y REFERENCIAS DOM ---
+            const simulation = { isRunning: false, needlesThrown: 0, crossings: 0, animationFrame: null };
+            const startBtn = document.getElementById('start-btn');
+            const pauseBtn = document.getElementById('pause-btn');
+            const resetBtn = document.getElementById('reset-btn');
+            const needlesThrownEl = document.getElementById('needles-thrown');
+            const crossingsEl = document.getElementById('crossings');
+            const piEstimateEl = document.getElementById('pi-estimate');
+            const errorEl = document.getElementById('error');
+            const simulationArea = document.getElementById('simulation-area');
+            const gridColorInput = document.getElementById('grid-color');
+            let svg;
+
+            // --- SINCRONIZACIÓN DE INPUTS ---
+            function syncInputs(rangeId, valueId) {
+                const range = document.getElementById(rangeId);
+                const value = document.getElementById(valueId);
+                range.addEventListener('input', () => value.value = range.value);
+                value.addEventListener('input', () => {
+                    const min = parseInt(range.min), max = parseInt(range.max);
+                    if (parseInt(value.value) > max) value.value = max;
+                    if (parseInt(value.value) < min) value.value = min;
+                    range.value = value.value;
+                });
+            }
+            syncInputs('needle-length', 'needle-length-value');
+            syncInputs('line-spacing', 'line-spacing-value');
+            syncInputs('num-needles', 'num-needles-value');
+
+            // --- LÓGICA DE LA SIMULACIÓN (D3.js) ---
+            function getThemeColor(varName) {
+                return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+            }
+
+            function setupSimulationCanvas() {
+                simulationArea.innerHTML = '';
+                const width = simulationArea.clientWidth;
+                const height = simulationArea.clientHeight;
+                svg = d3.select('#simulation-area').append('svg').attr('width', width).attr('height', height);
+                drawGrid();
+            }
+
+            function drawGrid() {
+                if (!svg) return;
+                const spacing = parseInt(document.getElementById('line-spacing').value);
+                const width = parseInt(svg.attr('width'));
+                const height = parseInt(svg.attr('height'));
+                const gridColor = gridColorInput.value;
+
+                svg.selectAll('line.grid-line').remove();
+                
+                const lines = d3.range(0, height, spacing);
+                
+                svg.selectAll('line.grid-line').data(lines).enter().append('line')
+                    .attr('class', 'grid-line').attr('x1', 0).attr('y1', d => d)
+                    .attr('x2', width).attr('y2', d => d)
+                    .attr('stroke', gridColor).attr('stroke-width', 1.5).style('opacity', 0.75);
+            }
+
+            function addNeedle() {
+                const width = parseInt(svg.attr('width')), height = parseInt(svg.attr('height'));
+                const needleLength = parseInt(document.getElementById('needle-length').value);
+                const spacing = parseInt(document.getElementById('line-spacing').value);
+                const x = Math.random() * width, y = Math.random() * height, angle = Math.random() * Math.PI;
+                const x1 = x - (needleLength / 2) * Math.cos(angle), y1 = y - (needleLength / 2) * Math.sin(angle);
+                const x2 = x + (needleLength / 2) * Math.cos(angle), y2 = y + (needleLength / 2) * Math.sin(angle);
+                const crosses = Math.floor(y1 / spacing) !== Math.floor(y2 / spacing);
+
+                svg.append('line').attr('class', 'needle')
+                    .attr('x1', x1).attr('y1', y1).attr('x2', x2).attr('y2', y2)
+                    .attr('stroke', crosses ? getThemeColor('--needle-cross') : getThemeColor('--needle-ok'))
+                    .attr('stroke-width', 2).style('opacity', 0)
+                    .transition().duration(500).style('opacity', 0.8);
+
+                simulation.needlesThrown++;
+                if (crosses) simulation.crossings++;
+                updateStats();
+            }
+
+            function updateStats() {
+                const needleLength = parseInt(document.getElementById('needle-length').value);
+                const spacing = parseInt(document.getElementById('line-spacing').value);
+                needlesThrownEl.textContent = simulation.needlesThrown;
+                crossingsEl.textContent = simulation.crossings;
+                if (simulation.crossings > 0 && needleLength <= spacing) {
+                    const piEstimate = (2 * needleLength * simulation.needlesThrown) / (simulation.crossings * spacing);
+                    const error = Math.abs((Math.PI - piEstimate) / Math.PI * 100);
+                    piEstimateEl.textContent = piEstimate.toFixed(6);
+                    errorEl.textContent = error.toFixed(2) + '%';
+                } else if (needleLength > spacing) {
+                    piEstimateEl.textContent = "L > D";
+                    errorEl.textContent = "Inválido";
+                }
+            }
+
+            function animate() {
+                if (!simulation.isRunning) return;
+                const totalNeedles = parseInt(document.getElementById('num-needles').value);
+                const speed = parseInt(document.getElementById('animation-speed').value);
+                const needlesPerFrame = Math.ceil(speed / 10);
+                for (let i = 0; i < needlesPerFrame && simulation.needlesThrown < totalNeedles; i++) addNeedle();
+                if (simulation.needlesThrown < totalNeedles) {
+                    simulation.animationFrame = requestAnimationFrame(animate);
+                } else {
+                    pauseSimulation();
+                }
+            }
+            
+            function startSimulation() {
+                if (simulation.needlesThrown >= parseInt(document.getElementById('num-needles').value)) resetSimulation();
+                simulation.isRunning = true;
+                startBtn.disabled = true;
+                pauseBtn.disabled = false;
+                animate();
+            }
+
+            function pauseSimulation() {
+                simulation.isRunning = false;
+                startBtn.disabled = false;
+                pauseBtn.disabled = true;
+                if (simulation.animationFrame) cancelAnimationFrame(simulation.animationFrame);
+            }
+
+            function resetSimulation() {
+                pauseSimulation();
+                simulation.needlesThrown = 0;
+                simulation.crossings = 0;
+                if(svg) svg.selectAll('line.needle').remove();
+                piEstimateEl.textContent = '-';
+                errorEl.textContent = '-';
+                updateStats();
+                drawGrid();
+            }
+
+            startBtn.addEventListener('click', startSimulation);
+            pauseBtn.addEventListener('click', pauseSimulation);
+            resetBtn.addEventListener('click', resetSimulation);
+            document.getElementById('line-spacing').addEventListener('change', () => { if (!simulation.isRunning) drawGrid(); });
+            gridColorInput.addEventListener('input', () => { if (!simulation.isRunning) drawGrid(); });
+
+            // --- MODAL DE AYUDA ---
+            const helpModal = document.getElementById('help-modal');
+            const helpBtn = document.getElementById('help-btn');
+            const closeHelpBtn = document.getElementById('close-help-btn');
+            helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+            closeHelpBtn.addEventListener('click', () => helpModal.classList.add('hidden'));
+            helpModal.addEventListener('click', (e) => { if(e.target === helpModal) helpModal.classList.add('hidden'); });
+            document.querySelectorAll('details').forEach((el) => {
+                el.addEventListener('toggle', function() {
+                    this.querySelector('svg').classList.toggle('rotate-180', this.open);
+                });
+            });
+
+            // --- SELECTOR DE TEMA ---
+            const themeBtn = document.getElementById('theme-btn');
+            const themePopover = document.getElementById('theme-popover');
+            const themeOptions = document.querySelectorAll('.theme-option');
+
+            function applyTheme(theme) {
+                document.documentElement.className = theme;
+                localStorage.setItem('buffon-theme', theme);
+                themePopover.classList.add('hidden');
+                drawGrid();
+            }
+
+            themeBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                themePopover.classList.toggle('hidden');
+            });
+            
+            themeOptions.forEach(option => {
+                option.addEventListener('click', () => applyTheme(option.dataset.theme));
+            });
+
+            document.addEventListener('click', () => themePopover.classList.add('hidden'));
+            
+            const savedTheme = localStorage.getItem('buffon-theme') || 'theme-dark-matter';
+            applyTheme(savedTheme);
+
+
+            // --- INICIALIZACIÓN ---
+            setupSimulationCanvas();
+            new ResizeObserver(() => {
+                setupSimulationCanvas();
+                resetSimulation();
+            }).observe(simulationArea);
+        });
+    </script>
+</body>
+</html>
