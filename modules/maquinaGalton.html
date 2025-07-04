@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Máquina de Galton - Mejorado</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']], // Delimiters for inline math
+            displayMath: [['$$', '$$'], ['\\[', '\\]']] // Delimiters for display math
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+    <style>
+        /* --- Global Styles --- */
+        :root {
+            --primary: #3B82F6; /* Primary blue */
+            --secondary: #8B5CF6; /* Secondary purple */
+            --accent: #F59E0B; /* Accent orange */
+            --success: #10B981; /* Success green */
+            --danger: #EF4444; /* Danger red */
+            --bg-dark: #0F172A; /* Dark background */
+            --bg-card: #1E293B; /* Card background */
+            --text-primary: #F1F5F9; /* Primary text color */
+            --text-secondary: #94A3B8; /* Secondary text color */
+        }
+
+        * {
+            box-sizing: border-box; /* Ensures padding and border are included in element's total width and height */
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; /* Modern font stack */
+            background: linear-gradient(135deg, var(--bg-dark) 0%, #1E293B 100%); /* Dark gradient background */
+            color: var(--text-primary);
+            margin: 0;
+            padding: 1rem; /* Default padding for the body */
+            min-height: 100vh; /* Ensure body takes at least full viewport height */
+            overflow-x: hidden; /* Prevent horizontal scrolling */
+            line-height: 1.6; /* Improved readability */
+        }
+
+        /* --- Container --- */
+        .container {
+            max-width: 1200px; /* Max width for larger screens */
+            margin: 0 auto; /* Center the container */
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem; /* Spacing between child elements */
+        }
+
+        /* --- Glassmorphism Card Style --- */
+        .glass-card {
+            background: rgba(30, 41, 59, 0.8); /* Semi-transparent background */
+            backdrop-filter: blur(12px); /* Frosted glass effect */
+            border: 1px solid rgba(148, 163, 184, 0.1); /* Subtle border */
+            border-radius: 16px; /* Rounded corners */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); /* Soft shadow */
+            padding: 1.5rem;
+        }
+
+        /* --- Header Section --- */
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .title {
+            font-size: clamp(1.8rem, 5vw, 2.8rem); /* Responsive font size */
+            font-weight: bold;
+            background: linear-gradient(135deg, var(--primary), var(--secondary)); /* Gradient text */
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+        }
+
+        .subtitle {
+            color: var(--text-secondary);
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem); /* Responsive font size */
+        }
+
+        /* --- Controls Section --- */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); /* Responsive grid columns */
+            gap: 1.5rem; /* Increased gap for better spacing */
+            margin-bottom: 1.5rem;
+        }
+
+        .control-card {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.9), rgba(51, 65, 85, 0.7));
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            padding: 1.25rem; /* Slightly increased padding */
+            transition: all 0.3s ease;
+        }
+
+        .control-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+        }
+
+        .control-label {
+            display: block;
+            font-size: 0.9rem; /* Increased font size for readability */
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem; /* Increased margin */
+        }
+
+        .control-input {
+            width: 100%;
+            padding: 0.75rem; /* Increased padding for easier interaction */
+            border-radius: 8px;
+            border: 1px solid #374151;
+            background-color: #111827;
+            color: var(--text-primary);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .control-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+            outline: none;
+        }
+
+        .slider {
+            appearance: none; /* Remove default slider appearance */
+            height: 8px; /* Slightly thicker slider */
+            background: linear-gradient(90deg, #374151, var(--primary));
+            border-radius: 4px;
+            outline: none;
+            padding: 0;
+        }
+
+        .slider::-webkit-slider-thumb {
+            appearance: none;
+            width: 22px; /* Larger thumb */
+            height: 22px; /* Larger thumb */
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+        }
+
+        .slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15); /* Slightly larger hover effect */
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+        }
+
+        .value-display {
+            font-size: 0.8rem; /* Slightly larger value display */
+            color: var(--primary);
+            text-align: right;
+            margin-top: 0.5rem; /* Increased margin */
+        }
+
+        /* --- Button Group --- */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap; /* Allow buttons to wrap on smaller screens */
+            gap: 1rem;
+            justify-content: center;
+            margin-top: 1rem; /* Add some space above buttons */
+        }
+
+        .btn {
+            position: relative;
+            padding: 0.85rem 1.75rem; /* Larger buttons */
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.9rem; /* Larger font size */
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            overflow: hidden;
+            min-width: 130px; /* Minimum button width */
+        }
+
+        .btn::before { /* Shine effect on hover */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover:not(:disabled)::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6B7280, #9CA3AF);
+            color: white;
+        }
+
+         .btn-secondary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(107, 114, 128, 0.3);
+        }
+
+        .btn-accent {
+            background: linear-gradient(135deg, var(--accent), #F97316);
+            color: white;
+        }
+
+        .btn-accent:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important; /* Prevent hover effects on disabled buttons */
+        }
+
+        /* --- Simulation Area --- */
+        .simulation-area {
+            display: grid;
+            grid-template-columns: 1fr auto; /* Canvas takes remaining space, stats panel auto width */
+            gap: 1.5rem;
+            align-items: start; /* Align items to the top */
+        }
+
+        .canvas-container {
+            position: relative;
+            border-radius: 16px;
+            overflow: hidden; /* Clip canvas content if it overflows */
+            background: linear-gradient(145deg, #1E293B, #0F172A);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            min-height: 300px; /* Ensure a minimum height */
+        }
+
+        #galtonCanvas {
+            display: block;
+            width: 100%; /* Canvas takes full width of its container */
+            height: auto; /* Maintain aspect ratio */
+            max-width: 700px; /* Max width for the canvas itself */
+            margin: 0 auto; /* Center canvas if container is wider */
+        }
+
+        /* --- Stats Panel --- */
+        .stats-panel {
+            width: 280px; /* Slightly wider stats panel */
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Two columns for stats */
+            gap: 1rem; /* Increased gap */
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1));
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px; /* Slightly more rounded corners */
+            padding: 1rem; /* Increased padding */
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px); /* More pronounced hover effect */
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+        }
+
+        .stat-value {
+            font-size: clamp(1.2rem, 3vw, 1.5rem); /* Responsive font size */
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.35rem; /* Increased margin */
+        }
+
+        .stat-label {
+            font-size: 0.7rem; /* Slightly smaller label for contrast */
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* --- Progress Bar --- */
+        .progress-container {
+            margin: 1.5rem 0; /* Increased margin */
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px; /* Thicker progress bar */
+            background: rgba(148, 163, 184, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 4px;
+        }
+
+        /* --- Distribution Chart --- */
+        .distribution-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-end; /* Align bars to the bottom */
+            min-height: 150px; /* Increased minimum height */
+            padding: 1rem 1rem 1.5rem 1rem; /* Added bottom padding for labels */
+            margin-top: 1.5rem; /* Increased margin */
+            position: relative;
+        }
+
+        .distribution-container::before { /* X-axis line */
+            content: '';
+            position: absolute;
+            bottom: 28px; /* Adjusted to align with bin labels */
+            left: 1rem;
+            right: 1rem;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--text-secondary), transparent);
+        }
+
+        .distribution-container::after { /* Chart title */
+            content: 'Distribución (Naranja: Observado, Azul Claro: Esperado)';
+            position: absolute;
+            top: 0.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.8rem; /* Slightly larger font */
+            color: var(--text-secondary);
+            text-align: center;
+            width: 90%; /* Prevent overflow on small screens */
+        }
+
+        .bin-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex-grow: 1;
+            max-width: 45px; /* Slightly wider bins */
+            position: relative;
+            transition: transform 0.2s ease;
+        }
+
+        .bin-wrapper:hover {
+            transform: translateY(-2px);
+        }
+
+        .bin-bar { /* Observed data bar */
+            background: linear-gradient(135deg, var(--accent), #F97316);
+            border-radius: 4px 4px 0 0;
+            width: 70%;
+            min-height: 0;
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: 0 -2px 8px rgba(245, 158, 11, 0.3);
+            margin-bottom: 4px; /* Space between bar and count */
+        }
+
+        .expected-bar { /* Expected data bar (styled in JS) */
+            position: absolute;
+            bottom: 28px; /* Aligned with bin-label and x-axis */
+            width: 35%; /* Narrower than observed bar for distinction */
+            margin-left: auto; /* Centered within the bin-wrapper area for the bar */
+            margin-right: auto;
+            left: 0;
+            right: 0;
+            background: rgba(59, 130, 246, 0.5); /* Lighter blue for expected */
+            border-radius: 2px 2px 0 0;
+            border: 1px solid rgba(59, 130, 246, 0.7);
+            transition: height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: -1; /* Place behind the observed bar if they overlap vertically */
+        }
+
+
+        .bin-count {
+            font-size: 0.8rem; /* Larger count text */
+            font-weight: bold;
+            color: var(--text-primary);
+            background: rgba(0, 0, 0, 0.6); /* Darker background for better contrast */
+            padding: 0.2rem 0.4rem; /* Slightly more padding */
+            border-radius: 4px;
+            min-height: 22px; /* Ensure consistent height */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .bin-label {
+            font-size: 0.7rem; /* Slightly larger bin index label */
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            position: absolute;
+            bottom: 0; /* Position label at the very bottom of the wrapper */
+        }
+
+        /* --- Toggle Section for Formulas --- */
+        .toggle-section {
+            cursor: pointer;
+            user-select: none; /* Prevent text selection on click */
+        }
+
+        .toggle-section h3 {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 0 0 1rem 0;
+            color: var(--accent);
+            font-size: 1.2rem; /* Larger heading */
+        }
+
+        .toggle-content {
+            max-height: 0; /* Initially hidden */
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out; /* Smoother transition */
+        }
+
+        .toggle-content.open {
+            max-height: 1000px; /* Large enough to show all content */
+        }
+
+        /* Formula and Analysis Styling */
+        .formula-card {
+            background: rgba(59, 130, 246, 0.05); /* Very subtle background */
+            padding: 1.25rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid var(--primary);
+        }
+        .analysis-card {
+             background: rgba(245, 158, 11, 0.05);
+             padding: 1.25rem;
+             border-radius: 8px;
+             margin-bottom: 1rem;
+             border-left: 4px solid var(--accent);
+        }
+        .convergence-card {
+            background: rgba(16, 185, 129, 0.05);
+            padding: 1.25rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--success);
+        }
+
+        .formula-card h4, .analysis-card h4, .convergence-card h4 {
+            margin-bottom: 0.75rem;
+            font-size: 1.05rem; /* Slightly larger sub-headings */
+        }
+        .formula-card p, .formula-description {
+            line-height: 1.6;
+            color: var(--text-secondary);
+            font-size: 0.9rem; /* Consistent text size */
+            margin-bottom: 1rem;
+        }
+        .math-formula { /* Style for MathJax rendered formulas */
+            font-size: 1.1rem; /* Adjust as needed for MathJax output */
+            margin: 0.75rem 0;
+            padding: 0.75rem;
+            background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            overflow-x: auto; /* Allow scrolling for long formulas */
+        }
+        .stats-pair {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 1rem;
+            font-size: 0.9rem;
+        }
+        .stats-pair > div > strong {
+            display: block; /* Ensure strong tag takes full width */
+            margin-bottom: 0.25rem;
+        }
+        .math-details {
+            font-family: 'Courier New', monospace; /* Monospace for formula details */
+            color: var(--text-secondary);
+            margin-top: 0.35rem;
+            font-size: 0.85rem;
+        }
+
+        /* --- Notification Styling --- */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000; /* Ensure it's on top */
+            transform: translateX(calc(100% + 30px)); /* Start off-screen */
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1); /* Smoother animation */
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+            max-width: 320px; /* Max width for notifications */
+        }
+
+        .notification.show {
+            transform: translateX(0); /* Slide in */
+        }
+
+        .notification.success { background: linear-gradient(135deg, var(--success), #059669); }
+        .notification.error { background: linear-gradient(135deg, var(--danger), #DC2626); }
+        .notification.info { background: linear-gradient(135deg, var(--primary), var(--secondary)); }
+        .notification.warning { background: linear-gradient(135deg, var(--accent), #F97316); }
+
+        /* --- Mobile Responsiveness --- */
+        @media (max-width: 1024px) { /* Tablet and smaller */
+            .simulation-area {
+                grid-template-columns: 1fr; /* Stack canvas and stats panel */
+            }
+            .stats-panel {
+                width: 100%; /* Full width for stats panel */
+                order: -1; /* Display stats panel above canvas */
+            }
+            .controls-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+        }
+
+        @media (max-width: 768px) { /* Mobile landscape and smaller */
+            body {
+                padding: 0.75rem; /* Reduce body padding */
+            }
+            .container {
+                gap: 1rem;
+            }
+            .glass-card {
+                padding: 1.25rem; /* Adjust padding for smaller cards */
+            }
+            .controls-grid {
+                grid-template-columns: 1fr; /* Single column for controls */
+            }
+            .stats-grid { /* Main stats cards */
+                grid-template-columns: repeat(2, 1fr); /* Keep two columns if space allows */
+            }
+            .button-group {
+                flex-direction: column; /* Stack buttons vertically */
+                align-items: stretch; /* Make buttons full width */
+            }
+            .btn {
+                width: 100%; /* Full width buttons */
+            }
+            .title {
+                font-size: clamp(1.6rem, 6vw, 2.2rem);
+            }
+            .subtitle {
+                font-size: clamp(0.85rem, 3vw, 1rem);
+            }
+            .distribution-container::after { /* Chart title */
+                 font-size: 0.75rem;
+            }
+            .stats-pair { /* Formula stats */
+                grid-template-columns: 1fr; /* Stack formula stats on small screens */
+            }
+        }
+
+        @media (max-width: 480px) { /* Mobile portrait */
+            body {
+                padding: 0.5rem;
+            }
+            .glass-card {
+                padding: 1rem;
+            }
+            .stats-grid { /* Main stats cards */
+                grid-template-columns: 1fr; /* Single column for main stats */
+            }
+             .control-label {
+                font-size: 0.85rem;
+            }
+            .control-input {
+                padding: 0.65rem;
+                font-size: 0.85rem;
+            }
+            .btn {
+                padding: 0.75rem 1.5rem;
+                font-size: 0.85rem;
+            }
+            .stat-value {
+                font-size: clamp(1.1rem, 4vw, 1.3rem);
+            }
+            .stat-label {
+                font-size: 0.65rem;
+            }
+            .toggle-section h3 {
+                font-size: 1.1rem;
+            }
+            .formula-card p, .formula-description, .stats-pair {
+                 font-size: 0.85rem;
+            }
+            #galtonCanvas {
+                 min-height: 250px; /* Adjust canvas min height for small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">Máquina de Galton</h1>
+            <p class="subtitle">Simulación interactiva de la distribución binomial y el teorema del límite central</p>
+        </div>
+
+        <div class="glass-card">
+            <div class="controls-grid">
+                <div class="control-card">
+                    <label class="control-label" for="numParticles">Número de Partículas</label>
+                    <input type="number" id="numParticles" class="control-input" value="100" min="1" max="5000" step="10">
+                </div>
+                <div class="control-card">
+                    <label class="control-label" for="numLevels">Número de Niveles (Filas)</label>
+                    <input type="number" id="numLevels" class="control-input" value="10" min="2" max="20" step="1">
+                </div>
+                <div class="control-card">
+                    <label class="control-label" for="gravity">Gravedad</label>
+                    <input type="range" id="gravity" class="control-input slider" min="0.1" max="3.0" step="0.1" value="1.0">
+                    <div id="gravityValue" class="value-display">1.0g</div>
+                </div>
+                <div class="control-card">
+                    <label class="control-label" for="speed">Velocidad de Simulación</label>
+                    <input type="range" id="speed" class="control-input slider" min="0.1" max="5.0" step="0.1" value="1.0">
+                    <div id="speedValue" class="value-display">1.0x</div>
+                </div>
+            </div>
+            <div class="button-group">
+                <button id="startBtn" class="btn btn-primary">▶ Iniciar</button>
+                <button id="pauseBtn" class="btn btn-secondary" disabled>⏸ Pausar</button>
+                <button id="resetBtn" class="btn btn-accent">🔄 Reiniciar</button>
+                <button id="stepBtn" class="btn btn-secondary">⏭ Paso Único</button>
+            </div>
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div id="progressFill" class="progress-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="simulation-area">
+            <div class="glass-card">
+                <div class="canvas-container">
+                    <canvas id="galtonCanvas"></canvas>
+                </div>
+                <div id="distributionChart" class="distribution-container">
+                    </div>
+            </div>
+
+            <div class="stats-panel">
+                <div class="glass-card">
+                    <h3 style="margin: 0 0 1rem 0; color: var(--accent); font-size: 1.2rem;">Estadísticas Rápidas</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div id="particlesDropped" class="stat-value">0</div>
+                            <div class="stat-label">Lanzadas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="particlesSettled" class="stat-value">0</div>
+                            <div class="stat-label">Asentadas</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="meanValue" class="stat-value">-</div>
+                            <div class="stat-label">Media (Obs.)</div>
+                        </div>
+                        <div class="stat-card">
+                            <div id="stdValue" class="stat-value">-</div>
+                            <div class="stat-label">Desv. Est. (Obs.)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card">
+                    <div class="toggle-section" onclick="toggleStats()" aria-expanded="false" aria-controls="statsContent">
+                        <h3>
+                            Análisis Estadístico Detallado
+                            <span id="statsToggle" aria-hidden="true">▼</span>
+                        </h3>
+                    </div>
+                    <div id="statsContent" class="toggle-content">
+                        <div class="formula-description">
+                            <h4 style="color: var(--accent); margin-bottom: 0.5rem; font-size: 1rem;">Distribución Binomial</h4>
+                            <p>
+                                La máquina de Galton es una demostración visual de la distribución binomial. Si una partícula tiene una probabilidad $p$ de ir a la derecha en cada nivel (y $1-p$ de ir a la izquierda), después de $n$ niveles, la posición final $k$ (número de veces que fue a la derecha) sigue una distribución binomial. Para esta simulación, asumimos $p=0.5$.
+                            </p>
+                        </div>
+
+                        <div class="formula-card">
+                            <h4 style="color: var(--primary);">Fórmulas Teóricas (Binomial $p=0.5$)</h4>
+                            <p>Probabilidad de terminar en el contenedor $k$ (después de $n$ niveles):</p>
+                            <div id="binomialFormulaDisplay" class="math-formula">
+                                </div>
+                            <div class="stats-pair">
+                                <div>
+                                    <strong style="color: var(--accent);">Media Teórica ($\mu$):</strong>
+                                    <span id="theoreticalMean" style="color: var(--primary); font-weight: bold;">-</span>
+                                    <div class="math-details">$\mu = n \cdot p$</div>
+                                </div>
+                                <div>
+                                    <strong style="color: var(--accent);">Desv. Est. Teórica ($\sigma$):</strong>
+                                    <span id="theoreticalStd" style="color: var(--primary); font-weight: bold;">-</span>
+                                    <div class="math-details">$\sigma = \sqrt{n \cdot p \cdot (1-p)}$</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="analysis-card">
+                            <h4 style="color: var(--accent);">Resultados Observados</h4>
+                            <div class="stats-pair">
+                                <div>
+                                    <strong>Media Observada:</strong>
+                                    <span id="observedMean" style="color: var(--accent); font-weight: bold;">-</span>
+                                </div>
+                                <div>
+                                    <strong>Desv. Est. Observada:</strong>
+                                    <span id="observedStd" style="color: var(--accent); font-weight: bold;">-</span>
+                                </div>
+                                <div>
+                                    <strong>Error Abs. Media:</strong>
+                                    <span id="meanError" style="color: var(--accent); font-weight: bold;">-</span>
+                                </div>
+                                <div>
+                                    <strong>Error Abs. Desv. Est.:</strong>
+                                    <span id="stdError" style="color: var(--accent); font-weight: bold;">-</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="convergence-card">
+                            <h4 style="color: var(--success);">Análisis de Convergencia</h4>
+                            <div class="stats-pair" style="gap: 0.5rem; font-size: 0.85rem;">
+                                <div style="grid-column: span 2;"> <strong>Niveles (n):</strong> <span id="currentLevels" style="color: var(--success); font-weight: bold;">-</span>
+                                </div>
+                                <div style="grid-column: span 2;"> <strong>Aprox. a Normal (Teorema Límite Central):</strong>
+                                    <span id="normalApprox" style="color: var(--success); font-weight: bold;">-</span>
+                                    <p style="font-size: 0.75rem; color: var(--text-secondary);"> (Buena si $n \cdot p \ge 5$ y $n \cdot (1-p) \ge 5$)</p>
+                                </div>
+                                <div style="grid-column: span 2;"> <strong>Calidad del Ajuste (Observado vs. Teórico):</strong>
+                                    <span id="goodnessOfFit" style="color: var(--success); font-weight: bold;">-</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification" role="alert"></div>
+
+    <script>
+        /**
+         * GaltonMachine Class
+         * Handles the simulation logic, drawing, and state management for the Galton board.
+         */
+        class GaltonMachine {
+            constructor() {
+                // DOM Elements
+                this.canvas = document.getElementById('galtonCanvas');
+                this.ctx = this.canvas.getContext('2d');
+
+                // Simulation state variables
+                this.particles = []; // Array to store active particles
+                this.pegs = [];      // Array to store peg positions
+                this.bins = [];      // Array to store bin data (counts)
+                this.isRunning = false;
+                this.isPaused = false;
+                this.stepMode = false; // True if simulation is in single-step mode
+                this.animationId = null; // ID for requestAnimationFrame
+                this.particleIndex = 0; // Counter for staggering particle release
+
+                // Statistics
+                this.particlesDropped = 0;
+                this.particlesSettled = 0;
+
+                // Configuration (default values, will be updated from UI)
+                this.config = {
+                    numParticles: 100,
+                    numLevels: 10,
+                    gravity: 1.0,
+                    speed: 1.0,
+                    pegRadius: 4,
+                    particleRadius: 4, // Adjusted particle radius
+                    baseGravity: 0.06, // Adjusted base gravity
+                    deflectionStrength: 1.1, // Adjusted deflection
+                    particleColor: '#F59E0B', // Accent color for particles
+                    pegColor: '#64748B',      // Color for pegs
+                    binColor: 'rgba(51, 65, 85, 0.6)' // Color for bins
+                };
+
+                this.setupCanvas();
+                this.setupEventListeners();
+                this.initializeBoard(); // Initial setup of pegs and bins
+                this.draw(); // Initial draw of the board
+                this.showNotification('Configura los parámetros y presiona Iniciar.', 'info');
+            }
+
+            /**
+             * Sets up the canvas dimensions and scaling for high DPI displays.
+             */
+            setupCanvas() {
+                const container = this.canvas.parentElement;
+                let containerWidth = container.clientWidth;
+
+                // Ensure containerWidth is not zero if hidden initially
+                 if (containerWidth === 0) {
+                    // Temporarily make it visible to get width, then hide if needed
+                    const originalDisplay = container.style.display;
+                    container.style.display = 'block'; // Or 'flex', etc., depending on layout
+                    containerWidth = container.clientWidth;
+                    container.style.display = originalDisplay;
+                 }
+                 containerWidth = Math.max(containerWidth, 280); // Minimum width
+
+
+                const dpr = window.devicePixelRatio || 1; // Device Pixel Ratio
+
+                // Desired aspect ratio (e.g., 4:3 or 5:4 for a typical Galton board)
+                const aspectRatio = (this.config.numLevels + 4) / (this.config.numLevels + 2) * 0.9;
+
+
+                let canvasStyleWidth = Math.min(containerWidth, 700);
+                // Calculate height based on width and number of levels to maintain a reasonable aspect ratio
+                let canvasStyleHeight = Math.min(canvasStyleWidth * 0.9, 500); // Adjusted for better proportion
+                // Ensure height is sufficient for levels
+                canvasStyleHeight = Math.max(canvasStyleHeight, (this.config.numLevels + 6) * 20);
+
+
+                // Set display size (CSS pixels)
+                this.canvas.style.width = canvasStyleWidth + 'px';
+                this.canvas.style.height = canvasStyleHeight + 'px';
+
+                // Set actual size in memory (drawingbuffer pixels)
+                this.canvas.width = canvasStyleWidth * dpr;
+                this.canvas.height = canvasStyleHeight * dpr;
+
+                // Scale context for high DPI
+                this.ctx.scale(dpr, dpr);
+
+                this.canvasWidth = canvasStyleWidth;
+                this.canvasHeight = canvasStyleHeight;
+            }
+
+
+            /**
+             * Attaches event listeners to UI controls (buttons, sliders, inputs).
+             */
+            setupEventListeners() {
+                document.getElementById('startBtn').addEventListener('click', () => this.start());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
+                document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+                document.getElementById('stepBtn').addEventListener('click', () => this.step());
+
+                document.getElementById('gravity').addEventListener('input', (e) => {
+                    this.config.gravity = parseFloat(e.target.value);
+                    document.getElementById('gravityValue').textContent = `${e.target.value}g`;
+                });
+
+                document.getElementById('speed').addEventListener('input', (e) => {
+                    this.config.speed = parseFloat(e.target.value);
+                    document.getElementById('speedValue').textContent = `${e.target.value}x`;
+                });
+
+                // For number inputs, update config on change and re-initialize if not running
+                const particleInput = document.getElementById('numParticles');
+                particleInput.addEventListener('change', (e) => {
+                    let val = parseInt(e.target.value);
+                    if (val < parseInt(e.target.min)) val = parseInt(e.target.min);
+                    if (val > parseInt(e.target.max)) val = parseInt(e.target.max);
+                    e.target.value = val; // Correct the input field if out of bounds
+                    this.config.numParticles = val;
+                     if (!this.isRunning) this.resetSimulationVisuals();
+                });
+
+                const levelInput = document.getElementById('numLevels');
+                levelInput.addEventListener('change', (e) => {
+                    let val = parseInt(e.target.value);
+                    if (val < parseInt(e.target.min)) val = parseInt(e.target.min);
+                    if (val > parseInt(e.target.max)) val = parseInt(e.target.max);
+                    e.target.value = val; // Correct the input field
+                    this.config.numLevels = val;
+                    if (!this.isRunning) {
+                        this.setupCanvas(); // Canvas size might depend on levels
+                        this.initializeBoard();
+                        this.updateTheoreticalStats();
+                        this.draw(); // Redraw board with new levels
+                    }
+                });
+
+                // Debounced resize listener to re-initialize board on window resize if not running
+                let resizeTimeout;
+                window.addEventListener('resize', () => {
+                    clearTimeout(resizeTimeout);
+                    resizeTimeout = setTimeout(() => {
+                        if (!this.isRunning) {
+                            this.setupCanvas();
+                            this.initializeBoard();
+                            this.draw();
+                            this.updateDistributionChart(); // Ensure chart resizes too
+                        }
+                    }, 250);
+                });
+            }
+
+            /**
+             * Initializes or re-initializes the pegs and bins based on current configuration.
+             * This is called on setup, reset, or when numLevels changes.
+             */
+            initializeBoard() {
+                this.pegs = [];
+                this.bins = [];
+
+                const levels = this.config.numLevels;
+                // Adjust spacing calculations for better visual fit and to prevent overlap
+                const horizontalPadding = this.canvasWidth * 0.1; // 10% padding on each side
+                const usableWidth = this.canvasWidth - 2 * horizontalPadding;
+                const pegSpacing = Math.min(usableWidth / (levels + 1), 40); // Max spacing of 40px
+
+                const verticalPadding = this.canvasHeight * 0.1; // Top padding
+                const usableHeight = this.canvasHeight - verticalPadding - 60; // Reserve 60px for bins and bottom space
+                const levelHeight = Math.min(usableHeight / (levels + 2), 35); // Max level height 35px
+
+
+                // Create pegs in a triangular pattern
+                for (let level = 0; level < levels; level++) {
+                    const pegsInLevel = level + 1;
+                    const levelY = verticalPadding + 40 + level * levelHeight; // Start pegs lower
+                    // Calculate startX to center the pegs layout
+                    const rowWidth = (pegsInLevel - 1) * pegSpacing;
+                    const startX = (this.canvasWidth - rowWidth) / 2;
+
+                    for (let peg = 0; peg < pegsInLevel; peg++) {
+                        this.pegs.push({
+                            x: startX + peg * pegSpacing,
+                            y: levelY,
+                            radius: this.config.pegRadius,
+                            level: level
+                        });
+                    }
+                }
+
+                // Create bins at the bottom
+                const numBins = levels + 1;
+                const totalBinAreaWidth = usableWidth * 1.1; // Allow bins to be slightly wider than peg area
+                const binWidth = totalBinAreaWidth / numBins;
+                const binsStartX = (this.canvasWidth - totalBinAreaWidth) / 2;
+
+                const binY = verticalPadding + 40 + (levels) * levelHeight + 20; // Position bins below pegs
+                const binVisualHeight = 30; // Visual height of the bin walls
+
+                for (let i = 0; i < numBins; i++) {
+                    this.bins.push({
+                        x: binsStartX + i * binWidth,
+                        y: binY, // Top of the bin collection area
+                        width: binWidth,
+                        height: this.canvasHeight - binY, // Actual collection height to bottom of canvas
+                        visualHeight: binVisualHeight, // For drawing the rectangle
+                        count: 0,
+                        index: i // Corresponds to 'k' in binomial distribution
+                    });
+                }
+                this.updateDistributionChart(); // Update visual chart of bins
+                this.updateTheoreticalStats();  // Update theoretical stats based on new board
+            }
+
+            /**
+             * Creates a new particle object with initial properties.
+             * @returns {object} The particle object.
+             */
+            createParticle() {
+                // Start particles slightly off-center for more natural entry
+                const startX = this.canvasWidth / 2 + (Math.random() - 0.5) * (this.canvasWidth * 0.05);
+                const startY = this.canvasHeight * 0.05; // Start near the top
+
+                return {
+                    x: startX,
+                    y: startY,
+                    vx: (Math.random() - 0.5) * 0.3, // Initial horizontal velocity
+                    vy: 0,                           // Initial vertical velocity
+                    radius: this.config.particleRadius,
+                    // Use a consistent, vibrant color, or randomize if preferred
+                    color: `hsl(${15 + Math.random() * 30}, 90%, 60%)`, // Oranges/Yellows
+                    settled: false, // True if particle has landed in a bin
+                    lastPegLevel: -1, // Tracks the last peg level interacted with to prevent re-collision
+                    delay: this.particleIndex * (5 / this.config.speed) // Stagger particle release based on speed
+                };
+            }
+
+            /**
+             * Updates the state (position, velocity) of all active particles.
+             * Handles physics, collisions with pegs, and settling in bins.
+             */
+            updateParticles() {
+                const gravity = this.config.gravity * this.config.baseGravity * this.config.speed;
+                const deflection = this.config.deflectionStrength * this.config.speed;
+
+                this.particles.forEach(particle => {
+                    if (particle.settled) return;
+
+                    // Apply delay before particle starts moving
+                    if (particle.delay > 0) {
+                        particle.delay--;
+                        return;
+                    }
+
+                    // Apply gravity
+                    particle.vy += gravity;
+                    particle.vy = Math.min(particle.vy, 4 * this.config.speed); // Terminal velocity
+
+                    // Update position
+                    particle.x += particle.vx * this.config.speed;
+                    particle.y += particle.vy * this.config.speed;
+
+                    // Peg collision detection
+                    this.pegs.forEach(peg => {
+                        // Only check collisions with pegs at or below the particle's current trajectory
+                        if (peg.level <= particle.lastPegLevel || particle.y < peg.y - peg.radius * 3) return;
+
+                        const dx = particle.x - peg.x;
+                        const dy = particle.y - peg.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+
+                        // Collision occurred
+                        if (distance < particle.radius + peg.radius) {
+                            particle.lastPegLevel = peg.level; // Mark this peg level as interacted
+
+                            // Simple collision response: place particle just outside peg
+                            const overlap = (particle.radius + peg.radius) - distance;
+                            const angle = Math.atan2(dy, dx);
+                            particle.x += Math.cos(angle) * overlap;
+                            particle.y += Math.sin(angle) * overlap;
+
+                            // Deflection: 50/50 chance to go left or right with some randomness
+                            const direction = Math.random() < 0.5 ? -1 : 1;
+                            particle.vx = direction * deflection * (0.7 + Math.random() * 0.6); // Add variability
+                            particle.vy *= -0.1; // Small bounce upwards, dampening effect
+                        }
+                    });
+
+                    // Bin collision detection (settling)
+                    this.bins.forEach(bin => {
+                        if (!particle.settled &&
+                            particle.y + particle.radius >= bin.y && // Particle's bottom edge reaches bin's top
+                            particle.x >= bin.x && particle.x <= bin.x + bin.width) {
+
+                            particle.settled = true;
+                            // Particle rests on top of previously settled particles in this bin, or bin floor
+                            // This is a simplified visual stacking; for true stacking physics, it's more complex.
+                            particle.y = bin.y + bin.visualHeight - particle.radius - (bin.count * particle.radius * 0.1); // Visual stacking
+                            particle.x = bin.x + bin.width / 2 + (Math.random() - 0.5) * (bin.width * 0.2); // Settle near bin center
+                            particle.vx = 0;
+                            particle.vy = 0;
+
+                            bin.count++;
+                            this.particlesSettled++;
+
+                            this.updateStats(); // Update displayed statistics
+                            this.updateDistributionChart(); // Update the visual bar chart
+                        }
+                    });
+
+                    // Remove particles that fall off-screen (e.g., if they miss all bins)
+                    if (particle.y > this.canvasHeight + particle.radius * 2 && !particle.settled) {
+                        particle.settled = true; // Consider it settled/lost
+                        this.particlesSettled++;
+                        // Optionally, assign to an "overflow" bin if tracking such cases
+                        this.updateStats();
+                    }
+                });
+
+                // Filter out settled particles from active list for performance, if many particles
+                // For now, keeping them helps visualize final state. If performance issues, uncomment:
+                // this.particles = this.particles.filter(p => !p.settled || p.y < this.canvasHeight);
+            }
+
+
+            /**
+             * Draws all elements (pegs, bins, particles) on the canvas.
+             */
+            draw() {
+                // Clear canvas with a gradient background
+                const gradient = this.ctx.createLinearGradient(0, 0, 0, this.canvasHeight);
+                gradient.addColorStop(0, '#1E293B'); // Darker at top
+                gradient.addColorStop(1, '#0F172A'); // Lighter at bottom (or vice-versa)
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.canvasWidth, this.canvasHeight);
+
+                // Draw pegs
+                this.pegs.forEach(peg => {
+                    this.ctx.beginPath();
+                    this.ctx.arc(peg.x, peg.y, peg.radius, 0, Math.PI * 2);
+                    this.ctx.fillStyle = this.config.pegColor;
+                    this.ctx.fill();
+                    this.ctx.strokeStyle = '#94A3B8'; // Subtle border for pegs
+                    this.ctx.lineWidth = 0.5;
+                    this.ctx.stroke();
+                });
+
+                // Draw bins (visual representation)
+                this.bins.forEach(bin => {
+                    this.ctx.fillStyle = this.config.binColor;
+                    this.ctx.fillRect(bin.x, bin.y, bin.width, bin.visualHeight); // Use visualHeight
+                    this.ctx.strokeStyle = '#64748B';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.strokeRect(bin.x, bin.y, bin.width, bin.visualHeight);
+
+                    // Optionally, draw bin index labels on canvas (alternative to HTML chart)
+                    // this.ctx.fillStyle = '#94A3B8';
+                    // this.ctx.font = '10px Inter';
+                    // this.ctx.textAlign = 'center';
+                    // this.ctx.fillText(bin.index, bin.x + bin.width / 2, bin.y + bin.visualHeight + 12);
+                });
+
+                // Draw particles
+                this.particles.forEach(particle => {
+                    if (particle.delay > 0) return; // Don't draw particles that are in entry-delay
+
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
+
+                    // Create a radial gradient for a 3D effect on particles
+                    const particleGradient = this.ctx.createRadialGradient(
+                        particle.x - particle.radius * 0.3, particle.y - particle.radius * 0.3, particle.radius * 0.1,
+                        particle.x, particle.y, particle.radius
+                    );
+                    particleGradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)'); // Highlight
+                    particleGradient.addColorStop(1, particle.color);
+
+                    this.ctx.fillStyle = particleGradient;
+                    this.ctx.fill();
+                });
+            }
+
+            /**
+             * Main animation loop. Clears canvas, updates particles, and redraws.
+             * Stops when all particles are settled or if paused.
+             */
+            animate() {
+                if (!this.isRunning || this.isPaused) {
+                    // If paused or stopped, ensure the animation loop doesn't continue via requestAnimationFrame
+                    if (this.animationId) cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                    return;
+                }
+
+                // Add new particles if not all have been dropped yet
+                // Stagger particle release using the `delay` property in createParticle
+                if (this.particlesDropped < this.config.numParticles && this.particleIndex < this.config.numParticles) {
+                    const newParticle = this.createParticle();
+                    if (newParticle.delay === 0) { // If no delay (e.g., first particle or speed adjusted)
+                        this.particles.push(newParticle);
+                        this.particlesDropped++;
+                    } else if (this.particles.findIndex(p => p === newParticle) === -1) {
+                        // Add to list even if delayed, its update will handle the delay countdown
+                        this.particles.push(newParticle);
+                        this.particlesDropped++; // Count as dropped when created, not when active
+                    }
+                    this.particleIndex++; // Increment index for next particle's delay calculation
+                }
+
+
+                this.updateParticles(); // Update positions and handle collisions
+                this.draw();            // Redraw everything
+                this.updateProgress();  // Update the progress bar
+
+                // Check if simulation is complete
+                if (this.particlesSettled >= this.config.numParticles && this.particlesDropped >= this.config.numParticles) {
+                    this.complete(); // Finalize simulation
+                    return; // Stop animation loop
+                }
+
+                // Continue animation if not in step mode
+                if (!this.stepMode) {
+                    this.animationId = requestAnimationFrame(() => this.animate());
+                }
+            }
+
+            /**
+             * Starts or resumes the simulation.
+             */
+            start() {
+                if (this.isRunning && !this.isPaused) {
+                    this.showNotification('La simulación ya está en curso.', 'warning');
+                    return;
+                }
+
+                // If paused, resume
+                if (this.isPaused) {
+                    this.isPaused = false;
+                    this.updateButtonStates();
+                    this.animate(); // Restart animation loop
+                    this.showNotification('Simulación reanudada.', 'success');
+                    return;
+                }
+
+                // Start new simulation
+                this.resetSimulationState(); // Reset particle data and counts
+                this.isRunning = true;
+                this.stepMode = false;
+                this.updateButtonStates();
+                this.animate(); // Start animation loop
+                this.showNotification('Simulación iniciada.', 'success');
+            }
+
+            /**
+             * Pauses or resumes the currently running simulation.
+             */
+            pause() {
+                if (!this.isRunning) {
+                    this.showNotification('No hay simulación en curso para pausar.', 'warning');
+                    return;
+                }
+
+                this.isPaused = !this.isPaused;
+                this.updateButtonStates();
+
+                if (!this.isPaused) { // Resuming
+                    this.animate(); // Restart animation loop
+                    this.showNotification('Simulación reanudada.', 'success');
+                } else { // Pausing
+                    if (this.animationId) {
+                        cancelAnimationFrame(this.animationId); // Stop the animation loop
+                        this.animationId = null;
+                    }
+                    this.showNotification('Simulación pausada.', 'info');
+                    // Draw one last time to show current state while paused
+                    this.draw();
+                }
+            }
+
+            /**
+             * Resets the entire simulation to its initial state.
+             * Stops any ongoing simulation, clears particles, resets stats, and redraws the board.
+             */
+            reset() {
+                this.stop(); // Halt any ongoing animation and set isRunning to false
+                this.resetSimulationState(); // Clear particles, reset counters, bin counts
+                this.resetSimulationVisuals(); // Update UI related to config (numParticles, etc.)
+                this.showNotification('Simulación reiniciada.', 'info');
+            }
+
+            /**
+            * Resets only the visual aspects related to simulation parameters
+            * like input fields and theoretical stats, then redraws.
+            */
+            resetSimulationVisuals() {
+                // Ensure UI reflects current config (e.g., if changed while not running)
+                document.getElementById('numParticles').value = this.config.numParticles;
+                document.getElementById('numLevels').value = this.config.numLevels;
+                document.getElementById('gravity').value = this.config.gravity;
+                document.getElementById('gravityValue').textContent = `${this.config.gravity}g`;
+                document.getElementById('speed').value = this.config.speed;
+                document.getElementById('speedValue').textContent = `${this.config.speed}x`;
+
+                this.setupCanvas(); // Recalculate canvas size if levels changed
+                this.initializeBoard(); // Recreate pegs/bins for new numLevels
+                this.updateTheoreticalStats(); // Update formulas based on numLevels
+                this.updateStats(); // Clear observed stats
+                this.updateProgress(); // Reset progress bar
+                this.updateDistributionChart(); // Clear distribution chart
+                this.draw(); // Redraw the empty board
+            }
+
+
+            /**
+             * Resets the core simulation state: particles, counters, and bin counts.
+             * Called by start (for a new run) and reset.
+             */
+            resetSimulationState() {
+                this.particles = [];
+                this.particlesDropped = 0;
+                this.particlesSettled = 0;
+                this.particleIndex = 0;
+
+                this.bins.forEach(bin => bin.count = 0); // Reset bin counts
+
+                // Update configuration from UI inputs at the start of a new simulation
+                // This ensures the latest user settings are used
+                this.config.numParticles = parseInt(document.getElementById('numParticles').value) || 100;
+                this.config.numLevels = parseInt(document.getElementById('numLevels').value) || 10;
+                // Gravity and speed are already updated by their event listeners
+            }
+
+
+            /**
+             * Executes a single step of the simulation.
+             * Useful for observing particle movement frame by frame.
+             */
+            step() {
+                if (this.isRunning && !this.isPaused) {
+                    this.showNotification('Pausa la simulación para usar el modo paso a paso.', 'warning');
+                    return;
+                }
+                // If simulation hasn't started, or is complete and reset, initialize for stepping
+                if (!this.isRunning || (this.particlesSettled >= this.config.numParticles && this.particlesDropped >= this.config.numParticles)) {
+                    this.resetSimulationState();
+                    this.resetSimulationVisuals(); // Reset visuals for a fresh step-through
+                    this.isRunning = true; // Set as running to allow particle creation/updates
+                    this.isPaused = true;  // but immediately pause it for step control
+                }
+
+
+                this.stepMode = true; // Enable step mode
+                this.isPaused = false; // Temporarily unpause to allow one animation cycle
+
+                // Logic for one step (similar to one iteration of animate())
+                if (this.particlesDropped < this.config.numParticles && this.particleIndex < this.config.numParticles) {
+                     const newParticle = this.createParticle();
+                     // For step mode, we want to ensure a particle is added if it's its turn, ignoring initial delay for immediate feedback
+                     newParticle.delay = 0;
+                     this.particles.push(newParticle);
+                     this.particlesDropped++;
+                     this.particleIndex++;
+                }
+
+                this.updateParticles();
+                this.draw();
+                this.updateProgress();
+
+                this.isPaused = true; // Re-pause after the step
+                this.updateButtonStates(); // Update buttons to reflect paused state
+
+                if (this.particlesSettled >= this.config.numParticles && this.particlesDropped >= this.config.numParticles) {
+                    this.complete(); // If step completes simulation
+                } else {
+                    this.showNotification('Paso ejecutado.', 'info', 1000);
+                }
+            }
+
+            /**
+             * Stops the simulation completely and cancels any animation frame.
+             */
+            stop() {
+                this.isRunning = false;
+                this.isPaused = false; // No longer paused if fully stopped
+                this.stepMode = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                this.updateButtonStates(); // Update UI buttons
+            }
+
+            /**
+             * Called when the simulation completes (all particles settled).
+             * Stops the simulation and shows a completion message.
+             */
+            complete() {
+                this.stop();
+                this.showNotification('¡Simulación completada!', 'success');
+                this.updateStats(); // Final update to stats
+                // Ensure draw is called to show final state if not already up-to-date
+                this.draw();
+                this.updateDistributionChart(); // Final update to chart
+            }
+
+
+            /**
+             * Updates the enabled/disabled state and text of control buttons
+             * based on the current simulation state (running, paused).
+             */
+            updateButtonStates() {
+                const startBtn = document.getElementById('startBtn');
+                const pauseBtn = document.getElementById('pauseBtn');
+                const resetBtn = document.getElementById('resetBtn');
+                const stepBtn = document.getElementById('stepBtn');
+
+                // If simulation is complete (all particles settled)
+                if (this.particlesSettled >= this.config.numParticles && this.particlesDropped >= this.config.numParticles && this.isRunning) {
+                    startBtn.disabled = false; // Allow restarting
+                    startBtn.innerHTML = '▶ Iniciar';
+                    pauseBtn.disabled = true;
+                    pauseBtn.innerHTML = '⏸ Pausar';
+                    resetBtn.disabled = false;
+                    stepBtn.disabled = true; // No more steps if complete
+                    // Call stop to correctly set isRunning to false after completion.
+                    // this.stop(); // this might be too aggressive here, let complete() handle it.
+                } else if (!this.isRunning) { // Not running (initial state or after reset/stop)
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '▶ Iniciar';
+                    pauseBtn.disabled = true;
+                    pauseBtn.innerHTML = '⏸ Pausar';
+                    resetBtn.disabled = false;
+                    stepBtn.disabled = false;
+                } else if (this.isPaused) { // Running but paused
+                    startBtn.disabled = false;
+                    startBtn.innerHTML = '▶ Reanudar';
+                    pauseBtn.disabled = false;
+                    pauseBtn.innerHTML = '▶ Reanudar'; // Text changes to 'Reanudar'
+                    resetBtn.disabled = false;
+                    stepBtn.disabled = false;
+                } else { // Running and not paused
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = '▶ Iniciar';
+                    pauseBtn.disabled = false;
+                    pauseBtn.innerHTML = '⏸ Pausar';
+                    resetBtn.disabled = false; // Allow reset even while running
+                    stepBtn.disabled = true; // Disable step if continuously running
+                }
+            }
+
+            /**
+             * Updates the simulation progress bar.
+             */
+            updateProgress() {
+                const progress = this.config.numParticles > 0 ?
+                    (this.particlesSettled / this.config.numParticles) * 100 : 0;
+                document.getElementById('progressFill').style.width = `${Math.min(progress, 100)}%`; // Cap at 100%
+            }
+
+            /**
+             * Updates all statistical displays (counts, mean, std dev, errors, etc.).
+             * Calculates both observed and theoretical values.
+             */
+            updateStats() {
+                document.getElementById('particlesDropped').textContent = this.particlesDropped;
+                document.getElementById('particlesSettled').textContent = this.particlesSettled;
+
+                if (this.particlesSettled > 0) {
+                    let sumOfIndices = 0; // For mean: sum(k * count[k])
+                    let sumOfSquares = 0; // For variance: sum(k^2 * count[k])
+                    let totalCount = this.particlesSettled; // Use actual settled particles
+
+                    this.bins.forEach(bin => {
+                        sumOfIndices += bin.index * bin.count;
+                        sumOfSquares += bin.index * bin.index * bin.count;
+                    });
+
+                    const observedMean = totalCount > 0 ? sumOfIndices / totalCount : 0;
+                    // Variance = E[X^2] - (E[X])^2
+                    const variance = totalCount > 0 ? (sumOfSquares / totalCount) - (observedMean * observedMean) : 0;
+                    // Ensure variance is not negative due to floating point inaccuracies
+                    const observedStd = Math.sqrt(Math.max(0, variance));
+
+
+                    // Update main quick stats
+                    document.getElementById('meanValue').textContent = observedMean.toFixed(2);
+                    document.getElementById('stdValue').textContent = observedStd.toFixed(2);
+
+                    // Update detailed analysis stats
+                    document.getElementById('observedMean').textContent = observedMean.toFixed(3);
+                    document.getElementById('observedStd').textContent = observedStd.toFixed(3);
+
+                    // Theoretical values (assuming p=0.5)
+                    const n = this.config.numLevels;
+                    const p = 0.5;
+                    const theoreticalMeanVal = n * p;
+                    const theoreticalStdVal = Math.sqrt(n * p * (1 - p));
+
+                    // Calculate errors
+                    const meanErrorVal = Math.abs(observedMean - theoreticalMeanVal);
+                    const stdErrorVal = Math.abs(observedStd - theoreticalStdVal);
+                    // Percentage errors (handle division by zero if theoretical is 0)
+                    const meanErrorPercent = theoreticalMeanVal > 0 ? (meanErrorVal / theoreticalMeanVal * 100) : (meanErrorVal > 0 ? Infinity : 0);
+                    const stdErrorPercent = theoreticalStdVal > 0 ? (stdErrorVal / theoreticalStdVal * 100) : (stdErrorVal > 0 ? Infinity : 0);
+
+                    document.getElementById('meanError').textContent = `${meanErrorVal.toFixed(3)} (${isFinite(meanErrorPercent) ? meanErrorPercent.toFixed(1) + '%' : 'N/A'})`;
+                    document.getElementById('stdError').textContent = `${stdErrorVal.toFixed(3)} (${isFinite(stdErrorPercent) ? stdErrorPercent.toFixed(1) + '%' : 'N/A'})`;
+
+                    // Goodness of fit (qualitative)
+                    let goodnessText = "Excelente";
+                    if (meanErrorPercent > 5 || stdErrorPercent > 10) goodnessText = "Bueno";
+                    if (meanErrorPercent > 10 || stdErrorPercent > 20) goodnessText = "Regular";
+                    if (meanErrorPercent > 20 || stdErrorPercent > 30) goodnessText = "Pobre";
+                    if (!isFinite(meanErrorPercent) || !isFinite(stdErrorPercent)) goodnessText = "N/A (Teórico es cero)";
+
+                    document.getElementById('goodnessOfFit').textContent = goodnessText;
+
+                } else { // If no particles settled, reset stats text
+                    document.getElementById('meanValue').textContent = '-';
+                    document.getElementById('stdValue').textContent = '-';
+                    document.getElementById('observedMean').textContent = '-';
+                    document.getElementById('observedStd').textContent = '-';
+                    document.getElementById('meanError').textContent = '-';
+                    document.getElementById('stdError').textContent = '-';
+                    document.getElementById('goodnessOfFit').textContent = '-';
+                }
+            }
+
+            /**
+             * Updates the display of theoretical statistical values and formulas using MathJax.
+             */
+            updateTheoreticalStats() {
+                const n = this.config.numLevels;
+                const p = 0.5; // Standard Galton board probability
+
+                const theoreticalMean = n * p;
+                const theoreticalStd = Math.sqrt(n * p * (1 - p));
+
+                // Update text content for simple displays
+                document.getElementById('theoreticalMean').textContent = theoreticalMean.toFixed(2);
+                document.getElementById('theoreticalStd').textContent = theoreticalStd.toFixed(2);
+                document.getElementById('currentLevels').textContent = n;
+
+                // Update MathJax formula for Binomial Probability
+                const binomialFormulaEl = document.getElementById('binomialFormulaDisplay');
+                binomialFormulaEl.innerHTML = String.raw`$$P(X=k) = \binom{${n}}{k} (0.5)^k (0.5)^{${n}-k} = \binom{${n}}{k} (0.5)^{${n}}$$
+                                                <p style="font-size:0.8em; color: var(--text-secondary); text-align:center;">donde $k = 0, 1, \dots, ${n}$</p>`;
+
+                // Re-typeset the specific element if MathJax is available
+                if (typeof MathJax !== "undefined" && MathJax.typesetPromise) {
+                    MathJax.typesetPromise([binomialFormulaEl]).catch(function (err) {
+                        console.error('MathJax typeset error:', err);
+                    });
+                }
+
+
+                // Normal approximation assessment (Central Limit Theorem)
+                const np = n * p;
+                const nq = n * (1 - p); // nq will be same as np since p=0.5
+                let normalApproxText = "Excelente (np=" + np.toFixed(1) + ")";
+                if (np < 10) normalApproxText = "Buena (np=" + np.toFixed(1) + ")";
+                if (np < 5) normalApproxText = "Regular (np=" + np.toFixed(1) + ")";
+                if (np < 3) normalApproxText = "Pobre (np=" + np.toFixed(1) + ")";
+                document.getElementById('normalApprox').textContent = normalApproxText;
+
+                // Call updateStats to recalculate errors if theoretical values changed
+                this.updateStats();
+            }
+
+            /**
+             * Updates the HTML bar chart representing the distribution of particles in bins.
+             * Shows both observed and (if applicable) expected counts.
+             */
+            updateDistributionChart() {
+                const container = document.getElementById('distributionChart');
+                container.innerHTML = ''; // Clear previous chart
+
+                if (this.bins.length === 0) return;
+
+                // Determine max count for scaling bars (observed or expected)
+                let maxDisplayCount = 1; // Avoid division by zero if all counts are 0
+                this.bins.forEach(bin => {
+                    if (bin.count > maxDisplayCount) maxDisplayCount = bin.count;
+                });
+
+                const n_levels = this.config.numLevels;
+                const p_binom = 0.5;
+
+                if (this.particlesSettled > 0) {
+                     this.bins.forEach((bin, k) => {
+                        const theoreticalProb = this.binomialProbability(n_levels, k, p_binom);
+                        const expectedCountForBin = theoreticalProb * this.particlesSettled;
+                        if (expectedCountForBin > maxDisplayCount) maxDisplayCount = expectedCountForBin;
+                    });
+                }
+
+
+                const maxHeightPx = 100; // Max height of a bar in pixels
+
+                this.bins.forEach((bin, k_index) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'bin-wrapper';
+                    wrapper.title = `Contenedor ${k_index}: ${bin.count} partículas`;
+
+                    const countDisplay = document.createElement('div');
+                    countDisplay.className = 'bin-count';
+                    countDisplay.textContent = bin.count;
+
+                    // Observed bar
+                    const barObserved = document.createElement('div');
+                    barObserved.className = 'bin-bar'; // Orange bar for observed
+                    const heightObserved = (bin.count / maxDisplayCount) * maxHeightPx;
+                    barObserved.style.height = `${Math.max(0, heightObserved)}px`; // Ensure non-negative
+
+                    // Expected bar (theoretical)
+                    const expectedBar = document.createElement('div');
+                    expectedBar.className = 'expected-bar'; // Blueish bar for expected
+                    let heightExpected = 0;
+                    if (this.particlesSettled > 0) {
+                        const theoreticalProb = this.binomialProbability(n_levels, k_index, p_binom);
+                        const expectedCount = theoreticalProb * this.particlesSettled;
+                        heightExpected = (expectedCount / maxDisplayCount) * maxHeightPx;
+                        expectedBar.title = `Esperado: ${expectedCount.toFixed(1)} (${(theoreticalProb * 100).toFixed(1)}%)`;
+                    }
+                    expectedBar.style.height = `${Math.max(0, heightExpected)}px`;
+
+
+                    const label = document.createElement('div');
+                    label.className = 'bin-label';
+                    label.textContent = k_index; // Bin index (0 to n)
+
+                    wrapper.appendChild(countDisplay);
+                    wrapper.appendChild(expectedBar); // Add expected first so observed can overlap if needed
+                    wrapper.appendChild(barObserved);
+                    wrapper.appendChild(label);
+                    container.appendChild(wrapper);
+                });
+            }
+
+            /**
+             * Calculates binomial probability P(X=k) = C(n,k) * p^k * (1-p)^(n-k).
+             * @param {number} n - Number of trials (levels).
+             * @param {number} k - Number of successes (e.g., choices to the right).
+             * @param {number} p - Probability of success on a single trial.
+             * @returns {number} The binomial probability.
+             */
+            binomialProbability(n, k, p) {
+                if (k < 0 || k > n) return 0;
+                if (p === 0 && k > 0) return 0;
+                if (p === 1 && k < n) return 0;
+
+                // Calculate C(n,k) = n! / (k! * (n-k)!) efficiently
+                if (k < 0 || k > n) return 0;
+                if (k === 0 || k === n) return Math.pow(p,k) * Math.pow(1-p, n-k); // Handle edge cases for coefficient
+                if (k > n / 2) k = n - k; // Symmetry: C(n, k) == C(n, n-k)
+
+                let coefficient = 1;
+                for (let i = 1; i <= k; i++) {
+                    coefficient = coefficient * (n - i + 1) / i;
+                }
+                return coefficient * Math.pow(p, k) * Math.pow(1 - p, n - k);
+            }
+
+            /**
+             * Displays a temporary notification message to the user.
+             * @param {string} message - The message to display.
+             * @param {string} type - Type of notification ('info', 'success', 'warning', 'error').
+             * @param {number} duration - How long the notification stays visible (in ms).
+             */
+            showNotification(message, type = 'info', duration = 3500) {
+                const notification = document.getElementById('notification');
+                notification.textContent = message;
+                notification.className = `notification ${type}`; // Base class + type class
+                notification.classList.add('show'); // Trigger visibility
+
+                // Automatically hide after duration
+                setTimeout(() => {
+                    notification.classList.remove('show');
+                }, duration);
+            }
+        }
+
+        /**
+         * Toggles the visibility of the statistical analysis content section.
+         * Updates ARIA attributes for accessibility.
+         */
+        function toggleStats() {
+            const content = document.getElementById('statsContent');
+            const toggleButton = document.querySelector('.toggle-section'); // The clickable h3 parent
+            const toggleIcon = document.getElementById('statsToggle'); // The arrow icon
+
+            const isOpen = content.classList.toggle('open');
+            toggleIcon.textContent = isOpen ? '▲' : '▼'; // Update arrow
+            toggleButton.setAttribute('aria-expanded', isOpen.toString()); // ARIA for accessibility
+        }
+
+        // Initialize the Galton Machine simulation once the DOM is fully loaded.
+        let galtonMachine;
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!galtonMachine) { // Ensure it's only initialized once
+                 galtonMachine = new GaltonMachine();
+            }
+        });
+
+        // Fallback for cases where DOMContentLoaded might have already fired (e.g., script loaded async late)
+        if (document.readyState !== 'loading' && !galtonMachine) {
+            galtonMachine = new GaltonMachine();
+        }
+    </script>
+</body>
+</html>
