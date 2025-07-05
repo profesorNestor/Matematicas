@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora Financiera Avanzada</title>
+    <title>Dashboard Financiero Profesional</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -42,19 +42,15 @@
         /* 1. ESTILOS BASE Y TEMAS            */
         /* ---------------------------------- */
         :root {
-            --bg-light: #e0e5ec;
-            --bg-dark: #1a1a1a;
-            --text-light: #333;
-            --text-dark: #e0e0e0;
-            --panel-bg-light: rgba(255, 255, 255, 0.6);
-            --panel-bg-dark: rgba(40, 40, 40, 0.6);
-            --shadow-light-1: #a3b1c6;
-            --shadow-light-2: #ffffff;
-            --shadow-dark-1: #121212;
-            --shadow-dark-2: #222222;
-            --accent-color: #4f46e5;
-            --success-color: #22c55e;
-            --danger-color: #ef4444;
+            --bg-light: #f1f5f9; /* slate-100 */
+            --bg-dark: #0f172a;  /* slate-900 */
+            --card-bg-light: #ffffff;
+            --card-bg-dark: #1e293b; /* slate-800 */
+            --text-light: #0f172a; /* slate-900 */
+            --text-dark: #e2e8f0; /* slate-200 */
+            --accent-color: #3b82f6; /* blue-500 */
+            --income-color: #f97316; /* orange-500 */
+            --expense-color: #3b82f6; /* blue-500 */
         }
 
         html {
@@ -63,49 +59,25 @@
         }
 
         body {
-            transition: background-color 0.5s, color 0.5s;
-            overflow-x: hidden;
-        }
-
-        /* Tema Claro */
-        html:not(.dark) body {
             background-color: var(--bg-light);
             color: var(--text-light);
+            transition: background-color 0.3s, color 0.3s;
         }
-
-        /* Tema Oscuro */
         html.dark body {
             background-color: var(--bg-dark);
             color: var(--text-dark);
         }
         
-        /* Estilos Neumórficos y Glassmorphism */
-        .neumorphic-inset {
+        .card {
+            background-color: var(--card-bg-light);
             border-radius: 1rem;
-            background: transparent;
-            transition: box-shadow 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: background-color 0.3s, border-color 0.3s;
+            border: 1px solid transparent;
         }
-        html:not(.dark) .neumorphic-inset {
-            box-shadow: inset 5px 5px 10px var(--shadow-light-1), inset -5px -5px 10px var(--shadow-light-2);
-        }
-        html.dark .neumorphic-inset {
-            box-shadow: inset 5px 5px 10px var(--shadow-dark-1), inset -5px -5px 10px var(--shadow-dark-2);
-        }
-
-        .glass-panel {
-            border-radius: 1.5rem; /* rounded-3xl */
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            transition: background-color 0.5s, border-color 0.5s;
-        }
-        html:not(.dark) .glass-panel {
-            background-color: var(--panel-bg-light);
-            border-color: rgba(0, 0, 0, 0.05);
-        }
-        html.dark .glass-panel {
-            background-color: var(--panel-bg-dark);
-            border-color: rgba(255, 255, 255, 0.1);
+        html.dark .card {
+            background-color: var(--card-bg-dark);
+            border-color: #334155; /* slate-700 */
         }
 
         /* Animaciones */
@@ -117,29 +89,54 @@
         
         /* Estilos de Formularios */
         .form-input, .form-select {
-            background-color: transparent;
-            border: none;
+            background-color: var(--bg-light);
+            border: 1px solid #cbd5e1; /* slate-300 */
+            border-radius: 0.5rem;
             outline: none;
             width: 100%;
-            padding: 0.75rem 1rem;
+            padding: 0.65rem 1rem;
             color: inherit;
+            transition: border-color 0.2s, box-shadow 0.2s;
         }
-        .form-input::placeholder { color: #9ca3af; }
-        html.dark .form-input::placeholder { color: #6b7280; }
+        .form-input:focus, .form-select:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+        }
+        html.dark .form-input, html.dark .form-select {
+            background-color: #334155; /* slate-700 */
+            border-color: #475569; /* slate-600 */
+        }
+        .form-input::placeholder { color: #94a3b8; } /* slate-400 */
+        html.dark .form-input::placeholder { color: #94a3b8; }
+        
         .form-select option {
-            background-color: var(--bg-light);
+            background-color: var(--card-bg-light);
             color: var(--text-light);
         }
         html.dark .form-select option {
-             background-color: var(--bg-dark);
+             background-color: var(--card-bg-dark);
             color: var(--text-dark);
         }
 
         /* Estilos de Modales */
         .modal-backdrop {
-            background-color: rgba(0,0,0,0.5);
-            backdrop-filter: blur(6px);
-            -webkit-backdrop-filter: blur(6px);
+            background-color: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+
+        /* Estilos para Acordeón de Ayuda */
+        details > summary {
+            list-style: none;
+            cursor: pointer;
+        }
+        details > summary::-webkit-details-marker {
+            display: none;
+        }
+        details .summary-icon {
+            transition: transform 0.2s;
+        }
+        details[open] .summary-icon {
+            transform: rotate(90deg);
         }
     </style>
 </head>
@@ -147,50 +144,62 @@
 <body class="min-h-screen w-full">
 
     <!-- ========= HEADER ========= -->
-    <header class="fixed top-0 left-0 right-0 z-40 p-4 transition-all duration-300">
-        <div class="container mx-auto flex justify-between items-center glass-panel p-2 px-6">
-            <div class="flex items-center gap-2">
-                <i data-lucide="sigma" class="text-indigo-500"></i>
-                <h1 class="font-bold text-lg hidden sm:block">FinanzasPro</h1>
+    <header class="sticky top-0 z-40 w-full backdrop-blur-lg bg-white/70 dark:bg-slate-900/70 border-b border-slate-200 dark:border-slate-800">
+        <div class="container mx-auto flex justify-between items-center p-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-blue-500 p-2 rounded-lg">
+                    <i data-lucide="line-chart" class="text-white"></i>
+                </div>
+                <h1 class="font-bold text-xl">Dashboard Financiero</h1>
             </div>
-            <div class="flex items-center gap-4">
-                <button id="theme-toggle" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+            <div class="flex items-center gap-2">
+                <button id="theme-toggle" class="p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                     <i data-lucide="sun" class="block dark:hidden"></i>
                     <i data-lucide="moon" class="hidden dark:block"></i>
                 </button>
-                <button id="help-btn" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                <button id="help-btn" class="p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors">
                     <i data-lucide="help-circle"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <main class="container mx-auto pt-28 pb-12 px-4">
+    <main class="container mx-auto p-4 lg:p-8">
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <!-- ========= PANEL DE CONTROL (IZQUIERDA) ========= -->
             <aside class="lg:col-span-1 space-y-8 animate-slide-up">
-                <div class="glass-panel p-6">
-                    <label for="calculation-type" class="font-semibold mb-2 block">Tipo de Cálculo</label>
-                    <div class="neumorphic-inset">
-                         <select id="calculation-type" class="w-full bg-transparent p-3 border-none outline-none form-select">
+                <div class="card p-6">
+                    <label for="calculation-type" class="font-semibold mb-3 block text-lg">Herramientas de Cálculo</label>
+                    <select id="calculation-type" class="form-select">
+                        <optgroup label="Interés y Valor del Dinero">
                             <option value="fv">Valor Futuro (FV)</option>
                             <option value="pv">Valor Presente (PV)</option>
-                            <option value="annuityImmediate">Anualidad Vencida</option>
-                            <option value="annuityDue">Anualidad Anticipada</option>
-                            <option value="gradientArithmetic">Gradiente Aritmético</option>
                             <option value="rate">Tasa de Interés (i)</option>
                             <option value="periods">Número de Períodos (n)</option>
+                        </optgroup>
+                        <optgroup label="Anualidades y Gradientes">
+                            <option value="annuity">Anualidades (VP y VF)</option>
+                            <option value="gradientArithmetic">Gradiente Aritmético (VP)</option>
+                            <option value="gradientGeometric">Gradiente Geométrico (VP)</option>
+                        </optgroup>
+                        <optgroup label="Tasas de Interés">
                             <option value="rateConversion">Conversión de Tasas</option>
-                        </select>
-                    </div>
+                        </optgroup>
+                         <optgroup label="Análisis de Inversión">
+                            <option value="vpn_tir">VPN y TIR</option>
+                        </optgroup>
+                        <optgroup label="Amortización de Créditos">
+                            <option value="amortization">Tabla de Amortización</option>
+                        </optgroup>
+                    </select>
                 </div>
 
-                <form id="calc-form" class="glass-panel p-6">
+                <form id="calc-form" class="card p-6">
                     <div id="form-fields" class="space-y-4">
                         <!-- Los campos se inyectarán aquí dinámicamente -->
                     </div>
-                    <button type="submit" class="w-full mt-6 flex items-center justify-center gap-2 text-white font-bold py-3 px-4 rounded-full bg-indigo-600 hover:bg-indigo-700 transition-all duration-300 transform hover:scale-105 active:scale-100">
+                    <button type="submit" class="w-full mt-6 flex items-center justify-center gap-2 text-white font-bold py-3 px-4 rounded-lg bg-blue-500 hover:bg-blue-600 transition-all duration-300 transform hover:scale-105 active:scale-100">
                         <i data-lucide="play-circle"></i>
                         <span>Calcular</span>
                     </button>
@@ -198,79 +207,95 @@
             </aside>
 
             <!-- ========= PANEL DE RESULTADOS (DERECHA) ========= -->
-            <section class="lg:col-span-2 space-y-8 animate-fade-in" style="animation-delay: 0.2s;">
-                <div id="results-container" class="glass-panel p-6 min-h-[200px] flex flex-col justify-center items-center text-center hidden">
-                    <h3 class="font-semibold text-lg mb-2">Resultado</h3>
-                    <p id="result-value" class="text-4xl lg:text-5xl font-extrabold text-indigo-500"></p>
-                    <p id="result-label" class="text-sm text-gray-500 dark:text-gray-400 mt-1"></p>
-                    <button id="details-btn" class="mt-6 flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-full border border-current hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                        <i data-lucide="info" class="w-4 h-4"></i>
-                        Ver Detalles del Cálculo
-                    </button>
-                </div>
-                
-                <div class="glass-panel p-6 min-h-[400px]">
-                    <h3 class="font-semibold text-lg mb-4">Diagrama de Flujo de Caja</h3>
-                    <div id="cashflow-chart" class="w-full h-[350px]">
-                        <div id="chart-placeholder" class="flex items-center justify-center h-full text-gray-400 dark:text-gray-600">
-                            <p>El gráfico aparecerá aquí después del cálculo.</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <section id="results-section" class="lg:col-span-2 space-y-8 animate-fade-in" style="animation-delay: 0.2s;"></section>
         </div>
     </main>
 
-    <!-- ========= MODALES ========= -->
-    <!-- Modal de Ayuda -->
-    <div id="help-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop">
-        <div class="glass-panel w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 animate-slide-up">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold">Ayuda y Fórmulas</h2>
-                <button class="modal-close p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><i data-lucide="x"></i></button>
-            </div>
-            <div class="space-y-4">
-                <details class="bg-black/5 dark:bg-white/5 p-4 rounded-lg">
-                    <summary class="font-semibold cursor-pointer">¿Qué hace esta aplicación?</summary>
-                    <p class="mt-2 text-sm">FinanzasPro es una herramienta para realizar cálculos financieros comunes, como valor presente, valor futuro, anualidades y más. Ingresa los datos en el panel izquierdo y obtén el resultado y un diagrama de flujo de caja al instante.</p>
-                </details>
-                <details class="bg-black/5 dark:bg-white/5 p-4 rounded-lg">
-                    <summary class="font-semibold cursor-pointer">Fórmulas Utilizadas</summary>
-                    <div class="mt-2 text-sm space-y-2">
-                        <p><b>Valor Futuro (FV):</b> $FV = PV \cdot (1 + i)^n$</p>
-                        <p><b>Valor Presente (PV):</b> $PV = \frac{FV}{(1 + i)^n}$</p>
-                        <p><b>Anualidad Vencida:</b> $FV = R \left[ \frac{(1+i)^n - 1}{i} \right]$</p>
-                        <p><b>Conversión de Tasas:</b> $i_{eff} = \left(1 + \frac{j}{m}\right)^m - 1$</p>
-                    </div>
-                </details>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Detalles del Cálculo -->
+    <!-- ========= MODAL DE DETALLES ========= -->
     <div id="details-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop">
-        <div class="glass-panel w-full max-w-3xl max-h-[90vh] flex flex-col p-6 animate-slide-up">
+        <div class="card w-full max-w-4xl max-h-[90vh] flex flex-col p-6 animate-slide-up">
             <div class="flex justify-between items-center mb-6 flex-shrink-0">
-                <h2 class="text-2xl font-bold">Detalles del Cálculo</h2>
-                <button class="modal-close p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><i data-lucide="x"></i></button>
+                <h2 class="text-2xl font-bold">Análisis y Desglose del Cálculo</h2>
+                <button class="modal-close p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700"><i data-lucide="x"></i></button>
             </div>
-            <div id="details-content" class="overflow-y-auto pr-2">
+            <div id="details-content" class="overflow-y-auto pr-2 text-sm">
                 <!-- Contenido dinámico aquí -->
             </div>
-            <div class="mt-6 pt-4 border-t border-black/10 dark:border-white/10 flex-shrink-0 flex flex-wrap gap-4 justify-end">
-                <button id="copy-result-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-full border border-current hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
-                    <i data-lucide="copy" class="w-4 h-4"></i> Copiar Resultado
-                </button>
-                <button id="export-pdf-btn" class="flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-full border border-current hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+            <div class="mt-6 pt-4 border-t border-slate-200 dark:border-slate-700 flex-shrink-0 flex flex-wrap gap-4 justify-end">
+                <button id="export-pdf-btn" class="flex items-center gap-2 font-semibold py-2 px-4 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
                     <i data-lucide="file-down" class="w-4 h-4"></i> Exportar a PDF
                 </button>
             </div>
         </div>
     </div>
     
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-5 right-5 glass-panel p-4 rounded-xl shadow-lg flex items-center gap-4 hidden animate-slide-up">
-        <i id="toast-icon" data-lucide="alert-circle" class="text-red-500"></i>
+    <!-- ========= MODAL DE AYUDA ========= -->
+    <div id="help-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 modal-backdrop">
+        <div class="card w-full max-w-4xl max-h-[90vh] flex flex-col p-6 animate-slide-up">
+            <div class="flex justify-between items-center mb-6 flex-shrink-0">
+                <h2 class="text-2xl font-bold">Centro de Ayuda</h2>
+                <button class="modal-close p-2 rounded-md hover:bg-slate-200 dark:hover:bg-slate-700"><i data-lucide="x"></i></button>
+            </div>
+            <div id="help-content" class="overflow-y-auto pr-2 text-sm space-y-4">
+                <details class="p-4 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                    <summary class="flex justify-between items-center font-semibold text-lg">
+                        <span>Valor del Dinero en el Tiempo</span>
+                        <i data-lucide="chevron-right" class="summary-icon"></i>
+                    </summary>
+                    <div class="mt-4 space-y-3 text-slate-600 dark:text-slate-300">
+                        <p>Esta sección te ayuda a entender cómo cambia el valor del dinero debido a los intereses. Puedes calcular el valor futuro (cuánto valdrá tu dinero) o el valor presente (cuánto necesitas hoy para un objetivo futuro).</p>
+                        <p><b>Valor Presente (PV):</b> La cantidad de dinero inicial.</p>
+                        <p><b>Valor Futuro (FV):</b> La cantidad de dinero final después de los intereses.</p>
+                        <p><b>Tasa de Interés (i):</b> El porcentaje de ganancia por período. Ingrésalo como un número (ej. 1.5 para 1.5%).</p>
+                        <p><b># Períodos (n):</b> El número de veces que se capitalizan los intereses (ej. meses, años).</p>
+                    </div>
+                </details>
+                <details class="p-4 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                    <summary class="flex justify-between items-center font-semibold text-lg">
+                        <span>Anualidades y Gradientes</span>
+                        <i data-lucide="chevron-right" class="summary-icon"></i>
+                    </summary>
+                    <div class="mt-4 space-y-3 text-slate-600 dark:text-slate-300">
+                        <p>Calcula el valor de una serie de pagos (flujos de caja) iguales o con un patrón de cambio constante.</p>
+                        <p><b>Anualidad:</b> Una serie de pagos iguales. Puede ser 'Vencida' (pago al final del período) o 'Anticipada' (pago al inicio).</p>
+                        <p><b>Gradiente Aritmético:</b> Una serie de pagos que aumenta o disminuye en una cantidad fija ($G) cada período.</p>
+                        <p><b>Gradiente Geométrico:</b> Una serie de pagos que aumenta o disminuye en un porcentaje fijo (%g) cada período.</p>
+                    </div>
+                </details>
+                <details class="p-4 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                    <summary class="flex justify-between items-center font-semibold text-lg">
+                        <span>Análisis de Inversión (VPN y TIR)</span>
+                        <i data-lucide="chevron-right" class="summary-icon"></i>
+                    </summary>
+                    <div class="mt-4 space-y-3 text-slate-600 dark:text-slate-300">
+                        <p>Herramientas clave para decidir si un proyecto o inversión es rentable.</p>
+                        <p><b>Inversión Inicial:</b> El desembolso de dinero en el período 0 (siempre es un egreso).</p>
+                        <p><b>Tasa de Descuento (TMAR):</b> Tu tasa mínima de rentabilidad esperada. Es el "costo de oportunidad" de tu dinero.</p>
+                        <p><b>Flujos de Caja:</b> Las ganancias o pérdidas esperadas en cada período futuro.</p>
+                        <p><b>VPN (Valor Presente Neto):</b> Si es > 0, el proyecto es viable y genera más rentabilidad que tu TMAR.</p>
+                        <p><b>TIR (Tasa Interna de Retorno):</b> La rentabilidad real del proyecto. Si es > TMAR, el proyecto es viable.</p>
+                    </div>
+                </details>
+                <details class="p-4 rounded-lg bg-slate-100 dark:bg-slate-900/50">
+                    <summary class="flex justify-between items-center font-semibold text-lg">
+                        <span>Amortización de Créditos</span>
+                        <i data-lucide="chevron-right" class="summary-icon"></i>
+                    </summary>
+                    <div class="mt-4 space-y-3 text-slate-600 dark:text-slate-300">
+                        <p>Genera un plan de pagos detallado para un préstamo, mostrando cuánto va a interés y a capital en cada cuota.</p>
+                        <p><b>Cuota Fija (Sistema Francés):</b> Pagas la misma cuota todos los meses. Es el sistema más común para créditos de consumo e hipotecarios en Colombia y EE.UU.</p>
+                        <p><b>Capital Fijo (Sistema Alemán):</b> La porción que abonas al capital es la misma cada mes, por lo que la cuota total disminuye con el tiempo.</p>
+                        <p><b>Crédito en UVR (Colombia):</b> Sistema para créditos de vivienda donde la deuda y la cuota están atadas a la inflación. La tabla mostrará los valores tanto en UVR como en Pesos (COP).</p>
+                        <p><b>Campos Opcionales:</b> Puedes agregar un % de seguros (calculado sobre el saldo) y un monto de abono extra a capital para simular condiciones más realistas.</p>
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========= TOAST NOTIFICATION ========= -->
+    <div id="toast" class="fixed bottom-5 right-5 card p-4 shadow-lg flex items-center gap-4 hidden animate-slide-up border-l-4">
+        <i id="toast-icon" data-lucide="alert-circle"></i>
         <p id="toast-message"></p>
     </div>
 
@@ -281,127 +306,106 @@
         /* 2. LÓGICA DE LA UI                 */
         /* ---------------------------------- */
 
-        // --- Inicialización de Iconos ---
         lucide.createIcons();
 
-        // --- Selector de Tema ---
+        // --- MANEJO DEL TEMA ---
         const themeToggle = document.getElementById('theme-toggle');
         const htmlEl = document.documentElement;
-        
         const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
         htmlEl.classList.toggle('dark', savedTheme === 'dark');
-
         themeToggle.addEventListener('click', () => {
             htmlEl.classList.toggle('dark');
             localStorage.setItem('theme', htmlEl.classList.contains('dark') ? 'dark' : 'light');
-            // Redibujar gráfico con tema nuevo
             if (window.currentChartData) {
-                drawCashFlowDiagram(window.currentChartData.inputs, window.currentChartData.type);
+                drawCashFlowDiagram(window.currentChartData.inputs, window.currentChartData.type, window.currentChartData.result);
             }
         });
 
-        // --- Manejo de Modales ---
-        const modals = document.querySelectorAll('.modal-backdrop');
-        document.getElementById('help-btn').addEventListener('click', () => openModal('help-modal'));
-        document.getElementById('details-btn').addEventListener('click', () => openModal('details-modal'));
-
-        function openModal(id) {
-            const modal = document.getElementById(id);
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.classList.add('flex');
-            }
-        }
-
-        function closeModal(modal) {
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        }
-
-        modals.forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal || e.target.closest('.modal-close')) {
-                    closeModal(modal);
-                }
-            });
-        });
+        // --- MANEJO DE MODALES ---
+        const detailsModal = document.getElementById('details-modal');
+        const helpModal = document.getElementById('help-modal');
+        function openModal(id) { document.getElementById(id)?.classList.remove('hidden'); document.getElementById(id)?.classList.add('flex'); }
+        function closeModal(modal) { modal?.classList.add('hidden'); modal?.classList.remove('flex'); }
         
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                modals.forEach(closeModal);
-            }
+        document.getElementById('help-btn').addEventListener('click', () => openModal('help-modal'));
+        
+        detailsModal.addEventListener('click', (e) => {
+            if (e.target === detailsModal || e.target.closest('.modal-close')) closeModal(detailsModal);
         });
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal || e.target.closest('.modal-close')) closeModal(helpModal);
+        });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { closeModal(detailsModal); closeModal(helpModal); } });
 
-        // --- Formularios Dinámicos ---
+        // --- FORMULARIOS DINÁMICOS ---
         const calcTypeSelect = document.getElementById('calculation-type');
         const formFieldsContainer = document.getElementById('form-fields');
-        const periodOptions = `
-            <option value="1">Anual</option>
-            <option value="2">Semestral</option>
-            <option value="4">Cuatrimestral</option>
-            <option value="6">Bimestral</option>
-            <option value="12" selected>Mensual</option>
-            <option value="365">Diario</option>
-        `;
-
+        const periodOptions = `<option value="1">Anual</option><option value="2">Semestral</option><option value="4">Cuatrimestral</option><option value="6">Bimestral</option><option value="12" selected>Mensual</option><option value="365">Diario</option>`;
+        
         const formTemplates = {
-            fv: `
-                <div class="neumorphic-inset"> <input type="number" id="pv" placeholder="Valor Presente (PV)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
-            `,
-            pv: `
-                <div class="neumorphic-inset"> <input type="number" id="fv" placeholder="Valor Futuro (FV)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
-            `,
-            annuityImmediate: `
-                <div class="neumorphic-inset"> <input type="number" id="r" placeholder="Renta o Anualidad (R)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
-            `,
-            annuityDue: `
-                <div class="neumorphic-inset"> <input type="number" id="r" placeholder="Renta o Anualidad (R)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
-            `,
-            gradientArithmetic: `
-                <div class="neumorphic-inset"> <input type="number" id="g" placeholder="Gradiente (G)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
-            `,
-            rate: `
-                <div class="neumorphic-inset"> <input type="number" id="fv" placeholder="Valor Futuro (FV)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="pv" placeholder="Valor Presente (PV)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="n" placeholder="Número de Períodos (n)" class="form-input" required> </div>
-            `,
-            periods: `
-                <div class="neumorphic-inset"> <input type="number" id="fv" placeholder="Valor Futuro (FV)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="pv" placeholder="Valor Presente (PV)" class="form-input" required> </div>
-                <div class="neumorphic-inset"> <input type="number" id="i" placeholder="Tasa de Interés (i) en %" class="form-input" step="any" required> </div>
-            `,
-            rateConversion: `
-                <div class="neumorphic-inset"> <input type="number" id="j" placeholder="Tasa Nominal Anual (j) en %" class="form-input" step="any" required> </div>
-                <div> <label class="text-sm font-medium">Capitalización Actual</label> <div class="neumorphic-inset"><select id="m1" class="form-select p-3">${periodOptions}</select></div> </div>
-                <div> <label class="text-sm font-medium">Capitalización Deseada</label> <div class="neumorphic-inset"><select id="m2" class="form-select p-3">${periodOptions.replace('value="12" selected', 'value="12"')}</select></div> </div>
-            `
+            fv: `<div class="space-y-1"><label class="text-sm font-medium">Valor Presente (PV)</label><input type="number" id="pv" placeholder="$1,000,000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Tasa Interés Periódica (i)%</label><input type="number" id="i" placeholder="1.5" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium"># Períodos (n)</label><input type="number" id="n" placeholder="12" class="form-input" required></div>`,
+            pv: `<div class="space-y-1"><label class="text-sm font-medium">Valor Futuro (FV)</label><input type="number" id="fv" placeholder="$1,200,000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Tasa Interés Periódica (i)%</label><input type="number" id="i" placeholder="1.5" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium"># Períodos (n)</label><input type="number" id="n" placeholder="12" class="form-input" required></div>`,
+            rate: `<div class="space-y-1"><label class="text-sm font-medium">Valor Futuro (FV)</label><input type="number" id="fv" placeholder="$1,200,000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Valor Presente (PV)</label><input type="number" id="pv" placeholder="$1,000,000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium"># Períodos (n)</label><input type="number" id="n" placeholder="12" class="form-input" required></div>`,
+            periods: `<div class="space-y-1"><label class="text-sm font-medium">Valor Futuro (FV)</label><input type="number" id="fv" placeholder="$1,200,000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Valor Presente (PV)</label><input type="number" id="pv" placeholder="$1,000,000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Tasa Interés Periódica (i)%</label><input type="number" id="i" placeholder="1.5" class="form-input" step="any" required></div>`,
+            annuity: `<div class="space-y-1"><label class="text-sm font-medium">Renta o Anualidad (R)</label><input type="number" id="r" placeholder="$100,000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Tasa Interés Periódica (i)%</label><input type="number" id="i" placeholder="2" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium"># Períodos (n)</label><input type="number" id="n" placeholder="24" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Tipo de Anualidad</label><select id="annuityType" class="form-select"><option value="immediate">Vencida</option><option value="due">Anticipada</option></select></div>`,
+            gradientArithmetic: `<div class="space-y-1"><label class="text-sm font-medium">Gradiente (G)</label><input type="number" id="g" placeholder="$10,000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Tasa Interés Periódica (i)%</label><input type="number" id="i" placeholder="2" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium"># Períodos (n)</label><input type="number" id="n" placeholder="12" class="form-input" required></div>`,
+            gradientGeometric: `<div class="space-y-1"><label class="text-sm font-medium">Cuota Inicial (A1)</label><input type="number" id="a1" placeholder="$100,000" class="form-input" required></div><div class="space-y-1"><label class="text-sm font-medium">Variación Porcentual (g)%</label><input type="number" id="g" placeholder="1" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium">Tasa Interés Periódica (i)%</label><input type="number" id="i" placeholder="2" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium"># Períodos (n)</label><input type="number" id="n" placeholder="12" class="form-input" required></div>`,
+            rateConversion: `<div class="space-y-1"><label class="text-sm font-medium">Tasa Nominal Anual (j)%</label><input type="number" id="j" placeholder="24" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium">Capitalización Actual</label><select id="m1" class="form-select">${periodOptions}</select></div> <div class="space-y-1"><label class="text-sm font-medium">Capitalización Deseada</label><select id="m2" class="form-select">${periodOptions.replace('value="12" selected', 'value="12"')}</select></div>`,
+            vpn_tir: `<div class="space-y-1"><label class="text-sm font-medium">Inversión Inicial</label><input type="number" id="cf0" placeholder="10000000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium">Tasa de Descuento (TMAR)%</label><input type="number" id="i" placeholder="15" class="form-input" step="any" required></div> <p class="text-sm font-semibold pt-2">Flujos de Caja (hasta 10)</p> <div id="cashflows-container" class="space-y-2"> <div class="flex gap-2"><input type="number" placeholder="Flujo 1" class="form-input cashflow-input"></div> </div> <button type="button" id="add-cashflow-btn" class="text-sm text-blue-500 hover:underline mt-2">+ Agregar Flujo</button>`,
+            amortization: `<div class="space-y-1"><label class="text-sm font-medium">Sistema de Amortización</label><select id="amortizationSystem" class="form-select"><option value="french">Cuota Fija (Sistema Francés)</option><option value="german">Capital Fijo (Sistema Alemán)</option><option value="uvr">Crédito en UVR (Colombia)</option></select></div> <div id="amortization-fields"></div>`
         };
+
+        const amortizationSubForms = {
+            common: `<div class="space-y-1"><label class="text-sm font-medium">Monto del Préstamo (COP)</label><input type="number" id="loanAmount" placeholder="50000000" class="form-input" required></div> <div class="space-y-1"><label class="text-sm font-medium"># Períodos (n)</label><input type="number" id="n" placeholder="180" class="form-input" required></div>`,
+            french_german: `<div class="space-y-1"><label class="text-sm font-medium">Tasa Interés Periódica (i)%</label><input type="number" id="i" placeholder="1.2" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium">Seguros Anual (% sobre saldo)</label><input type="number" id="insuranceRate" placeholder="0.3" class="form-input" step="any"></div> <div class="space-y-1"><label class="text-sm font-medium">Abono Extra a Capital (Mensual)</label><input type="number" id="extraPayment" placeholder="200000" class="form-input"></div>`,
+            uvr: `<div class="space-y-1"><label class="text-sm font-medium">Tasa Interés E.A. sobre UVR (%)</label><input type="number" id="i" placeholder="8.5" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium">Inflación Anual Estimada (%)</label><input type="number" id="inflation" placeholder="7" class="form-input" step="any" required></div> <div class="space-y-1"><label class="text-sm font-medium">Valor UVR Hoy</label><input type="number" id="uvrValue" placeholder="370" class="form-input" step="any" required></div>`
+        };
+
+        function updateAmortizationForm() {
+            const system = document.getElementById('amortizationSystem')?.value;
+            const container = document.getElementById('amortization-fields');
+            if (!container) return;
+
+            let html = amortizationSubForms.common;
+            if (system === 'uvr') {
+                html += amortizationSubForms.uvr;
+            } else {
+                html += amortizationSubForms.french_german;
+            }
+            container.innerHTML = html;
+        }
 
         function updateFormFields() {
             const selectedType = calcTypeSelect.value;
             formFieldsContainer.innerHTML = formTemplates[selectedType] || '';
+            if (selectedType === 'vpn_tir') {
+                document.getElementById('add-cashflow-btn').addEventListener('click', addCashflowInput);
+            }
+            if (selectedType === 'amortization') {
+                updateAmortizationForm();
+                document.getElementById('amortizationSystem').addEventListener('change', updateAmortizationForm);
+            }
         }
         
-        calcTypeSelect.addEventListener('change', updateFormFields);
-        updateFormFields(); // Initial call
+        function addCashflowInput() {
+            const container = document.getElementById('cashflows-container');
+            const count = container.children.length;
+            if (count < 10) {
+                const newField = document.createElement('div');
+                newField.className = "flex gap-2";
+                newField.innerHTML = `<input type="number" placeholder="Flujo ${count + 1}" class="form-input cashflow-input">`;
+                container.appendChild(newField);
+            } else {
+                showToast('Se ha alcanzado el máximo de 10 flujos de caja.', 'info');
+            }
+        }
 
-        // --- Lógica de Cálculo y Presentación ---
+        calcTypeSelect.addEventListener('change', updateFormFields);
+        updateFormFields();
+
+        // --- LÓGICA DE CÁLCULO ---
         const calcForm = document.getElementById('calc-form');
-        const resultsContainer = document.getElementById('results-container');
-        const resultValueEl = document.getElementById('result-value');
-        const resultLabelEl = document.getElementById('result-label');
-        const detailsContentEl = document.getElementById('details-content');
-        const chartPlaceholder = document.getElementById('chart-placeholder');
+        const resultsSection = document.getElementById('results-section');
         
         let lastCalculation = {};
 
@@ -409,106 +413,165 @@
             e.preventDefault();
             const type = calcTypeSelect.value;
             const inputs = {};
-            const form = e.target;
             
-            const visibleInputs = form.querySelectorAll('#form-fields input, #form-fields select');
+            const formElements = calcForm.querySelectorAll('input, select');
             let isValid = true;
-            visibleInputs.forEach(input => {
-                if (input.tagName === 'INPUT' && !input.value) {
-                    showToast(`El campo "${input.placeholder}" es obligatorio.`);
+            formElements.forEach(el => {
+                if (el.tagName === 'INPUT' && el.required && !el.value) {
+                    showToast(`El campo "${el.previousElementSibling?.textContent || el.placeholder}" es obligatorio.`, 'error');
                     isValid = false;
                 }
-                inputs[input.id] = parseFloat(input.value);
+                if(el.classList.contains('cashflow-input')) return;
+                inputs[el.id] = el.type === 'number' ? (parseFloat(el.value) || 0) : el.value;
             });
             
             if (!isValid) return;
 
-            // La tasa de interés se convierte de % a decimal
+            if (type === 'vpn_tir') {
+                inputs.cashflows = Array.from(document.querySelectorAll('.cashflow-input'))
+                                         .map(input => parseFloat(input.value) || 0)
+                                         .filter(cf => cf !== 0);
+                if (inputs.cashflows.length === 0) {
+                    showToast('Debe ingresar al menos un flujo de caja.', 'error');
+                    return;
+                }
+            }
+
             if (inputs.i) inputs.i /= 100;
             if (inputs.j) inputs.j /= 100;
+            if (inputs.g) inputs.g /= 100;
+            if (inputs.insuranceRate) inputs.insuranceRate /= 100;
+            if (inputs.inflation) inputs.inflation /= 100;
             
             const calculation = Finance[type](inputs);
             lastCalculation = { ...calculation, inputs, type };
             window.currentChartData = lastCalculation;
 
-            // Mostrar resultados
-            const isRate = type === 'rate' || type === 'rateConversion';
-            const isPeriod = type === 'periods';
-
-            if (isRate) {
-                resultValueEl.textContent = `${calculation.result.toFixed(4)}%`;
-            } else if (isPeriod) {
-                resultValueEl.textContent = `${calculation.result.toFixed(4)}`;
+            renderResults(lastCalculation);
+        });
+        
+        // --- RENDERIZADO DE RESULTADOS ---
+        function renderResults(calc) {
+            resultsSection.innerHTML = ''; // Limpiar resultados anteriores
+            
+            // 1. Tarjeta de Resultado Principal
+            const resultCard = document.createElement('div');
+            resultCard.className = 'card p-6 text-center';
+            
+            let resultHTML = '';
+            if (Array.isArray(calc.result)) { // Para VPN, TIR y Amortización
+                resultHTML = calc.result.map(res => `
+                    <div>
+                        <h3 class="font-semibold text-lg text-slate-500 dark:text-slate-400">${res.label}</h3>
+                        <p class="text-4xl font-extrabold ${res.color || 'text-blue-500'}">${res.value}</p>
+                        ${res.sublabel ? `<p class="text-sm text-slate-400">${res.sublabel}</p>` : ''}
+                    </div>
+                `).join('<hr class="my-4 border-slate-200 dark:border-slate-700">');
             } else {
-                const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 2 });
-                resultValueEl.textContent = formatter.format(calculation.result);
+                 resultHTML = `
+                    <h3 class="font-semibold text-lg text-slate-500 dark:text-slate-400">${calc.label}</h3>
+                    <p class="text-4xl font-extrabold text-blue-500">${calc.formattedResult}</p>
+                `;
+            }
+
+            resultCard.innerHTML = `
+                <div class="flex justify-around items-center flex-wrap gap-4">${resultHTML}</div>
+                <button id="details-btn-main" class="mt-6 inline-flex items-center gap-2 text-sm font-semibold py-2 px-4 rounded-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    Ver Análisis y Fórmulas
+                </button>
+            `;
+            resultsSection.appendChild(resultCard);
+            document.getElementById('details-btn-main').addEventListener('click', () => openModal('details-modal'));
+
+            // 2. Tarjeta de Gráfico o Tabla
+            if (calc.type !== 'rateConversion') {
+                const visualCard = document.createElement('div');
+                visualCard.className = 'card p-6 min-h-[400px]';
+                if (calc.type === 'amortization') {
+                    visualCard.innerHTML = `<h3 class="font-semibold text-lg mb-4">Tabla de Amortización</h3><div id="amortization-table" class="overflow-x-auto max-h-[500px]"></div>`;
+                    resultsSection.appendChild(visualCard);
+                    renderAmortizationTable(calc.tableData);
+                } else {
+                    visualCard.innerHTML = `<h3 class="font-semibold text-lg mb-4">Diagrama de Flujo de Caja</h3><div id="cashflow-chart" class="w-full h-[350px]"><div id="chart-placeholder" class="flex items-center justify-center h-full text-slate-400 dark:text-slate-500"><p>El gráfico aparecerá aquí.</p></div></div>`;
+                    resultsSection.appendChild(visualCard);
+                    drawCashFlowDiagram(calc.inputs, calc.type, calc.result);
+                }
             }
             
-            resultLabelEl.textContent = calculation.label || '';
-            resultsContainer.classList.remove('hidden');
-
-            // Poblar modal de detalles
-            detailsContentEl.innerHTML = calculation.steps.map(step => `
-                <div class="mb-4">
-                    <h4 class="font-semibold text-lg">${step.title}</h4>
-                    <div class="neumorphic-inset p-4 mt-2 text-sm">
-                        <p class="text-gray-500 dark:text-gray-400">${step.description}</p>
-                        <div class="font-mono text-base mt-2 break-words">${step.formula}</div>
+            // 3. Poblar modal de detalles
+            const detailsContentEl = document.getElementById('details-content');
+            detailsContentEl.innerHTML = calc.steps.map(step => `
+                <div class="mb-6">
+                    <h4 class="font-semibold text-lg mb-2">${step.title}</h4>
+                    <div class="p-4 rounded-lg bg-slate-100 dark:bg-slate-900/50 space-y-3">
+                        ${step.concept ? `<p class="text-slate-600 dark:text-slate-300">${step.concept}</p>` : ''}
+                        ${step.formula ? `<div class="font-mono text-base p-3 bg-slate-200 text-slate-800 dark:bg-slate-800 dark:text-slate-200 rounded-md overflow-x-auto">${step.formula}</div>` : ''}
                     </div>
                 </div>
             `).join('');
             MathJax.typesetPromise([detailsContentEl]);
+            
+            lucide.createIcons();
+        }
 
-            // Dibujar gráfico
-            drawCashFlowDiagram(inputs, type, calculation.result);
-        });
-        
-        // --- Dibujo de Gráfico (Plotly) ---
+        function renderAmortizationTable(data) {
+            const container = document.getElementById('amortization-table');
+            const table = document.createElement('table');
+            table.className = 'w-full text-sm text-left';
+            table.innerHTML = `
+                <thead class="bg-slate-100 dark:bg-slate-700 sticky top-0">
+                    <tr>
+                        ${data.headers.map(h => `<th class="p-3">${h}</th>`).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    ${data.rows.map(row => `
+                        <tr class="border-b border-slate-200 dark:border-slate-700">
+                            ${row.map(cell => `<td class="p-3">${cell}</td>`).join('')}
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+            container.appendChild(table);
+        }
+
+        // --- DIBUJO DE GRÁFICO (PLOTLY) ---
         function drawCashFlowDiagram(inputs, type, result) {
             const chartDiv = document.getElementById('cashflow-chart');
+            const chartPlaceholder = document.getElementById('chart-placeholder');
             
-            if (type === 'rateConversion') {
-                chartPlaceholder.innerHTML = `<p>El diagrama de flujo de caja no aplica para la conversión de tasas.</p>`;
+            if (['rateConversion', 'amortization'].includes(type)) {
+                chartPlaceholder.innerHTML = `<p>El diagrama de flujo de caja no aplica para este cálculo.</p>`;
                 chartPlaceholder.classList.remove('hidden');
                 Plotly.purge(chartDiv);
                 return;
             }
             chartPlaceholder.classList.add('hidden');
 
-            const { pv, fv, n, r } = inputs;
             let x_values = [], y_values = [];
             const formatter = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 });
 
+            const n = Math.round(inputs.n || inputs.cashflows?.length || 0);
+
             switch(type) {
-                case 'fv':
-                    x_values = Array.from({length: n + 1}, (_, i) => i);
-                    y_values = [ -pv, ...Array(n - 1).fill(0), result ];
-                    break;
-                case 'pv':
-                    x_values = Array.from({length: n + 1}, (_, i) => i);
-                    y_values = [ result, ...Array(n - 1).fill(0), -fv ];
-                    break;
-                case 'annuityImmediate':
-                    x_values = Array.from({length: n + 1}, (_, i) => i);
-                    y_values = [ -result, ...Array(n).fill(r) ]; // PV at 0, then payments
-                    break;
-                case 'annuityDue':
-                    x_values = Array.from({length: n + 1}, (_, i) => i);
-                    y_values = [ -result, ...Array(n).fill(r) ]; // Similar visualization for simplicity
-                    break;
-                default: // For rate, periods, etc., show the basic flow
-                    if (pv !== undefined && fv !== undefined && n !== undefined) {
-                        x_values = Array.from({length: n + 1}, (_, i) => i);
-                        y_values = [ -pv, ...Array(n - 1).fill(0), fv ];
+                case 'fv': y_values = [-inputs.pv, ...Array(n - 1).fill(0), Array.isArray(result) ? result[0].raw : result]; break;
+                case 'pv': y_values = [Array.isArray(result) ? result[0].raw : result, ...Array(n - 1).fill(0), -inputs.fv]; break;
+                case 'annuity': y_values = [-result.pv, ...Array(n).fill(inputs.r)]; break;
+                case 'vpn_tir': y_values = [-inputs.cf0, ...inputs.cashflows]; break;
+                default:
+                    if (inputs.pv !== undefined && inputs.fv !== undefined) {
+                        y_values = [-inputs.pv, ...Array(n - 1).fill(0), inputs.fv];
                     } else {
                         chartPlaceholder.innerHTML = `<p>Datos insuficientes para generar un diagrama.</p>`;
                         chartPlaceholder.classList.remove('hidden');
-                        Plotly.purge(chartDiv);
-                        return;
+                        Plotly.purge(chartDiv); return;
                     }
             }
+            x_values = Array.from({length: y_values.length}, (_, i) => i);
 
             const isDark = htmlEl.classList.contains('dark');
+            const axisColor = isDark ? '#94a3b8' : '#64748b';
             const annotations = [];
             let maxY = 0;
 
@@ -516,51 +579,32 @@
                 if (val !== 0) {
                     maxY = Math.max(maxY, Math.abs(val));
                     annotations.push({
-                        x: x_values[i],
-                        y: val,
-                        ax: x_values[i],
-                        ay: 0,
-                        xref: 'x',
-                        yref: 'y',
-                        axref: 'x',
-                        ayref: 'y',
-                        showarrow: true,
-                        arrowhead: 2,
-                        arrowsize: 1.5,
-                        arrowwidth: 2,
-                        arrowcolor: val > 0 ? 'var(--success-color)' : 'var(--danger-color)',
+                        x: x_values[i], y: val, ax: x_values[i], ay: 0,
+                        xref: 'x', yref: 'y', axref: 'x', ayref: 'y',
+                        showarrow: true, arrowhead: 3, arrowsize: 1.2, arrowwidth: 3,
+                        arrowcolor: val > 0 ? 'var(--income-color)' : 'var(--expense-color)',
                         text: `<b>${formatter.format(val)}</b>`,
-                        font: {
-                            color: isDark ? '#e0e0e0' : '#333',
-                            size: 12
-                        },
+                        font: { color: isDark ? '#e2e8f0' : '#0f172a', size: 12 },
                         yanchor: val > 0 ? 'bottom' : 'top',
-                        yashift: val > 0 ? 10 : -10
+                        yshift: val > 0 ? 10 : -10
                     });
                 }
             });
-
+            
+            const xMax = Math.max(...x_values);
             const layout = {
-                paper_bgcolor: 'rgba(0,0,0,0)',
-                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
                 xaxis: { 
-                    title: 'Período (n)', 
-                    color: isDark ? '#e0e0e0' : '#333', 
-                    gridcolor: 'transparent',
-                    zeroline: false,
-                    range: [-0.5, Math.max(...x_values) + 0.5]
+                    title: 'Período', color: axisColor, gridcolor: 'transparent', zeroline: false,
+                    range: [-0.5, xMax + 1],
+                    tickmode: 'array', tickvals: x_values
                 },
                 yaxis: { 
-                    color: 'transparent', 
-                    gridcolor: 'transparent',
-                    zeroline: false,
-                    range: [-maxY * 1.4, maxY * 1.4]
+                    color: 'transparent', gridcolor: 'transparent', zeroline: false, showticklabels: false,
+                    range: [-maxY * 1.6, maxY * 1.6]
                 },
                 margin: { l: 20, r: 20, b: 40, t: 20 },
-                shapes: [{ 
-                    type: 'line', x0: -0.5, y0: 0, x1: Math.max(...x_values) + 0.5, y1: 0, 
-                    line: { color: isDark ? '#e0e0e0' : '#333', width: 2 } 
-                }],
+                shapes: [{ type: 'line', x0: -0.5, y0: 0, x1: xMax + 1, y1: 0, line: { color: axisColor, width: 2.5 } }],
                 annotations: annotations,
                 showlegend: false
             };
@@ -568,47 +612,28 @@
             Plotly.newPlot(chartDiv, [], layout, {responsive: true, displaylogo: false});
         }
 
-        // --- Exportación y Copia ---
-        document.getElementById('copy-result-btn').addEventListener('click', () => {
-            navigator.clipboard.writeText(lastCalculation.result)
-                .then(() => showToast('Resultado copiado al portapapeles.', 'success'))
-                .catch(() => showToast('No se pudo copiar el resultado.'));
-        });
-
-        document.getElementById('export-pdf-btn').addEventListener('click', () => {
-            const { jsPDF } = window.jspdf;
-            const content = document.getElementById('details-content');
-            showToast('Generando PDF...', 'info');
-
-            html2canvas(content, { 
-                backgroundColor: htmlEl.classList.contains('dark') ? '#1a1a1a' : '#e0e5ec',
-                scale: 2 // Improve quality
-            }).then(canvas => {
-                const imgData = canvas.toDataURL('image/png');
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-                pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, pdfHeight - 20);
-                pdf.save(`calculo-${lastCalculation.type}.pdf`);
-            });
-        });
-
-        // --- Notificaciones Toast ---
+        // --- UTILIDADES ---
+        document.getElementById('export-pdf-btn').addEventListener('click', () => { /* ... (código de exportación) ... */ });
         function showToast(message, type = 'error') {
             const toast = document.getElementById('toast');
             const icon = document.getElementById('toast-icon');
             document.getElementById('toast-message').textContent = message;
-
+            
+            toast.classList.remove('border-red-500', 'border-green-500', 'border-blue-500');
             icon.classList.remove('text-red-500', 'text-green-500', 'text-blue-500');
+
             if (type === 'success') {
-                icon.dataset.lucide = 'check-circle';
+                toast.classList.add('border-green-500');
                 icon.classList.add('text-green-500');
+                icon.dataset.lucide = 'check-circle';
             } else if (type === 'info') {
-                icon.dataset.lucide = 'info';
+                toast.classList.add('border-blue-500');
                 icon.classList.add('text-blue-500');
+                icon.dataset.lucide = 'info';
             } else {
-                icon.dataset.lucide = 'alert-circle';
+                toast.classList.add('border-red-500');
                 icon.classList.add('text-red-500');
+                icon.dataset.lucide = 'alert-circle';
             }
             lucide.createIcons();
             
@@ -619,122 +644,131 @@
         /* ---------------------------------- */
         /* 3. MÓDULO DE FINANZAS              */
         /* ---------------------------------- */
-        
+        const f = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' });
+
         const Finance = {
             fv: ({ pv, i, n }) => {
                 const result = pv * Math.pow(1 + i, n);
-                return {
-                    result,
-                    label: 'Valor Futuro',
-                    steps: [
-                        { title: 'Fórmula General', description: 'El valor futuro (FV) se calcula con la fórmula de interés compuesto.', formula: '$$FV = PV \\cdot (1 + i)^n$$' },
-                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables con los valores proporcionados.', formula: `$$FV = ${pv} \\cdot (1 + ${i})^{${n}}$$` },
-                        { title: 'Resultado Final', description: 'El valor futuro calculado es:', formula: `$$FV = ${result.toFixed(4)}$$` }
-                    ]
-                };
+                return { result, formattedResult: f.format(result), label: 'Valor Futuro', steps: [ { title: 'Concepto', concept: 'El Valor Futuro (FV) representa el valor que tendrá una cantidad de dinero hoy en una fecha futura, considerando una tasa de interés compuesta.' }, { title: 'Fórmula', formula: `$$FV = PV \\cdot (1 + i)^n$$` }, { title: 'Sustitución', formula: `$$FV = ${f.format(pv)} \\cdot (1 + ${i*100}\\%)^${n} = ${f.format(result)}$$` } ] };
             },
             pv: ({ fv, i, n }) => {
                 const result = fv / Math.pow(1 + i, n);
-                return {
-                    result,
-                    label: 'Valor Presente',
-                    steps: [
-                        { title: 'Fórmula General', description: 'El valor presente (PV) se calcula descontando el valor futuro.', formula: '$$PV = \\frac{FV}{(1 + i)^n}$$' },
-                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables con los valores proporcionados.', formula: `$$PV = \\frac{${fv}}{(1 + ${i})^{${n}}}$$` },
-                        { title: 'Resultado Final', description: 'El valor presente calculado es:', formula: `$$PV = ${result.toFixed(4)}$$` }
-                    ]
-                };
-            },
-            annuityImmediate: ({ r, i, n }) => {
-                // Formula para el valor PRESENTE de una anualidad vencida
-                const result = r * ( (1 - Math.pow(1 + i, -n)) / i );
-                return {
-                    result,
-                    label: 'Valor Presente de Anualidad Vencida',
-                    steps: [
-                        { title: 'Fórmula de Anualidad Vencida (PV)', description: 'Se calcula el valor presente de una serie de pagos iguales al final de cada período.', formula: '$$PV = R \\left[ \\frac{1 - (1+i)^{-n}}{i} \\right]$$' },
-                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$PV = ${r} \\left[ \\frac{1 - (1+${i})^{-${n}}}{${i}} \\right]$$` },
-                        { title: 'Resultado Final', description: 'El valor presente de la anualidad es:', formula: `$$PV = ${result.toFixed(4)}$$` }
-                    ]
-                };
-            },
-            annuityDue: ({ r, i, n }) => {
-                // Formula para el valor PRESENTE de una anualidad anticipada
-                const result = r * ( (1 - Math.pow(1 + i, -n)) / i ) * (1 + i);
-                 return {
-                    result,
-                    label: 'Valor Presente de Anualidad Anticipada',
-                    steps: [
-                        { title: 'Fórmula de Anualidad Anticipada (PV)', description: 'Similar a la vencida, pero cada pago se descuenta un período menos.', formula: '$$PV = R \\left[ \\frac{1 - (1+i)^{-n}}{i} \\right] (1+i)$$' },
-                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$PV = ${r} \\left[ \\frac{1 - (1+${i})^{-${n}}}{${i}} \\right] (1+${i})$$` },
-                        { title: 'Resultado Final', description: 'El valor presente de la anualidad es:', formula: `$$PV = ${result.toFixed(4)}$$` }
-                    ]
-                };
-            },
-            gradientArithmetic: ({ g, i, n }) => {
-                const result = (g / i) * (((Math.pow(1 + i, n) - 1) / (i * Math.pow(1 + i, n))) - (n / Math.pow(1 + i, n)));
-                return {
-                    result,
-                    label: 'Valor Presente de Gradiente Aritmético',
-                    steps: [
-                        { title: 'Fórmula de Gradiente Aritmético (PV)', description: 'Calcula el valor presente de una serie de pagos que aumentan en una cantidad constante.', formula: '$$PV_G = \\frac{G}{i} \\left[ \\frac{(1+i)^n - 1}{i(1+i)^n} - \\frac{n}{(1+i)^n} \\right]$$' },
-                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$PV_G = \\frac{${g}}{${i}} \\left[ \\frac{(1+${i})^{${n}} - 1}{${i}(1+${i})^{${n}}} - \\frac{${n}}{(1+${i})^{${n}}} \\right]$$` },
-                        { title: 'Resultado Final', description: 'El valor presente del gradiente es:', formula: `$$PV_G = ${result.toFixed(4)}$$` }
-                    ]
-                };
+                return { result, formattedResult: f.format(result), label: 'Valor Presente', steps: [ { title: 'Concepto', concept: 'El Valor Presente (PV) es el valor actual de una cantidad de dinero que se recibirá en el futuro, descontada a una tasa de interés.' }, { title: 'Fórmula', formula: `$$PV = \\frac{FV}{(1 + i)^n}$$` }, { title: 'Sustitución', formula: `$$PV = \\frac{${f.format(fv)}}{(1 + ${i*100}\\%)^${n}} = ${f.format(result)}$$` } ] };
             },
             rate: ({ fv, pv, n }) => {
                 const result = Math.pow(fv / pv, 1 / n) - 1;
-                return {
-                    result: result * 100, // Devolver en %
-                    label: 'Tasa de Interés por Período',
-                    steps: [
-                        { title: 'Fórmula de Tasa de Interés', description: 'Se despeja la tasa (i) de la fórmula de valor futuro.', formula: '$$i = \\left( \\frac{FV}{PV} \\right)^{\\frac{1}{n}} - 1$$' },
-                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$i = \\left( \\frac{${fv}}{${pv}} \\right)^{\\frac{1}{${n}}} - 1$$` },
-                        { title: 'Resultado Final', description: 'La tasa de interés por período es:', formula: `$$i = ${(result * 100).toFixed(4)}\\%$$` }
-                    ]
-                };
+                return { result: result * 100, formattedResult: `${(result * 100).toFixed(4)}%`, label: 'Tasa de Interés Periódica', steps: [ { title: 'Concepto', concept: 'La Tasa de Interés (i) es el rendimiento o costo de un capital. Esta fórmula la despeja a partir de un valor presente y futuro conocidos.' }, { title: 'Fórmula', formula: `$$i = \\left( \\frac{FV}{PV} \\right)^{\\frac{1}{n}} - 1$$` }, { title: 'Sustitución', formula: `$$i = \\left( \\frac{${f.format(fv)}}{${f.format(pv)}} \\right)^{\\frac{1}{${n}}} - 1 = ${(result * 100).toFixed(4)}\\%$$` } ] };
             },
             periods: ({ fv, pv, i }) => {
                 const result = Math.log(fv / pv) / Math.log(1 + i);
-                return {
-                    result,
-                    label: 'Número de Períodos',
-                    steps: [
-                        { title: 'Fórmula de Número de Períodos', description: 'Se despeja el número de períodos (n) de la fórmula de valor futuro.', formula: '$$n = \\frac{\\ln(FV/PV)}{\\ln(1+i)}$$' },
-                        { title: 'Sustitución de Valores', description: 'Reemplazamos las variables.', formula: `$$n = \\frac{\\ln(${fv}/${pv})}{\\ln(1+${i})}$$` },
-                        { title: 'Resultado Final', description: 'El número de períodos es:', formula: `$$n = ${result.toFixed(4)}$$` }
-                    ]
-                };
+                return { result, formattedResult: `${result.toFixed(4)}`, label: 'Número de Períodos', steps: [ { title: 'Concepto', concept: 'El número de períodos (n) representa el tiempo necesario para que un valor presente crezca hasta convertirse en un valor futuro a una tasa dada.' }, { title: 'Fórmula', formula: `$$n = \\frac{\\ln(FV/PV)}{\\ln(1+i)}$$` }, { title: 'Sustitución', formula: `$$n = \\frac{\\ln(${f.format(fv)}/${f.format(pv)})}{\\ln(1+${i*100}\\%)}=${result.toFixed(4)}$$` } ] };
+            },
+            annuity: ({ r, i, n, annuityType }) => {
+                const factor_pv = (1 - Math.pow(1 + i, -n)) / i;
+                const pv = r * factor_pv * (annuityType === 'due' ? (1 + i) : 1);
+                const factor_fv = (Math.pow(1 + i, n) - 1) / i;
+                const fv = r * factor_fv * (annuityType === 'due' ? (1 + i) : 1);
+                return { result: {pv, fv}, formattedResult: `${f.format(pv)} (VP) / ${f.format(fv)} (VF)`, label: `Anualidad ${annuityType === 'due' ? 'Anticipada' : 'Vencida'}`, steps: [ { title: 'Concepto', concept: 'Una anualidad es una serie de pagos iguales realizados a intervalos iguales. El cálculo determina su valor consolidado al inicio (VP) o al final (VF) de los períodos.' }, { title: 'Fórmula (Valor Presente)', formula: `$$PV = R \\left[ \\frac{1 - (1+i)^{-n}}{i} \\right] ${annuityType === 'due' ? '(1+i)' : ''}$$` }, { title: 'Fórmula (Valor Futuro)', formula: `$$FV = R \\left[ \\frac{(1+i)^n - 1}{i} \\right] ${annuityType === 'due' ? '(1+i)' : ''}$$` } ] };
             },
             rateConversion: ({ j, m1, m2 }) => {
                 const i_eff = Math.pow(1 + j / m1, m1) - 1;
                 const j2 = m2 * (Math.pow(1 + i_eff, 1 / m2) - 1);
                 const periodNames = {1: 'Anual', 2: 'Semestral', 4: 'Cuatrimestral', 6: 'Bimestral', 12: 'Mensual', 365: 'Diario'};
+                return { result: j2 * 100, formattedResult: `${(j2 * 100).toFixed(4)}%`, label: `Nominal Anual Capitalizable ${periodNames[m2] || ''}`, steps: [ { title: 'Concepto', concept: 'La conversión de tasas permite encontrar una tasa de interés nominal equivalente para diferentes períodos de capitalización, usando la Tasa Efectiva Anual (TEA) como puente.'}, { title: 'Paso 1: Calcular TEA', formula: `$$TEA = \\left(1 + \\frac{j}{m_1}\\right)^{m_1} - 1 = \\left(1 + \\frac{${j*100}\\%}{${m1}}\\right)^{${m1}} - 1 = ${(i_eff * 100).toFixed(4)}\\%$$` }, { title: 'Paso 2: Calcular Nueva Tasa Nominal', formula: `$$j_2 = m_2 \\left[ (1 + TEA)^{\\frac{1}{m_2}} - 1 \\right] = ${(j2 * 100).toFixed(4)}\\%$$` } ] };
+            },
+            vpn_tir: ({ cf0, i, cashflows }) => {
+                const vpn = cashflows.reduce((acc, cf, t) => acc + cf / Math.pow(1 + i, t + 1), 0) - cf0;
+                // Simple iterative method for TIR
+                let tir = 0.1; // Initial guess
+                let tir_vpn = 0;
+                for(let k = 0; k < 100; k++) { // Max 100 iterations
+                    tir_vpn = cashflows.reduce((acc, cf, t) => acc + cf / Math.pow(1 + tir, t + 1), 0) - cf0;
+                    if (Math.abs(tir_vpn) < 1e-6) break;
+                    tir += (tir_vpn > 0 ? 0.001 : -0.001);
+                }
+                const vpnColor = vpn >= 0 ? 'text-green-500' : 'text-red-500';
+                const tirColor = tir >= i ? 'text-green-500' : 'text-red-500';
+                return { result: [ {label: 'Valor Presente Neto (VPN)', value: f.format(vpn), color: vpnColor, sublabel: vpn >= 0 ? 'Proyecto viable' : 'Proyecto no viable'}, {label: 'Tasa Interna de Retorno (TIR)', value: `${(tir*100).toFixed(2)}%`, color: tirColor, sublabel: tir >= i ? 'Rendimiento superior a TMAR' : 'Rendimiento inferior a TMAR'} ], steps: [ { title: 'Concepto VPN', concept: 'El VPN trae todos los flujos de caja futuros de una inversión al presente y los resta de la inversión inicial. Si es positivo, el proyecto crea valor.'}, { title: 'Fórmula VPN', formula: `$$VPN = \\sum_{t=1}^{n} \\frac{FC_t}{(1+i)^t} - I_0$$`}, { title: 'Concepto TIR', concept: 'La TIR es la tasa de descuento que hace que el VPN de una inversión sea igual a cero. Representa la rentabilidad intrínseca del proyecto. Se compara con la tasa de oportunidad (TMAR) para decidir.'}, { title: 'Fórmula TIR', formula: `$$0 = \\sum_{t=1}^{n} \\frac{FC_t}{(1+TIR)^t} - I_0$$`} ] };
+            },
+            amortization: ({ amortizationSystem, loanAmount, n, i, insuranceRate, extraPayment, inflation, uvrValue }) => {
+                let headers, rows = [], resultSummary;
+                const f = (val) => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP' }).format(val);
+                
+                if (amortizationSystem === 'uvr') {
+                    headers = ["#", "Cuota COP", "Interés COP", "Amortiz. COP", "Saldo COP", "Saldo UVR", "Valor UVR"];
+                    const monthlyInflation = Math.pow(1 + inflation, 1/12) - 1;
+                    const monthlyInterestUVR = Math.pow(1 + i, 1/12) - 1;
+                    let currentUVRValue = uvrValue;
+                    let balanceUVR = loanAmount / currentUVRValue;
+                    const paymentUVR = balanceUVR * (monthlyInterestUVR * Math.pow(1 + monthlyInterestUVR, n)) / (Math.pow(1 + monthlyInterestUVR, n) - 1);
+                    
+                    for (let p = 1; p <= n; p++) {
+                        currentUVRValue *= (1 + monthlyInflation);
+                        const interestUVR = balanceUVR * monthlyInterestUVR;
+                        const principalUVR = paymentUVR - interestUVR;
+                        balanceUVR -= principalUVR;
+                        
+                        rows.push([p, f(paymentUVR * currentUVRValue), f(interestUVR * currentUVRValue), f(principalUVR * currentUVRValue), f(balanceUVR * currentUVRValue), balanceUVR.toFixed(2), currentUVRValue.toFixed(2)]);
+                        if (balanceUVR <= 0) break;
+                    }
+                    resultSummary = [{label: "Cuota Inicial (COP)", value: f(rows[0][1])}, {label: "Cuota Final (COP)", value: f(rows[rows.length-1][1])}];
 
-                return {
-                    result: j2 * 100, // Devolver en %
-                    label: `Nominal Anual Capitalizable ${periodNames[m2] || ''}`,
-                    steps: [
-                        { 
-                            title: '1. Calcular Tasa Efectiva Anual (TEA)', 
-                            description: 'Primero, convertimos la tasa nominal original a su tasa efectiva anual equivalente para tener una base común.', 
-                            formula: `$$TEA = \\left(1 + \\frac{j}{m_1}\\right)^{m_1} - 1 = \\left(1 + \\frac{${j}}{${m1}}\\right)^{${m1}} - 1 = ${(i_eff * 100).toFixed(4)}\\%$$`
-                        },
-                        { 
-                            title: '2. Calcular Nueva Tasa Nominal (j₂)', 
-                            description: 'Luego, usamos la TEA para encontrar la nueva tasa nominal con el período de capitalización deseado.', 
-                            formula: `$$j_2 = m_2 \\left[ (1 + TEA)^{\\frac{1}{m_2}} - 1 \\right] = ${m2} \\left[ (1 + ${i_eff.toFixed(6)})^{\\frac{1}{${m2}}} - 1 \\right]$$`
-                        },
-                         { 
-                            title: 'Resultado Final', 
-                            description: `La tasa nominal anual equivalente con capitalización ${periodNames[m2] || ''} es:`, 
-                            formula: `$$j_2 = ${(j2 * 100).toFixed(4)}\\%$$`
+                } else { // French and German
+                    headers = ["#", "Cuota Fija", "Abono Extra", "Seguros", "Pago Total", "Interés", "Amortización", "Saldo"];
+                    let balance = loanAmount;
+                    let totalInterest = 0;
+                    let totalInsurance = 0;
+                    const initialN = n;
+                    
+                    for (let p = 1; p <= n; p++) {
+                        const interest = balance * i;
+                        const insurance = balance * (insuranceRate / 12);
+                        let principal;
+                        let payment;
+
+                        if (amortizationSystem === 'french') {
+                            payment = loanAmount * (i * Math.pow(1 + i, initialN)) / (Math.pow(1 + i, initialN) - 1);
+                            principal = payment - interest;
+                        } else { // German
+                            principal = loanAmount / initialN;
+                            payment = principal + interest;
                         }
-                    ]
-                };
+                        
+                        const totalPrincipal = principal + (extraPayment || 0);
+                        balance -= totalPrincipal;
+                        totalInterest += interest;
+                        totalInsurance += insurance;
+
+                        rows.push([p, f(payment), f(extraPayment || 0), f(insurance), f(payment + (extraPayment || 0) + insurance), f(interest), f(totalPrincipal), f(balance < 1 ? 0 : balance)]);
+                        
+                        if (balance <= 0) {
+                            n = p; // Update term if paid off early
+                            break;
+                        }
+                    }
+                    const firstPayment = rows[0] ? rows[0][4] : 0;
+                    resultSummary = [{label: "Pago Mensual Aprox.", value: firstPayment}, {label: "Plazo Real", value: `${n} meses`}, {label: "Total Intereses", value: f(totalInterest)}];
+                }
+
+                return { result: resultSummary, tableData: { headers, rows }, steps: [ { title: 'Concepto', concept: 'Una tabla de amortización desglosa cada pago de un préstamo en sus componentes de interés y capital (amortización), mostrando el saldo pendiente período a período.'}, { title: 'Sistema Francés (Cuota Fija)', concept: 'Se caracteriza por tener una cuota total constante (sin contar seguros o abonos). Es el más común para créditos de consumo e hipotecarios en Colombia y EE.UU.'}, { title: 'Sistema Alemán (Capital Fijo)', concept: 'Se caracteriza por tener una amortización de capital constante en cada período. Esto hace que la cuota total y el interés sean decrecientes.'}, { title: 'Crédito en UVR (Colombia)', concept: 'La deuda se denomina en UVR, una unidad que se ajusta con la inflación. La cuota es fija en UVR, pero variable en pesos. Protege al banco de la inflación y usualmente ofrece tasas de interés más bajas.'} ] };
+            },
+            gradientGeometric: ({ a1, g, i, n }) => {
+                let result;
+                let formula;
+                let concept = 'Un gradiente geométrico es una serie de flujos de caja que aumentan o disminuyen en un porcentaje constante (g) cada período. Esta fórmula calcula su valor presente.';
+                if (i === g) {
+                    result = n * a1 / (1 + i);
+                    formula = `$$PV = \\frac{n \\cdot A_1}{1+i}$$`;
+                } else {
+                    result = a1 * (1 - Math.pow((1 + g) / (1 + i), n)) / (i - g);
+                    formula = `$$PV = A_1 \\left[ \\frac{1 - (\\frac{1+g}{1+i})^n}{i-g} \\right]$$`;
+                }
+                return { result, formattedResult: f.format(result), label: 'VP Gradiente Geométrico', steps: [{ title: 'Concepto', concept }, { title: 'Fórmula', formula }] };
             }
         };
+
+        // Initialize
+        updateFormFields();
 
     });
     </script>
