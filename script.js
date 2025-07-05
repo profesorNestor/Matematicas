@@ -54,6 +54,7 @@ const categories = [
       { name: "Cálculo (general)",       slug: "calculo",              icon: "♾️" },
       { name: "Definición de Límites",   slug: "limites",              icon: "♾️" },
       { name: "Integrales Definidas",    slug: "IntegralesDefinidas",  icon: "🔗" },
+      { name: "Área entre Curvas",            slug: "AreaEntreCurvas",     icon: "📏" },
       { name: "Optimización",            slug: "optimizacion",         icon: "📊" },
       { name: "Sólidos de Revolución",   slug: "solidosRevolucion",    icon: "🧊" },
       { name: "Newton-Raphson",          slug: "newton_raphson",       icon: "🌀" },
@@ -95,7 +96,8 @@ const categories = [
   /* ─── Química ──────────────────────────────────────────── */
   {
     name: "Química", icon: "⚗️", children: [
-      { name: "Tabla Periódica", slug: "quimica", icon: "⚗️" },
+      { name: "Tabla Periódica", slug: "TablaPeriodica", icon: "⚗️" },
+      { name: "Balanceo de Ecuaciones", slug: "BalanceoEcuaciones", icon: "⚖️" },
     ]
   },
 
