@@ -1,278 +1,62 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es" class="dark">  <!-- “dark” para que arranque en modo oscuro -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Super Calculadora Modular Web 🧮</title>
-    
-    <!-- Vinculo a la hoja de estilos principal -->
+
+    <!-- Hoja de estilo principal -->
     <link rel="stylesheet" href="style.css">
-    <!-- FontAwesome para íconos avanzados -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Íconos FontAwesome (CDN) -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
+
 <body>
     <div class="app-container">
-        
-        <!-- Barra lateral de navegación (Menú principal de herramientas) -->
+        <!-- ────────── BARRA LATERAL ────────── -->
         <aside id="sidebar" class="sidebar">
-            
             <header class="sidebar-header">
-                <i class="fas fa-calculator fa-2x text-sky-400"></i>
-                <span class="text-xl font-bold">Herramientas 🛠️</span>
+                <i class="fas fa-calculator"></i>
+                <span>Herramientas</span>
             </header>
-            
-            <nav class="sidebar-nav">
 
-                <!-- Página principal de bienvenida -->
+            <!-- El árbol de categorías se inyecta aquí por JS -->
+            <nav id="nav-list" class="sidebar-nav"></nav>
 
-                <a href="#" class="sidebar-link" data-module="inicio">
-                    <span>🏠 Inicio</span>
-                </a>
-
-<!-- Lógica y Conjuntos: operaciones lógicas y teoría de conjuntos -->
-                <a href="#" class="sidebar-link" data-module="logica_conjuntos">
-                    <span>🧠 Lógica y Conjuntos</span>
-                </a>
-
-
-<!-- Relaciones y Funciones: dominio, rango, tipos de funciones -->
-<a href="#" class="sidebar-link" data-module="relacionesFunciones">
-<span>🔗 Relaciones y Funciones</span>
-</a>
-
-
-                <!-- Álgebra: ecuaciones, polinomios, factorización -->
-                <a href="#" class="sidebar-link" data-module="algebra">
-                    <span>🧮 Álgebra</span>
-                </a>
-
-                <!-- Triángulo de Pascal: patrones numéricos y combinatoria -->
-                <a href="#" class="sidebar-link" data-module="trianguloPascal">
-                    <span>🔺 Triángulo de Pascal</span>
-                </a>
-
-  
-<!-- Fibonacci: sucesión y patrones numéricos -->
-<a href="#" class="sidebar-link" data-module="fibonacci">
-<span>🌀 Fibonacci</span>
-</a>
-
-                <!-- Números Complejos: representación en el plano complejo -->
-                <a href="#" class="sidebar-link" data-module="complejos">
-                    <span>⚛️ Números Complejos</span>
-                </a>
-
-                <!-- MCD y MCM: máximo común divisor y mínimo común múltiplo -->
-                <a href="#" class="sidebar-link" data-module="calculadora_mcd_mcm">
-                    <span>➗ MCD y MCM</span>
-                </a>
-
-                <!-- Conversión de Unidades: magnitudes físicas -->
-                <a href="#" class="sidebar-link" data-module="ConversionUnidades">
-                    <span>📏 Conversión de Unidades</span>
-                </a>
-
-                <!-- Conversión de Ángulos: grados, radianes, sexagesimal -->
-                <a href="#" class="sidebar-link" data-module="ConversionAngular">
-                    <span>🔄 Conversión de Ángulos</span>
-                </a>
-
-<!-- Vectores: representación y operaciones -->
-<a href="#" class="sidebar-link" data-module="vectores">
-    <span>🧭 Vectores</span>
-</a>
-
-                <!-- Matrices: operaciones y propiedades -->
-                <a href="#" class="sidebar-link" data-module="matrices">
-                    <span>🟩 Matrices</span>
-                </a>
-
-                <!-- Sistemas de Ecuaciones: resolución de sistemas lineales -->
-                <a href="#" class="sidebar-link" data-module="sistemas">
-                    <span>🟰 Sistemas de Ecuaciones</span>
-                </a>
-
-              
-
-                <!-- Combinatoria: conteo, permutaciones, combinaciones -->
-                <a href="#" class="sidebar-link" data-module="combinatoria">
-                    <span>🎲 Combinatoria</span>
-                </a>
-
-                <!-- Números Romanos: representación simbólica y aritmética histórica -->
-                <a href="#" class="sidebar-link" data-module="NumerosRomanos">
-                    <span>🏺 Números Romanos</span>
-                </a>
-
-
-               <!-- Matemática Financiera: interés, valor presente, anualidades -->
-               <a href="#" class="sidebar-link" data-module="matematicaFinaciera">
-              <span>💰 Matemática Financiera</span>
-               </a>
-
-                <!-- Progresiones: aritméticas, geométricas, sucesiones -->
-                <a href="#" class="sidebar-link" data-module="progresiones">
-                    <span>📈 Progresiones</span>
-                </a>
-
-                <!-- Polígonos: figuras geométricas de múltiples lados -->
-                <a href="#" class="sidebar-link" data-module="poligonos">
-                    <span>🔷 Polígonos</span>
-                </a>
-
-                <!-- Fórmula de Gauss: suma de números consecutivos -->
-                <a href="#" class="sidebar-link" data-module="gauss">
-                    <span>🔢 Fórmula de Gauss</span>
-                </a>
-
-                <!-- Poliedros: sólidos regulares y semirregulares -->
-                <a href="#" class="sidebar-link" data-module="poliedros">
-                    <span>🧊 Poliedros</span>
-                </a>
-
-                <!-- Triángulos: clasificación, propiedades, teoremas -->
-                <a href="#" class="sidebar-link" data-module="triangulos">
-                    <span>🔺 Triángulos</span>
-                </a>
-
-                <!-- Trigonometría: razones, identidades, círculo trigonométrico -->
-                <a href="#" class="sidebar-link" data-module="trigonometria">
-                    <span>📐 Trigonometría</span>
-                </a>
-
-                <!-- Estadística: gráficos, medidas de tendencia -->
-                <a href="#" class="sidebar-link" data-module="estadistica">
-                    <span>📊 Estadística</span>
-                </a>
-
-                <!-- Regresión: ajuste de datos y predicción -->
-                <a href="#" class="sidebar-link" data-module="regresion">
-               <span>📉 Regresión</span>
-               </a>
-
-
-                <!-- Probabilidad: cálculo de eventos, experimentos aleatorios -->
-                <a href="#" class="sidebar-link" data-module="probabilidad">
-                    <span>🎰 Probabilidad</span>
-                </a>
-
-<!-- Aguja de Buffon: experimento probabilístico para aproximar π -->
-<a href="#" class="sidebar-link" data-module="agujaBuffon">
-<span>📍 Aguja de Buffon</span>
-</a>
-
-<!-- Máquina de Galton: demostración de la distribución normal -->
-<a href="#" class="sidebar-link" data-module="maquinaGalton">
-<span>⚪ Máquina de Galton</span>
-</a>
-
-
-                <!-- Cálculo: límites, derivadas, integrales -->
-                <a href="#" class="sidebar-link" data-module="calculo">
-                    <span>♾️ Cálculo</span>
-                </a>
-
-<!-- Definición de límites -->
-<a href="#" class="sidebar-link" data-module="limites">
-    <span>♾️ Definición del límite de una función</span>
-</a>
-
-<!-- Newton-Raphson: método numérico para raíces de ecuaciones -->
-<a href="#" class="sidebar-link" data-module="newton_raphson">
-    <span>🌀 Newton-Raphson</span>
-</a>
-
-<!-- Optimización: máximos y mínimos de funciones de una variable real -->
-<a href="#" class="sidebar-link" data-module="optimizacion">
-<span>📊 Optimización</span>
-</a>
-
-
-<!-- Programación Lineal: optimización con restricciones lineales -->
-<a href="#" class="sidebar-link" data-module="programacionLineal">
-<span>📊 Programación Lineal</span>
-</a>
-                <!-- Ecuaciones Diferenciales Ordinarias (EDOs) -->
-                <a href="#" class="sidebar-link" data-module="edos">
-                    <span>📉 Ecuaciones Diferenciales</span>
-                </a>
-
-                <!-- Integrales Definidas -->
-                <a href="#" class="sidebar-link" data-module="IntegralesDefinidas">
-                    <span>🔗 Integrales Definidas</span>
-                </a>
-
-              <!-- Sólidos de Revolución: generación de sólidos mediante rotación -->
-             <a href="#" class="sidebar-link" data-module="solidosRevolucion">
-             <span>🧊 Sólidos de Revolución</span>
-             </a>
-
-             <!-- Volúmenes: cálculo y aplicaciones en figuras tridimensionales -->
-             <a href="#" class="sidebar-link" data-module="volumenes">
-             <span>📦 Volúmenes de sólidos de revolución</span>
-             </a>
-
-                <!-- Método de Runge-Kutta: resolución numérica de EDOs -->
-                <a href="#" class="sidebar-link" data-module="RungeKutta">
-                    <span>⚙️ Runge-Kutta</span>
-                </a>
-
-                <!-- Series de Taylor: aproximación de funciones -->
-                <a href="#" class="sidebar-link" data-module="taylor">
-                    <span>✨ Series de Taylor</span>
-                </a>
-
-                <!-- Series de Fourier: análisis de señales y funciones periódicas -->
-                <a href="#" class="sidebar-link" data-module="fourier">
-                    <span>〰️ Series de Fourier</span>
-                </a>
-
-                <!-- Gráficas: visualización de funciones y datos -->
-                <a href="#" class="sidebar-link" data-module="graficas">
-                    <span>📈 Gráficas</span>
-                </a>
-
-                <!-- FRACTALES: autosimilitud, belleza matemática y arte geométrico -->
-                <a href="#" class="sidebar-link" data-module="fractales">
-                    <span>🧩 Fractales</span>
-                </a>
-
-                <!-- Banco de fórmulas matemáticas y físicas -->
-                <a href="#" class="sidebar-link" data-module="formulas">
-                    <span>📜 Fórmulas</span>
-                </a>
-
-                <!-- Puedes seguir añadiendo más módulos siguiendo la misma estructura -->
-            </nav>
-            
             <footer class="sidebar-footer">
-                <!-- Botón de cambio de tema: claro/oscuro -->
-                <button id="theme-toggle" class="theme-toggle-btn">
-                    <i class="fas fa-sun"></i>
+                <button id="theme-toggle" class="theme-btn" aria-label="Cambiar tema">
+                    <i class="fas fa-sun" aria-hidden="true"></i>
                     <span id="theme-text">Modo Claro</span>
                 </button>
             </footer>
         </aside>
 
-        <!-- Contenido principal -->
+        <!-- ──────── CONTENIDO PRINCIPAL ──────── -->
         <div class="main-content-wrapper">
-             <header class="main-header">
-                <button id="mobile-menu-button" class="mobile-menu-btn">
-                    <i class="fas fa-bars"></i>
+            <header class="main-header">
+                <button id="mobile-menu-btn" class="mobile-menu-btn"
+                        aria-label="Abrir menú">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
                 </button>
-                <h1 id="main-header-title" class="main-title">Inicio</h1>
+                <h1 id="main-title" class="main-title">Inicio</h1>
             </header>
+
             <main class="content-area">
-                <!-- El contenido de cada módulo se cargará aquí dinámicamente -->
-                <iframe id="content-frame" src="modules/inicio.html" frameborder="0" class="content-frame"></iframe>
+                <!-- El módulo seleccionado se carga aquí -->
+                <iframe id="content-frame"
+                        src="modules/inicio.html"
+                        title="Módulo actual"
+                        loading="lazy"></iframe>
             </main>
         </div>
     </div>
-    
-    <!-- Capa para oscurecer la pantalla al abrir el menú en móvil -->
+
+    <!-- Capa oscura para móvil -->
     <div id="sidebar-overlay" class="sidebar-overlay"></div>
 
-    <!-- Lógica JS principal -->
+    <!-- Lógica principal -->
     <script src="script.js"></script>
 </body>
 </html>
