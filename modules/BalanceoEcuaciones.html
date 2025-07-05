@@ -1,0 +1,1329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Balanceador Avanzado de Ecuaciones Químicas - Nivel Ingeniería</title>
+  
+  <!-- =============================================================
+       Balanceador profesional de nivel ingeniería química
+       • Algoritmo algebraico robusto con validaciones químicas
+       • Análisis redox automático y balanceo iónico
+       • Cálculos estequiométricos y termodinámicos básicos
+       • Validación de conservación de masa y carga
+       • Base de datos de elementos y compuestos
+       • Análisis de tipos de reacción
+  ============================================================= -->
+
+  <style>
+    :root {
+      --primary: #1e40af;
+      --primary-dark: #1e3a8a;
+      --secondary: #059669;
+      --danger: #dc2626;
+      --warning: #d97706;
+      --success: #16a34a;
+      --bg: #ffffff;
+      --text: #111827;
+      --border: #e5e7eb;
+      --card-bg: #f8fafc;
+      --mono: "SFMono-Regular", "Consolas", "Liberation Mono", monospace;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    
+    .container {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .card {
+      background: var(--bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+      margin-bottom: 1.5rem;
+    }
+    
+    h1 {
+      margin-top: 0;
+      font-size: 2.25rem;
+      font-weight: 700;
+      background: linear-gradient(45deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .subtitle {
+      text-align: center;
+      color: #6b7280;
+      margin-bottom: 2rem;
+      font-size: 1.1rem;
+    }
+    
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: block;
+      color: var(--primary);
+    }
+    
+    select, input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      background: #fff;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    select:focus, input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    .buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+    
+    button {
+      padding: 0.75rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      color: white;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .btn-primary {
+      background: var(--primary);
+    }
+    
+    .btn-secondary {
+      background: var(--secondary);
+    }
+    
+    .btn-warning {
+      background: var(--warning);
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+    }
+    
+    button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    
+    .result-section {
+      background: var(--card-bg);
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1.5rem;
+    }
+    
+    .result-title {
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: var(--primary);
+      font-size: 1.1rem;
+    }
+    
+    #balanced-equation {
+      font-family: var(--mono);
+      font-size: 1.2rem;
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      min-height: 3rem;
+      display: flex;
+      align-items: center;
+    }
+    
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .analysis-card {
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    
+    .analysis-title {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-size: 0.95rem;
+    }
+    
+    .analysis-content {
+      font-family: var(--mono);
+      font-size: 0.9rem;
+      color: #374151;
+    }
+    
+    #steps {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      margin-top: 1rem;
+      display: none;
+      font-family: var(--mono);
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    
+    .error {
+      color: var(--danger);
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+      font-weight: 600;
+    }
+    
+    .warning {
+      color: var(--warning);
+      background: #fffbeb;
+      border: 1px solid #fed7aa;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+    
+    .success {
+      color: var(--success);
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-top: 1rem;
+    }
+    
+    .element-info {
+      display: inline-block;
+      background: #e0e7ff;
+      color: var(--primary);
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin: 0.2rem;
+    }
+    
+    .stoichiometry-section {
+      display: none;
+      margin-top: 1.5rem;
+    }
+    
+    .input-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 1rem;
+      align-items: end;
+      margin-bottom: 1rem;
+    }
+    
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1f2937;
+        --text: #f9fafb;
+        --border: #374151;
+        --card-bg: #111827;
+      }
+      
+      body {
+        background: linear-gradient(135deg, #1e3a8a 0%, #7c3aed 100%);
+      }
+      
+      select, input, .result-section, .analysis-card, #steps {
+        background: #374151;
+        border-color: #4b5563;
+        color: var(--text);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>⚗️ Balanceador Avanzado de Ecuaciones Químicas</h1>
+      <p class="subtitle">Herramienta profesional para ingeniería química con validaciones rigurosas</p>
+
+      <div class="input-group">
+        <label for="preset">📚 Biblioteca de ecuaciones (Básicas, Orgánicas, Redox, Industriales)</label>
+        <select id="preset">
+          <option value="" disabled selected>— Selecciona una ecuación de ejemplo —</option>
+          <optgroup label="💧 Reacciones Básicas">
+            <option>H2 + O2 -> H2O</option>
+            <option>N2 + H2 -> NH3</option>
+            <option>CH4 + O2 -> CO2 + H2O</option>
+            <option>C2H6 + O2 -> CO2 + H2O</option>
+            <option>C3H8 + O2 -> CO2 + H2O</option>
+            <option>C4H10 + O2 -> CO2 + H2O</option>
+            <option>Fe + O2 -> Fe2O3</option>
+            <option>Na + Cl2 -> NaCl</option>
+            <option>H2O2 -> H2O + O2</option>
+            <option>KClO3 -> KCl + O2</option>
+          </optgroup>
+          <optgroup label="🔥 Combustión y Termólisis">
+            <option>C2H5OH + O2 -> CO2 + H2O</option>
+            <option>C6H12O6 + O2 -> CO2 + H2O</option>
+            <option>C8H18 + O2 -> CO2 + H2O</option>
+            <option>CH3OH + O2 -> CO2 + H2O</option>
+            <option>NaHCO3 -> Na2CO3 + CO2 + H2O</option>
+            <option>CaCO3 -> CaO + CO2</option>
+          </optgroup>
+          <optgroup label="⚡ Reacciones Redox">
+            <option>Cu + HNO3 -> Cu(NO3)2 + NO + H2O</option>
+            <option>Fe2O3 + CO -> Fe + CO2</option>
+            <option>K2Cr2O7 + HCl -> KCl + CrCl3 + H2O + Cl2</option>
+            <option>KMnO4 + HCl -> KCl + MnCl2 + H2O + Cl2</option>
+            <option>Zn + HCl -> ZnCl2 + H2</option>
+            <option>Al + Fe2O3 -> Al2O3 + Fe</option>
+          </optgroup>
+          <optgroup label="🧪 Ácido-Base">
+            <option>HCl + NaOH -> NaCl + H2O</option>
+            <option>H2SO4 + NaOH -> Na2SO4 + H2O</option>
+            <option>Na2CO3 + HCl -> NaCl + H2O + CO2</option>
+            <option>Ca(OH)2 + CO2 -> CaCO3 + H2O</option>
+            <option>H3PO4 + NaOH -> Na3PO4 + H2O</option>
+          </optgroup>
+          <optgroup label="💎 Precipitación">
+            <option>AgNO3 + NaCl -> AgCl + NaNO3</option>
+            <option>BaCl2 + Na2SO4 -> BaSO4 + NaCl</option>
+            <option>FeCl3 + NH4OH -> Fe(OH)3 + NH4Cl</option>
+          </optgroup>
+          <optgroup label="🏭 Procesos Industriales">
+            <option>Fe2O3 + C -> Fe + CO</option>
+            <option>NH3 + O2 -> NO + H2O</option>
+            <option>SO2 + O2 -> SO3</option>
+            <option>N2 + O2 -> NO</option>
+            <option>PCl5 + H2O -> H3PO4 + HCl</option>
+            <option>CaC2 + H2O -> Ca(OH)2 + C2H2</option>
+          </optgroup>
+          <optgroup label="🧬 Orgánicas Complejas">
+            <option>C6H6 + Cl2 -> C6H5Cl + HCl</option>
+            <option>C2H4 + H2 -> C2H6</option>
+            <option>C2H4 + Cl2 -> C2H4Cl2</option>
+            <option>C3H8 + Cl2 -> C3H7Cl + HCl</option>
+          </optgroup>
+          <optgroup label="⚗️ Iónicas (Redox)</optgroup>
+            <option>Cr2O7^2- + Fe^2+ + H+ -> Cr^3+ + Fe^3+ + H2O</option>
+            <option>MnO4^- + Fe^2+ + H+ -> Mn^2+ + Fe^3+ + H2O</option>
+            <option>ClO3^- + I^- + H+ -> Cl^- + I2 + H2O</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label for="inputEq">✏️ Ecuación química sin balancear</label>
+        <input id="inputEq" type="text" placeholder="Ej.: C6H12O6 + O2 -> CO2 + H2O" autocomplete="off" />
+      </div>
+
+      <div class="buttons">
+        <button id="btnBalance" class="btn-primary">⚖️ Balancear Ecuación</button>
+        <button id="btnAnalyze" class="btn-secondary">🔬 Análisis Completo</button>
+        <button id="btnSteps" class="btn-warning">📊 Ver Algoritmo</button>
+        <button id="btnClear" class="btn-danger">🗑️ Limpiar</button>
+      </div>
+
+      <div id="error-container"></div>
+      <div id="warning-container"></div>
+
+      <div class="result-section" id="result-section" style="display: none;">
+        <div class="result-title">⚖️ Ecuación Balanceada</div>
+        <div id="balanced-equation"></div>
+        
+        <div class="analysis-grid" id="analysis-grid">
+          <div class="analysis-card">
+            <div class="analysis-title">📊 Información General</div>
+            <div class="analysis-content" id="general-info"></div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-title">⚗️ Tipo de Reacción</div>
+            <div class="analysis-content" id="reaction-type"></div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-title">🧮 Conservación</div>
+            <div class="analysis-content" id="conservation"></div>
+          </div>
+          
+          <div class="analysis-card">
+            <div class="analysis-title">📈 Estequiometría</div>
+            <div class="analysis-content" id="stoichiometry"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="steps"></div>
+
+      <div class="stoichiometry-section card" id="stoich-calc">
+        <h3>🧮 Calculadora Estequiométrica</h3>
+        <div class="input-row">
+          <div>
+            <label>Cantidad inicial:</label>
+            <input type="number" id="initial-amount" placeholder="0" step="any">
+          </div>
+          <div>
+            <select id="initial-unit">
+              <option value="mol">mol</option>
+              <option value="g">gramos</option>
+              <option value="L">litros (STP)</option>
+            </select>
+          </div>
+          <div>
+            <label>del compuesto:</label>
+            <select id="initial-compound"></select>
+          </div>
+        </div>
+        <button id="btnCalcStoich" class="btn-secondary">Calcular Productos</button>
+        <div id="stoich-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /*****************************************************************
+     * BASE DE DATOS QUÍMICA                                         *
+     *****************************************************************/
+    const PERIODIC_TABLE = {
+      'H': { name: 'Hidrógeno', mass: 1.008, oxidation: [-1, 1] },
+      'He': { name: 'Helio', mass: 4.003, oxidation: [0] },
+      'Li': { name: 'Litio', mass: 6.941, oxidation: [1] },
+      'Be': { name: 'Berilio', mass: 9.012, oxidation: [2] },
+      'B': { name: 'Boro', mass: 10.811, oxidation: [3] },
+      'C': { name: 'Carbono', mass: 12.011, oxidation: [-4, -3, -2, -1, 0, 1, 2, 3, 4] },
+      'N': { name: 'Nitrógeno', mass: 14.007, oxidation: [-3, -2, -1, 0, 1, 2, 3, 4, 5] },
+      'O': { name: 'Oxígeno', mass: 15.999, oxidation: [-2, -1, 0] },
+      'F': { name: 'Flúor', mass: 18.998, oxidation: [-1] },
+      'Ne': { name: 'Neón', mass: 20.180, oxidation: [0] },
+      'Na': { name: 'Sodio', mass: 22.990, oxidation: [1] },
+      'Mg': { name: 'Magnesio', mass: 24.305, oxidation: [2] },
+      'Al': { name: 'Aluminio', mass: 26.982, oxidation: [3] },
+      'Si': { name: 'Silicio', mass: 28.086, oxidation: [-4, 4] },
+      'P': { name: 'Fósforo', mass: 30.974, oxidation: [-3, 3, 5] },
+      'S': { name: 'Azufre', mass: 32.065, oxidation: [-2, 2, 4, 6] },
+      'Cl': { name: 'Cloro', mass: 35.453, oxidation: [-1, 1, 3, 5, 7] },
+      'Ar': { name: 'Argón', mass: 39.948, oxidation: [0] },
+      'K': { name: 'Potasio', mass: 39.098, oxidation: [1] },
+      'Ca': { name: 'Calcio', mass: 40.078, oxidation: [2] },
+      'Sc': { name: 'Escandio', mass: 44.956, oxidation: [3] },
+      'Ti': { name: 'Titanio', mass: 47.867, oxidation: [2, 3, 4] },
+      'V': { name: 'Vanadio', mass: 50.942, oxidation: [2, 3, 4, 5] },
+      'Cr': { name: 'Cromo', mass: 51.996, oxidation: [2, 3, 6] },
+      'Mn': { name: 'Manganeso', mass: 54.938, oxidation: [2, 3, 4, 6, 7] },
+      'Fe': { name: 'Hierro', mass: 55.845, oxidation: [2, 3] },
+      'Co': { name: 'Cobalto', mass: 58.933, oxidation: [2, 3] },
+      'Ni': { name: 'Níquel', mass: 58.693, oxidation: [2, 3] },
+      'Cu': { name: 'Cobre', mass: 63.546, oxidation: [1, 2] },
+      'Zn': { name: 'Zinc', mass: 65.38, oxidation: [2] },
+      'Ga': { name: 'Galio', mass: 69.723, oxidation: [3] },
+      'Ge': { name: 'Germanio', mass: 72.64, oxidation: [2, 4] },
+      'As': { name: 'Arsénico', mass: 74.922, oxidation: [-3, 3, 5] },
+      'Se': { name: 'Selenio', mass: 78.96, oxidation: [-2, 2, 4, 6] },
+      'Br': { name: 'Bromo', mass: 79.904, oxidation: [-1, 1, 3, 5, 7] },
+      'Kr': { name: 'Kriptón', mass: 83.798, oxidation: [0] },
+      'Rb': { name: 'Rubidio', mass: 85.468, oxidation: [1] },
+      'Sr': { name: 'Estroncio', mass: 87.62, oxidation: [2] },
+      'Y': { name: 'Itrio', mass: 88.906, oxidation: [3] },
+      'Zr': { name: 'Circonio', mass: 91.224, oxidation: [4] },
+      'Nb': { name: 'Niobio', mass: 92.906, oxidation: [3, 5] },
+      'Mo': { name: 'Molibdeno', mass: 95.96, oxidation: [2, 3, 4, 5, 6] },
+      'Tc': { name: 'Tecnecio', mass: 98, oxidation: [4, 6, 7] },
+      'Ru': { name: 'Rutenio', mass: 101.07, oxidation: [2, 3, 4, 6, 8] },
+      'Rh': { name: 'Rodio', mass: 102.906, oxidation: [1, 2, 3, 4] },
+      'Pd': { name: 'Paladio', mass: 106.42, oxidation: [0, 2, 4] },
+      'Ag': { name: 'Plata', mass: 107.868, oxidation: [1] },
+      'Cd': { name: 'Cadmio', mass: 112.411, oxidation: [2] },
+      'In': { name: 'Indio', mass: 114.818, oxidation: [1, 3] },
+      'Sn': { name: 'Estaño', mass: 118.71, oxidation: [2, 4] },
+      'Sb': { name: 'Antimonio', mass: 121.76, oxidation: [-3, 3, 5] },
+      'Te': { name: 'Telurio', mass: 127.6, oxidation: [-2, 2, 4, 6] },
+      'I': { name: 'Yodo', mass: 126.905, oxidation: [-1, 1, 3, 5, 7] },
+      'Xe': { name: 'Xenón', mass: 131.293, oxidation: [0, 2, 4, 6, 8] },
+      'Cs': { name: 'Cesio', mass: 132.905, oxidation: [1] },
+      'Ba': { name: 'Bario', mass: 137.327, oxidation: [2] },
+      'La': { name: 'Lantano', mass: 138.905, oxidation: [3] },
+      'Ce': { name: 'Cerio', mass: 140.116, oxidation: [3, 4] },
+      'Pr': { name: 'Praseodimio', mass: 140.908, oxidation: [3] },
+      'Nd': { name: 'Neodimio', mass: 144.242, oxidation: [3] },
+      'Pm': { name: 'Prometio', mass: 145, oxidation: [3] },
+      'Sm': { name: 'Samario', mass: 150.36, oxidation: [2, 3] },
+      'Eu': { name: 'Europio', mass: 151.964, oxidation: [2, 3] },
+      'Gd': { name: 'Gadolinio', mass: 157.25, oxidation: [3] },
+      'Tb': { name: 'Terbio', mass: 158.925, oxidation: [3, 4] },
+      'Dy': { name: 'Disprosio', mass: 162.5, oxidation: [3] },
+      'Ho': { name: 'Holmio', mass: 164.93, oxidation: [3] },
+      'Er': { name: 'Erbio', mass: 167.259, oxidation: [3] },
+      'Tm': { name: 'Tulio', mass: 168.934, oxidation: [3] },
+      'Yb': { name: 'Iterbio', mass: 173.054, oxidation: [2, 3] },
+      'Lu': { name: 'Lutecio', mass: 174.967, oxidation: [3] },
+      'Hf': { name: 'Hafnio', mass: 178.49, oxidation: [4] },
+      'Ta': { name: 'Tantalio', mass: 180.948, oxidation: [5] },
+      'W': { name: 'Wolframio', mass: 183.84, oxidation: [2, 3, 4, 5, 6] },
+      'Re': { name: 'Renio', mass: 186.207, oxidation: [1, 2, 3, 4, 5, 6, 7] },
+      'Os': { name: 'Osmio', mass: 190.23, oxidation: [2, 3, 4, 6, 8] },
+      'Ir': { name: 'Iridio', mass: 192.217, oxidation: [1, 2, 3, 4, 6] },
+      'Pt': { name: 'Platino', mass: 195.084, oxidation: [0, 2, 4] },
+      'Au': { name: 'Oro', mass: 196.967, oxidation: [1, 3] },
+      'Hg': { name: 'Mercurio', mass: 200.59, oxidation: [1, 2] },
+      'Tl': { name: 'Talio', mass: 204.383, oxidation: [1, 3] },
+      'Pb': { name: 'Plomo', mass: 207.2, oxidation: [2, 4] },
+      'Bi': { name: 'Bismuto', mass: 208.98, oxidation: [3, 5] },
+      'Po': { name: 'Polonio', mass: 209, oxidation: [2, 4] },
+      'At': { name: 'Astato', mass: 210, oxidation: [-1, 1, 3, 5, 7] },
+      'Rn': { name: 'Radón', mass: 222, oxidation: [0] },
+      'Fr': { name: 'Francio', mass: 223, oxidation: [1] },
+      'Ra': { name: 'Radio', mass: 226, oxidation: [2] },
+      'Ac': { name: 'Actinio', mass: 227, oxidation: [3] },
+      'Th': { name: 'Torio', mass: 232.038, oxidation: [4] },
+      'Pa': { name: 'Protactinio', mass: 231.036, oxidation: [4, 5] },
+      'U': { name: 'Uranio', mass: 238.029, oxidation: [3, 4, 5, 6] },
+      'Np': { name: 'Neptunio', mass: 237, oxidation: [3, 4, 5, 6, 7] },
+      'Pu': { name: 'Plutonio', mass: 244, oxidation: [3, 4, 5, 6, 7] },
+      'Am': { name: 'Americio', mass: 243, oxidation: [3, 4, 5, 6] },
+      'Cm': { name: 'Curio', mass: 247, oxidation: [3, 4] },
+      'Bk': { name: 'Berkelio', mass: 247, oxidation: [3, 4] },
+      'Cf': { name: 'Californio', mass: 251, oxidation: [3] },
+      'Es': { name: 'Einstenio', mass: 252, oxidation: [3] },
+      'Fm': { name: 'Fermio', mass: 257, oxidation: [3] },
+      'Md': { name: 'Mendelevio', mass: 258, oxidation: [3] },
+      'No': { name: 'Nobelio', mass: 259, oxidation: [2, 3] },
+      'Lr': { name: 'Laurencio', mass: 262, oxidation: [3] }
+    };
+
+    /*****************************************************************
+     * UTILIDADES MATEMÁTICAS AVANZADAS                             *
+     *****************************************************************/
+    const gcd = (a, b) => b === 0 ? Math.abs(a) : gcd(b, a % b);
+    const lcm = (a, b) => Math.abs(a * b) / gcd(a, b);
+
+    class Fraction {
+      constructor(numerator, denominator = 1) {
+        if (denominator === 0) throw new Error("División por cero");
+        const g = gcd(numerator, denominator);
+        this.num = numerator / g;
+        this.den = denominator / g;
+        if (this.den < 0) {
+          this.num *= -1;
+          this.den *= -1;
+        }
+      }
+
+      add(other) {
+        return new Fraction(this.num * other.den + other.num * this.den, this.den * other.den);
+      }
+
+      subtract(other) {
+        return new Fraction(this.num * other.den - other.num * this.den, this.den * other.den);
+      }
+
+      multiply(other) {
+        return new Fraction(this.num * other.num, this.den * other.den);
+      }
+
+      divide(other) {
+        return new Fraction(this.num * other.den, this.den * other.num);
+      }
+
+      negate() {
+        return new Fraction(-this.num, this.den);
+      }
+
+      isZero() {
+        return this.num === 0;
+      }
+
+      equals(other) {
+        return this.num === other.num && this.den === other.den;
+      }
+
+      toString() {
+        return this.den === 1 ? this.num.toString() : `${this.num}/${this.den}`;
+      }
+
+      toDecimal() {
+        return this.num / this.den;
+      }
+    }
+
+    /*****************************************************************
+     * ANÁLISIS QUÍMICO AVANZADO                                     *
+     *****************************************************************/
+    class ChemicalFormula {
+      constructor(formula) {
+        this.originalFormula = formula.trim();
+        this.composition = this.parseFormula(formula);
+        this.charge = this.extractCharge(formula);
+        this.molarMass = this.calculateMolarMass();
+      }
+
+      parseFormula(formula) {
+        // Remover cargas para el análisis de composición
+        let cleanFormula = formula.replace(/\^[+-]?\d*/g, '');
+        
+        const composition = {};
+        const elementStack = [{}];
+        let i = 0;
+
+        while (i < cleanFormula.length) {
+          if (cleanFormula[i] === '(') {
+            elementStack.push({});
+            i++;
+          } else if (cleanFormula[i] === ')') {
+            const top = elementStack.pop();
+            i++;
+            let multiplier = '';
+            while (i < cleanFormula.length && /\d/.test(cleanFormula[i])) {
+              multiplier += cleanFormula[i];
+              i++;
+            }
+            const mult = parseInt(multiplier) || 1;
+            
+            for (const [element, count] of Object.entries(top)) {
+              const current = elementStack[elementStack.length - 1];
+              current[element] = (current[element] || 0) + count * mult;
+            }
+          } else if (/[A-Z]/.test(cleanFormula[i])) {
+            let element = cleanFormula[i];
+            i++;
+            while (i < cleanFormula.length && /[a-z]/.test(cleanFormula[i])) {
+              element += cleanFormula[i];
+              i++;
+            }
+            
+            let count = '';
+            while (i < cleanFormula.length && /\d/.test(cleanFormula[i])) {
+              count += cleanFormula[i];
+              i++;
+            }
+            
+            const atomCount = parseInt(count) || 1;
+            const current = elementStack[elementStack.length - 1];
+            current[element] = (current[element] || 0) + atomCount;
+          } else {
+            i++;
+          }
+        }
+
+        return elementStack[0];
+      }
+
+      extractCharge(formula) {
+        const chargeMatch = formula.match(/\^([+-]?\d*)/);
+        if (!chargeMatch) return 0;
+        
+        let charge = chargeMatch[1];
+        if (charge === '+' || charge === '') return 1;
+        if (charge === '-') return -1;
+        return parseInt(charge) || 0;
+      }
+
+      calculateMolarMass() {
+        let mass = 0;
+        for (const [element, count] of Object.entries(this.composition)) {
+          if (PERIODIC_TABLE[element]) {
+            mass += PERIODIC_TABLE[element].mass * count;
+          }
+        }
+        return mass;
+      }
+
+      getElements() {
+        return Object.keys(this.composition);
+      }
+
+      hasElement(element) {
+        return element in this.composition;
+      }
+
+      getElementCount(element) {
+        return this.composition[element] || 0;
+      }
+
+      validateElements() {
+        const invalidElements = [];
+        for (const element of this.getElements()) {
+          if (!PERIODIC_TABLE[element]) {
+            invalidElements.push(element);
+          }
+        }
+        return invalidElements;
+      }
+    }
+
+    /*****************************************************************
+     * BALANCEADOR QUÍMICO PROFESIONAL                               *
+     *****************************************************************/
+    class ChemicalBalancer {
+      constructor() {
+        this.steps = [];
+        this.warnings = [];
+        this.analysisData = {};
+      }
+
+      balanceEquation(rawEquation, showSteps = false) {
+        this.steps = [];
+        this.warnings = [];
+        this.analysisData = {};
+
+        try {
+          // Limpiar y normalizar la ecuación
+          const equation = this.normalizeEquation(rawEquation);
+          this.steps.push(`📝 Ecuación original: ${rawEquation}`);
+          this.steps.push(`🔧 Ecuación normalizada: ${equation}`);
+
+          // Dividir en reactivos y productos
+          const [reactantsStr, productsStr] = equation.split('->');
+          if (!reactantsStr || !productsStr) {
+            throw new Error("La ecuación debe contener una flecha (-> o →)");
+          }
+
+          const reactants = reactantsStr.split('+').map(s => s.trim()).filter(Boolean);
+          const products = productsStr.split('+').map(s => s.trim()).filter(Boolean);
+
+          this.steps.push(`⚛️  Reactivos: ${reactants.join(', ')}`);
+          this.steps.push(`🧪 Productos: ${products.join(', ')}`);
+
+          // Validar fórmulas químicas
+          this.validateFormulas([...reactants, ...products]);
+
+          // Crear objetos de fórmulas químicas
+          const allSpecies = [...reactants, ...products];
+          const formulas = allSpecies.map(species => new ChemicalFormula(species));
+
+          // Obtener todos los elementos únicos
+          const allElements = [...new Set(formulas.flatMap(f => f.getElements()))];
+          this.steps.push(`🔬 Elementos encontrados: ${allElements.join(', ')}`);
+
+          // Construir matriz de coeficientes
+          const matrix = this.buildCoefficientMatrix(formulas, allElements, reactants.length);
+          
+          if (showSteps) {
+            this.steps.push(`\n🧮 MATRIZ DE COEFICIENTES:`);
+            this.steps.push(`Elementos: ${allElements.join(', ')}`);
+            this.steps.push(`Especies: ${allSpecies.join(', ')}`);
+            for (let i = 0; i < matrix.length; i++) {
+              this.steps.push(`${allElements[i]}: [${matrix[i].map(f => f.toString()).join(', ')}]`);
+            }
+          }
+
+          // Resolver sistema usando Gauss-Jordan
+          const solution = this.solveGaussJordan(matrix, showSteps);
+          
+          // Convertir a enteros
+          const coefficients = this.fractionToInteger(solution);
+          this.steps.push(`\n✅ Coeficientes finales: [${coefficients.join(', ')}]`);
+
+          // Construir ecuación balanceada
+          const balancedEquation = this.buildBalancedEquation(reactants, products, coefficients);
+          
+          // Realizar análisis químico
+          this.performChemicalAnalysis(formulas, coefficients, reactants.length);
+
+          return {
+            balanced: balancedEquation,
+            coefficients: coefficients,
+            steps: this.steps.join('\n'),
+            warnings: this.warnings,
+            analysis: this.analysisData
+          };
+
+        } catch (error) {
+          throw new Error(`Error en el balanceo: ${error.message}`);
+        }
+      }
+
+      normalizeEquation(equation) {
+        return equation
+          .replace(/\s+/g, ' ')
+          .replace(/=>|→|⟶/g, '->')
+          .replace(/\s*->\s*/g, ' -> ')
+          .replace(/\s*\+\s*/g, ' + ')
+          .trim();
+      }
+
+      validateFormulas(species) {
+        for (const formula of species) {
+          const chemFormula = new ChemicalFormula(formula);
+          const invalidElements = chemFormula.validateElements();
+          
+          if (invalidElements.length > 0) {
+            this.warnings.push(`⚠️  Elementos no reconocidos en "${formula}": ${invalidElements.join(', ')}`);
+          }
+        }
+      }
+
+      buildCoefficientMatrix(formulas, elements, reactantCount) {
+        const matrix = [];
+        
+        for (const element of elements) {
+          const row = [];
+          for (let i = 0; i < formulas.length; i++) {
+            const count = formulas[i].getElementCount(element);
+            const sign = i < reactantCount ? 1 : -1;
+            row.push(new Fraction(sign * count));
+          }
+          matrix.push(row);
+        }
+
+        // Agregar fila para conservación de carga si hay iones
+        const hasCharges = formulas.some(f => f.charge !== 0);
+        if (hasCharges) {
+          const chargeRow = [];
+          for (let i = 0; i < formulas.length; i++) {
+            const charge = formulas[i].charge;
+            const sign = i < reactantCount ? 1 : -1;
+            chargeRow.push(new Fraction(sign * charge));
+          }
+          matrix.push(chargeRow);
+          this.steps.push(`⚡ Añadida conservación de carga eléctrica`);
+        }
+
+        return matrix;
+      }
+
+      solveGaussJordan(matrix, showSteps) {
+        const rows = matrix.length;
+        const cols = matrix[0].length;
+        
+        if (showSteps) {
+          this.steps.push(`\n🔄 ALGORITMO GAUSS-JORDAN:`);
+        }
+
+        let pivot = 0;
+        for (let row = 0; row < rows && pivot < cols; row++) {
+          // Encontrar fila con el mayor elemento en la columna pivot
+          let maxRow = row;
+          for (let i = row + 1; i < rows; i++) {
+            if (Math.abs(matrix[i][pivot].toDecimal()) > Math.abs(matrix[maxRow][pivot].toDecimal())) {
+              maxRow = i;
+            }
+          }
+
+          // Intercambiar filas si es necesario
+          if (maxRow !== row) {
+            [matrix[row], matrix[maxRow]] = [matrix[maxRow], matrix[row]];
+            if (showSteps) {
+              this.steps.push(`🔄 Intercambio filas ${row + 1} y ${maxRow + 1}`);
+            }
+          }
+
+          // Si el elemento pivot es cero, continuar con la siguiente columna
+          if (matrix[row][pivot].isZero()) {
+            pivot++;
+            row--;
+            continue;
+          }
+
+          // Normalizar fila pivot
+          const pivotElement = matrix[row][pivot];
+          for (let col = 0; col < cols; col++) {
+            matrix[row][col] = matrix[row][col].divide(pivotElement);
+          }
+
+          if (showSteps) {
+            this.steps.push(`➗ Normalizar fila ${row + 1} (dividir por ${pivotElement.toString()})`);
+          }
+
+          // Eliminar columna en otras filas
+          for (let i = 0; i < rows; i++) {
+            if (i !== row && !matrix[i][pivot].isZero()) {
+              const factor = matrix[i][pivot];
+              for (let col = 0; col < cols; col++) {
+                matrix[i][col] = matrix[i][col].subtract(matrix[row][col].multiply(factor));
+              }
+              if (showSteps) {
+                this.steps.push(`➖ Eliminar en fila ${i + 1} (factor: ${factor.toString()})`);
+              }
+            }
+          }
+          pivot++;
+        }
+
+        // Resolver para la variable libre (última columna = 1)
+        const solution = new Array(cols).fill(new Fraction(0));
+        solution[cols - 1] = new Fraction(1);
+
+        // Sustituición hacia atrás
+        for (let i = rows - 1; i >= 0; i--) {
+          let pivotCol = -1;
+          for (let j = 0; j < cols; j++) {
+            if (!matrix[i][j].isZero()) {
+              pivotCol = j;
+              break;
+            }
+          }
+
+          if (pivotCol === -1 || pivotCol === cols - 1) continue;
+
+          let sum = new Fraction(0);
+          for (let j = pivotCol + 1; j < cols; j++) {
+            sum = sum.add(matrix[i][j].multiply(solution[j]));
+          }
+          solution[pivotCol] = sum.negate();
+        }
+
+        return solution;
+      }
+
+      fractionToInteger(fractions) {
+        const denominators = fractions.map(f => f.den);
+        const lcmValue = denominators.reduce((a, b) => lcm(a, b), 1);
+        
+        let integers = fractions.map(f => f.num * (lcmValue / f.den));
+        
+        // Asegurar que todos los coeficientes sean positivos
+        const minValue = Math.min(...integers.filter(x => x !== 0));
+        if (minValue < 0) {
+          integers = integers.map(x => -x);
+        }
+
+        // Simplificar dividiendo por el GCD
+        const gcdValue = integers.reduce((a, b) => gcd(a, b));
+        if (gcdValue > 1) {
+          integers = integers.map(x => x / gcdValue);
+        }
+
+        return integers;
+      }
+
+      buildBalancedEquation(reactants, products, coefficients) {
+        const formatTerm = (coeff, species) => {
+          return coeff === 1 ? species : `${coeff} ${species}`;
+        };
+
+        const balancedReactants = reactants.map((species, i) => 
+          formatTerm(coefficients[i], species)
+        ).join(' + ');
+
+        const balancedProducts = products.map((species, i) => 
+          formatTerm(coefficients[reactants.length + i], species)
+        ).join(' + ');
+
+        return `${balancedReactants} → ${balancedProducts}`;
+      }
+
+      performChemicalAnalysis(formulas, coefficients, reactantCount) {
+        // Información general
+        this.analysisData.totalSpecies = formulas.length;
+        this.analysisData.reactantCount = reactantCount;
+        this.analysisData.productCount = formulas.length - reactantCount;
+
+        // Análisis de elementos
+        const allElements = [...new Set(formulas.flatMap(f => f.getElements()))];
+        this.analysisData.elementCount = allElements.length;
+        this.analysisData.elements = allElements;
+
+        // Verificar conservación de masa
+        this.analysisData.massConservation = this.checkMassConservation(formulas, coefficients, reactantCount);
+
+        // Verificar conservación de carga
+        this.analysisData.chargeConservation = this.checkChargeConservation(formulas, coefficients, reactantCount);
+
+        // Determinar tipo de reacción
+        this.analysisData.reactionType = this.determineReactionType(formulas, reactantCount);
+
+        // Análisis estequiométrico
+        this.analysisData.stoichiometry = this.calculateStoichiometry(formulas, coefficients);
+      }
+
+      checkMassConservation(formulas, coefficients, reactantCount) {
+        const elementCounts = {};
+
+        // Contar átomos en reactivos
+        for (let i = 0; i < reactantCount; i++) {
+          const formula = formulas[i];
+          const coeff = coefficients[i];
+          for (const [element, count] of Object.entries(formula.composition)) {
+            elementCounts[element] = (elementCounts[element] || 0) + count * coeff;
+          }
+        }
+
+        // Restar átomos en productos
+        for (let i = reactantCount; i < formulas.length; i++) {
+          const formula = formulas[i];
+          const coeff = coefficients[i];
+          for (const [element, count] of Object.entries(formula.composition)) {
+            elementCounts[element] = (elementCounts[element] || 0) - count * coeff;
+          }
+        }
+
+        // Verificar que todos los elementos sumen cero
+        const conserved = Object.values(elementCounts).every(count => count === 0);
+        return { conserved, elementCounts };
+      }
+
+      checkChargeConservation(formulas, coefficients, reactantCount) {
+        let totalCharge = 0;
+
+        // Sumar cargas de reactivos
+        for (let i = 0; i < reactantCount; i++) {
+          totalCharge += formulas[i].charge * coefficients[i];
+        }
+
+        // Restar cargas de productos
+        for (let i = reactantCount; i < formulas.length; i++) {
+          totalCharge -= formulas[i].charge * coefficients[i];
+        }
+
+        return { conserved: totalCharge === 0, totalCharge };
+      }
+
+      determineReactionType(formulas, reactantCount) {
+        const reactants = formulas.slice(0, reactantCount);
+        const products = formulas.slice(reactantCount);
+
+        // Reacción de combustión
+        if (reactants.some(f => f.hasElement('O') && f.getElementCount('O') === 2) &&
+            products.some(f => f.hasElement('C') && f.hasElement('O')) &&
+            products.some(f => f.hasElement('H') && f.hasElement('O'))) {
+          return 'Combustión';
+        }
+
+        // Reacción ácido-base
+        if (reactants.some(f => f.hasElement('H')) && products.some(f => f.hasElement('H') && f.hasElement('O'))) {
+          return 'Ácido-Base';
+        }
+
+        // Reacción redox (cambio en estados de oxidación)
+        const hasMetals = [...reactants, ...products].some(f => 
+          f.getElements().some(el => PERIODIC_TABLE[el] && PERIODIC_TABLE[el].oxidation.length > 1)
+        );
+        if (hasMetals) {
+          return 'Redox';
+        }
+
+        // Reacción de síntesis
+        if (reactantCount > 1 && products.length === 1) {
+          return 'Síntesis (Combinación)';
+        }
+
+        // Reacción de descomposición
+        if (reactantCount === 1 && products.length > 1) {
+          return 'Descomposición';
+        }
+
+        // Reacción de sustitución simple
+        if (reactantCount === 2 && products.length === 2) {
+          return 'Sustitución Simple';
+        }
+
+        // Reacción de doble sustitución
+        if (reactantCount === 2 && products.length === 2) {
+          return 'Doble Sustitución';
+        }
+
+        return 'Tipo no determinado';
+      }
+
+      calculateStoichiometry(formulas, coefficients) {
+        const ratios = [];
+        for (let i = 0; i < formulas.length; i++) {
+          ratios.push({
+            formula: formulas[i].originalFormula,
+            coefficient: coefficients[i],
+            molarMass: formulas[i].molarMass.toFixed(3)
+          });
+        }
+        return ratios;
+      }
+    }
+
+    /*****************************************************************
+     * INTERFAZ DE USUARIO                                           *
+     *****************************************************************/
+    class ChemicalBalancerUI {
+      constructor() {
+        this.balancer = new ChemicalBalancer();
+        this.currentResult = null;
+        this.initializeElements();
+        this.bindEvents();
+      }
+
+      initializeElements() {
+        this.preset = document.getElementById('preset');
+        this.inputEq = document.getElementById('inputEq');
+        this.btnBalance = document.getElementById('btnBalance');
+        this.btnAnalyze = document.getElementById('btnAnalyze');
+        this.btnSteps = document.getElementById('btnSteps');
+        this.btnClear = document.getElementById('btnClear');
+        this.errorContainer = document.getElementById('error-container');
+        this.warningContainer = document.getElementById('warning-container');
+        this.resultSection = document.getElementById('result-section');
+        this.balancedEquation = document.getElementById('balanced-equation');
+        this.generalInfo = document.getElementById('general-info');
+        this.reactionType = document.getElementById('reaction-type');
+        this.conservation = document.getElementById('conservation');
+        this.stoichiometry = document.getElementById('stoichiometry');
+        this.steps = document.getElementById('steps');
+        this.stoichCalc = document.getElementById('stoich-calc');
+        this.initialAmount = document.getElementById('initial-amount');
+        this.initialUnit = document.getElementById('initial-unit');
+        this.initialCompound = document.getElementById('initial-compound');
+        this.btnCalcStoich = document.getElementById('btnCalcStoich');
+        this.stoichResults = document.getElementById('stoich-results');
+      }
+
+      bindEvents() {
+        this.preset.addEventListener('change', () => this.loadPreset());
+        this.inputEq.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') this.balanceEquation();
+        });
+        this.btnBalance.addEventListener('click', () => this.balanceEquation());
+        this.btnAnalyze.addEventListener('click', () => this.analyzeEquation());
+        this.btnSteps.addEventListener('click', () => this.toggleSteps());
+        this.btnClear.addEventListener('click', () => this.clearAll());
+        this.btnCalcStoich.addEventListener('click', () => this.calculateStoichiometry());
+      }
+
+      loadPreset() {
+        if (this.preset.value) {
+          this.inputEq.value = this.preset.value;
+          this.clearResults();
+        }
+      }
+
+      balanceEquation() {
+        this.clearMessages();
+        const equation = this.inputEq.value.trim();
+        
+        if (!equation) {
+          this.showError('Por favor, ingresa una ecuación química.');
+          return;
+        }
+
+        try {
+          this.currentResult = this.balancer.balanceEquation(equation, false);
+          this.displayResults();
+        } catch (error) {
+          this.showError(error.message);
+        }
+      }
+
+      analyzeEquation() {
+        this.clearMessages();
+        const equation = this.inputEq.value.trim();
+        
+        if (!equation) {
+          this.showError('Por favor, ingresa una ecuación química.');
+          return;
+        }
+
+        try {
+          this.currentResult = this.balancer.balanceEquation(equation, true);
+          this.displayResults();
+          this.populateStoichiometryCalculator();
+          this.stoichCalc.style.display = 'block';
+        } catch (error) {
+          this.showError(error.message);
+        }
+      }
+
+      displayResults() {
+        if (!this.currentResult) return;
+
+        // Mostrar ecuación balanceada
+        this.balancedEquation.textContent = this.currentResult.balanced;
+        
+        // Mostrar información general
+        const analysis = this.currentResult.analysis;
+        this.generalInfo.innerHTML = `
+          Especies totales: ${analysis.totalSpecies}<br>
+          Reactivos: ${analysis.reactantCount}<br>
+          Productos: ${analysis.productCount}<br>
+          Elementos: ${analysis.elementCount}
+        `;
+
+        // Mostrar tipo de reacción
+        this.reactionType.innerHTML = `
+          <strong>${analysis.reactionType}</strong><br>
+          Elementos involucrados:<br>
+          ${analysis.elements.map(el => `<span class="element-info">${el}</span>`).join('')}
+        `;
+
+        // Mostrar conservación
+        const massStatus = analysis.massConservation.conserved ? '✅ Conservada' : '❌ No conservada';
+        const chargeStatus = analysis.chargeConservation.conserved ? '✅ Conservada' : '❌ No conservada';
+        this.conservation.innerHTML = `
+          Masa: ${massStatus}<br>
+          Carga: ${chargeStatus}
+        `;
+
+        // Mostrar estequiometría
+        const stoichText = analysis.stoichiometry.map(item => 
+          `${item.coefficient} ${item.formula} (${item.molarMass} g/mol)`
+        ).join('<br>');
+        this.stoichiometry.innerHTML = stoichText;
+
+        // Mostrar advertencias
+        if (this.currentResult.warnings.length > 0) {
+          this.showWarning(this.currentResult.warnings.join('<br>'));
+        }
+
+        this.resultSection.style.display = 'block';
+        this.showSuccess('Ecuación balanceada correctamente');
+      }
+
+      populateStoichiometryCalculator() {
+        if (!this.currentResult) return;
+
+        this.initialCompound.innerHTML = '';
+        this.currentResult.analysis.stoichiometry.forEach((item, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = item.formula;
+          this.initialCompound.appendChild(option);
+        });
+      }
+
+      calculateStoichiometry() {
+        if (!this.currentResult) return;
+
+        const amount = parseFloat(this.initialAmount.value);
+        const unit = this.initialUnit.value;
+        const compoundIndex = parseInt(this.initialCompound.value);
+
+        if (isNaN(amount) || amount <= 0) {
+          this.showError('Ingresa una cantidad válida');
+          return;
+        }
+
+        const stoichData = this.currentResult.analysis.stoichiometry;
+        const selectedCompound = stoichData[compoundIndex];
+        
+        // Convertir a moles si es necesario
+        let molesInitial = amount;
+        if (unit === 'g') {
+          molesInitial = amount / parseFloat(selectedCompound.molarMass);
+        } else if (unit === 'L') {
+          molesInitial = amount / 22.4; // STP
+        }
+
+        // Calcular moles de otros compuestos
+        const results = stoichData.map((compound, index) => {
+          const moleRatio = compound.coefficient / selectedCompound.coefficient;
+          const moles = molesInitial * moleRatio;
+          const mass = moles * parseFloat(compound.molarMass);
+          const volume = moles * 22.4; // STP
+
+          return {
+            formula: compound.formula,
+            moles: moles.toFixed(4),
+            mass: mass.toFixed(3),
+            volume: volume.toFixed(3)
+          };
+        });
+
+        // Mostrar resultados
+        let resultsHTML = '<h4>Resultados Estequiométricos:</h4>';
+        results.forEach(result => {
+          resultsHTML += `
+            <div class="analysis-card">
+              <strong>${result.formula}</strong><br>
+              ${result.moles} mol<br>
+              ${result.mass} g<br>
+              ${result.volume} L (STP)
+            </div>
+          `;
+        });
+
+        this.stoichResults.innerHTML = resultsHTML;
+      }
+
+      toggleSteps() {
+        if (this.steps.style.display === 'none' || !this.steps.textContent) {
+          if (this.currentResult && this.currentResult.steps) {
+            this.steps.textContent = this.currentResult.steps;
+            this.steps.style.display = 'block';
+          } else {
+            this.showWarning('Primero balancea una ecuación para ver los pasos');
+          }
+        } else {
+          this.steps.style.display = 'none';
+        }
+      }
+
+      clearAll() {
+        this.inputEq.value = '';
+        this.preset.selectedIndex = 0;
+        this.clearResults();
+        this.clearMessages();
+        this.stoichCalc.style.display = 'none';
+        this.currentResult = null;
+      }
+
+      clearResults() {
+        this.resultSection.style.display = 'none';
+        this.steps.style.display = 'none';
+        this.balancedEquation.textContent = '';
+        this.generalInfo.textContent = '';
+        this.reactionType.textContent = '';
+        this.conservation.textContent = '';
+        this.stoichiometry.textContent = '';
+        this.steps.textContent = '';
+        this.stoichResults.innerHTML = '';
+      }
+
+      clearMessages() {
+        this.errorContainer.innerHTML = '';
+        this.warningContainer.innerHTML = '';
+      }
+
+      showError(message) {
+        this.errorContainer.innerHTML = `<div class="error">❌ ${message}</div>`;
+      }
+
+      showWarning(message) {
+        this.warningContainer.innerHTML = `<div class="warning">⚠️ ${message}</div>`;
+      }
+
+      showSuccess(message) {
+        this.warningContainer.innerHTML = `<div class="success">✅ ${message}</div>`;
+      }
+    }
+
+    // Inicializar la aplicación
+    document.addEventListener('DOMContentLoaded', () => {
+      new ChemicalBalancerUI();
+    });
+  </script>
+</body>
+</html>

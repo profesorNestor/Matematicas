@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="es" class="">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Área Entre Curvas</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Librerías JS -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- MathJax para renderizado de LaTeX -->
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        :root {
+            --bg-light: #f0f2f5; --bg-dark: #1a202c;
+            --card-bg-light: rgba(255, 255, 255, 0.7); --card-bg-dark: rgba(26, 32, 44, 0.7);
+            --border-light: rgba(0, 0, 0, 0.1); --border-dark: rgba(255, 255, 255, 0.1);
+            --text-light: #212529; --text-dark: #e9ecef;
+            --muted-text-light: #6c757d; --muted-text-dark: #adb5bd;
+        }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.4s ease, color 0.4s ease; }
+        html.dark body { background-color: var(--bg-dark); color: var(--text-dark); }
+        html:not(.dark) body { background-color: var(--bg-light); color: var(--text-light); }
+
+        .glass-card {
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-light);
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+        html:not(.dark) .glass-card { background-color: var(--card-bg-light); }
+        html.dark .glass-card { background-color: var(--card-bg-dark); border-color: var(--border-dark); }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+        input[type="color"]::-webkit-color-swatch {
+            border: 2px solid rgba(0,0,0,0.2);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-cover bg-fixed" style="background-image: url('https://www.transparenttextures.com/patterns/cubes.png');">
+    <div id="app-container" class="flex flex-col lg:flex-row w-full min-h-screen p-4 gap-4">
+
+        <!-- Panel de Controles Izquierdo -->
+        <aside id="controls-panel" class="w-full lg:w-1/3 xl:w-1/4 glass-card rounded-2xl p-6 flex flex-col h-fit lg:h-full lg:max-h-[95vh] fade-in">
+            <header class="flex items-center justify-between pb-4 border-b border-gray-500/20">
+                <h1 class="text-xl font-bold flex items-center gap-2">
+                    <i data-lucide="ruler"></i>
+                    <span>Área entre Curvas</span>
+                </h1>
+                <button id="theme-toggle" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors" title="Cambiar tema">
+                    <i data-lucide="sun" class="block dark:hidden"></i>
+                    <i data-lucide="moon" class="hidden dark:block"></i>
+                </button>
+            </header>
+
+            <div class="flex-grow overflow-y-auto mt-4 pr-2">
+                <div class="space-y-4">
+                    <div>
+                        <label for="f_x_input" class="text-sm font-semibold mb-2 block text-blue-600 dark:text-blue-400">Función f(x)</label>
+                        <input type="text" id="f_x_input" value="x^2-3" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-2 border-transparent focus:border-blue-500 outline-none transition-all">
+                    </div>
+                     <div>
+                        <label for="g_x_input" class="text-sm font-semibold mb-2 block text-red-600 dark:text-red-400">Función g(x)</label>
+                        <input type="text" id="g_x_input" value="(1/4)*x^3-x+1" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-2 border-transparent focus:border-red-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <p class="text-sm font-semibold mb-2">Intervalo de Integración [a, b]</p>
+                        <div class="flex gap-4">
+                            <input type="number" id="a_input" value="-2" step="0.1" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-2 border-transparent focus:border-green-500 outline-none transition-all" placeholder="a">
+                            <input type="number" id="b_input" value="4" step="0.1" class="w-full p-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-2 border-transparent focus:border-green-500 outline-none transition-all" placeholder="b">
+                        </div>
+                    </div>
+                    <div>
+                        <button id="calculate-btn" class="w-full mt-2 p-3 rounded-lg text-lg font-bold text-white bg-green-600 hover:bg-green-700 transition-all transform hover:scale-105 flex items-center justify-center gap-2">
+                            <i data-lucide="calculator"></i>
+                            <span>Calcular y Graficar</span>
+                        </button>
+                    </div>
+                    <div id="results-area" class="space-y-4 pt-4 border-t border-gray-500/20">
+                        <div class="flex justify-between items-center">
+                            <h2 class="font-semibold flex items-center gap-2"><i data-lucide="check-square"></i>Resultados</h2>
+                            <button id="color-palette-toggle" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors" title="Paleta de Colores">
+                                <i data-lucide="palette"></i>
+                            </button>
+                        </div>
+                        <div id="color-palette" class="hidden flex justify-around items-center p-2 bg-black/5 dark:bg-white/5 rounded-lg">
+                            <div class="flex flex-col items-center">
+                                <label for="fx-color" class="text-xs mb-1 text-blue-600 dark:text-blue-400">f(x)</label>
+                                <input type="color" id="fx-color" value="#3b82f6">
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <label for="gx-color" class="text-xs mb-1 text-red-600 dark:text-red-400">g(x)</label>
+                                <input type="color" id="gx-color" value="#dc2626">
+                            </div>
+                            <div class="flex flex-col items-center">
+                                <label for="area-color" class="text-xs mb-1 text-green-600 dark:text-green-400">Área</label>
+                                <input type="color" id="area-color" value="#4ade80">
+                            </div>
+                        </div>
+                        <div id="integral-display" class="p-3 rounded-lg bg-black/5 dark:bg-white/5 text-center flex items-center justify-center min-h-[60px] overflow-x-auto"></div>
+                        <div id="area-display" class="p-4 rounded-lg bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-200 text-center text-xl font-bold min-h-[60px] flex items-center justify-center"></div>
+                        
+                        <div id="intersections-container" class="space-y-2 pt-4 border-t border-gray-500/20">
+                             <h3 class="font-semibold flex items-center gap-2"><i data-lucide="git-merge"></i>Puntos de Intersección</h3>
+                             <div id="intersections-display" class="p-3 rounded-lg bg-black/5 dark:bg-white/5 text-sm min-h-[40px] flex flex-col items-center justify-center"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Área Principal (Gráfica) -->
+        <main id="main-content" class="w-full lg:w-2/3 xl:w-3/4 glass-card rounded-2xl p-2 lg:p-4 flex items-center justify-center fade-in" style="animation-delay: 0.1s;">
+            <div id="plotly-chart" class="w-full h-full min-h-[400px] lg:min-h-0"></div>
+        </main>
+    </div>
+
+    <script type="module">
+        class MathSolver {
+            constructor() {
+                this.functions = {
+                    'sin': Math.sin, 'cos': Math.cos, 'tan': Math.tan, 'asin': Math.asin, 
+                    'acos': Math.acos, 'atan': Math.atan, 'log': Math.log10, 'ln': Math.log, 
+                    'sqrt': Math.sqrt, 'abs': Math.abs, 'exp': Math.exp, 'floor': Math.floor, 
+                    'ceil': Math.ceil, 'round': Math.round, 'pi': Math.PI, 'e': Math.E
+                };
+            }
+
+            parse(expression) {
+                let expr = expression.replace(/\s+/g, '').replace(/\^/g, '**');
+                expr = expr.replace(/(\d+)([a-zA-Z(])/g, '$1*$2').replace(/([a-zA-Z)])(\d+)/g, '$1*$2');
+                expr = expr.replace(/\)\(/g, ')*(').replace(/([a-zA-Z])\(/g, '$1*(');
+                Object.keys(this.functions).forEach(f => {
+                    expr = expr.replace(new RegExp(`\\b${f}\\b`, 'g'), `Math.${f}`);
+                });
+                try {
+                    return (x) => new Function('x', `return ${expr}`)(x);
+                } catch (error) {
+                    throw new Error(`Error al parsear la función: ${expression}`);
+                }
+            }
+            
+            derivative(func, x, h = 1e-6) {
+                return (func(x + h) - func(x - h)) / (2 * h);
+            }
+
+            formatForTex(expr) {
+                return expr.replace(/\*/g, ' \\cdot ').replace(/\//g, '\\frac').replace(/\(([^)]+)\)\^{([^}]+)}/g, '($1)^{$2}').replace(/([a-zA-Z0-9]+)\^([a-zA-Z0-9]+)/g, '$1^{$2}');
+            }
+
+            findRoots(func, range, tolerance = 1e-9) {
+                const roots = new Set();
+                const resolutions = [0.2, 0.1, 0.05, 0.01, 0.005];
+                for (const step of resolutions) {
+                    for (let x = range.min; x < range.max; x += step) {
+                        const y1 = func(x);
+                        const y2 = func(x + step);
+                        if (isFinite(y1) && isFinite(y2)) {
+                            if (y1 * y2 < 0) {
+                                const root = this.bisection(func, x, x + step, tolerance);
+                                if (root !== null) roots.add(root);
+                            }
+                            if (Math.abs(y1) < tolerance) roots.add(x);
+                        }
+                    }
+                }
+                const refinedRoots = new Set();
+                for (const r of roots) {
+                    const refined = this.newtonRaphson(func, r, tolerance);
+                    if (refined !== null) refinedRoots.add(parseFloat(refined.toPrecision(10)));
+                }
+                return Array.from(refinedRoots).sort((a,b) => a - b);
+            }
+
+            bisection(func, a, b, tol = 1e-9, maxIter = 100) {
+                let fa = func(a);
+                for (let i = 0; i < maxIter; i++) {
+                    const c = (a + b) / 2;
+                    const fc = func(c);
+                    if (Math.abs(fc) < tol || (b - a) / 2 < tol) return c;
+                    if (Math.sign(fc) === Math.sign(fa)) a = c; else b = c;
+                    fa = func(a);
+                }
+                return (a + b) / 2;
+            }
+
+            newtonRaphson(func, x0, tol = 1e-9, maxIter = 20) {
+                let x = x0;
+                for (let i = 0; i < maxIter; i++) {
+                    const fx = func(x);
+                    const fpx = this.derivative(func, x);
+                    if (Math.abs(fpx) < 1e-15) return x;
+                    const newX = x - fx / fpx;
+                    if (Math.abs(newX - x) < tol) return newX;
+                    x = newX;
+                }
+                return x;
+            }
+        }
+
+        const mathSolver = new MathSolver();
+        const DOM = {
+            themeToggle: document.getElementById('theme-toggle'),
+            fxInput: document.getElementById('f_x_input'),
+            gxInput: document.getElementById('g_x_input'),
+            aInput: document.getElementById('a_input'),
+            bInput: document.getElementById('b_input'),
+            calculateBtn: document.getElementById('calculate-btn'),
+            plotlyChart: document.getElementById('plotly-chart'),
+            integralDisplay: document.getElementById('integral-display'),
+            areaDisplay: document.getElementById('area-display'),
+            colorPaletteToggle: document.getElementById('color-palette-toggle'),
+            colorPalette: document.getElementById('color-palette'),
+            fxColor: document.getElementById('fx-color'),
+            gxColor: document.getElementById('gx-color'),
+            areaColor: document.getElementById('area-color'),
+            intersectionsDisplay: document.getElementById('intersections-display'),
+        };
+
+        const plotlyConfig = { responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'autoScale2d', 'toggleSpikelines'] };
+
+        function applyTheme() {
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+            updatePlotlyLayout();
+        }
+
+        DOM.themeToggle.addEventListener('click', () => {
+            localStorage.theme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+            applyTheme();
+        });
+
+        DOM.colorPaletteToggle.addEventListener('click', () => {
+            DOM.colorPalette.classList.toggle('hidden');
+        });
+
+        function updatePlotColors() {
+            if (!DOM.plotlyChart.data || DOM.plotlyChart.data.length < 3) return;
+            const fxColor = DOM.fxColor.value;
+            const gxColor = DOM.gxColor.value;
+            const areaColor = DOM.areaColor.value;
+            
+            const r = parseInt(areaColor.slice(1, 3), 16);
+            const g = parseInt(areaColor.slice(3, 5), 16);
+            const b = parseInt(areaColor.slice(5, 7), 16);
+            const areaFillColor = `rgba(${r}, ${g}, ${b}, 0.4)`;
+
+            Plotly.restyle(DOM.plotlyChart, { 'line.color': fxColor }, [0]);
+            Plotly.restyle(DOM.plotlyChart, { 'line.color': gxColor }, [1]);
+            Plotly.restyle(DOM.plotlyChart, { 'fillcolor': areaFillColor }, [2]);
+            // Actualizar el color en la fórmula de MathJax también
+            plotArea();
+        }
+        [DOM.fxColor, DOM.gxColor, DOM.areaColor].forEach(el => el.addEventListener('input', updatePlotColors));
+
+        function renderMathJax(element, fxStr, gxStr, a, b) {
+            const fxTex = mathSolver.formatForTex(fxStr);
+            const gxTex = mathSolver.formatForTex(gxStr);
+            const fxColor = DOM.fxColor.value;
+            const gxColor = DOM.gxColor.value;
+            
+            element.innerHTML = `
+                $$ \\text{Área} = \\int_{${a}}^{${b}} | \\color{${fxColor}}{(${fxTex})} - \\color{${gxColor}}{(${gxTex})} | \\,dx $$
+            `;
+            // Pedir a MathJax que renderice el nuevo contenido
+            MathJax.typesetPromise([element]);
+        }
+        
+        function getPlotlyLayout() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const axisConfig = {
+                gridcolor: isDark ? 'rgba(255, 255, 255, 0.1)' : '#e9ecef', 
+                zerolinecolor: isDark ? '#6c757d' : '#adb5bd', 
+                zerolinewidth: 2, showticklabels: true, ticks: 'outside', 
+                tickcolor: isDark ? '#495057' : '#ced4da', showline: true, 
+                linecolor: isDark ? '#495057' : '#ced4da', linewidth: 2, mirror: true
+            };
+            return {
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: isDark ? 'rgba(26, 32, 44, 0.5)' : 'rgba(255, 255, 255, 0.5)',
+                font: { color: isDark ? 'var(--text-dark)' : 'var(--text-light)' },
+                xaxis: { ...axisConfig, range: [-3.5, 5] },
+                yaxis: { ...axisConfig, range: [-4, 7] },
+                margin: { l: 50, r: 20, b: 40, t: 40 },
+                hovermode: 'x unified',
+                showlegend: true,
+                legend: { orientation: 'h', yanchor: 'bottom', y: 1.02, xanchor: 'right', x: 1 },
+                dragmode: 'pan'
+            };
+        }
+
+        function updatePlotlyLayout() {
+            if (DOM.plotlyChart.data) {
+                const currentLayout = DOM.plotlyChart.layout;
+                const newLayout = getPlotlyLayout();
+                newLayout.xaxis.range = currentLayout.xaxis.range;
+                newLayout.yaxis.range = currentLayout.yaxis.range;
+                Plotly.relayout(DOM.plotlyChart, newLayout);
+            }
+        }
+
+        function plotArea() {
+            try {
+                const fxStr = DOM.fxInput.value;
+                const gxStr = DOM.gxInput.value;
+                const a = parseFloat(DOM.aInput.value);
+                const b = parseFloat(DOM.bInput.value);
+
+                if (isNaN(a) || isNaN(b) || !fxStr || !gxStr) {
+                    DOM.areaDisplay.textContent = "Por favor, ingresa funciones y un intervalo válidos.";
+                    return;
+                }
+                
+                const compiledFx = mathSolver.parse(fxStr);
+                const compiledGx = mathSolver.parse(gxStr);
+                
+                const traces = [];
+                const samples = 1000;
+                const xRange = Math.max(10, Math.abs(a)*1.5, Math.abs(b)*1.5);
+                const xGlobal = Array.from({length: samples + 1}, (_, i) => -xRange + (2 * xRange * i / samples));
+                const yGlobalFx = xGlobal.map(compiledFx);
+                const yGlobalGx = xGlobal.map(compiledGx);
+                
+                traces.push({ x: xGlobal, y: yGlobalFx, mode: 'lines', name: 'f(x)', line: { color: DOM.fxColor.value, width: 2.5 } });
+                traces.push({ x: xGlobal, y: yGlobalGx, mode: 'lines', name: 'g(x)', line: { color: DOM.gxColor.value, width: 2.5 } });
+
+                const xFill = Array.from({length: 101}, (_, i) => a + (b - a) * i / 100);
+                const yFillFx = xFill.map(compiledFx);
+                const yFillGx = xFill.map(compiledGx);
+                
+                const r = parseInt(DOM.areaColor.value.slice(1, 3), 16);
+                const g = parseInt(DOM.areaColor.value.slice(3, 5), 16);
+                const blue = parseInt(DOM.areaColor.value.slice(5, 7), 16);
+
+                traces.push({
+                    x: [...xFill, ...xFill.slice().reverse()],
+                    y: [...yFillFx, ...yFillGx.slice().reverse()],
+                    fill: 'toself',
+                    fillcolor: `rgba(${r}, ${g}, ${blue}, 0.4)`,
+                    line: { color: 'transparent' },
+                    name: 'Área',
+                    hoverinfo: 'none'
+                });
+
+                try {
+                    const h = (x) => compiledFx(x) - compiledGx(x);
+                    const searchRange = { min: Math.min(...xGlobal), max: Math.max(...xGlobal) };
+                    const roots = mathSolver.findRoots(h, searchRange);
+                    
+                    if (roots.length > 0) {
+                        const intersectionPoints = roots.map(x => ({ x, y: compiledFx(x) }));
+                        const hoverTexts = intersectionPoints.map(p => `Intersección<br>x: ${p.x.toFixed(4)}<br>y: ${p.y.toFixed(4)}`);
+
+                        traces.push({
+                            x: intersectionPoints.map(p => p.x),
+                            y: intersectionPoints.map(p => p.y),
+                            text: hoverTexts,
+                            hoverinfo: 'text',
+                            mode: 'markers',
+                            type: 'scatter',
+                            name: 'Intersecciones',
+                            marker: { color: '#9333ea', size: 12, symbol: 'diamond', line: {color: 'white', width: 2}}
+                        });
+                        DOM.intersectionsDisplay.innerHTML = `
+                            <div class="text-center w-full">
+                                <div class="flex flex-wrap justify-center gap-2">
+                                    ${intersectionPoints.map(p => `<span class="inline-block bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 px-2 py-1 rounded text-xs font-mono">(${p.x.toFixed(3)}, ${p.y.toFixed(3)})</span>`).join('')}
+                                </div>
+                            </div>`;
+                    } else {
+                        DOM.intersectionsDisplay.textContent = 'No se encontraron intersecciones en el rango visible.';
+                    }
+                } catch (e) {
+                    console.error("Error al calcular intersecciones:", e);
+                    DOM.intersectionsDisplay.textContent = 'Error al calcular intersecciones.';
+                }
+
+                Plotly.newPlot(DOM.plotlyChart, traces, getPlotlyLayout(), plotlyConfig);
+
+                const hxFunc = (x) => Math.abs(compiledFx(x) - compiledGx(x));
+                const n = 10000;
+                const h = (b - a) / n;
+                let area = hxFunc(a) + hxFunc(b);
+                for (let i = 1; i < n; i += 2) area += 4 * hxFunc(a + i * h);
+                for (let i = 2; i < n - 1; i += 2) area += 2 * hxFunc(a + i * h);
+                area *= (h / 3);
+
+                renderMathJax(DOM.integralDisplay, fxStr, gxStr, a, b);
+                DOM.areaDisplay.textContent = `≈ ${area.toFixed(6)} unidades²`;
+
+            } catch (error) {
+                console.error("Error al calcular:", error);
+                DOM.areaDisplay.textContent = `Error: ${error.message}`;
+            }
+        }
+
+        DOM.calculateBtn.addEventListener('click', plotArea);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            applyTheme();
+            plotArea();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tabla Periódica Interactiva — Versión Offline</title>
+  
+  <!-- ░░  E S T I L O S  ░░================================================ -->
+  <!--  Tailwind CSS  -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!--  Fuente «Inter»  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!--  Alpine.js 3  -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    body{
+      font-family:'Inter',sans-serif;
+      background:linear-gradient(135deg,#f5f7fa 0%,#c3cfe2 100%);
+    }
+    /* cuadrícula 18 × 7 que respeta xpos/ypos */
+    .periodic-table{display:grid;grid-template-columns:repeat(18,minmax(0,1fr));gap:4px;}
+    .element-card{cursor:pointer;transition:transform .15s ease-in-out;}
+    .element-card:hover{transform:scale(1.12);z-index:10;}
+    [x-cloak]{display:none!important;}
+    .tooltip{position:absolute;padding:8px 10px;background:#1f2937;color:#fff;border-radius:6px;font-size:.75rem;pointer-events:none;z-index:50;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+    sup{font-size:.6em;vertical-align:text-top;}
+  </style>
+
+  <!-- ░░  L Ó G I C A  A L P I N E  ░░==================================== -->
+  <script>
+    function appData(){
+      return{
+        /* ---------  D A T O S  ----------------------------------------- */
+        periodicTableElements:[],
+        filter:'all',
+        translations:{
+          appearance:'Apariencia',atomic_mass:'Masa Atómica',boil:'P. de Ebullición',density:'Densidad',discovered_by:'Descubierto por',melt:'P. de Fusión',molar_heat:'Calor Molar',named_by:'Nombrado por',phase:'Fase',period:'Período',group:'Grupo',electron_configuration:'Configuración Electrónica',electron_affinity:'Afinidad Electrónica',electronegativity_pauling:'Electronegatividad',ionization_energies:'Energías de Ionización',shells:'Capas',source:'Fuente',bohr_model_image:'Modelo de Bohr 2D',bohr_model_3d:'Modelo de Bohr 3D',spectral_img:'Espectro'},
+        /* Traducciones de valores comunes */
+        valueTranslations:{gas:'Gas',solid:'Sólido',liquid:'Líquido','colorless gas, liquid or solid':'Gas incoloro, líquido o sólido','colorless gas':'Gas incoloro','unknown':'Desconocido'},
+        categoryColors:{'diatomic-nonmetal':'bg-green-500','polyatomic-nonmetal':'bg-green-600','noble-gas':'bg-purple-500','alkali-metal':'bg-red-500','alkaline-earth-metal':'bg-orange-500','metalloid':'bg-teal-400','post-transition-metal':'bg-green-400','transition-metal':'bg-yellow-400','lanthanide':'bg-yellow-500','actinide':'bg-yellow-600',unknown:'bg-gray-400'},
+
+        /* ---------  T O O L T I P  ------------------------------------- */
+        tooltip:{visible:false,data:{},x:0,y:0},
+
+        /* ---------  M O D A L E S  ------------------------------------- */
+        isElementModalOpen:false,
+        isHelpModalOpen:false,
+        selectedElement:{},
+
+        /* ---------  I N I C I O  --------------------------------------- */
+        initApp(){this.fetchPeriodicTableData()},
+        async fetchPeriodicTableData(){
+          try{
+            const res=await fetch('./PeriodicTableJSON.json');
+            if(!res.ok)throw new Error(`HTTP ${res.status}`);
+            const data=await res.json();
+            this.periodicTableElements=data.elements;
+          }catch(err){
+            console.error(err);
+            alert('No se pudo cargar PeriodicTableJSON.json.\nAsegúrate de que el archivo esté junto a este HTML y\nque estés usando un servidor local (por ejemplo:\npython -m http.server).');
+          }
+        },
+
+        /* ---------  U T I L E S  --------------------------------------- */
+        /** Devuelve el valor traducido si existe */
+        translateVal(v){
+          if(Array.isArray(v)) return v.join(', ');
+          if(typeof v==='string'){
+            const t=this.valueTranslations[v.toLowerCase()];
+            return t||v;
+          }
+          return v;
+        },
+        /** Convierte dígitos a superíndices en la configuración electrónica */
+        formatElectronConfig(conf){
+          if(!conf) return 'N/A';
+          return conf.replace(/(\d+)/g,'<sup>$1</sup>');
+        },
+
+        /* ---------  I N T E R A C C I Ó N  ----------------------------- */
+        selectElement(el){this.selectedElement=el;this.isElementModalOpen=true;},
+        showTooltip(el){this.tooltip.data=el;this.tooltip.visible=true;},
+        hideTooltip(){this.tooltip.visible=false;},
+        moveTooltip(e){if(this.tooltip.visible){this.tooltip.x=e.clientX+15;this.tooltip.y=e.clientY+15;}}
+      }
+    }
+    document.addEventListener('alpine:init',()=>{Alpine.data('appData',appData)});
+  </script>
+</head>
+
+<body class="text-gray-800" @mousemove.window="moveTooltip($event)" @mouseleave.window="hideTooltip()">
+  <div x-data="appData()" x-init="initApp()" class="container mx-auto p-4 md:p-8">
+    <!-- ░░  H E A D E R  ░░ -->
+    <header class="text-center mb-12">
+      <h1 class="text-5xl md:text-6xl font-extrabold bg-gradient-to-r from-blue-500 to-purple-600 bg-clip-text text-transparent">Tabla Periódica</h1>
+      <p class="mt-2 text-lg text-gray-700">Aplicación offline con datos locales</p>
+    </header>
+
+    <!-- ░░  M A I N  ░░ -->
+    <section class="bg-white/70 backdrop-blur-md p-6 rounded-2xl shadow-lg">
+      <p class="text-center text-gray-600 mb-4">Haz clic en cualquier elemento para ver detalles. Usa los filtros por categoría.</p>
+
+      <!-- Filtros -->
+      <div class="flex flex-wrap gap-2 justify-center mb-6">
+        <button @click="filter='all'" :class="filter==='all'?'bg-blue-600 text-white':'bg-gray-200 text-gray-700'" class="px-4 py-2 rounded-full text-sm font-semibold transition">Todos</button>
+        <template x-for="cat in Object.keys(categoryColors)" :key="cat">
+          <button @click="filter=cat" :class="filter===cat?'bg-blue-600 text-white':'bg-gray-200 text-gray-700'" class="capitalize px-4 py-2 rounded-full text-sm font-semibold transition" x-text="cat.replace(/-/g,' ')"></button>
+        </template>
+      </div>
+
+      <!-- Tabla periódica -->
+      <div class="periodic-table relative" @mousemove="moveTooltip($event)" @mouseleave="hideTooltip()">
+        <template x-for="el in periodicTableElements" :key="el.number">
+          <div x-show="filter==='all'||(el.category&&filter===el.category.replace(/ /g,'-'))" class="element-card p-1 md:p-2 rounded-md text-white text-center" :class="el.category?categoryColors[el.category.replace(/ /g,'-')]: 'bg-gray-400'" :style="{gridColumn:el.xpos,gridRow:el.ypos}" @mouseenter="showTooltip(el)" @click="selectElement(el)">
+            <div class="text-xs md:text-sm font-bold" x-text="el.symbol"></div>
+            <div class="hidden md:block text-[10px]" x-text="el.number"></div>
+          </div>
+        </template>
+
+        <!-- Tooltip -->
+        <div x-show="tooltip.visible" x-cloak class="tooltip" :style="{top:tooltip.y+'px',left:tooltip.x+'px'}">
+          <strong class="text-base" x-text="tooltip.data.symbol"></strong>
+          <span class="ml-1" x-text="tooltip.data.name"></span>
+          <div class="text-[10px] text-gray-300 mt-[2px]">Nº <span x-text="tooltip.data.number"></span> · M <span x-text="tooltip.data.atomic_mass?tooltip.data.atomic_mass.toFixed(2):''"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ░░  F O O T E R  ░░ -->
+    <footer class="text-center mt-12 text-gray-600 text-sm"><p>Autor: MSc. Néstor Fabio Montoya Palacios — 2024</p></footer>
+
+    <!-- Botón ayuda -->
+    <button @click="isHelpModalOpen=true" class="fixed bottom-6 right-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white w-14 h-14 rounded-full flex items-center justify-center shadow-xl hover:scale-110 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+    </button>
+
+    <!-- ░░  M O D A L  D E T A L L E  ░░ -->
+    <div x-show="isElementModalOpen" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" @click.self="isElementModalOpen=false">
+      <div x-transition class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+        <!-- Encabezado -->
+        <header :class="selectedElement.category?categoryColors[selectedElement.category.replace(/ /g,'-')]: 'bg-gray-400'" class="p-4 flex justify-between items-center">
+          <h3 class="text-3xl font-bold text-white" x-text="selectedElement.name+' ('+selectedElement.symbol+')'"></h3>
+          <button @click="isElementModalOpen=false" class="text-white text-3xl leading-none">&times;</button>
+        </header>
+
+        <!-- Contenido -->
+        <div class="p-6 overflow-auto flex-grow">
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- ░░  COLUMNA IZQUIERDA  ░░ -->
+            <div class="space-y-4">
+              <!-- Resumen -->
+              <div class="bg-gray-100 p-4 rounded-lg">
+                <h4 class="font-bold text-sm text-gray-500 mb-2">Resumen</h4>
+                <p class="text-sm" x-text="selectedElement.summary||'No hay resumen disponible.'"></p>
+              </div>
+              <!-- Tarjetas clave -->
+              <div class="grid grid-cols-2 gap-4">
+                <template x-for="card in [
+                  {l:'Nº Atómico',v:selectedElement.number},
+                  {l:'Masa Atómica',v:selectedElement.atomic_mass?selectedElement.atomic_mass.toFixed(4)+' u':'N/A'},
+                  {l:'Período / Grupo',v:selectedElement.period+' / '+selectedElement.xpos},
+                  {l:'Estado',v:translateVal(selectedElement.phase)||'Desconocido'},
+                  {l:'Electronegatividad',v:selectedElement.electronegativity_pauling??'N/A'},
+                  {l:'Afinidad Electrónica',v:selectedElement.electron_affinity?selectedElement.electron_affinity+' kJ/mol':'N/A'}
+                ]" :key="card.l">
+                  <div class="bg-gray-100 p-3 rounded-lg">
+                    <h4 class="font-semibold text-xs text-gray-500" x-text="card.l"></h4>
+                    <p class="text-lg font-bold break-words" x-text="card.v"></p>
+                  </div>
+                </template>
+              </div>
+            </div>
+
+            <!-- ░░  COLUMNA DERECHA  ░░ -->
+            <div class="space-y-4">
+              <!-- Configuración electrónica -->
+              <div class="bg-gray-100 p-4 rounded-lg">
+                <h4 class="font-bold text-sm text-gray-500 mb-1">Configuración Electrónica</h4>
+                <p class="font-mono text-xs break-words" x-html="formatElectronConfig(selectedElement.electron_configuration)"></p>
+              </div>
+
+              <!-- Propiedades restantes -->
+              <div class="grid grid-cols-2 gap-4">
+                <template x-for="(val,key) in selectedElement" :key="key">
+                  <div x-show="!['name','symbol','number','summary','xpos','ypos','category','period','atomic_mass','electron_affinity','electronegativity_pauling','phase','electron_configuration','ionization_energies','bohr_model_image','bohr_model_3d','spectral_img','wxpos','wypos','source'].includes(key)" class="bg-gray-100 p-3 rounded-lg">
+                    <h4 class="font-semibold text-xs text-gray-500" x-text="translations[key]??key.replace(/_/g,' ')"></h4>
+                    <p class="text-sm font-bold break-words" x-text="translateVal(val)"></p>
+                  </div>
+                </template>
+              </div>
+
+              <!-- Ionización -->
+              <div class="bg-gray-100 p-4 rounded-lg">
+                <h4 class="font-bold text-sm text-gray-500 mb-1">Energías de Ionización (kJ/mol)</h4>
+                <p class="text-xs font-mono break-words" x-text="selectedElement.ionization_energies&&selectedElement.ionization_energies.length>0?selectedElement.ionization_energies.join(', '):'N/A'"></p>
+              </div>
+
+              <!-- Wikipedia -->
+              <a :href="selectedElement.source" target="_blank" class="block text-center w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 transition">Más información en Wikipedia</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ░░  M O D A L  A Y U D A  ░░ -->
+    <div x-show="isHelpModalOpen" x-cloak class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4" @click.self="isHelpModalOpen=false">
+      <div x-transition class="bg-white rounded-2xl shadow-2xl w-full max-w-xl p-6">
+        <h2 class="text-2xl font-bold mb-4 text-gray-800">¿Cómo usar esta aplicación?</h2>
+        <ul class="list-disc list-inside space-y-2 text-gray-700 text-sm">
+          <li>La página funciona <strong>offline</strong>. Coloca <code>PeriodicTableJSON.json</code> junto al HTML.</li>
+          <li>Utiliza un servidor local sencillo: <code>python -m http.server</code> o la extensión «Live Server».</li>
+          <li>Filtra los elementos por categoría usando los botones superiores.</li>
+          <li>Pasa el cursor sobre un elemento para un tooltip rápido.</li>
+          <li>Haz clic en un elemento para abrir su ficha detallada.</li>
+        </ul>
+        <button @click="isHelpModalOpen=false" class="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">Cerrar</button>
+      </div>
+    </div>
+
+  </div><!-- alpine root -->
+</body>
+</html>
