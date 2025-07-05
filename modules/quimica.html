@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabla Periódica Interactiva</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Alpine.js -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f0f4f8; background-image: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); }
+        .gradient-text { background: linear-gradient(to right, #3b82f6, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .periodic-table { display: grid; grid-template-columns: repeat(18, minmax(0, 1fr)); gap: 4px; }
+        .element-card { transition: all 0.2s ease-in-out; cursor: pointer; }
+        .element-card:hover { transform: scale(1.1); z-index: 10; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); }
+        [x-cloak] { display: none !important; }
+        .modal-transition { transition: all 0.3s ease-out; }
+        .tooltip { position: absolute; display: none; padding: 8px; background-color: #1f2937; color: white; border-radius: 6px; font-size: 0.875rem; z-index: 50; pointer-events: none; }
+    </style>
+
+    <script>
+        function appData() {
+            return {
+                periodicTableElements: [],
+                filter: 'all',
+                categoryColors: {
+                    'diatomic-nonmetal': 'bg-green-500', 'noble-gas': 'bg-purple-500',
+                    'alkali-metal': 'bg-red-500', 'alkaline-earth-metal': 'bg-orange-500',
+                    'metalloid': 'bg-teal-400', 'polyatomic-nonmetal': 'bg-green-600',
+                    'post-transition-metal': 'bg-green-400', 'transition-metal': 'bg-yellow-400',
+                    'lanthanide': 'bg-yellow-500', 'actinide': 'bg-yellow-600', 'unknown': 'bg-gray-400'
+                },
+                tooltip: { visible: false, data: {}, x: 0, y: 0 },
+                isElementModalOpen: false,
+                isHelpModalOpen: false,
+                selectedElement: {},
+                
+                initApp() {
+                    this.fetchPeriodicTableData();
+                },
+
+                async fetchPeriodicTableData() {
+                    try {
+                        const response = await fetch('https://raw.githubusercontent.com/Bowserinator/Periodic-Table-JSON/master/PeriodicTableJSON.json');
+                        const data = await response.json();
+                        this.periodicTableElements = data.elements;
+                    } catch (error) {
+                        console.error("Error fetching periodic table data:", error);
+                    }
+                },
+                selectElement(element) {
+                    this.selectedElement = element;
+                    this.isElementModalOpen = true;
+                },
+                showTooltip(element, event) {
+                    this.tooltip.data = element;
+                    this.tooltip.visible = true;
+                },
+                hideTooltip() { this.tooltip.visible = false; },
+                moveTooltip(event) {
+                    if (this.tooltip.visible) {
+                        this.tooltip.x = event.clientX + 15;
+                        this.tooltip.y = event.clientY + 15;
+                    }
+                }
+            };
+        }
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('appData', appData);
+        });
+    </script>
+</head>
+<body class="text-gray-800">
+    
+    <div x-data="appData()" x-init="initApp()" class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-6xl font-bold gradient-text">Tabla Periódica Interactiva</h1>
+            <p class="text-lg text-gray-600 mt-2">Explora las propiedades de los elementos.</p>
+        </header>
+
+        <main>
+            <section class="bg-white/70 backdrop-blur-sm p-6 rounded-2xl shadow-lg">
+                <p class="text-center text-gray-600 mb-4">Pasa el cursor sobre un elemento para ver información rápida. Haz clic para ver todos los detalles.</p>
+                <div class="mb-4 flex flex-wrap gap-2 justify-center">
+                    <button @click="filter = 'all'" :class="{'bg-blue-600 text-white': filter === 'all', 'bg-gray-200 text-gray-700': filter !== 'all'}" class="px-4 py-2 rounded-full text-sm font-semibold transition">Todos</button>
+                    <template x-for="category in Object.keys(categoryColors)" :key="category">
+                        <button @click="filter = category" :class="{'bg-blue-600 text-white': filter === category, 'bg-gray-200 text-gray-700': filter !== 'all'}" class="px-4 py-2 rounded-full text-sm font-semibold transition capitalize" x-text="category.replace(/-/g, ' ')"></button>
+                    </template>
+                </div>
+                <div class="periodic-table relative" @mousemove="moveTooltip($event)" @mouseleave="hideTooltip()">
+                    <template x-for="element in periodicTableElements" :key="element.number">
+                        <div x-show="filter === 'all' || (element.category && filter === element.category.replace(/ /g, '-'))"
+                             class="element-card p-1 md:p-2 rounded-md text-white text-center"
+                             :class="element.category ? categoryColors[element.category.replace(/ /g, '-')] : 'bg-gray-400'"
+                             :style="{ gridColumn: element.xpos, gridRow: element.ypos }"
+                             @mouseenter="showTooltip(element, $event)"
+                             @click="selectElement(element)">
+                            <div class="text-xs md:text-sm font-bold" x-text="element.symbol"></div>
+                            <div class="hidden md:block text-xs" x-text="element.name"></div>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="tooltip.visible" x-cloak class="tooltip" :style="{ top: tooltip.y + 'px', left: tooltip.x + 'px' }">
+                    <strong class="text-lg" x-text="tooltip.data.symbol"></strong>
+                    <span x-text="tooltip.data.name" class="ml-2"></span>
+                    <div class="text-xs text-gray-300 mt-1">
+                        <p>Nº Atómico: <span x-text="tooltip.data.number"></span></p>
+                        <p>Masa: <span x-text="tooltip.data.atomic_mass ? tooltip.data.atomic_mass.toFixed(3) : ''"></span></p>
+                        <p class="capitalize" x-text="tooltip.data.category"></p>
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <footer class="text-center mt-12 py-6 border-t border-gray-300">
+            <p class="text-gray-600">Autor: MSc. Néstor Fabio Montoya Palacios</p>
+        </footer>
+
+        <!-- Botón de Ayuda Flotante -->
+        <button @click="isHelpModalOpen = true" class="fixed bottom-6 right-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white w-16 h-16 rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform duration-300 ease-in-out">
+            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+        </button>
+
+        <!-- Modal de Detalle del Elemento -->
+        <div x-show="isElementModalOpen" x-cloak class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" @click.self="isElementModalOpen = false">
+            <div x-show="isElementModalOpen" x-transition:enter="modal-transition" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="modal-transition" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90" class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
+                <template x-if="selectedElement.name">
+                    <div class="flex flex-col h-full">
+                        <header class="p-4 border-b flex justify-between items-center flex-shrink-0" :class="selectedElement.category ? categoryColors[selectedElement.category.replace(/ /g, '-')] : 'bg-gray-400'">
+                            <h3 class="text-3xl font-bold text-white" x-text="selectedElement.name + ' (' + selectedElement.symbol + ')'"></h3>
+                            <button @click="isElementModalOpen = false" class="text-white hover:text-gray-200 text-3xl">&times;</button>
+                        </header>
+                        <div class="p-6 overflow-auto flex-grow">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div class="space-y-4">
+                                    <div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-sm text-gray-500 mb-2">Resumen</h4><p class="text-sm" x-text="selectedElement.summary || 'No hay resumen disponible.'"></p></div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">Nº Atómico</h4><p class="text-2xl font-bold" x-text="selectedElement.number"></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">Masa Atómica</h4><p class="text-lg font-bold" x-text="selectedElement.atomic_mass ? selectedElement.atomic_mass.toFixed(4) + ' u' : 'N/A'"></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">Período / Grupo</h4><p class="text-lg font-bold"><span x-text="selectedElement.period"></span> / <span x-text="selectedElement.xpos"></span></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">Apariencia</h4><p class="text-lg font-bold capitalize" x-text="selectedElement.appearance || 'N/A'"></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">P. de Fusión</h4><p class="text-lg font-bold" x-text="selectedElement.melt ? selectedElement.melt + ' K' : 'N/A'"></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">P. de Ebullición</h4><p class="text-lg font-bold" x-text="selectedElement.boil ? selectedElement.boil + ' K' : 'N/A'"></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">Densidad (g/L)</h4><p class="text-lg font-bold" x-text="selectedElement.density || 'N/A'"></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">Calor Específico</h4><p class="text-lg font-bold" x-text="selectedElement.molar_heat && selectedElement.atomic_mass ? (selectedElement.molar_heat / selectedElement.atomic_mass).toFixed(4) + ' J/g·K' : 'N/A'"></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg col-span-2"><h4 class="font-semibold text-xs text-gray-500">Descubrimiento</h4><p class="text-sm font-bold"><span x-text="selectedElement.discovered_by || 'N/A'"></span> (<span x-text="selectedElement.named_by || 'N/A'"></span>)</p></div>
+                                    </div>
+                                </div>
+                                <div class="space-y-4">
+                                    <div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-sm text-gray-500">Configuración Electrónica</h4><p class="text-md font-mono break-words" x-text="selectedElement.electron_configuration || 'N/A'"></p></div>
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">Electronegatividad</h4><p class="text-lg font-bold" x-text="selectedElement.electronegativity_pauling || 'N/A'"></p></div>
+                                        <div class="bg-gray-100 p-3 rounded-lg"><h4 class="font-semibold text-xs text-gray-500">Afinidad Electrónica</h4><p class="text-lg font-bold" x-text="selectedElement.electron_affinity ? selectedElement.electron_affinity + ' kJ/mol' : 'N/A'"></p></div>
+                                    </div>
+                                    <div class="bg-gray-100 p-4 rounded-lg"><h4 class="font-bold text-sm text-gray-500 mb-2">Energías de Ionización (kJ/mol)</h4><p class="text-xs font-mono break-words" x-text="selectedElement.ionization_energies && selectedElement.ionization_energies.length > 0 ? selectedElement.ionization_energies.join(', ') : 'N/A'"></p></div>
+                                    <a :href="selectedElement.source" target="_blank" class="block text-center w-full bg-blue-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-600 transition">Más información en Wikipedia</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- Modal de Ayuda -->
+        <div x-show="isHelpModalOpen" x-cloak class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4" @click.self="isHelpModalOpen = false">
+            <div x-show="isHelpModalOpen" x-transition:enter="modal-transition" x-transition:enter-start="opacity-0 scale-90" x-transition:enter-end="opacity-100 scale-100" x-transition:leave="modal-transition" x-transition:leave-start="opacity-100 scale-100" x-transition:leave-end="opacity-0 scale-90" class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+                <header class="p-4 border-b flex justify-between items-center flex-shrink-0 bg-gray-100">
+                    <h3 class="text-2xl font-bold text-gray-800">Guía de Usuario</h3>
+                    <button @click="isHelpModalOpen = false" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+                </header>
+                <div class="p-6 overflow-y-auto flex-grow space-y-4 text-gray-700">
+                    <p>¡Bienvenido al Laboratorio de Química Interactivo!</p>
+                    <p>Esta herramienta está diseñada para que explores la tabla periódica de una forma visual y sencilla.</p>
+                    <div>
+                        <h4 class="font-bold text-lg text-blue-600">Exploración de Elementos</h4>
+                        <ul class="list-disc list-inside ml-4 mt-2 space-y-1">
+                            <li>**Información Rápida:** Simplemente pasa el cursor sobre cualquier elemento para ver sus datos más importantes como el nombre, número atómico y masa.</li>
+                            <li>**Detalles Completos:** Haz clic en un elemento para abrir una ventana con información detallada, incluyendo propiedades físicas, electrónicas e históricas.</li>
+                            <li>**Filtros por Categoría:** Utiliza los botones de colores en la parte superior para filtrar los elementos por su tipo (metales alcalinos, gases nobles, etc.). Esto te ayudará a visualizar patrones en la tabla.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
