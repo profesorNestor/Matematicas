@@ -103,6 +103,8 @@ const categories = [
       { name: 'Movimiento Circular Uniforme',  slug: 'simulador_movimiento_circular_uniforme', icon: '🔄' },
       { name: 'Movimiento Armónico Simple',    slug: 'graficasMAS',                           icon: '🌊' },
       { name: 'Ley de Snell',                  slug: 'LeyesSnell',                            icon: '📐' },
+      { name: 'Espejo Cóncavo',                slug: 'EspejoConcavo',                         icon: '🪞' },
+      { name: 'Espejo Convexo',                slug: 'EspejoConvexo',                         icon: '🔮' },
       { name: 'Difracción Rendija Simple',     slug: 'DifraccionRendijaSimple',               icon: '💠' },
       { name: 'Difracción Rendija Doble',      slug: 'Difraccion_rendija_doble',              icon: '💠' },
       { name: 'Difracción Rejilla',            slug: 'DifraccionRendijaRejilla',              icon: '💠' },
