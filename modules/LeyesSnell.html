@@ -15,6 +15,7 @@
         .canvas-container {
             border: 1px solid #d1d5db;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            touch-action: none; /* Prevents default touch actions like scrolling */
         }
         .info-card {
             background-color: white;
@@ -203,16 +204,12 @@
             const n1 = parseFloat(n1Input.value) || 1.0;
             const n2 = parseFloat(n2Input.value) || 1.0;
 
-            // Clear canvas
             ctx.clearRect(0, 0, width, height);
-
-            // Draw media
-            ctx.fillStyle = 'rgba(173, 216, 230, 0.3)'; // Light blue for medium 2
+            ctx.fillStyle = 'rgba(173, 216, 230, 0.3)';
             ctx.fillRect(0, interfaceY, width, height - interfaceY);
-            ctx.fillStyle = '#f9fafb'; // Medium 1
+            ctx.fillStyle = '#f9fafb';
             ctx.fillRect(0, 0, width, interfaceY);
 
-            // Draw interface line
             ctx.strokeStyle = '#6b7280';
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -220,10 +217,8 @@
             ctx.lineTo(width, interfaceY);
             ctx.stroke();
 
-            // Intersection point
             const intersectionX = width / 2;
 
-            // Draw normal
             ctx.setLineDash([5, 5]);
             ctx.strokeStyle = '#9ca3af';
             ctx.lineWidth = 1;
@@ -233,13 +228,11 @@
             ctx.stroke();
             ctx.setLineDash([]);
 
-            // Incident ray calculations
             const dx = intersectionX - source.x;
             const dy = interfaceY - source.y;
             const incidentAngleRad = Math.atan2(Math.abs(dx), Math.abs(dy));
             const incidentAngleDeg = incidentAngleRad * 180 / Math.PI;
             
-            // Draw incident ray
             ctx.strokeStyle = '#ef4444';
             ctx.lineWidth = 3;
             ctx.beginPath();
@@ -247,13 +240,11 @@
             ctx.lineTo(intersectionX, interfaceY);
             ctx.stroke();
             
-            // Draw source point
             ctx.fillStyle = '#3b82f6';
             ctx.beginPath();
             ctx.arc(source.x, source.y, 8, 0, 2 * Math.PI);
             ctx.fill();
 
-            // Snell's Law calculation
             let refractedAngleRad = 0;
             let totalInternalReflection = false;
             
@@ -265,18 +256,15 @@
                 refractedAngleRad = Math.asin(sinTheta2);
             }
 
-            // Draw reflected ray (always present, but tenue)
             const reflectedAngleRad = incidentAngleRad;
             const reflectedDirection = source.x < intersectionX ? 1 : -1;
             const reflectedEndX = intersectionX + reflectedDirection * Math.sin(reflectedAngleRad) * (height / 2);
             const reflectedEndY = interfaceY - Math.cos(reflectedAngleRad) * (height / 2);
             
             if (totalInternalReflection) {
-                // Strong reflection for TIR
                 ctx.strokeStyle = '#ef4444';
                 ctx.lineWidth = 3;
             } else {
-                // Weak reflection when refraction occurs
                 ctx.strokeStyle = 'rgba(239, 68, 68, 0.3)';
                 ctx.lineWidth = 2;
             }
@@ -285,7 +273,6 @@
             ctx.lineTo(reflectedEndX, reflectedEndY);
             ctx.stroke();
 
-            // Draw refracted ray
             if (totalInternalReflection) {
                 tirMessage.classList.remove('hidden');
             } else {
@@ -301,14 +288,11 @@
                 ctx.stroke();
             }
 
-            // Draw angle arcs and labels
             ctx.lineWidth = 1.5;
             ctx.font = '14px Inter';
 
-            // Determine which side the ray comes from
             const isFromLeft = source.x < intersectionX;
 
-            // Incident angle arc
             ctx.strokeStyle = '#3b82f6';
             ctx.fillStyle = '#3b82f6';
             ctx.beginPath();
@@ -319,13 +303,11 @@
             }
             ctx.stroke();
             
-            // Incident angle label
             const incidentLabelAngle = isFromLeft ? -Math.PI/2 - incidentAngleRad/2 : -Math.PI/2 + incidentAngleRad/2;
             const incidentLabelX = intersectionX + 55 * Math.cos(incidentLabelAngle);
             const incidentLabelY = interfaceY + 55 * Math.sin(incidentLabelAngle);
             ctx.fillText(`θ₁=${incidentAngleDeg.toFixed(1)}°`, incidentLabelX - 25, incidentLabelY);
 
-            // Refracted angle arc
             if (!totalInternalReflection) {
                 ctx.strokeStyle = '#16a34a';
                 ctx.fillStyle = '#16a34a';
@@ -337,7 +319,6 @@
                 }
                 ctx.stroke();
                 
-                // Refracted angle label
                 const refractedLabelAngle = isFromLeft ? Math.PI/2 - refractedAngleRad/2 : Math.PI/2 + refractedAngleRad/2;
                 const refractedLabelX = intersectionX + 55 * Math.cos(refractedLabelAngle);
                 const refractedLabelY = interfaceY + 55 * Math.sin(refractedLabelAngle);
@@ -345,11 +326,9 @@
                 ctx.fillText(`θ₂=${refractedAngleDeg.toFixed(1)}°`, refractedLabelX - 25, refractedLabelY);
             }
             
-            // Update values display
             theta1Value.textContent = `${incidentAngleDeg.toFixed(2)}°`;
             theta2Value.textContent = totalInternalReflection ? '---' : `${(refractedAngleRad * 180 / Math.PI).toFixed(2)}°`;
 
-            // Critical angle
             if (n1 > n2) {
                 const criticalAngleRad = Math.asin(n2 / n1);
                 criticalAngleValue.textContent = `${(criticalAngleRad * 180 / Math.PI).toFixed(2)}°`;
@@ -370,54 +349,70 @@
             setTimeout(() => modal.classList.add('pointer-events-none'), 300);
         }
 
-        n1Input.addEventListener('input', draw);
-        n2Input.addEventListener('input', draw);
-
-        canvas.addEventListener('mousedown', (e) => {
+        function getEventPosition(e) {
             const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            const dist = Math.sqrt(Math.pow(mouseX - source.x, 2) + Math.pow(mouseY - source.y, 2));
-            if (dist < 15) { // If click is near the source point
+            if (e.touches && e.touches.length > 0) {
+                return {
+                    x: e.touches[0].clientX - rect.left,
+                    y: e.touches[0].clientY - rect.top
+                };
+            }
+            return {
+                x: e.clientX - rect.left,
+                y: e.clientY - rect.top
+            };
+        }
+
+        function handleStart(e) {
+            e.preventDefault();
+            const pos = getEventPosition(e);
+            const dist = Math.sqrt(Math.pow(pos.x - source.x, 2) + Math.pow(pos.y - source.y, 2));
+            if (dist < 20) { 
                 dragging = true;
             }
-        });
+        }
 
-        canvas.addEventListener('mouseup', () => {
+        function handleEnd(e) {
+            e.preventDefault();
             dragging = false;
-        });
+        }
 
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const mouseX = e.clientX - rect.left;
-            const mouseY = e.clientY - rect.top;
-            const dist = Math.sqrt(Math.pow(mouseX - source.x, 2) + Math.pow(mouseY - source.y, 2));
+        function handleMove(e) {
+            e.preventDefault();
+            const pos = getEventPosition(e);
+            const dist = Math.sqrt(Math.pow(pos.x - source.x, 2) + Math.pow(pos.y - source.y, 2));
 
-            if (dist < 15) {
+            if (dist < 20) {
                 canvas.style.cursor = 'pointer';
             } else {
                 canvas.style.cursor = 'default';
             }
             
             if (dragging) {
-                source.x = mouseX;
-                source.y = mouseY;
-                // Constrain source to the top medium
-                if (source.y >= interfaceY - 10) {
-                    source.y = interfaceY - 10;
-                }
-                if (source.x > width - 10) {
-                    source.x = width - 10;
-                }
-                if (source.x < 10) {
-                    source.x = 10;
-                }
-                if (source.y < 10) {
-                    source.y = 10;
-                }
+                source.x = pos.x;
+                source.y = pos.y;
+                if (source.y >= interfaceY - 10) source.y = interfaceY - 10;
+                if (source.x > width - 10) source.x = width - 10;
+                if (source.x < 10) source.x = 10;
+                if (source.y < 10) source.y = 10;
                 draw();
             }
-        });
+        }
+
+        n1Input.addEventListener('input', draw);
+        n2Input.addEventListener('input', draw);
+
+        // Mouse events
+        canvas.addEventListener('mousedown', handleStart);
+        canvas.addEventListener('mouseup', handleEnd);
+        canvas.addEventListener('mouseleave', handleEnd);
+        canvas.addEventListener('mousemove', handleMove);
+
+        // Touch events
+        canvas.addEventListener('touchstart', handleStart);
+        canvas.addEventListener('touchend', handleEnd);
+        canvas.addEventListener('touchcancel', handleEnd);
+        canvas.addEventListener('touchmove', handleMove);
         
         showMaterialsBtn.addEventListener('click', () => openModal(materialsModal));
         closeMaterialsBtn.addEventListener('click', () => closeModal(materialsModal));
