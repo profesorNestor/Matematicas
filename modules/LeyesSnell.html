@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de la Ley de Snell</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        .canvas-container {
+            border: 1px solid #d1d5db;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .info-card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        .btn-glow {
+            box-shadow: 0 0 5px #4f46e5, 0 0 10px #4f46e5, 0 0 15px #4f46e5;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-2">Ley de Snell: Refracción de la Luz</h1>
+            <p class="text-lg text-gray-600">Interactúa para ver cómo la luz se desvía al cambiar de medio.</p>
+        </header>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <!-- Columna de la simulación -->
+            <div class="md:col-span-2">
+                <div class="canvas-container rounded-lg">
+                    <canvas id="snell-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Columna de controles y datos -->
+            <div class="space-y-6">
+                <div class="info-card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Parámetros</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="n1" class="block text-sm font-medium text-gray-700">Índice de Refracción 1 (n₁)</label>
+                            <input type="number" id="n1" value="1.00" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                        <div>
+                            <label for="n2" class="block text-sm font-medium text-gray-700">Índice de Refracción 2 (n₂)</label>
+                            <input type="number" id="n2" value="1.33" step="0.01" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
+                        </div>
+                    </div>
+                     <p class="text-xs text-gray-500 mt-4">Arrastra el punto azul para cambiar el ángulo de incidencia.</p>
+                     <div class="mt-4 space-y-2">
+                        <button id="show-materials-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105 btn-glow">
+                           Ver Índices de Refracción
+                       </button>
+                       <button id="show-help-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg transition-transform transform hover:scale-105">
+                           Ayuda
+                       </button>
+                    </div>
+                </div>
+
+                <div class="info-card p-6 rounded-lg">
+                    <h2 class="text-2xl font-semibold mb-4">Resultados</h2>
+                    <div class="space-y-3 text-gray-800">
+                        <p>Ángulo de incidencia (θ₁): <span id="theta1-value" class="font-bold text-indigo-600">0.00°</span></p>
+                        <p>Ángulo de refracción (θ₂): <span id="theta2-value" class="font-bold text-indigo-600">0.00°</span></p>
+                        <p id="critical-angle-container" class="hidden">Ángulo crítico (θc): <span id="critical-angle-value" class="font-bold text-red-600">0.00°</span></p>
+                        <p id="tir-message" class="hidden font-bold text-red-600 text-center mt-2">¡Reflexión Total Interna!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ventana Modal para Materiales -->
+        <div id="materials-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900">Índices de Refracción (n)</h2>
+                    <button id="close-materials-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+                </div>
+                <p class="text-gray-500 mb-4 text-sm">Valores aproximados para luz con \(\lambda \approx 589\) nm.</p>
+                <div class="max-h-80 overflow-y-auto">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 sticky top-0">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 rounded-l-lg">Sustancia</th>
+                                <th scope="col" class="px-6 py-3 rounded-r-lg">Índice (n)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="materials-table-body">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ventana Modal para Ayuda -->
+        <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900">Ayuda: Ley de Snell</h2>
+                    <button id="close-help-btn" class="text-gray-500 hover:text-gray-800 text-3xl">&times;</button>
+                </div>
+                <div class="text-gray-600 space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+                    <h3 class="text-xl font-semibold text-indigo-600">¿Qué es la Ley de Snell?</h3>
+                    <p>La Ley de Snell describe cómo la luz se "dobla" o refracta cuando pasa de un medio a otro, como del aire al agua. Este cambio de dirección se debe a que la luz viaja a diferente velocidad en cada medio.</p>
+                    
+                    <h3 class="text-xl font-semibold text-indigo-600">Fórmula Principal</h3>
+                    <p>La relación entre los ángulos y los índices de refracción está dada por:</p>
+                    <p class="text-center text-lg p-4 bg-gray-100 rounded-lg">
+                        \( n_1 \sin(\theta_1) = n_2 \sin(\theta_2) \)
+                    </p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>\(n_1\) es el índice de refracción del primer medio (donde se origina la luz).</li>
+                        <li>\(\theta_1\) es el ángulo de incidencia, medido desde la normal.</li>
+                        <li>\(n_2\) es el índice de refracción del segundo medio.</li>
+                        <li>\(\theta_2\) es el ángulo de refracción, medido desde la normal.</li>
+                    </ul>
+
+                    <h3 class="text-xl font-semibold text-indigo-600">Reflexión y Reflexión Total Interna</h3>
+                    <p>Siempre que la luz incide en una interfaz, una parte de ella se refleja. El ángulo de reflexión es siempre igual al ángulo de incidencia.</p>
+                    <p>Cuando la luz viaja de un medio más denso a uno menos denso (es decir, \(n_1 > n_2\)), existe un ángulo de incidencia, llamado <strong>ángulo crítico (\(\theta_c\))</strong>, más allá del cual la luz no se refracta, sino que se refleja completamente de vuelta al primer medio. Este fenómeno se llama <strong>Reflexión Total Interna</strong>.</p>
+                </div>
+            </div>
+        </div>
+
+         <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Autor: Msc: Néstor Fabio Montoya y Gemini AI</p>
+        </footer>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('snell-canvas');
+        const ctx = canvas.getContext('2d');
+
+        const n1Input = document.getElementById('n1');
+        const n2Input = document.getElementById('n2');
+        const theta1Value = document.getElementById('theta1-value');
+        const theta2Value = document.getElementById('theta2-value');
+        const criticalAngleContainer = document.getElementById('critical-angle-container');
+        const criticalAngleValue = document.getElementById('critical-angle-value');
+        const tirMessage = document.getElementById('tir-message');
+        
+        const materialsModal = document.getElementById('materials-modal');
+        const showMaterialsBtn = document.getElementById('show-materials-btn');
+        const closeMaterialsBtn = document.getElementById('close-materials-btn');
+        const materialsTableBody = document.getElementById('materials-table-body');
+        
+        const helpModal = document.getElementById('help-modal');
+        const showHelpBtn = document.getElementById('show-help-btn');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+
+        let width, height, interfaceY;
+        let dragging = false;
+        let source = { x: 100, y: 150 };
+
+        const materials = [
+            { name: 'Vacío', n: 1.0000 }, { name: 'Aire', n: 1.0003 },
+            { name: 'Hielo', n: 1.31 }, { name: 'Agua', n: 1.333 },
+            { name: 'Etanol', n: 1.36 }, { name: 'Teflón', n: 1.35 },
+            { name: 'Glicerina', n: 1.47 }, { name: 'Acrílico', n: 1.49 },
+            { name: 'Benceno', n: 1.50 }, { name: 'Aceite de Cedro', n: 1.51 },
+            { name: 'Vidrio (Crown)', n: 1.52 }, { name: 'Cloruro de Sodio', n: 1.54 },
+            { name: 'Policarbonato', n: 1.58 }, { name: 'Vidrio (Flint)', n: 1.62 },
+            { name: 'Disulfuro de carbono', n: 1.63 }, { name: 'Zafiro', n: 1.77 },
+            { name: 'Circonita cúbica', n: 2.15 }, { name: 'Diamante', n: 2.42 }
+        ];
+
+        function populateMaterialsTable() {
+            materialsTableBody.innerHTML = '';
+            materials.forEach(material => {
+                const row = `<tr class="bg-white border-b"><td class="px-6 py-3 font-medium text-gray-900">${material.name}</td><td class="px-6 py-3">${material.n.toFixed(4)}</td></tr>`;
+                materialsTableBody.innerHTML += row;
+            });
+        }
+
+        function setupCanvas() {
+            const container = canvas.parentElement;
+            width = container.clientWidth;
+            height = 500; 
+            canvas.width = width;
+            canvas.height = height;
+            interfaceY = height / 2;
+            source.x = width / 4;
+            source.y = height / 4;
+            draw();
+        }
+
+        function draw() {
+            const n1 = parseFloat(n1Input.value) || 1.0;
+            const n2 = parseFloat(n2Input.value) || 1.0;
+
+            // Clear canvas
+            ctx.clearRect(0, 0, width, height);
+
+            // Draw media
+            ctx.fillStyle = 'rgba(173, 216, 230, 0.3)'; // Light blue for medium 2
+            ctx.fillRect(0, interfaceY, width, height - interfaceY);
+            ctx.fillStyle = '#f9fafb'; // Medium 1
+            ctx.fillRect(0, 0, width, interfaceY);
+
+            // Draw interface line
+            ctx.strokeStyle = '#6b7280';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, interfaceY);
+            ctx.lineTo(width, interfaceY);
+            ctx.stroke();
+
+            // Intersection point
+            const intersectionX = width / 2;
+
+            // Draw normal
+            ctx.setLineDash([5, 5]);
+            ctx.strokeStyle = '#9ca3af';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(intersectionX, 0);
+            ctx.lineTo(intersectionX, height);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Incident ray calculations
+            const dx = intersectionX - source.x;
+            const dy = interfaceY - source.y;
+            const incidentAngleRad = Math.atan2(Math.abs(dx), Math.abs(dy));
+            const incidentAngleDeg = incidentAngleRad * 180 / Math.PI;
+            
+            // Draw incident ray
+            ctx.strokeStyle = '#ef4444';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(source.x, source.y);
+            ctx.lineTo(intersectionX, interfaceY);
+            ctx.stroke();
+            
+            // Draw source point
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            ctx.arc(source.x, source.y, 8, 0, 2 * Math.PI);
+            ctx.fill();
+
+            // Snell's Law calculation
+            let refractedAngleRad = 0;
+            let totalInternalReflection = false;
+            
+            const sinTheta2 = (n1 / n2) * Math.sin(incidentAngleRad);
+
+            if (Math.abs(sinTheta2) > 1) {
+                totalInternalReflection = true;
+            } else {
+                refractedAngleRad = Math.asin(sinTheta2);
+            }
+
+            // Draw reflected ray (always present, but tenue)
+            const reflectedAngleRad = incidentAngleRad;
+            const reflectedDirection = source.x < intersectionX ? 1 : -1;
+            const reflectedEndX = intersectionX + reflectedDirection * Math.sin(reflectedAngleRad) * (height / 2);
+            const reflectedEndY = interfaceY - Math.cos(reflectedAngleRad) * (height / 2);
+            
+            if (totalInternalReflection) {
+                // Strong reflection for TIR
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 3;
+            } else {
+                // Weak reflection when refraction occurs
+                ctx.strokeStyle = 'rgba(239, 68, 68, 0.3)';
+                ctx.lineWidth = 2;
+            }
+            ctx.beginPath();
+            ctx.moveTo(intersectionX, interfaceY);
+            ctx.lineTo(reflectedEndX, reflectedEndY);
+            ctx.stroke();
+
+            // Draw refracted ray
+            if (totalInternalReflection) {
+                tirMessage.classList.remove('hidden');
+            } else {
+                tirMessage.classList.add('hidden');
+                const refractedDirection = source.x < intersectionX ? 1 : -1;
+                const refractedEndX = intersectionX + refractedDirection * Math.sin(refractedAngleRad) * (height / 2);
+                const refractedEndY = interfaceY + Math.cos(refractedAngleRad) * (height / 2);
+                ctx.strokeStyle = '#ef4444';
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.moveTo(intersectionX, interfaceY);
+                ctx.lineTo(refractedEndX, refractedEndY);
+                ctx.stroke();
+            }
+
+            // Draw angle arcs and labels
+            ctx.lineWidth = 1.5;
+            ctx.font = '14px Inter';
+
+            // Determine which side the ray comes from
+            const isFromLeft = source.x < intersectionX;
+
+            // Incident angle arc
+            ctx.strokeStyle = '#3b82f6';
+            ctx.fillStyle = '#3b82f6';
+            ctx.beginPath();
+            if (isFromLeft) {
+                ctx.arc(intersectionX, interfaceY, 40, -Math.PI/2 - incidentAngleRad, -Math.PI/2);
+            } else {
+                ctx.arc(intersectionX, interfaceY, 40, -Math.PI/2, -Math.PI/2 + incidentAngleRad);
+            }
+            ctx.stroke();
+            
+            // Incident angle label
+            const incidentLabelAngle = isFromLeft ? -Math.PI/2 - incidentAngleRad/2 : -Math.PI/2 + incidentAngleRad/2;
+            const incidentLabelX = intersectionX + 55 * Math.cos(incidentLabelAngle);
+            const incidentLabelY = interfaceY + 55 * Math.sin(incidentLabelAngle);
+            ctx.fillText(`θ₁=${incidentAngleDeg.toFixed(1)}°`, incidentLabelX - 25, incidentLabelY);
+
+            // Refracted angle arc
+            if (!totalInternalReflection) {
+                ctx.strokeStyle = '#16a34a';
+                ctx.fillStyle = '#16a34a';
+                ctx.beginPath();
+                if (isFromLeft) {
+                    ctx.arc(intersectionX, interfaceY, 40, Math.PI/2 - refractedAngleRad, Math.PI/2);
+                } else {
+                    ctx.arc(intersectionX, interfaceY, 40, Math.PI/2, Math.PI/2 + refractedAngleRad);
+                }
+                ctx.stroke();
+                
+                // Refracted angle label
+                const refractedLabelAngle = isFromLeft ? Math.PI/2 - refractedAngleRad/2 : Math.PI/2 + refractedAngleRad/2;
+                const refractedLabelX = intersectionX + 55 * Math.cos(refractedLabelAngle);
+                const refractedLabelY = interfaceY + 55 * Math.sin(refractedLabelAngle);
+                const refractedAngleDeg = refractedAngleRad * 180 / Math.PI;
+                ctx.fillText(`θ₂=${refractedAngleDeg.toFixed(1)}°`, refractedLabelX - 25, refractedLabelY);
+            }
+            
+            // Update values display
+            theta1Value.textContent = `${incidentAngleDeg.toFixed(2)}°`;
+            theta2Value.textContent = totalInternalReflection ? '---' : `${(refractedAngleRad * 180 / Math.PI).toFixed(2)}°`;
+
+            // Critical angle
+            if (n1 > n2) {
+                const criticalAngleRad = Math.asin(n2 / n1);
+                criticalAngleValue.textContent = `${(criticalAngleRad * 180 / Math.PI).toFixed(2)}°`;
+                criticalAngleContainer.classList.remove('hidden');
+            } else {
+                criticalAngleContainer.classList.add('hidden');
+            }
+        }
+
+        function openModal(modal) {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-content').classList.remove('scale-95');
+        }
+
+        function closeModal(modal) {
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('pointer-events-none'), 300);
+        }
+
+        n1Input.addEventListener('input', draw);
+        n2Input.addEventListener('input', draw);
+
+        canvas.addEventListener('mousedown', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const dist = Math.sqrt(Math.pow(mouseX - source.x, 2) + Math.pow(mouseY - source.y, 2));
+            if (dist < 15) { // If click is near the source point
+                dragging = true;
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            dragging = false;
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const dist = Math.sqrt(Math.pow(mouseX - source.x, 2) + Math.pow(mouseY - source.y, 2));
+
+            if (dist < 15) {
+                canvas.style.cursor = 'pointer';
+            } else {
+                canvas.style.cursor = 'default';
+            }
+            
+            if (dragging) {
+                source.x = mouseX;
+                source.y = mouseY;
+                // Constrain source to the top medium
+                if (source.y >= interfaceY - 10) {
+                    source.y = interfaceY - 10;
+                }
+                if (source.x > width - 10) {
+                    source.x = width - 10;
+                }
+                if (source.x < 10) {
+                    source.x = 10;
+                }
+                if (source.y < 10) {
+                    source.y = 10;
+                }
+                draw();
+            }
+        });
+        
+        showMaterialsBtn.addEventListener('click', () => openModal(materialsModal));
+        closeMaterialsBtn.addEventListener('click', () => closeModal(materialsModal));
+        materialsModal.addEventListener('click', (e) => {
+            if (e.target === materialsModal) closeModal(materialsModal);
+        });
+
+        showHelpBtn.addEventListener('click', () => openModal(helpModal));
+        closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) closeModal(helpModal);
+        });
+
+        window.addEventListener('resize', setupCanvas);
+        window.addEventListener('load', () => {
+            setupCanvas();
+            populateMaterialsTable();
+        });
+
+    </script>
+</body>
+</html>

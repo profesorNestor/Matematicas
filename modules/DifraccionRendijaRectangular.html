@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Difracción por Abertura Rectangular</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #e5e7eb;
+        }
+        .slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            transition: background .3s;
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        .btn-glow {
+            box-shadow: 0 0 5px #4f46e5, 0 0 10px #4f46e5, 0 0 15px #4f46e5;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Difracción por Abertura Rectangular</h1>
+            <p class="text-lg text-gray-400">Observa cómo la luz se difracta al pasar por una rendija rectangular.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Columna de Controles y Visualización -->
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl">
+                <h2 class="text-2xl font-semibold mb-6 text-white">Controles de la Simulación</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label for="wavelength" class="block mb-2 text-sm font-medium text-gray-300">Longitud de Onda (\(\lambda\)): <span id="wavelength-value" class="font-bold text-indigo-400">650</span> nm</label>
+                        <input id="wavelength" type="range" min="380" max="750" value="650" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="slit-width-a" class="block mb-2 text-sm font-medium text-gray-300">Ancho de Abertura (a): <span id="slit-width-a-value" class="font-bold text-indigo-400">0.1</span> mm</label>
+                        <input id="slit-width-a" type="range" min="0.01" max="0.5" step="0.001" value="0.1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="slit-height-b" class="block mb-2 text-sm font-medium text-gray-300">Alto de Abertura (b): <span id="slit-height-b-value" class="font-bold text-indigo-400">0.1</span> mm</label>
+                        <input id="slit-height-b" type="range" min="0.01" max="0.5" step="0.001" value="0.1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="distance" class="block mb-2 text-sm font-medium text-gray-300">Distancia a la Pared (L): <span id="distance-value" class="font-bold text-indigo-400">1.0</span> m</label>
+                        <input id="distance" type="range" min="0.5" max="5" step="0.1" value="1.0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-semibold text-white">Patrón de Difracción</h3>
+                         <button id="expand-pattern-btn" class="p-2 rounded-full hover:bg-gray-700 transition" title="Ampliar Patrón">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                    </div>
+                    <div id="diffraction-pattern-container" class="w-full aspect-square bg-black rounded-lg overflow-hidden relative">
+                        <canvas id="main-pattern-canvas"></canvas>
+                    </div>
+                </div>
+                 <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                    <button id="show-minima-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 btn-glow">
+                        Mostrar Mínimos
+                    </button>
+                    <button id="show-help-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105">
+                        Ayuda
+                    </button>
+                </div>
+            </div>
+
+            <!-- Columna de Gráficos de Intensidad -->
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl flex flex-col space-y-4">
+                 <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-xl font-semibold text-white">Corte Horizontal (Eje Y)</h2>
+                        <button id="expand-plot-y-btn" class="p-2 rounded-full hover:bg-gray-700 transition" title="Ampliar Gráfico">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                    </div>
+                    <div id="intensity-plot-y" class="w-full h-64"></div>
+                 </div>
+                 <div>
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-xl font-semibold text-white">Corte Vertical (Eje X)</h2>
+                        <button id="expand-plot-x-btn" class="p-2 rounded-full hover:bg-gray-700 transition" title="Ampliar Gráfico">
+                             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                    </div>
+                    <div id="intensity-plot-x" class="w-full h-64"></div>
+                 </div>
+            </div>
+        </main>
+        
+        <!-- Modales -->
+        <div id="minima-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Mínimos de Intensidad</h2>
+                    <button id="close-minima-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <h3 class="text-lg font-semibold text-indigo-400 mb-2">Mínimos Horizontales (Eje Y)</h3>
+                        <p class="text-xs text-gray-400 mb-2">Condición: \( a \sin(\theta_y) = m_y \lambda \)</p>
+                        <div class="max-h-60 overflow-y-auto">
+                            <table class="w-full text-sm text-left text-gray-400">
+                                <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0"><tr><th class="px-4 py-2">Orden (my)</th><th class="px-4 py-2">Posición (y) [cm]</th></tr></thead>
+                                <tbody id="minima-table-y"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-indigo-400 mb-2">Mínimos Verticales (Eje X)</h3>
+                        <p class="text-xs text-gray-400 mb-2">Condición: \( b \sin(\theta_x) = m_x \lambda \)</p>
+                         <div class="max-h-60 overflow-y-auto">
+                            <table class="w-full text-sm text-left text-gray-400">
+                                <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0"><tr><th class="px-4 py-2">Orden (mx)</th><th class="px-4 py-2">Posición (x) [cm]</th></tr></thead>
+                                <tbody id="minima-table-x"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Ayuda y Explicación</h2>
+                    <button id="close-help-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div class="text-gray-300 space-y-4 max-h-[80vh] overflow-y-auto pr-4">
+                    <h3 class="text-xl font-semibold text-indigo-400">Difracción por Abertura Rectangular</h3>
+                    <p>Cuando la luz pasa a través de una abertura rectangular, se difracta en dos dimensiones, creando un patrón de intensidad característico en una pantalla lejana. El patrón consiste en un lóbulo central brillante, alargado en la dirección de la dimensión más estrecha de la rendija, rodeado de lóbulos secundarios más pequeños y tenues.</p>
+                    
+                    <h3 class="text-xl font-semibold text-indigo-400">Fórmula de Intensidad</h3>
+                    <p>La intensidad en un punto de la pantalla, definido por los ángulos \(\theta_x\) y \(\theta_y\), es el producto de dos funciones sinc al cuadrado, una para cada dimensión de la abertura:</p>
+                    <p class="text-center text-lg p-4 bg-gray-900 rounded-lg">
+                        \( I(\theta_x, \theta_y) = I_0 \left( \frac{\sin(\beta_a/2)}{\beta_a/2} \right)^2 \left( \frac{\sin(\beta_b/2)}{\beta_b/2} \right)^2 \)
+                    </p>
+                    <p>Donde:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>\(\beta_a = \frac{2\pi a}{\lambda} \sin(\theta_y)\) corresponde al ancho \(a\).</li>
+                        <li>\(\beta_b = \frac{2\pi b}{\lambda} \sin(\theta_x)\) corresponde al alto \(b\).</li>
+                    </ul>
+
+                    <h3 class="text-xl font-semibold text-indigo-400">Mínimos de Intensidad</h3>
+                    <p>El patrón tiene líneas de intensidad nula (oscuridad) que forman una rejilla. Los mínimos a lo largo del eje horizontal (eje Y) ocurren cuando:</p>
+                     <p class="text-center text-sm p-2 bg-gray-900 rounded-lg">
+                        \( a \sin(\theta_y) = m_y \lambda \quad (m_y = \pm 1, \pm 2, \dots) \)
+                    </p>
+                    <p>Y los mínimos a lo largo del eje vertical (eje X) ocurren cuando:</p>
+                     <p class="text-center text-sm p-2 bg-gray-900 rounded-lg">
+                        \( b \sin(\theta_x) = m_x \lambda \quad (m_x = \pm 1, \pm 2, \dots) \)
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="pattern-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-11/12 h-[90vh] p-6 md:p-8 transform scale-95 modal-content flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Patrón de Difracción Ampliado</h2>
+                    <button id="close-pattern-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div id="expanded-pattern-container" class="flex-grow bg-black rounded-lg aspect-square mx-auto">
+                     <canvas id="expanded-pattern-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="plot-y-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] p-6 md:p-8 transform scale-95 modal-content flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Corte Horizontal (Eje Y) Ampliado</h2>
+                    <button id="close-plot-y-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div id="expanded-intensity-plot-y" class="flex-grow"></div>
+            </div>
+        </div>
+
+        <div id="plot-x-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] p-6 md:p-8 transform scale-95 modal-content flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Corte Vertical (Eje X) Ampliado</h2>
+                    <button id="close-plot-x-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div id="expanded-intensity-plot-x" class="flex-grow"></div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Autor: Msc: Néstor Fabio Montoya y Gemini AI</p>
+        </footer>
+    </div>
+
+    <script>
+        const wavelengthSlider = document.getElementById('wavelength');
+        const slitWidthASlider = document.getElementById('slit-width-a');
+        const slitHeightBSlider = document.getElementById('slit-height-b');
+        const distanceSlider = document.getElementById('distance');
+        const wavelengthValue = document.getElementById('wavelength-value');
+        const slitWidthAValue = document.getElementById('slit-width-a-value');
+        const slitHeightBValue = document.getElementById('slit-height-b-value');
+        const distanceValue = document.getElementById('distance-value');
+        const mainPatternCanvas = document.getElementById('main-pattern-canvas');
+        const intensityPlotY = document.getElementById('intensity-plot-y');
+        const intensityPlotX = document.getElementById('intensity-plot-x');
+        
+        const minimaModal = document.getElementById('minima-modal');
+        const helpModal = document.getElementById('help-modal');
+        const patternModal = document.getElementById('pattern-modal');
+        const plotYModal = document.getElementById('plot-y-modal');
+        const plotXModal = document.getElementById('plot-x-modal');
+
+        const showMinimaBtn = document.getElementById('show-minima-btn');
+        const showHelpBtn = document.getElementById('show-help-btn');
+        const expandPatternBtn = document.getElementById('expand-pattern-btn');
+        const expandPlotYBtn = document.getElementById('expand-plot-y-btn');
+        const expandPlotXBtn = document.getElementById('expand-plot-x-btn');
+
+        const closeMinimaBtn = document.getElementById('close-minima-btn');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+        const closePatternBtn = document.getElementById('close-pattern-btn');
+        const closePlotYBtn = document.getElementById('close-plot-y-btn');
+        const closePlotXBtn = document.getElementById('close-plot-x-btn');
+        
+        const minimaTableYBody = document.getElementById('minima-table-y');
+        const minimaTableXBody = document.getElementById('minima-table-x');
+        const expandedPatternCanvas = document.getElementById('expanded-pattern-canvas');
+        const expandedIntensityPlotY = document.getElementById('expanded-intensity-plot-y');
+        const expandedIntensityPlotX = document.getElementById('expanded-intensity-plot-x');
+
+        function wavelengthToRgb(wavelength) {
+            let r, g, b;
+            if (wavelength >= 380 && wavelength < 440) { r = -(wavelength - 440) / (440 - 380); g = 0.0; b = 1.0; } 
+            else if (wavelength >= 440 && wavelength < 490) { r = 0.0; g = (wavelength - 440) / (490 - 440); b = 1.0; } 
+            else if (wavelength >= 490 && wavelength < 510) { r = 0.0; g = 1.0; b = -(wavelength - 510) / (510 - 490); } 
+            else if (wavelength >= 510 && wavelength < 580) { r = (wavelength - 510) / (580 - 510); g = 1.0; b = 0.0; } 
+            else if (wavelength >= 580 && wavelength < 645) { r = 1.0; g = -(wavelength - 645) / (645 - 580); b = 0.0; } 
+            else if (wavelength >= 645 && wavelength <= 750) { r = 1.0; g = 0.0; b = 0.0; } 
+            else { r = 0.0; g = 0.0; b = 0.0; }
+            let factor;
+            if (wavelength >= 380 && wavelength < 420) { factor = 0.3 + 0.7 * (wavelength - 380) / (420 - 380); } 
+            else if (wavelength >= 420 && wavelength < 701) { factor = 1.0; } 
+            else if (wavelength >= 701 && wavelength <= 750) { factor = 0.3 + 0.7 * (750 - wavelength) / (750 - 700); } 
+            else { factor = 0.0; }
+            const gamma = 0.8;
+            return [
+                r > 0 ? 255 * Math.pow(r * factor, gamma) : 0,
+                g > 0 ? 255 * Math.pow(g * factor, gamma) : 0,
+                b > 0 ? 255 * Math.pow(b * factor, gamma) : 0
+            ];
+        }
+        
+        function updateSimulation() {
+            const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+            const a = parseFloat(slitWidthASlider.value) * 1e-3;
+            const b = parseFloat(slitHeightBSlider.value) * 1e-3;
+            const L = parseFloat(distanceSlider.value);
+            
+            wavelengthValue.textContent = wavelengthSlider.value;
+            slitWidthAValue.textContent = slitWidthASlider.value;
+            slitHeightBValue.textContent = slitHeightBSlider.value;
+            distanceValue.textContent = distanceSlider.value;
+            
+            const color = wavelengthToRgb(wavelengthSlider.value);
+
+            drawRectangularPattern(mainPatternCanvas, lambda, a, b, L, color);
+            updateIntensityPlot(lambda, a, b, L, `rgb(${color.join(',')})`);
+            updateMinimaTable(lambda, a, b, L);
+            
+            if (!patternModal.classList.contains('pointer-events-none')) {
+                drawRectangularPattern(expandedPatternCanvas, lambda, a, b, L, color);
+            }
+            if (!plotYModal.classList.contains('pointer-events-none')) {
+                updateExpandedPlotY(lambda, a, L, `rgb(${color.join(',')})`);
+            }
+            if (!plotXModal.classList.contains('pointer-events-none')) {
+                updateExpandedPlotX(lambda, b, L, `rgb(${color.join(',')})`);
+            }
+        }
+
+        function drawRectangularPattern(canvas, lambda, a, b, L, rgbColor) {
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            if (size <= 0) return;
+
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.createImageData(size, size);
+            const data = imageData.data;
+            const centerX = size / 2;
+            const centerY = size / 2;
+
+            const y_max_physical = 5 * lambda * L / a;
+            const x_max_physical = 5 * lambda * L / b;
+            const physicalSize = Math.max(x_max_physical, y_max_physical) * 2.5;
+
+            for (let px = 0; px < size; px++) {
+                for (let py = 0; py < size; py++) {
+                    const physical_x = (px / size - 0.5) * physicalSize;
+                    const physical_y = (py / size - 0.5) * physicalSize;
+
+                    const theta_x = Math.atan(physical_x / L);
+                    const theta_y = Math.atan(physical_y / L);
+                    
+                    let intensity_x = 1.0;
+                    if (theta_x !== 0) {
+                        const beta_b_half = (Math.PI * b * Math.sin(theta_x)) / lambda;
+                        intensity_x = Math.pow(Math.sin(beta_b_half) / beta_b_half, 2);
+                    }
+                    
+                    let intensity_y = 1.0;
+                    if (theta_y !== 0) {
+                        const beta_a_half = (Math.PI * a * Math.sin(theta_y)) / lambda;
+                        intensity_y = Math.pow(Math.sin(beta_a_half) / beta_a_half, 2);
+                    }
+                    
+                    const total_intensity = intensity_x * intensity_y;
+                    const displayIntensity = Math.pow(total_intensity, 0.4);
+                    const index = (py * size + px) * 4;
+                    data[index] = rgbColor[0] * displayIntensity;
+                    data[index + 1] = rgbColor[1] * displayIntensity;
+                    data[index + 2] = rgbColor[2] * displayIntensity;
+                    data[index + 3] = 255;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+
+            // Draw Axes and Scale
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.font = '10px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.beginPath();
+            ctx.moveTo(0, centerY); ctx.lineTo(size, centerY);
+            ctx.moveTo(centerX, 0); ctx.lineTo(centerX, size);
+            ctx.stroke();
+
+            const rulerRangeMM = (physicalSize / 2) * 1000;
+            const majorTickInterval = rulerRangeMM > 20 ? 10 : (rulerRangeMM > 10 ? 5 : (rulerRangeMM > 4 ? 2 : 1));
+
+            for (let i = majorTickInterval; i <= rulerRangeMM; i += majorTickInterval) {
+                 const tickPos = (i / rulerRangeMM) * (size / 2);
+                 ctx.fillText(Math.round(i), centerX + tickPos, centerY + 12);
+                 ctx.fillText(-Math.round(i), centerX - tickPos, centerY + 12);
+                 ctx.textAlign = 'right';
+                 ctx.fillText(Math.round(i), centerX - 8, centerY - tickPos);
+                 ctx.fillText(-Math.round(i), centerX - 8, centerY + tickPos);
+                 ctx.textAlign = 'center';
+            }
+        }
+
+        function generate1DPlotData(lambda, dim, L, plotRangeMm) {
+            const y_values = [];
+            const intensity_values = [];
+            const N = 1000;
+            for (let i = 0; i < N; i++) {
+                const y_mm = -plotRangeMm + (2 * plotRangeMm * i) / (N - 1);
+                y_values.push(y_mm);
+                const y_m = y_mm / 1000.0;
+                const theta = Math.atan(y_m / L);
+                let intensity = (theta === 0) ? 1 : Math.pow(Math.sin((Math.PI * dim * Math.sin(theta)) / lambda) / ((Math.PI * dim * Math.sin(theta)) / lambda), 2);
+                intensity_values.push(intensity);
+            }
+            return { y_values, intensity_values };
+        }
+        
+        const plotConfig = {responsive: true, scrollZoom: true};
+
+        function updateIntensityPlot(lambda, a, b, L, color) {
+            const plotRangeMm = 30;
+            const dataY = generate1DPlotData(lambda, a, L, plotRangeMm);
+            const dataX = generate1DPlotData(lambda, b, L, plotRangeMm);
+            
+            const plotDataY = [{ x: dataY.y_values, y: dataY.intensity_values, type: 'scatter', mode: 'lines', line: { color: color, width: 2 } }];
+            const layoutY = {
+                dragmode: 'pan',
+                xaxis: { title: 'y (mm)', range: [-plotRangeMm, plotRangeMm], gridcolor: 'rgba(255, 255, 255, 0.1)', zerolinecolor: 'rgba(255, 255, 255, 0.3)', linecolor: 'white', color: 'white'},
+                yaxis: { title: 'I/I₀', range: [0, 1.1], gridcolor: 'rgba(255, 255, 255, 0.1)', zerolinecolor: 'rgba(255, 255, 255, 0.3)', linecolor: 'white', color: 'white' },
+                paper_bgcolor: '#1f2937', plot_bgcolor: '#111827', font: { color: 'white', size: 10 }, margin: { l: 40, r: 20, b: 40, t: 20 }
+            };
+            Plotly.newPlot('intensity-plot-y', plotDataY, layoutY, plotConfig);
+            
+            const plotDataX = [{ x: dataX.y_values, y: dataX.intensity_values, type: 'scatter', mode: 'lines', line: { color: color, width: 2 } }];
+            const layoutX = {
+                dragmode: 'pan',
+                xaxis: { title: 'x (mm)', range: [-plotRangeMm, plotRangeMm], gridcolor: 'rgba(255, 255, 255, 0.1)', zerolinecolor: 'rgba(255, 255, 255, 0.3)', linecolor: 'white', color: 'white'},
+                yaxis: { title: 'I/I₀', range: [0, 1.1], gridcolor: 'rgba(255, 255, 255, 0.1)', zerolinecolor: 'rgba(255, 255, 255, 0.3)', linecolor: 'white', color: 'white' },
+                paper_bgcolor: '#1f2937', plot_bgcolor: '#111827', font: { color: 'white', size: 10 }, margin: { l: 40, r: 20, b: 40, t: 20 }
+            };
+            Plotly.newPlot('intensity-plot-x', plotDataX, layoutX, plotConfig);
+        }
+
+        function updateExpandedPlotY(lambda, a, L, color) {
+            const plotRangeMm = 50;
+            const { y_values, intensity_values } = generate1DPlotData(lambda, a, L, plotRangeMm);
+            const plotData = [{ x: y_values, y: intensity_values, type: 'scatter', mode: 'lines', line: { color: color, width: 3 } }];
+            const layout = {
+                dragmode: 'pan',
+                xaxis: { title: 'Posición en el eje Y (mm)', range: [-plotRangeMm, plotRangeMm], gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white' },
+                yaxis: { title: 'Intensidad Relativa (I/I₀)', range: [0, 1.1], gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white' },
+                paper_bgcolor: '#1f2937', plot_bgcolor: '#111827', font: { color: 'white' }, margin: { l: 60, r: 30, b: 50, t: 30 }
+            };
+            Plotly.newPlot('expanded-intensity-plot-y', plotData, layout, plotConfig);
+        }
+        
+        function updateExpandedPlotX(lambda, b, L, color) {
+            const plotRangeMm = 50;
+            const { y_values, intensity_values } = generate1DPlotData(lambda, b, L, plotRangeMm);
+            const plotData = [{ x: y_values, y: intensity_values, type: 'scatter', mode: 'lines', line: { color: color, width: 3 } }];
+            const layout = {
+                dragmode: 'pan',
+                xaxis: { title: 'Posición en el eje X (mm)', range: [-plotRangeMm, plotRangeMm], gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white' },
+                yaxis: { title: 'Intensidad Relativa (I/I₀)', range: [0, 1.1], gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white' },
+                paper_bgcolor: '#1f2937', plot_bgcolor: '#111827', font: { color: 'white' }, margin: { l: 60, r: 30, b: 50, t: 30 }
+            };
+            Plotly.newPlot('expanded-intensity-plot-x', plotData, layout, plotConfig);
+        }
+
+        function updateMinimaTable(lambda, a, b, L) {
+            minimaTableYBody.innerHTML = '';
+            minimaTableXBody.innerHTML = '';
+            for (let m = 1; m <= 5; m++) {
+                // Y-direction minima
+                let sin_theta_y = m * lambda / a;
+                if (sin_theta_y < 1) {
+                    let y_cm = L * Math.tan(Math.asin(sin_theta_y)) * 100;
+                    minimaTableYBody.innerHTML += `<tr class="bg-gray-800 border-b border-gray-700"><td class="px-4 py-2">±${m}</td><td class="px-4 py-2">±${y_cm.toFixed(3)}</td></tr>`;
+                }
+                // X-direction minima
+                let sin_theta_x = m * lambda / b;
+                if (sin_theta_x < 1) {
+                    let x_cm = L * Math.tan(Math.asin(sin_theta_x)) * 100;
+                    minimaTableXBody.innerHTML += `<tr class="bg-gray-800 border-b border-gray-700"><td class="px-4 py-2">±${m}</td><td class="px-4 py-2">±${x_cm.toFixed(3)}</td></tr>`;
+                }
+            }
+        }
+
+        function openModal(modal) {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-content').classList.remove('scale-95');
+        }
+
+        function closeModal(modal) {
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('pointer-events-none'), 300);
+        }
+
+        wavelengthSlider.addEventListener('input', updateSimulation);
+        slitWidthASlider.addEventListener('input', updateSimulation);
+        slitHeightBSlider.addEventListener('input', updateSimulation);
+        distanceSlider.addEventListener('input', updateSimulation);
+        
+        showMinimaBtn.addEventListener('click', () => openModal(minimaModal));
+        closeMinimaBtn.addEventListener('click', () => closeModal(minimaModal));
+        minimaModal.addEventListener('click', (e) => e.target === minimaModal && closeModal(minimaModal));
+
+        showHelpBtn.addEventListener('click', () => openModal(helpModal));
+        closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
+        helpModal.addEventListener('click', (e) => e.target === helpModal && closeModal(helpModal));
+        
+        expandPatternBtn.addEventListener('click', () => {
+            openModal(patternModal);
+            setTimeout(() => {
+                const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+                const a = parseFloat(slitWidthASlider.value) * 1e-3;
+                const b = parseFloat(slitHeightBSlider.value) * 1e-3;
+                const L = parseFloat(distanceSlider.value);
+                const color = wavelengthToRgb(wavelengthSlider.value);
+                drawRectangularPattern(expandedPatternCanvas, lambda, a, b, L, color);
+            }, 50);
+        });
+        closePatternBtn.addEventListener('click', () => closeModal(patternModal));
+        patternModal.addEventListener('click', (e) => e.target === patternModal && closeModal(patternModal));
+
+        expandPlotYBtn.addEventListener('click', () => {
+            openModal(plotYModal);
+            const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+            const a = parseFloat(slitWidthASlider.value) * 1e-3;
+            const L = parseFloat(distanceSlider.value);
+            const color = wavelengthToRgb(wavelengthSlider.value);
+            updateExpandedPlotY(lambda, a, L, `rgb(${color.join(',')})`);
+        });
+        closePlotYBtn.addEventListener('click', () => closeModal(plotYModal));
+        plotYModal.addEventListener('click', (e) => e.target === plotYModal && closeModal(plotYModal));
+        
+        expandPlotXBtn.addEventListener('click', () => {
+            openModal(plotXModal);
+            const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+            const b = parseFloat(slitHeightBSlider.value) * 1e-3;
+            const L = parseFloat(distanceSlider.value);
+            const color = wavelengthToRgb(wavelengthSlider.value);
+            updateExpandedPlotX(lambda, b, L, `rgb(${color.join(',')})`);
+        });
+        closePlotXBtn.addEventListener('click', () => closeModal(plotXModal));
+        plotXModal.addEventListener('click', (e) => e.target === plotXModal && closeModal(plotXModal));
+
+        window.addEventListener('load', updateSimulation);
+        window.addEventListener('resize', updateSimulation);
+    </script>
+</body>
+</html>

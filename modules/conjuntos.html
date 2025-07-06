@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Conjuntos y Relaciones</title>
+    
+    <!-- Tailwind CSS para un diseño moderno y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax para renderizar fórmulas matemáticas (LaTeX) -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                macros: {
+                    pmod: '{\\rm mod}\\ '
+                }
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <!-- Estilos personalizados para mejorar la apariencia futurista -->
+    <style>
+        /* Fuente Inter de Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0a0e1a; /* Fondo oscuro azulado */
+            color: #e0e0e0;
+            overflow-x: hidden; /* Evitar scroll horizontal */
+        }
+
+        /* Estilo para los contenedores */
+        .set-container {
+            background-color: rgba(22, 30, 53, 0.7);
+            border: 1px solid #2a3a67;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        /* Estilo para los botones */
+        .op-button {
+            background-color: #161e35;
+            border: 1px solid #2a3a67;
+            transition: all 0.3s ease;
+            color: #00ffff;
+            font-weight: 600;
+        }
+        .op-button:hover {
+            background-color: #2a3a67;
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
+            transform: translateY(-2px);
+        }
+        .op-button:disabled {
+            background-color: #111827;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+        .keypad-button {
+            background-color: #0a0e1a;
+            border: 1px solid #2a3a67;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1 / 1; 
+            transition: all 0.2s ease-in-out;
+            font-size: 1.25rem; /* Tamaño de fuente ajustado */
+            line-height: 1;
+            padding: 0.1rem;
+        }
+        .keypad-button:hover {
+            background-color: #161e35;
+            color: #e5e7eb;
+            transform: scale(1.05);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+        }
+
+        .input-field {
+             background-color: #0a0e1a;
+             border: 1px solid #2a3a67;
+             border-radius: 0.5rem;
+             padding: 0.75rem;
+             width: 100%;
+        }
+        .input-field:focus {
+            outline: none;
+            ring: 2px;
+            border-color: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+        
+        /* Estilo para la ventana modal */
+        .modal {
+            background-color: rgba(10, 14, 26, 0.8);
+            backdrop-filter: blur(10px);
+        }
+        .venn-svg {
+            cursor: grab;
+            border-radius: 10px;
+        }
+
+        /* Scrollbar personalizado */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0a0e1a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2a3a67;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00ffff;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <!-- Título y Botón de Ayuda -->
+        <header class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl sm:text-4xl font-bold text-cyan-400 tracking-wider">
+                Calculadora de Conjuntos
+            </h1>
+            <button id="help-btn" class="op-button p-3 rounded-full">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-cyan-400"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </button>
+        </header>
+
+        <!-- Contenido principal: Paneles de entrada y operaciones -->
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- Panel Izquierdo: Definición de Conjuntos y Relaciones -->
+            <div class="flex flex-col gap-6">
+                <div id="universal-set-container" class="set-container">
+                    <h2 class="text-xl font-semibold text-cyan-400 mb-2">Conjunto Universal (U)</h2>
+                    <input type="text" id="universal-set-input" placeholder="Ej: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10" class="input-field">
+                    <div id="universal-set-display" class="mt-2 text-lg font-mono p-2 bg-black bg-opacity-20 rounded-md min-h-[40px]"></div>
+                </div>
+
+                <div id="sets-definition-area" class="flex flex-col gap-4">
+                    <!-- Los contenedores de conjuntos se agregarán aquí dinámicamente -->
+                </div>
+
+                <button id="add-set-btn" class="op-button w-full py-3 rounded-lg">
+                    + Añadir Nuevo Conjunto
+                </button>
+
+                 <div class="set-container">
+                    <h2 class="text-xl font-semibold text-cyan-400 mb-2">Definir Relación por Comprensión</h2>
+                    <div class="space-y-3">
+                        <div>
+                            <label for="relation-examples-select" class="block mb-2 text-sm font-medium text-gray-300">Cargar Ejemplo de Relación</label>
+                            <select id="relation-examples-select" class="input-field">
+                                <option value="">Selecciona un ejemplo...</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-3">
+                            <input type="text" id="relation-set1" placeholder="Conjunto 1 (ej: A)" class="input-field uppercase">
+                            <input type="text" id="relation-set2" placeholder="Conjunto 2 (ej: B)" class="input-field uppercase">
+                        </div>
+                        <input type="text" id="relation-condition" placeholder="Condición (ej: a > b)" class="input-field">
+                        <div class="grid grid-cols-6 gap-1">
+                            <button data-symbol=" < " class="keypad-button rounded-md"><</button>
+                            <button data-symbol=" > " class="keypad-button rounded-md">></button>
+                            <button data-symbol=" <= " class="keypad-button rounded-md">≤</button>
+                            <button data-symbol=" >= " class="keypad-button rounded-md">≥</button>
+                            <button data-symbol=" == " class="keypad-button rounded-md">=</button>
+                            <button data-symbol=" && " class="keypad-button rounded-md">∧</button>
+                            <button data-symbol=" || " class="keypad-button rounded-md">∨</button>
+                            <button data-symbol="a" class="keypad-button rounded-md">a</button>
+                            <button data-symbol="b" class="keypad-button rounded-md">b</button>
+                            <button data-symbol=" % " class="keypad-button rounded-md">%</button>
+                        </div>
+                        <button id="calculate-relation-btn" class="op-button w-full py-3 rounded-lg">
+                            Calcular Relación
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel Derecho: Operaciones y Resultados -->
+            <div class="flex flex-col gap-6">
+                 <div class="set-container">
+                    <h2 class="text-xl font-semibold text-cyan-400 mb-4">Calculadora de Expresiones</h2>
+                    <div class="space-y-3">
+                        <input type="text" id="expression-input" placeholder="(A ∪ B) ∩ C'" class="input-field font-mono text-lg">
+                        <p class="text-xs text-gray-400 mt-1 px-1">Use los botones para insertar operadores.</p>
+                        <div class="grid grid-cols-4 gap-1">
+                            <button data-symbol="∪" class="keypad-button rounded-md">∪</button>
+                            <button data-symbol="∩" class="keypad-button rounded-md">∩</button>
+                            <button data-symbol="-" class="keypad-button rounded-md">-</button>
+                            <button data-symbol="Δ" class="keypad-button rounded-md">Δ</button>
+                            <button data-symbol="×" class="keypad-button rounded-md">×</button>
+                            <button data-symbol="'" class="keypad-button rounded-md">'</button>
+                            <button data-symbol="(" class="keypad-button rounded-md">(</button>
+                            <button data-symbol=")" class="keypad-button rounded-md">)</button>
+                        </div>
+                        <button id="calculate-expression-btn" class="op-button w-full py-3 rounded-lg mt-2">Calcular Expresión</button>
+                    </div>
+                </div>
+
+                <div id="results-panel" class="set-container flex-grow">
+                    <h2 class="text-xl font-semibold text-cyan-400 mb-2">Resultados</h2>
+                    <div id="results-content" class="mt-2 text-lg font-mono p-3 bg-black bg-opacity-20 rounded-md min-h-[150px] overflow-auto">
+                        <p class="text-gray-400">Los resultados de las operaciones aparecerán aquí.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center mt-8 text-gray-500 text-sm">
+            Autor: Msc: Néstor Fabio Montoya Palacios
+        </footer>
+    </div>
+    
+    <!-- Ventana Modal para Ayuda -->
+    <div id="help-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-70"></div>
+        <div class="modal relative w-full max-w-2xl max-h-[90vh] p-6 rounded-2xl border border-cyan-500/50 shadow-2xl shadow-cyan-500/20 flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-2xl font-bold text-cyan-400">Guía de Uso</h3>
+                <button id="close-help-modal-btn" class="text-gray-400 hover:text-white">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="prose prose-invert max-w-none overflow-y-auto text-gray-300">
+                <h4>1. Definir Conjuntos</h4>
+                <p>Ingresa los elementos separados por comas. Los nombres de los conjuntos son letras mayúsculas (A, B, C...). El conjunto Universal se llama 'U'.</p>
+                
+                <h4>2. Calculadora de Expresiones</h4>
+                <p>Usa el panel "Calculadora de Expresiones" para escribir operaciones complejas. Si la operación involucra 2 o 3 conjuntos, aparecerá un botón para ver el Diagrama de Venn.</p>
+                
+                <h4>3. Relaciones por Comprensión</h4>
+                <p>Define una relación entre dos conjuntos. Puedes cargar un ejemplo desde el menú desplegable o escribir tu propia condición usando el teclado virtual de relaciones.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ventana Modal para Diagrama de Venn -->
+    <div id="venn-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-black bg-opacity-70" id="close-venn-modal-overlay"></div>
+        <div class="modal relative w-full max-w-4xl max-h-[90vh] p-6 rounded-2xl border border-cyan-500/50 shadow-2xl shadow-cyan-500/20 flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 id="venn-modal-title" class="text-2xl font-bold text-cyan-400">Diagrama de Venn</h3>
+                <button id="close-venn-modal-btn" class="text-gray-400 hover:text-white">
+                     <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div id="venn-diagram-container" class="flex-grow bg-gray-900/50 rounded-lg overflow-hidden"></div>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- ESTADO DE LA APLICACIÓN ---
+            const state = {
+                sets: {},
+                nextSetName: 'A',
+            };
+
+            // --- REFERENCIAS AL DOM ---
+            const universalSetInput = document.getElementById('universal-set-input');
+            const universalSetDisplay = document.getElementById('universal-set-display');
+            const setsDefinitionArea = document.getElementById('sets-definition-area');
+            const addSetBtn = document.getElementById('add-set-btn');
+            
+            // Panel de Expresiones
+            const expressionInput = document.getElementById('expression-input');
+            const calculateExpressionBtn = document.getElementById('calculate-expression-btn');
+            const expressionKeypadButtons = document.querySelectorAll('.set-container:nth-child(1) .keypad-button');
+
+            // Panel de Resultados
+            const resultsContent = document.getElementById('results-content');
+
+            // Modales
+            const helpModal = document.getElementById('help-modal');
+            const closeHelpModalBtn = document.getElementById('close-help-modal-btn');
+            const helpBtn = document.getElementById('help-btn');
+            const vennModal = document.getElementById('venn-modal');
+            const closeVennModalBtn = document.getElementById('close-venn-modal-btn');
+            const closeVennModalOverlay = document.getElementById('close-venn-modal-overlay');
+            const vennDiagramContainer = document.getElementById('venn-diagram-container');
+            const vennModalTitle = document.getElementById('venn-modal-title');
+            
+            // Relaciones
+            const relationSet1Input = document.getElementById('relation-set1');
+            const relationSet2Input = document.getElementById('relation-set2');
+            const relationConditionInput = document.getElementById('relation-condition');
+            const calculateRelationBtn = document.getElementById('calculate-relation-btn');
+            const relationExamplesSelect = document.getElementById('relation-examples-select');
+            const relationKeypadButtons = document.querySelectorAll('.set-container:nth-child(2) .keypad-button');
+
+            // --- LÓGICA DE CONJUNTOS ---
+            const parseInput = (input) => {
+                if (!input) return [];
+                return [...new Set(input.split(',')
+                    .map(item => item.trim())
+                    .filter(item => item !== '')
+                    .map(item => !isNaN(Number(item)) && item.trim() !== '' ? Number(item) : item)
+                )];
+            };
+
+            const updateSet = (setName, input) => {
+                const elements = parseInput(input);
+                state.sets[setName] = new Set(elements);
+                const display = document.getElementById(`${setName}-set-display`);
+                if (display) {
+                    display.textContent = `{ ${elements.join(', ')} }`;
+                }
+            };
+            
+            const createSetInput = (setName) => {
+                const container = document.createElement('div');
+                container.id = `${setName}-set-container`;
+                container.className = 'set-container p-4';
+                container.innerHTML = `
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 class="text-xl font-semibold text-cyan-400">Conjunto ${setName}</h2>
+                        <button data-set-name="${setName}" class="remove-set-btn text-red-400 hover:text-red-300 font-semibold">&times; Eliminar</button>
+                    </div>
+                    <input type="text" id="${setName}-set-input" data-set-name="${setName}" placeholder="Elementos separados por coma..." class="input-field">
+                    <div id="${setName}-set-display" class="mt-2 text-lg font-mono p-2 bg-black bg-opacity-20 rounded-md min-h-[40px]"></div>
+                `;
+                setsDefinitionArea.appendChild(container);
+
+                document.getElementById(`${setName}-set-input`).addEventListener('input', (e) => {
+                    updateSet(setName, e.target.value);
+                });
+                document.querySelector(`#${setName}-set-container .remove-set-btn`).addEventListener('click', (e) => {
+                    removeSet(e.target.dataset.setName);
+                });
+            };
+
+            const removeSet = (setName) => {
+                delete state.sets[setName];
+                document.getElementById(`${setName}-set-container`).remove();
+            };
+
+            // --- LÓGICA DEL PARSER DE EXPRESIONES ---
+            const ops = {
+                '∪': { p: 1, f: (a, b) => new Set([...a, ...b]) },
+                '∩': { p: 2, f: (a, b) => new Set([...a].filter(x => b.has(x))) },
+                '-': { p: 2, f: (a, b) => new Set([...a].filter(x => !b.has(x))) },
+                'Δ': { p: 2, f: (a, b) => new Set([...a].filter(x => !b.has(x)).concat([...b].filter(x => !a.has(x)))) },
+                '×': { p: 3, f: (a, b) => {
+                    const p = [];
+                    for (const i1 of a) for (const i2 of b) p.push(`(${i1},${i2})`);
+                    return p;
+                }},
+                "'": { p: 4, f: (a) => {
+                    const u = state.sets['U'];
+                    if (!u) throw new Error("El conjunto universal 'U' no está definido para la operación de complemento.");
+                    return new Set([...u].filter(x => !a.has(x)));
+                }}
+            };
+
+            function tokenize(expression) {
+                const spacedExpression = expression.replace(/([A-Z])(')/g, "$1 '")
+                                                .replace(/([∪∩Δ×\-\(\)])/g, ' $1 ');
+                return spacedExpression.trim().split(/\s+/).filter(t => t);
+            }
+
+            function shuntingYard(tokens) {
+                const outputQueue = [];
+                const operatorStack = [];
+                for (const token of tokens) {
+                    if (/^[A-Z]$/.test(token)) {
+                        outputQueue.push(token);
+                    } else if (token in ops) {
+                        const o1 = token;
+                        while (operatorStack.length > 0) {
+                            const o2 = operatorStack[operatorStack.length - 1];
+                            if (o2 in ops && ops[o2].p >= ops[o1].p) {
+                                outputQueue.push(operatorStack.pop());
+                            } else {
+                                break;
+                            }
+                        }
+                        operatorStack.push(o1);
+                    } else if (token === '(') {
+                        operatorStack.push(token);
+                    } else if (token === ')') {
+                        while (operatorStack.length > 0 && operatorStack[operatorStack.length - 1] !== '(') {
+                            outputQueue.push(operatorStack.pop());
+                        }
+                        if (operatorStack[operatorStack.length - 1] === '(') {
+                            operatorStack.pop();
+                        } else {
+                            throw new Error("Paréntesis no balanceados.");
+                        }
+                    } else {
+                        throw new Error(`Token desconocido: '${token}'. Use solo los símbolos del teclado virtual.`);
+                    }
+                }
+                while (operatorStack.length > 0) {
+                    const op = operatorStack.pop();
+                    if (op === '(' || op === ')') throw new Error("Paréntesis no balanceados.");
+                    outputQueue.push(op);
+                }
+                return outputQueue;
+            }
+
+            function evaluatePostfix(postfix) {
+                const resultStack = [];
+                for (const token of postfix) {
+                    if (token in ops) {
+                        const op = ops[token];
+                        if (op.f.length === 1) {
+                            if (resultStack.length < 1) throw new Error("Argumentos insuficientes para el operador unario.");
+                            const operand = resultStack.pop();
+                            resultStack.push(op.f(operand));
+                        } else {
+                            if (resultStack.length < 2) throw new Error("Argumentos insuficientes para el operador binario.");
+                            const b = resultStack.pop();
+                            const a = resultStack.pop();
+                            resultStack.push(op.f(a, b));
+                        }
+                    } else {
+                        if (!state.sets[token]) throw new Error(`El conjunto '${token}' no está definido.`);
+                        resultStack.push(state.sets[token]);
+                    }
+                }
+                if (resultStack.length !== 1) throw new Error("La expresión es inválida.");
+                return resultStack[0];
+            }
+            
+            // --- LÓGICA DE RELACIONES ---
+            const relationExamples = [
+                { name: "R1 = {(a,b) | a < b}", condition: "a < b" },
+                { name: "R2 = {(a,b) | a + b = 10}", condition: "a + b == 10" },
+                { name: "R3 = {(a,b) | a es divisor de b}", condition: "b % a == 0" },
+                { name: "R4 = {(a,b) | a es múltiplo de b}", condition: "a % b == 0" },
+                { name: "R5 = {(a,b) | a = 2b}", condition: "a == 2 * b" },
+                { name: "R6 = {(a,b) | |a - b| ≤ 1}", condition: "Math.abs(a - b) <= 1" },
+                { name: "R7 = {(a,b) | a² + b² < 25}", condition: "a**2 + b**2 < 25" },
+                { name: "R8 = {(a,b) | a es par ∧ b es impar}", condition: "a % 2 == 0 && b % 2 != 0" },
+                { name: "R9 = {(a,b) | a = b}", condition: "a == b" },
+                { name: "R10 = {(a,b) | a ≠ b}", condition: "a != b" },
+            ];
+
+            function populateRelationExamples() {
+                relationExamples.forEach(example => {
+                    const option = document.createElement('option');
+                    option.value = example.condition;
+                    option.textContent = example.name;
+                    relationExamplesSelect.appendChild(option);
+                });
+            }
+
+            function formatConditionToLatex(condition) {
+                return condition
+                    .replace(/&&/g, ' \\land ')
+                    .replace(/\|\|/g, ' \\lor ')
+                    .replace(/==/g, ' = ')
+                    .replace(/!=/g, ' \\neq ')
+                    .replace(/<=/g, ' \\leq ')
+                    .replace(/>=/g, ' \\geq ')
+                    .replace(/%/g, ' \\pmod ')
+                    .replace(/\bMath\.abs\((.*?)\)/g, '|$1|')
+                    .replace(/(\w+)\*\*(\d+)/g, '$1^{$2}');
+            }
+
+            // --- LÓGICA DE VISUALIZACIÓN ---
+            const showModal = (modalElement) => {
+                modalElement.classList.remove('hidden');
+                modalElement.classList.add('flex');
+                document.body.style.overflow = 'hidden';
+            };
+
+            const hideModal = (modalElement) => {
+                modalElement.classList.add('hidden');
+                modalElement.classList.remove('flex');
+                document.body.style.overflow = '';
+            };
+
+            const displayResult = (htmlContent, expression) => {
+                resultsContent.innerHTML = htmlContent;
+                
+                const involvedSets = expression ? [...new Set(expression.match(/[A-Z]/g))] : null;
+                if (involvedSets && (involvedSets.length === 2 || involvedSets.length === 3)) {
+                    const vennBtn = document.createElement('button');
+                    vennBtn.textContent = 'Ver Diagrama de Venn';
+                    vennBtn.className = 'op-button py-2 px-4 rounded-lg mt-4 text-sm';
+                    vennBtn.onclick = () => showVennDiagram(involvedSets, expression);
+                    resultsContent.appendChild(vennBtn);
+                }
+
+                if (window.MathJax) {
+                    MathJax.typesetPromise([resultsContent]).catch((err) => console.log('Error de renderizado MathJax:', err));
+                }
+            }
+
+            const displayExpressionResult = (expression, resultSet) => {
+                const latexExpression = expression.replace(/∪/g, ' \\cup ')
+                                                .replace(/∩/g, ' \\cap ')
+                                                .replace(/Δ/g, ' \\Delta ')
+                                                .replace(/×/g, ' \\times ')
+                                                .replace(/'/g, '^c ');
+                const html = `
+                    <h4 class="font-bold text-cyan-300 mb-2 whitespace-nowrap">Resultado de: $${latexExpression}$</h4>
+                    <div class="mt-2">= { ${Array.from(resultSet).join(', ')} }</div>
+                `;
+                displayResult(html, expression);
+            };
+            
+            const displayRelationResult = (setName1, setName2, condition, resultSet) => {
+                const latexCondition = formatConditionToLatex(condition);
+                const html = `
+                    <h4 class="font-bold text-cyan-300 mb-2 whitespace-nowrap">Relación $R = \\{ (a,b) \\mid a \\in ${setName1}, b \\in ${setName2}, ${latexCondition} \\}$</h4>
+                    <div class="mt-2">R = { ${resultSet.join(', ')} }</div>
+                `;
+                displayResult(html);
+            };
+            
+            const displayError = (message, suggestion = '') => {
+                 const html = `
+                    <div class="p-4 bg-red-900/50 border border-red-500 rounded-lg">
+                        <p class="text-red-300 font-bold text-lg">Error</p>
+                        <p class="font-mono text-red-300 mt-2">${message}</p>
+                        ${suggestion ? `<p class="text-yellow-300 mt-4 text-base"><strong>Sugerencia:</strong> ${suggestion}</p>` : ''}
+                    </div>`;
+                resultsContent.innerHTML = html;
+            }
+
+            // --- LÓGICA DE DIAGRAMA DE VENN ---
+            function showVennDiagram(setNames, expression) {
+                vennDiagramContainer.innerHTML = '';
+                vennModalTitle.textContent = `Diagrama de Venn para: ${expression}`;
+                
+                const setsData = {};
+                setNames.forEach(name => {
+                    if(state.sets[name]) {
+                        setsData[name] = state.sets[name];
+                    }
+                });
+                
+                createCompleteVennDiagram('venn-diagram-container', setsData);
+                showModal(vennModal);
+            }
+
+            function createCompleteVennDiagram(containerId, setsData) {
+                var container = document.getElementById(containerId);
+                container.innerHTML = ''; 
+                var svg = createBasicSVG();
+                createGradientsAndEffects(svg);
+                createUniverse(svg);
+                
+                var setNames = Object.keys(setsData);
+                
+                if (setNames.length === 2) {
+                    createTwoSetVenn(svg, setsData);
+                } else if (setNames.length === 3) {
+                    createThreeSetVenn(svg, setsData);
+                }
+                
+                addInteractivity(svg);
+                container.appendChild(svg);
+            }
+
+            function createBasicSVG() {
+                var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.setAttribute('width', '100%');
+                svg.setAttribute('height', '100%');
+                svg.setAttribute('viewBox', '0 0 600 400');
+                svg.classList.add('venn-svg');
+                return svg;
+            }
+
+            function createGradientsAndEffects(svg) {
+                var defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+                
+                var gradientA = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                gradientA.setAttribute('id', 'gradientA');
+                gradientA.innerHTML = '<stop offset="0%" style="stop-color:#00d4ff;stop-opacity:0.8" />' + '<stop offset="100%" style="stop-color:#0099cc;stop-opacity:0.6" />';
+                
+                var gradientB = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                gradientB.setAttribute('id', 'gradientB');
+                gradientB.innerHTML = '<stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:0.8" />' + '<stop offset="100%" style="stop-color:#cc4444;stop-opacity:0.6" />';
+                
+                var gradientC = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+                gradientC.setAttribute('id', 'gradientC');
+                gradientC.innerHTML = '<stop offset="0%" style="stop-color:#4ecdc4;stop-opacity:0.8" />' + '<stop offset="100%" style="stop-color:#3aa89a;stop-opacity:0.6" />';
+
+                defs.appendChild(gradientA);
+                defs.appendChild(gradientB);
+                defs.appendChild(gradientC);
+                svg.appendChild(defs);
+            }
+
+            function createUniverse(svg) {
+                var universe = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                universe.setAttribute('x', '50');
+                universe.setAttribute('y', '50');
+                universe.setAttribute('width', '500');
+                universe.setAttribute('height', '300');
+                universe.setAttribute('fill', 'rgba(255, 255, 255, 0.03)');
+                universe.setAttribute('stroke', 'rgba(0, 212, 255, 0.4)');
+                universe.setAttribute('stroke-width', '2');
+                universe.setAttribute('stroke-dasharray', '5,5');
+                universe.setAttribute('rx', '15');
+                svg.appendChild(universe);
+                
+                var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                label.setAttribute('x', '70');
+                label.setAttribute('y', '75');
+                label.setAttribute('fill', '#00d4ff');
+                label.setAttribute('font-size', '16');
+                label.setAttribute('font-weight', 'bold');
+                label.textContent = 'U';
+                svg.appendChild(label);
+            }
+
+            function createTwoSetVenn(svg, setsData) {
+                const names = Object.keys(setsData);
+                const setA = setsData[names[0]];
+                const setB = setsData[names[1]];
+
+                var circleA = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleA.setAttribute('cx', '250');
+                circleA.setAttribute('cy', '200');
+                circleA.setAttribute('r', '100');
+                circleA.setAttribute('fill', 'url(#gradientA)');
+                circleA.setAttribute('stroke', '#00d4ff');
+                circleA.setAttribute('stroke-width', '3');
+                
+                var circleB = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                circleB.setAttribute('cx', '350');
+                circleB.setAttribute('cy', '200');
+                circleB.setAttribute('r', '100');
+                circleB.setAttribute('fill', 'url(#gradientB)');
+                circleB.setAttribute('stroke', '#ff6b6b');
+                circleB.setAttribute('stroke-width', '3');
+                
+                svg.appendChild(circleA);
+                svg.appendChild(circleB);
+
+                var labelA = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                labelA.setAttribute('x', '170');
+                labelA.setAttribute('y', '120');
+                labelA.setAttribute('fill', '#00d4ff');
+                labelA.setAttribute('font-size', '22');
+                labelA.setAttribute('font-weight', 'bold');
+                labelA.textContent = names[0];
+                
+                var labelB = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                labelB.setAttribute('x', '430');
+                labelB.setAttribute('y', '120');
+                labelB.setAttribute('fill', '#ff6b6b');
+                labelB.setAttribute('font-size', '22');
+                labelB.setAttribute('font-weight', 'bold');
+                labelB.textContent = names[1];
+                
+                svg.appendChild(labelA);
+                svg.appendChild(labelB);
+
+                addElementsToTwoSetVenn(svg, setA, setB);
+            }
+
+            function addElementsToTwoSetVenn(svg, setA, setB) {
+                var positions = {
+                    onlyA: { x: 220, y: 200 },
+                    onlyB: { x: 380, y: 200 },
+                    intersection: { x: 300, y: 200 }
+                };
+                
+                var onlyInA = [...setA].filter(el => !setB.has(el));
+                var onlyInB = [...setB].filter(el => !setA.has(el));
+                var intersection = [...setA].filter(el => setB.has(el));
+                
+                placeElementsInRegion(svg, onlyInA, positions.onlyA);
+                placeElementsInRegion(svg, onlyInB, positions.onlyB);
+                placeElementsInRegion(svg, intersection, positions.intersection);
+            }
+
+            function createThreeSetVenn(svg, setsData) {
+                const names = Object.keys(setsData);
+                const setA = setsData[names[0]];
+                const setB = setsData[names[1]];
+                const setC = setsData[names[2]];
+
+                var circles = [
+                    { name: names[0], cx: 250, cy: 160, fill: 'url(#gradientA)', stroke: '#00d4ff' },
+                    { name: names[1], cx: 350, cy: 160, fill: 'url(#gradientB)', stroke: '#ff6b6b' },
+                    { name: names[2], cx: 300, cy: 250, fill: 'url(#gradientC)', stroke: '#4ecdc4' }
+                ];
+                
+                circles.forEach(function(circleData) {
+                    var circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    circle.setAttribute('cx', circleData.cx);
+                    circle.setAttribute('cy', circleData.cy);
+                    circle.setAttribute('r', '90');
+                    circle.setAttribute('fill', circleData.fill);
+                    circle.setAttribute('stroke', circleData.stroke);
+                    circle.setAttribute('stroke-width', '3');
+                    circle.setAttribute('fill-opacity', '0.6');
+                    svg.appendChild(circle);
+
+                    var label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    label.setAttribute('x', circleData.cx + (circleData.name === names[2] ? 0 : (circleData.name === names[0] ? -80 : 80)));
+                    label.setAttribute('y', circleData.cy + (circleData.name === names[2] ? 80 : -70));
+                    label.setAttribute('fill', circleData.stroke);
+                    label.setAttribute('font-size', '22');
+                    label.setAttribute('font-weight', 'bold');
+                    label.setAttribute('text-anchor', 'middle');
+                    label.textContent = circleData.name;
+                    svg.appendChild(label);
+                });
+
+                addElementsToThreeSetVenn(svg, setA, setB, setC);
+            }
+
+            function addElementsToThreeSetVenn(svg, setA, setB, setC) {
+                var regions = {
+                    onlyA: [], onlyB: [], onlyC: [],
+                    AandB: [], AandC: [], BandC: [],
+                    AllThree: []
+                };
+                
+                const allElements = new Set([...setA, ...setB, ...setC]);
+
+                allElements.forEach(element => {
+                    const inA = setA.has(element);
+                    const inB = setB.has(element);
+                    const inC = setC.has(element);
+
+                    if (inA && !inB && !inC) regions.onlyA.push(element);
+                    else if (!inA && inB && !inC) regions.onlyB.push(element);
+                    else if (!inA && !inB && inC) regions.onlyC.push(element);
+                    else if (inA && inB && !inC) regions.AandB.push(element);
+                    else if (inA && !inB && inC) regions.AandC.push(element);
+                    else if (!inA && inB && inC) regions.BandC.push(element);
+                    else if (inA && inB && inC) regions.AllThree.push(element);
+                });
+                
+                var positions = {
+                    onlyA: { x: 200, y: 140 },
+                    onlyB: { x: 400, y: 140 },
+                    onlyC: { x: 300, y: 300 },
+                    AandB: { x: 300, y: 130 },
+                    AandC: { x: 255, y: 210 },
+                    BandC: { x: 345, y: 210 },
+                    AllThree: { x: 300, y: 190 }
+                };
+                
+                Object.keys(regions).forEach(function(regionName) {
+                    if (positions[regionName] && regions[regionName].length > 0) {
+                        placeElementsInRegion(svg, regions[regionName], positions[regionName]);
+                    }
+                });
+            }
+
+            function placeElementsInRegion(svg, elements, position) {
+                elements.forEach(function(element, index) {
+                    var text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    text.setAttribute('x', position.x);
+                    text.setAttribute('y', position.y + (index * 18) - (elements.length * 9));
+                    text.setAttribute('text-anchor', 'middle');
+                    text.setAttribute('fill', 'white');
+                    text.setAttribute('font-size', '14');
+                    text.setAttribute('font-weight', 'bold');
+                    text.setAttribute('text-shadow', '1px 1px 2px rgba(0,0,0,0.8)');
+                    text.textContent = element;
+                    svg.appendChild(text);
+                });
+            }
+
+            function addInteractivity(svg) {
+                let zoomLevel = 1;
+                let panX = 0, panY = 0;
+                let isDragging = false;
+                let lastMouseX = 0, lastMouseY = 0;
+
+                const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                while(svg.firstChild) {
+                    g.appendChild(svg.firstChild);
+                }
+                svg.appendChild(g);
+
+                const updateTransform = () => {
+                    g.setAttribute('transform', `translate(${panX}, ${panY}) scale(${zoomLevel})`);
+                };
+                
+                svg.addEventListener('wheel', function(e) {
+                    e.preventDefault();
+                    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                    zoomLevel = Math.max(0.2, Math.min(5, zoomLevel * delta));
+                    updateTransform();
+                });
+                
+                svg.addEventListener('mousedown', function(e) {
+                    isDragging = true;
+                    lastMouseX = e.clientX;
+                    lastMouseY = e.clientY;
+                    svg.style.cursor = 'grabbing';
+                });
+                
+                svg.addEventListener('mousemove', function(e) {
+                    if (isDragging) {
+                        const deltaX = e.clientX - lastMouseX;
+                        const deltaY = e.clientY - lastMouseY;
+                        panX += deltaX;
+                        panY += deltaY;
+                        lastMouseX = e.clientX;
+                        lastMouseY = e.clientY;
+                        updateTransform();
+                    }
+                });
+                
+                svg.addEventListener('mouseup', () => { isDragging = false; svg.style.cursor = 'grab'; });
+                svg.addEventListener('mouseleave', () => { isDragging = false; svg.style.cursor = 'grab'; });
+            }
+
+
+            // --- MANEJADORES DE EVENTOS ---
+            universalSetInput.addEventListener('input', (e) => updateSet('U', e.target.value));
+            addSetBtn.addEventListener('click', () => {
+                createSetInput(state.nextSetName);
+                state.nextSetName = String.fromCharCode(state.nextSetName.charCodeAt(0) + 1);
+            });
+
+            expressionKeypadButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const symbol = button.dataset.symbol;
+                    expressionInput.value += symbol;
+                    expressionInput.focus();
+                });
+            });
+
+            calculateExpressionBtn.addEventListener('click', () => {
+                const expression = expressionInput.value.trim();
+                if (!expression) return;
+                try {
+                    const tokens = tokenize(expression);
+                    const postfix = shuntingYard(tokens);
+                    const result = evaluatePostfix(postfix);
+                    displayExpressionResult(expression, result);
+                } catch (error) {
+                    displayError(error.message);
+                }
+            });
+
+            relationExamplesSelect.addEventListener('change', (e) => {
+                if(e.target.value) {
+                    relationConditionInput.value = e.target.value;
+                }
+            });
+
+            relationKeypadButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const symbol = button.dataset.symbol;
+                    relationConditionInput.value += symbol;
+                    relationConditionInput.focus();
+                });
+            });
+
+            calculateRelationBtn.addEventListener('click', () => {
+                const setName1 = relationSet1Input.value.toUpperCase();
+                const setName2 = relationSet2Input.value.toUpperCase();
+                const condition = relationConditionInput.value;
+
+                if (!setName1 || !setName2 || !condition) {
+                    displayError("Por favor, completa todos los campos para la relación.");
+                    return;
+                }
+                if (!state.sets[setName1] || !state.sets[setName2]) {
+                    displayError(`Uno o ambos conjuntos ('${setName1}', '${setName2}') no están definidos.`);
+                    return;
+                }
+
+                const set1 = state.sets[setName1];
+                const set2 = state.sets[setName2];
+                const resultPairs = [];
+
+                try {
+                    const conditionFunc = new Function('a', 'b', `return ${condition}`);
+                    for (const a of set1) {
+                        for (const b of set2) {
+                            if (conditionFunc(a, b)) resultPairs.push(`(${a}, ${b})`);
+                        }
+                    }
+                    displayRelationResult(setName1, setName2, condition, resultPairs);
+                } catch (e) {
+                    displayError(`Error de Sintaxis en la Condición: ${e.message}`, "Las comparaciones encadenadas como '1 < a < 5' no son válidas. Use operadores lógicos como '1 < a && a < 5'.");
+                }
+            });
+
+            // Controles de modales
+            helpBtn.addEventListener('click', () => showModal(helpModal));
+            closeHelpModalBtn.addEventListener('click', () => hideModal(helpModal));
+            closeVennModalBtn.addEventListener('click', () => hideModal(vennModal));
+            closeVennModalOverlay.addEventListener('click', () => hideModal(vennModal));
+
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    hideModal(helpModal);
+                    hideModal(vennModal);
+                }
+            });
+            
+            // --- INICIALIZACIÓN ---
+            createSetInput('A');
+            createSetInput('B');
+            state.nextSetName = 'C';
+            populateRelationExamples();
+        });
+    </script>
+</body>
+</html>

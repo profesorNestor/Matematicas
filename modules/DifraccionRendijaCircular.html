@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Difracción por Abertura Circular</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #e5e7eb;
+        }
+        .slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            transition: background .3s;
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        .btn-glow {
+            box-shadow: 0 0 5px #4f46e5, 0 0 10px #4f46e5, 0 0 15px #4f46e5;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Difracción por Abertura Circular (Patrón de Airy)</h1>
+            <p class="text-lg text-gray-400">Observa cómo la luz se difracta al pasar por un orificio circular.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Columna de Controles y Visualización -->
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl">
+                <h2 class="text-2xl font-semibold mb-6 text-white">Controles de la Simulación</h2>
+                
+                <!-- Controles Deslizantes -->
+                <div class="space-y-6">
+                    <div>
+                        <label for="wavelength" class="block mb-2 text-sm font-medium text-gray-300">Longitud de Onda (\(\lambda\)): <span id="wavelength-value" class="font-bold text-indigo-400">550</span> nm</label>
+                        <input id="wavelength" type="range" min="380" max="750" value="550" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="aperture-radius" class="block mb-2 text-sm font-medium text-gray-300">Radio de la Abertura (a): <span id="aperture-radius-value" class="font-bold text-indigo-400">0.1</span> mm</label>
+                        <input id="aperture-radius" type="range" min="0.01" max="0.5" step="0.001" value="0.1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="distance" class="block mb-2 text-sm font-medium text-gray-300">Distancia a la Pared (L): <span id="distance-value" class="font-bold text-indigo-400">2.0</span> m</label>
+                        <input id="distance" type="range" min="0.5" max="5" step="0.1" value="2.0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                </div>
+
+                <!-- Visualización del Patrón de Difracción -->
+                <div class="mt-8">
+                    <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-semibold text-white">Patrón de Airy</h3>
+                         <button id="expand-pattern-btn" class="p-2 rounded-full hover:bg-gray-700 transition" title="Ampliar Patrón">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                    </div>
+                    <div id="diffraction-pattern-container" class="w-full aspect-square bg-black rounded-lg overflow-hidden relative">
+                        <canvas id="main-pattern-canvas"></canvas>
+                    </div>
+                </div>
+                 <!-- Botones de Acción -->
+                <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                    <button id="show-minima-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 btn-glow">
+                        Mostrar Mínimos (Anillos Oscuros)
+                    </button>
+                    <button id="show-help-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105">
+                        Ayuda
+                    </button>
+                </div>
+            </div>
+
+            <!-- Columna de Gráfico de Intensidad -->
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-white">Curva de Intensidad Radial</h2>
+                    <button id="expand-plot-btn" class="p-2 rounded-full hover:bg-gray-700 transition" title="Ampliar Gráfico">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                    </button>
+                </div>
+                <div id="intensity-plot" class="w-full h-96 md:h-[500px] flex-grow"></div>
+            </div>
+        </main>
+
+        <!-- Ventana Modal para Mínimos -->
+        <div id="minima-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Mínimos de Intensidad (Anillos Oscuros)</h2>
+                    <button id="close-minima-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <p class="text-gray-400 mb-4">Los anillos oscuros ocurren en ángulos \(\theta\) que satisfacen: \( a \sin(\theta) \approx 1.22 \frac{m \lambda}{2} \), donde m son los ceros de la función de Bessel J1.</p>
+                <div class="max-h-80 overflow-y-auto">
+                    <table class="w-full text-sm text-left text-gray-400">
+                        <thead class="text-xs text-gray-300 uppercase bg-gray-700">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 rounded-l-lg">Anillo (m)</th>
+                                <th scope="col" class="px-6 py-3">Ángulo (\(\theta\)) [grados]</th>
+                                <th scope="col" class="px-6 py-3 rounded-r-lg">Radio (r) [cm]</th>
+                            </tr>
+                        </thead>
+                        <tbody id="minima-table-body">
+                            <!-- Filas de la tabla se generarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Ventana Modal para Ayuda -->
+        <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Ayuda y Explicación</h2>
+                    <button id="close-help-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div class="text-gray-300 space-y-4 max-h-[80vh] overflow-y-auto pr-4">
+                    <h3 class="text-xl font-semibold text-indigo-400">Difracción por Abertura Circular</h3>
+                    <p>Cuando una onda de luz plana pasa a través de una abertura circular, no produce una simple mancha de luz en la pantalla, sino un patrón complejo conocido como el patrón de Airy. Este patrón consiste en un disco central brillante (el disco de Airy) rodeado por una serie de anillos concéntricos más tenues.</p>
+                    
+                    <h3 class="text-xl font-semibold text-indigo-400">Fórmula de Intensidad</h3>
+                    <p>La distribución de intensidad radial para la difracción de Fraunhofer de una abertura circular se describe mediante la función de Bessel de primer orden, \(J_1(x)\).</p>
+                    <p class="text-center text-lg p-4 bg-gray-900 rounded-lg">
+                        \( I(\theta) = I_0 \left[ \frac{2 J_1(ka \sin\theta)}{ka \sin\theta} \right]^2 \)
+                    </p>
+                    <p>Donde:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>\(I_0\) es la intensidad en el centro del patrón.</li>
+                        <li>\(k = 2\pi/\lambda\) es el número de onda.</li>
+                        <li>\(a\) es el radio de la abertura circular.</li>
+                        <li>\(\theta\) es el ángulo desde el eje central.</li>
+                    </ul>
+
+                    <h3 class="text-xl font-semibold text-indigo-400">Mínimos de Intensidad (Anillos Oscuros)</h3>
+                    <p>Los anillos oscuros corresponden a los ceros de la función de Bessel \(J_1(x)\). El primer mínimo, que define el borde del disco de Airy, ocurre aproximadamente cuando:</p>
+                     <p class="text-center text-lg p-2 bg-gray-900 rounded-lg">
+                        \( \sin(\theta) \approx 1.22 \frac{\lambda}{2a} \)
+                    </p>
+                    <p>Los anillos oscuros subsiguientes ocurren en múltiplos de los ceros de la función de Bessel.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ventana Modal para Gráfico Ampliado -->
+        <div id="plot-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] p-6 md:p-8 transform scale-95 modal-content flex flex-col">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Curva de Intensidad Ampliada</h2>
+                    <button id="close-plot-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div id="expanded-intensity-plot" class="flex-grow"></div>
+            </div>
+        </div>
+        
+        <!-- Ventana Modal para Patrón Ampliado -->
+        <div id="pattern-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl p-6 md:p-8 transform scale-95 modal-content flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Patrón de Difracción Ampliado</h2>
+                    <button id="close-pattern-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div id="expanded-pattern-container" class="flex-grow bg-black rounded-lg aspect-square mx-auto">
+                     <canvas id="expanded-pattern-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Autor: Msc: Néstor Fabio Montoya y Gemini AI</p>
+        </footer>
+    </div>
+
+    <script>
+        // Elementos del DOM
+        const wavelengthSlider = document.getElementById('wavelength');
+        const apertureRadiusSlider = document.getElementById('aperture-radius');
+        const distanceSlider = document.getElementById('distance');
+        const wavelengthValue = document.getElementById('wavelength-value');
+        const apertureRadiusValue = document.getElementById('aperture-radius-value');
+        const distanceValue = document.getElementById('distance-value');
+        const mainPatternCanvas = document.getElementById('main-pattern-canvas');
+        const intensityPlot = document.getElementById('intensity-plot');
+        
+        // Modales y botones
+        const minimaModal = document.getElementById('minima-modal');
+        const helpModal = document.getElementById('help-modal');
+        const plotModal = document.getElementById('plot-modal');
+        const patternModal = document.getElementById('pattern-modal');
+
+        const showMinimaBtn = document.getElementById('show-minima-btn');
+        const showHelpBtn = document.getElementById('show-help-btn');
+        const expandPlotBtn = document.getElementById('expand-plot-btn');
+        const expandPatternBtn = document.getElementById('expand-pattern-btn');
+
+        const closeMinimaBtn = document.getElementById('close-minima-btn');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+        const closePlotBtn = document.getElementById('close-plot-btn');
+        const closePatternBtn = document.getElementById('close-pattern-btn');
+
+        const minimaTableBody = document.getElementById('minima-table-body');
+        const expandedIntensityPlot = document.getElementById('expanded-intensity-plot');
+        const expandedPatternCanvas = document.getElementById('expanded-pattern-canvas');
+
+        // Aproximación de la función de Bessel de primer orden J1(x)
+        function besselJ1(x) {
+            if (x === 0) return 0;
+            if (Math.abs(x) < 8.0) {
+                let term = x / 2.0;
+                let sum = term;
+                let term_sq = term * term;
+                for (let k = 1; k < 15; k++) {
+                    term *= -term_sq / (k * (k + 1));
+                    sum += term;
+                }
+                return sum;
+            }
+            return Math.sqrt(2.0 / (Math.PI * x)) * Math.cos(x - 3.0 * Math.PI / 4.0);
+        }
+
+        function wavelengthToRgb(wavelength) {
+            let r, g, b;
+            if (wavelength >= 380 && wavelength < 440) {
+                r = -(wavelength - 440) / (440 - 380); g = 0.0; b = 1.0;
+            } else if (wavelength >= 440 && wavelength < 490) {
+                r = 0.0; g = (wavelength - 440) / (490 - 440); b = 1.0;
+            } else if (wavelength >= 490 && wavelength < 510) {
+                r = 0.0; g = 1.0; b = -(wavelength - 510) / (510 - 490);
+            } else if (wavelength >= 510 && wavelength < 580) {
+                r = (wavelength - 510) / (580 - 510); g = 1.0; b = 0.0;
+            } else if (wavelength >= 580 && wavelength < 645) {
+                r = 1.0; g = -(wavelength - 645) / (645 - 580); b = 0.0;
+            } else if (wavelength >= 645 && wavelength <= 750) {
+                r = 1.0; g = 0.0; b = 0.0;
+            } else { r = 0.0; g = 0.0; b = 0.0; }
+            let factor;
+            if (wavelength >= 380 && wavelength < 420) {
+                factor = 0.3 + 0.7 * (wavelength - 380) / (420 - 380);
+            } else if (wavelength >= 420 && wavelength < 701) {
+                factor = 1.0;
+            } else if (wavelength >= 701 && wavelength <= 750) {
+                factor = 0.3 + 0.7 * (750 - wavelength) / (750 - 700);
+            } else { factor = 0.0; }
+            const gamma = 0.8;
+            return [
+                r > 0 ? 255 * Math.pow(r * factor, gamma) : 0,
+                g > 0 ? 255 * Math.pow(g * factor, gamma) : 0,
+                b > 0 ? 255 * Math.pow(b * factor, gamma) : 0
+            ];
+        }
+        
+        function updateSimulation() {
+            const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+            const a = parseFloat(apertureRadiusSlider.value) * 1e-3;
+            const L = parseFloat(distanceSlider.value);
+            
+            wavelengthValue.textContent = wavelengthSlider.value;
+            apertureRadiusValue.textContent = apertureRadiusSlider.value;
+            distanceValue.textContent = distanceSlider.value;
+            
+            const color = wavelengthToRgb(wavelengthSlider.value);
+
+            drawAiryPattern(mainPatternCanvas, lambda, a, L, color);
+            updateIntensityPlot(lambda, a, L, `rgb(${color.join(',')})`);
+            updateMinimaTable(lambda, a, L);
+            
+            if (!patternModal.classList.contains('pointer-events-none')) {
+                drawAiryPattern(expandedPatternCanvas, lambda, a, L, color);
+            }
+            if (!plotModal.classList.contains('pointer-events-none')) {
+                updateExpandedPlot(lambda, a, L, `rgb(${color.join(',')})`);
+            }
+        }
+
+        function drawAiryPattern(canvas, lambda, a, L, rgbColor) {
+            const container = canvas.parentElement;
+            const size = Math.min(container.clientWidth, container.clientHeight);
+            if (size <= 0) return;
+
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.createImageData(size, size);
+            const data = imageData.data;
+            const centerX = size / 2;
+            const centerY = size / 2;
+
+            const r_first_min = 1.22 * lambda * L / (2 * a);
+            const physicalRadiusOfCanvas = r_first_min * 4;
+
+            for (let px = 0; px < size; px++) {
+                for (let py = 0; py < size; py++) {
+                    const dx = px - centerX;
+                    const dy = py - centerY;
+                    const pixel_r = Math.sqrt(dx * dx + dy * dy);
+                    const physical_r = (pixel_r / (size / 2)) * physicalRadiusOfCanvas;
+                    
+                    const theta = Math.atan(physical_r / L);
+                    
+                    let intensity = 1.0;
+                    if (theta !== 0) {
+                        const x = (2 * Math.PI * a * Math.sin(theta)) / lambda;
+                        if (x !== 0) {
+                            intensity = Math.pow((2 * besselJ1(x)) / x, 2);
+                        }
+                    }
+                    
+                    const displayIntensity = Math.pow(intensity, 0.4);
+                    const index = (py * size + px) * 4;
+                    data[index] = rgbColor[0] * displayIntensity;
+                    data[index + 1] = rgbColor[1] * displayIntensity;
+                    data[index + 2] = rgbColor[2] * displayIntensity;
+                    data[index + 3] = 255;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Draw Axes and Scale
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+            ctx.font = '12px Inter';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Draw Axes
+            ctx.beginPath();
+            ctx.moveTo(0, centerY);
+            ctx.lineTo(size, centerY); // X-axis
+            ctx.moveTo(centerX, 0);
+            ctx.lineTo(centerX, size); // Y-axis
+            ctx.stroke();
+
+            const rulerRangeMM = physicalRadiusOfCanvas * 1000;
+            const majorTickInterval = rulerRangeMM > 20 ? 10 : (rulerRangeMM > 10 ? 5 : (rulerRangeMM > 4 ? 2 : 1));
+            const minorTickInterval = majorTickInterval / 5;
+
+            // Draw Ticks and Labels
+            for (let i = minorTickInterval; i <= rulerRangeMM; i += minorTickInterval) {
+                const isMajorTick = Math.abs(i % majorTickInterval) < 1e-9;
+                const tickHeight = isMajorTick ? 8 : 4;
+                
+                // X-axis ticks
+                const x_px_pos = centerX + (i / rulerRangeMM) * centerX;
+                const x_px_neg = centerX - (i / rulerRangeMM) * centerX;
+                ctx.beginPath();
+                ctx.moveTo(x_px_pos, centerY - tickHeight / 2);
+                ctx.lineTo(x_px_pos, centerY + tickHeight / 2);
+                ctx.moveTo(x_px_neg, centerY - tickHeight / 2);
+                ctx.lineTo(x_px_neg, centerY + tickHeight / 2);
+                ctx.stroke();
+                if (isMajorTick) {
+                    ctx.fillText(Math.round(i), x_px_pos, centerY + 15);
+                    ctx.fillText(-Math.round(i), x_px_neg, centerY + 15);
+                }
+
+                // Y-axis ticks
+                const y_px_pos = centerY - (i / rulerRangeMM) * centerY; // Y is inverted
+                const y_px_neg = centerY + (i / rulerRangeMM) * centerY;
+                ctx.beginPath();
+                ctx.moveTo(centerX - tickHeight / 2, y_px_pos);
+                ctx.lineTo(centerX + tickHeight / 2, y_px_pos);
+                ctx.moveTo(centerX - tickHeight / 2, y_px_neg);
+                ctx.lineTo(centerX + tickHeight / 2, y_px_neg);
+                ctx.stroke();
+                 if (isMajorTick) {
+                    ctx.textAlign = 'right';
+                    ctx.fillText(Math.round(i), centerX - 10, y_px_pos);
+                    ctx.fillText(-Math.round(i), centerX - 10, y_px_neg);
+                    ctx.textAlign = 'center'; // Reset
+                }
+            }
+             ctx.fillText("0", centerX + 10, centerY + 15);
+        }
+        
+        function generatePlotData(lambda, a, L, plotRangeMm) {
+            const r_values = [];
+            const intensity_values = [];
+            const N = 2000;
+
+            for (let i = 0; i < N; i++) {
+                const r_mm = (plotRangeMm * i) / (N - 1);
+                r_values.push(r_mm);
+                const r_m = r_mm / 1000.0;
+                const theta = Math.atan(r_m / L);
+                
+                let intensity = 1.0;
+                if (theta !== 0) {
+                    const x = (2 * Math.PI * a * Math.sin(theta)) / lambda;
+                    if (x !== 0) {
+                        intensity = Math.pow((2 * besselJ1(x)) / x, 2);
+                    }
+                }
+                intensity_values.push(intensity);
+            }
+            return { r_values, intensity_values };
+        }
+
+        function updateIntensityPlot(lambda, a, L, color) {
+            const r_3rd_min_raw = 3.83 * lambda * L / (Math.PI * a); 
+            const plotRangeMm = (r_3rd_min_raw * 1000) * 1.2;
+            const { r_values, intensity_values } = generatePlotData(lambda, a, L, plotRangeMm);
+
+            const plotData = [{ x: r_values, y: intensity_values, type: 'scatter', mode: 'lines', line: { color: color, width: 3 } }];
+            const layout = {
+                dragmode: 'pan',
+                xaxis: { title: 'Radio en la pared (r) [mm]', gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white'},
+                yaxis: { title: 'Intensidad Relativa (I/I₀)', range: [0, 1.1], gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white' },
+                paper_bgcolor: '#1f2937', plot_bgcolor: '#111827', font: { color: 'white' }, margin: { l: 60, r: 30, b: 50, t: 30 }
+            };
+            Plotly.newPlot('intensity-plot', plotData, layout, {responsive: true, scrollZoom: true});
+        }
+        
+        function updateExpandedPlot(lambda, a, L, color) {
+            const r_5th_min_raw = 7.01 * lambda * L / (Math.PI * a);
+            const plotRangeMm = (r_5th_min_raw * 1000) * 1.1;
+            const { r_values, intensity_values } = generatePlotData(lambda, a, L, plotRangeMm);
+
+            const plotData = [{ x: r_values, y: intensity_values, type: 'scatter', mode: 'lines', line: { color: color, width: 3 } }];
+            const layout = {
+                dragmode: 'pan',
+                xaxis: { title: 'Radio en la pared (r) [mm]', gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white'},
+                yaxis: { title: 'Intensidad Relativa (I/I₀)', range: [0, 1.1], gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white' },
+                paper_bgcolor: '#1f2937', plot_bgcolor: '#111827', font: { color: 'white' }, margin: { l: 60, r: 30, b: 50, t: 30 }
+            };
+            Plotly.newPlot('expanded-intensity-plot', plotData, layout, {responsive: true, scrollZoom: true});
+        }
+
+        function updateMinimaTable(lambda, a, L) {
+            minimaTableBody.innerHTML = '';
+            const besselZeros = [3.8317, 7.0156, 10.1735, 13.3237, 16.4706];
+            for (let m = 0; m < besselZeros.length; m++) {
+                const x = besselZeros[m];
+                const sin_theta = x * lambda / (2 * Math.PI * a);
+                if (sin_theta >= 1) break;
+
+                const theta_rad = Math.asin(sin_theta);
+                const theta_deg = theta_rad * 180 / Math.PI;
+                const r_cm = L * Math.tan(theta_rad) * 100;
+
+                const row = `<tr class="bg-gray-800 border-b border-gray-700"><td class="px-6 py-4 font-medium text-white whitespace-nowrap">${m+1}</td><td class="px-6 py-4">${theta_deg.toFixed(4)}</td><td class="px-6 py-4">${r_cm.toFixed(3)}</td></tr>`;
+                minimaTableBody.innerHTML += row;
+            }
+        }
+
+        function openModal(modal) {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-content').classList.remove('scale-95');
+        }
+
+        function closeModal(modal) {
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('pointer-events-none'), 300);
+        }
+
+        wavelengthSlider.addEventListener('input', updateSimulation);
+        apertureRadiusSlider.addEventListener('input', updateSimulation);
+        distanceSlider.addEventListener('input', updateSimulation);
+        
+        showMinimaBtn.addEventListener('click', () => openModal(minimaModal));
+        closeMinimaBtn.addEventListener('click', () => closeModal(minimaModal));
+        minimaModal.addEventListener('click', (e) => e.target === minimaModal && closeModal(minimaModal));
+
+        showHelpBtn.addEventListener('click', () => openModal(helpModal));
+        closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
+        helpModal.addEventListener('click', (e) => e.target === helpModal && closeModal(helpModal));
+        
+        expandPlotBtn.addEventListener('click', () => {
+            const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+            const a = parseFloat(apertureRadiusSlider.value) * 1e-3;
+            const L = parseFloat(distanceSlider.value);
+            const color = wavelengthToRgb(wavelengthSlider.value);
+            updateExpandedPlot(lambda, a, L, `rgb(${color.join(',')})`);
+            openModal(plotModal);
+        });
+        closePlotBtn.addEventListener('click', () => closeModal(plotModal));
+        plotModal.addEventListener('click', (e) => e.target === plotModal && closeModal(plotModal));
+
+        expandPatternBtn.addEventListener('click', () => {
+            const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+            const a = parseFloat(apertureRadiusSlider.value) * 1e-3;
+            const L = parseFloat(distanceSlider.value);
+            const color = wavelengthToRgb(wavelengthSlider.value);
+            drawAiryPattern(expandedPatternCanvas, lambda, a, L, color);
+            openModal(patternModal);
+        });
+        closePatternBtn.addEventListener('click', () => closeModal(patternModal));
+        patternModal.addEventListener('click', (e) => e.target === patternModal && closeModal(patternModal));
+
+        window.addEventListener('load', updateSimulation);
+        window.addEventListener('resize', updateSimulation);
+    </script>
+</body>
+</html>

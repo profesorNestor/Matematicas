@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhysiVerse - Simulador de Movimiento Parabólico</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Estilos personalizados -->
+    <style>
+        :root {
+            --bg-light: #f0f2f5;
+            --bg-dark: #0B1120;
+            --glass-light: rgba(255, 255, 255, 0.6);
+            --glass-dark: rgba(23, 31, 51, 0.5);
+            --border-light: rgba(255, 255, 255, 0.9);
+            --border-dark: rgba(255, 255, 255, 0.1);
+            --text-primary-light: #1a202c;
+            --text-primary-dark: #e2e8f0;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+        }
+
+        html.dark { color-scheme: dark; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary-light);
+            transition: background-color 0.5s ease, color 0.5s ease;
+            background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0), radial-gradient(circle at 10px 10px, rgba(0,0,0,0.05) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        
+        html.dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary-dark);
+            background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0), radial-gradient(circle at 10px 10px, rgba(255,255,255,0.05) 1px, transparent 0);
+        }
+
+        .glass-panel {
+            background-color: var(--glass-light);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.1);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: all 0.5s ease;
+        }
+        
+        html.dark .glass-panel {
+            background-color: var(--glass-dark);
+            border-color: var(--border-dark);
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .main-button {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        .main-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+        .main-button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 8px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 5px; outline: none;
+        }
+        html.dark input[type="range"] { background: rgba(255,255,255,0.1); }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px;
+            background: var(--primary); cursor: pointer;
+            border-radius: 50%; border: 2px solid white;
+        }
+        html.dark input[type="range"]::-webkit-slider-thumb { border: 2px solid var(--bg-dark); }
+        
+        .data-display {
+            background: rgba(0,0,0,0.05); padding: 1rem;
+            border-radius: 1rem;
+        }
+        html.dark .data-display { background: rgba(255,255,255,0.05); }
+
+        .modal-text-content strong { color: var(--primary); }
+        html.dark .modal-text-content strong { color: #818cf8; }
+
+        .canvas-container { position: relative; }
+        canvas {
+            background-color: rgba(0,0,0,0.03);
+            border-radius: 1rem; cursor: grab;
+            width: 100%; height: 100%;
+        }
+        html.dark canvas { background-color: rgba(255,255,255,0.03); }
+        canvas:active { cursor: grabbing; }
+
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-7xl">
+        <header class="w-full flex justify-between items-center mb-6 px-4">
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3" style="font-family: 'Orbitron', sans-serif;">
+                <i data-lucide="atom" class="text-indigo-500"></i>
+                PhysiVerse
+            </h1>
+            <div class="flex items-center gap-2">
+                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <i data-lucide="sun" class="block dark:hidden"></i>
+                    <i data-lucide="moon" class="hidden dark:block"></i>
+                </button>
+                <button id="help-btn" class="main-button !p-2 !rounded-full">
+                    <i data-lucide="help-circle"></i>
+                </button>
+            </div>
+        </header>
+
+        <main class="glass-panel">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                
+                <!-- Columna de Controles -->
+                <div class="lg:col-span-1 space-y-6 flex flex-col">
+                    <h2 class="text-xl font-bold" style="font-family: 'Orbitron', sans-serif;">Parámetros de Lanzamiento</h2>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="initialVelocity" class="font-semibold">Velocidad Inicial</label>
+                                <span id="velocityValue" class="font-bold text-indigo-500 text-lg">45 m/s</span>
+                            </div>
+                            <input type="range" id="initialVelocity" min="5" max="100" value="45" step="1">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="launchAngle" class="font-semibold">Ángulo</label>
+                                <span id="angleValue" class="font-bold text-indigo-500 text-lg">45°</span>
+                            </div>
+                            <input type="range" id="launchAngle" min="1" max="89" value="45" step="1">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="gravity" class="font-semibold">Gravedad</label>
+                                <span id="gravityValue" class="font-bold text-indigo-500 text-lg">9.8 m/s²</span>
+                            </div>
+                            <input type="range" id="gravity" min="1" max="20" value="9.8" step="0.1">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-3">
+                        <button id="startBtn" class="main-button"><i data-lucide="play"></i></button>
+                        <button id="pauseBtn" class="main-button" disabled><i data-lucide="pause"></i></button>
+                        <button id="resetBtn" class="main-button"><i data-lucide="rotate-cw"></i></button>
+                    </div>
+
+                    <div class="space-y-4 flex-grow flex flex-col justify-end">
+                        <div class="data-display">
+                            <h3 class="font-bold mb-2 text-lg" style="font-family: 'Orbitron', sans-serif;">Datos Teóricos</h3>
+                            <div class="space-y-1 text-sm">
+                                <p class="flex justify-between"><span>Altura Máxima:</span> <strong id="maxHeight">-</strong></p>
+                                <p class="flex justify-between"><span>Alcance Máximo:</span> <strong id="maxRange">-</strong></p>
+                                <p class="flex justify-between"><span>Tiempo de Vuelo:</span> <strong id="flightTime">-</strong></p>
+                            </div>
+                        </div>
+                        <div class="data-display">
+                            <h3 class="font-bold mb-2 text-lg" style="font-family: 'Orbitron', sans-serif;">Datos en Tiempo Real</h3>
+                            <div class="space-y-1 text-sm">
+                                <p class="flex justify-between"><span>Tiempo:</span> <strong id="currentTime">0.00 s</strong></p>
+                                <p class="flex justify-between"><span>Posición X:</span> <strong id="currentX">0.00 m</strong></p>
+                                <p class="flex justify-between"><span>Posición Y:</span> <strong id="currentY">0.00 m</strong></p>
+                                <p class="flex justify-between"><span>Velocidad:</span> <strong id="currentVelocity">0.00 m/s</strong></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna del Canvas -->
+                <div class="lg:col-span-1 min-h-[50vh] lg:min-h-0 canvas-container">
+                    <canvas id="simulationCanvas"></canvas>
+                    <button id="expand-btn" class="main-button !p-2 !rounded-full absolute top-3 right-3">
+                        <i data-lucide="expand"></i>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden modal-backdrop">
+        <div class="glass-panel relative w-full max-w-2xl max-h-[90vh] flex flex-col">
+             <div class="flex justify-between items-center mb-4 pb-4 border-b border-black/10 dark:border-white/10">
+                <h3 class="text-2xl font-bold flex items-center gap-3" style="font-family: 'Orbitron', sans-serif;"><i data-lucide="book-open" class="text-indigo-400"></i>Guía de Uso</h3>
+                <button class="modal-close-btn p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><i data-lucide="x"></i></button>
+            </div>
+            <div class="prose max-w-none overflow-y-auto pr-4 modal-text-content text-primary-light dark:text-primary-dark">
+                <h4>🚀 Bienvenido a PhysiVerse</h4>
+                <p>Este es un simulador interactivo para explorar el movimiento parabólico de un proyectil.</p>
+                <h5>1. Ajusta los Parámetros</h5>
+                <p>Utiliza los deslizadores para cambiar la <strong>Velocidad Inicial</strong>, el <strong>Ángulo</strong> y la <strong>Gravedad</strong>.</p>
+                <h5>2. Controla la Simulación</h5>
+                <p>Usa los botones para <strong>Iniciar</strong>, <strong>Pausar</strong> y <strong>Reiniciar</strong> la animación.</p>
+                <h5>3. Interactúa con el Canvas</h5>
+                <ul>
+                    <li><strong>Zoom:</strong> Usa la <strong>rueda del mouse</strong> para acercar o alejar la vista.</li>
+                    <li><strong>Paneo:</strong> Haz <strong>clic y arrastra</strong> con el botón izquierdo para mover la vista.</li>
+                    <li><strong>Reescalar Ejes:</strong> Mueve el cursor cerca de un eje hasta que cambie. Luego, haz <strong>clic y arrastra</strong> para cambiar la escala de la vista.</li>
+                    <li><strong>Pantalla Completa:</strong> Usa el botón <i data-lucide="expand" class="inline-block w-4 h-4"></i> para una vista inmersiva.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Canvas Fullscreen -->
+    <div id="fullscreen-modal" class="fixed inset-0 z-40 items-center justify-center p-4 hidden modal-backdrop">
+        <div class="bg-white dark:bg-gray-900 w-full h-full rounded-2xl flex flex-col relative p-4">
+            <canvas id="fullscreenCanvas"></canvas>
+            <button id="fullscreen-close-btn" class="main-button !p-2 !rounded-full absolute top-5 right-5 z-50">
+                <i data-lucide="x"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- REFERENCIAS AL DOM ---
+            const dom = {
+                themeToggle: document.getElementById('theme-toggle'),
+                helpBtn: document.getElementById('help-btn'),
+                helpModal: document.getElementById('help-modal'),
+                canvas: document.getElementById('simulationCanvas'),
+                fullscreenCanvas: document.getElementById('fullscreenCanvas'),
+                expandBtn: document.getElementById('expand-btn'),
+                fullscreenModal: document.getElementById('fullscreen-modal'),
+                fullscreenCloseBtn: document.getElementById('fullscreen-close-btn'),
+                initialVelocitySlider: document.getElementById('initialVelocity'),
+                launchAngleSlider: document.getElementById('launchAngle'),
+                gravitySlider: document.getElementById('gravity'),
+                velocityValue: document.getElementById('velocityValue'),
+                angleValue: document.getElementById('angleValue'),
+                gravityValue: document.getElementById('gravityValue'),
+                startBtn: document.getElementById('startBtn'),
+                pauseBtn: document.getElementById('pauseBtn'),
+                resetBtn: document.getElementById('resetBtn'),
+                maxHeight: document.getElementById('maxHeight'),
+                maxRange: document.getElementById('maxRange'),
+                flightTime: document.getElementById('flightTime'),
+                currentTime: document.getElementById('currentTime'),
+                currentX: document.getElementById('currentX'),
+                currentY: document.getElementById('currentY'),
+                currentVelocity: document.getElementById('currentVelocity'),
+            };
+
+            const mainCtx = dom.canvas.getContext('2d');
+            const fsCtx = dom.fullscreenCanvas.getContext('2d');
+
+            // --- ESTADO DE LA SIMULACIÓN ---
+            let state = {
+                v0: 45, angleDeg: 45, g: 9.8,
+                t: 0, x: 0, y: 0, v0x: 0, v0y: 0,
+                path: [],
+                isRunning: false, isPaused: false, animationFrameId: null,
+                scale: 20, // Píxeles por metro
+                origin: { x: 40, y: 40 },
+                panOffset: { x: 0, y: 0 },
+                isPanning: false, panStart: { x: 0, y: 0 },
+                isScalingX: false, isScalingY: false, scaleStart: 0,
+            };
+
+            // --- LÓGICA DE TEMAS Y MODALES ---
+            const applyTheme = (theme) => {
+                document.documentElement.classList.toggle('dark', theme === 'dark');
+                localStorage.setItem('theme', theme);
+            };
+            dom.themeToggle.addEventListener('click', () => {
+                applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
+                drawAll();
+            });
+            const setupModal = (modal, openBtn, closeBtn) => {
+                openBtn.onclick = () => {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    if (modal === dom.fullscreenModal) {
+                        resizeCanvas(dom.fullscreenCanvas);
+                    }
+                    lucide.createIcons();
+                };
+                closeBtn.onclick = () => modal.classList.add('hidden');
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) modal.classList.add('hidden');
+                });
+            };
+            setupModal(dom.helpModal, dom.helpBtn, dom.helpModal.querySelector('.modal-close-btn'));
+            setupModal(dom.fullscreenModal, dom.expandBtn, dom.fullscreenCloseBtn);
+
+            // --- LÓGICA DE LA SIMULACIÓN ---
+            function calculateTheoreticalValues() {
+                const angleRad = state.angleDeg * Math.PI / 180;
+                state.v0x = state.v0 * Math.cos(angleRad);
+                state.v0y = state.v0 * Math.sin(angleRad);
+                const time = (2 * state.v0y) / state.g;
+                const range = state.v0x * time;
+                const height = (state.v0y ** 2) / (2 * state.g);
+                dom.flightTime.textContent = `${time.toFixed(2)} s`;
+                dom.maxRange.textContent = `${range.toFixed(2)} m`;
+                dom.maxHeight.textContent = `${height.toFixed(2)} m`;
+                return { range, height };
+            }
+
+            function updateParameters() {
+                if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
+                Object.assign(state, { t: 0, x: 0, y: 0, path: [{ x: 0, y: 0 }], isRunning: false, isPaused: false });
+                dom.startBtn.disabled = false;
+                dom.pauseBtn.disabled = true;
+                calculateTheoreticalValues();
+                updateRealTimeData();
+                drawAll();
+            }
+
+            function resetSimulation() {
+                updateParameters();
+                autoScaleAndCenter(); // Solo el reset completo re-escala
+            }
+
+            function startSimulation() {
+                if (state.isRunning && !state.isPaused) return;
+                if (state.y < 0) {
+                    updateParameters();
+                }
+                Object.assign(state, { isRunning: true, isPaused: false });
+                dom.startBtn.disabled = true;
+                dom.pauseBtn.disabled = false;
+                state.animationFrameId = requestAnimationFrame(animate);
+            }
+
+            function pauseSimulation() {
+                if (!state.isRunning || state.isPaused) return;
+                state.isPaused = true;
+                dom.startBtn.disabled = false;
+                dom.pauseBtn.disabled = true;
+                cancelAnimationFrame(state.animationFrameId);
+            }
+            
+            function animate() {
+                if (!state.isRunning || state.isPaused) return;
+                const dt = 1 / 60;
+                state.t += dt;
+                state.x = state.v0x * state.t;
+                state.y = state.v0y * state.t - 0.5 * state.g * state.t * state.t;
+                state.path.push({ x: state.x, y: state.y });
+                updateRealTimeData();
+                drawAll();
+
+                if (state.y < 0) {
+                    state.y = 0;
+                    state.t = (2 * state.v0y) / state.g;
+                    state.x = state.v0x * state.t;
+                    state.path[state.path.length - 1] = {x: state.x, y: state.y};
+                    updateRealTimeData();
+                    drawAll();
+                    pauseSimulation();
+                    state.isRunning = false;
+                } else {
+                    state.animationFrameId = requestAnimationFrame(animate);
+                }
+            }
+
+            function updateRealTimeData() {
+                const vx = state.v0x, vy = state.v0y - state.g * state.t;
+                const v = Math.sqrt(vx**2 + vy**2);
+                dom.currentTime.textContent = `${state.t.toFixed(2)} s`;
+                dom.currentX.textContent = `${state.x.toFixed(2)} m`;
+                dom.currentY.textContent = `${Math.max(0, state.y).toFixed(2)} m`;
+                dom.currentVelocity.textContent = `${v.toFixed(2)} m/s`;
+            }
+
+            // --- LÓGICA DEL CANVAS (GENERALIZADA) ---
+            function resizeCanvas(canvas) {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                canvas.getContext('2d').scale(dpr, dpr);
+                drawAll();
+            }
+
+            function autoScaleAndCenter() {
+                const { range, height } = calculateTheoreticalValues();
+                const rect = dom.canvas.getBoundingClientRect();
+                const padding = 40;
+                const scaleX = (rect.width - padding * 2) / (range || 1);
+                const scaleY = (rect.height - padding * 2) / (height || 1);
+                state.scale = Math.min(scaleX, scaleY) * 0.9;
+                if (!isFinite(state.scale) || state.scale <= 0) state.scale = 20;
+                state.panOffset = { x: 0, y: 0 };
+            }
+
+            function drawAll() {
+                drawScene(dom.canvas, mainCtx);
+                if (!dom.fullscreenModal.classList.contains('hidden')) {
+                    drawScene(dom.fullscreenCanvas, fsCtx);
+                }
+            }
+            
+            function drawScene(canvas, ctx) {
+                const isDark = document.documentElement.classList.contains('dark');
+                const colors = {
+                    text: isDark ? 'rgba(226, 232, 240, 0.7)' : 'rgba(26, 32, 44, 0.7)',
+                    grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
+                    projectile: '#4f46e5', path: '#4f46e5'
+                };
+                const rect = canvas.getBoundingClientRect();
+                ctx.clearRect(0, 0, rect.width, rect.height);
+                
+                const originY = rect.height - state.origin.y;
+                ctx.save();
+                ctx.translate(state.origin.x + state.panOffset.x, originY + state.panOffset.y);
+                ctx.scale(state.scale, -state.scale);
+
+                drawGridAndPath(canvas, ctx, rect, colors);
+                
+                ctx.restore();
+                drawAxes(canvas, ctx, rect, colors.text);
+            }
+
+            function drawGridAndPath(canvas, ctx, rect, colors) {
+                ctx.lineWidth = 1 / state.scale;
+                const step = Math.pow(10, Math.floor(Math.log10(50 / state.scale)));
+                const world = screenToWorld(canvas, 0, 0);
+                const world2 = screenToWorld(canvas, rect.width, rect.height);
+
+                ctx.strokeStyle = colors.grid;
+                for (let x = Math.floor(world.x / step) * step; x < world2.x; x += step) {
+                    ctx.beginPath(); ctx.moveTo(x, world.y); ctx.lineTo(x, world2.y); ctx.stroke();
+                }
+                for (let y = Math.floor(world2.y / step) * step; y < world.y; y += step) {
+                    ctx.beginPath(); ctx.moveTo(world.x, y); ctx.lineTo(world2.x, y); ctx.stroke();
+                }
+
+                if (state.path.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(state.path[0].x, state.path[0].y);
+                    state.path.forEach(p => ctx.lineTo(p.x, p.y));
+                    ctx.strokeStyle = colors.path;
+                    ctx.lineWidth = 2 / state.scale;
+                    ctx.stroke();
+                }
+
+                ctx.beginPath();
+                ctx.arc(state.x, state.y, 4 / state.scale, 0, 2 * Math.PI);
+                ctx.fillStyle = colors.projectile;
+                ctx.fill();
+            }
+
+            function drawAxes(canvas, ctx, rect, color) {
+                ctx.strokeStyle = color; ctx.fillStyle = color;
+                ctx.lineWidth = 1; ctx.font = '10px Inter';
+                const originY = rect.height - state.origin.y;
+
+                ctx.beginPath(); ctx.moveTo(state.origin.x + state.panOffset.x, 0); ctx.lineTo(state.origin.x + state.panOffset.x, rect.height); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, originY + state.panOffset.y); ctx.lineTo(rect.width, originY + state.panOffset.y); ctx.stroke();
+                
+                const step = Math.pow(10, Math.floor(Math.log10(50 / state.scale)));
+                const world = screenToWorld(canvas, 0, 0);
+                const world2 = screenToWorld(canvas, rect.width, rect.height);
+                
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                for (let x = Math.floor(world.x / step) * step; x < world2.x; x += step) {
+                    if (Math.abs(x) < 1e-9) continue;
+                    const screenPos = worldToScreen(canvas, x, 0);
+                    ctx.fillText(x.toFixed(0), screenPos.x, originY + 5 + state.panOffset.y);
+                }
+
+                ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+                 for (let y = Math.floor(world2.y / step) * step; y < world.y; y += step) {
+                    if (Math.abs(y) < 1e-9) continue;
+                    const screenPos = worldToScreen(canvas, 0, y);
+                    ctx.fillText(y.toFixed(0), state.origin.x - 5 + state.panOffset.x, screenPos.y);
+                }
+            }
+
+            function screenToWorld(canvas, sx, sy) {
+                const rect = canvas.getBoundingClientRect();
+                const originY = rect.height - state.origin.y;
+                return {
+                    x: (sx - state.origin.x - state.panOffset.x) / state.scale,
+                    y: (sy - originY - state.panOffset.y) / -state.scale
+                };
+            }
+
+            function worldToScreen(canvas, wx, wy) {
+                const rect = canvas.getBoundingClientRect();
+                const originY = rect.height - state.origin.y;
+                return {
+                    x: wx * state.scale + state.origin.x + state.panOffset.x,
+                    y: wy * -state.scale + originY + state.panOffset.y
+                };
+            }
+
+            // --- EVENT LISTENERS ---
+            window.addEventListener('resize', () => {
+                resizeCanvas(dom.canvas);
+                if (!dom.fullscreenModal.classList.contains('hidden')) {
+                    resizeCanvas(dom.fullscreenCanvas);
+                }
+            });
+            
+            [dom.initialVelocitySlider, dom.launchAngleSlider, dom.gravitySlider].forEach(slider => {
+                slider.addEventListener('input', (e) => {
+                    const id = e.target.id;
+                    const value = parseFloat(e.target.value);
+                    if (id === 'initialVelocity') { state.v0 = value; dom.velocityValue.textContent = `${value} m/s`; }
+                    if (id === 'launchAngle') { state.angleDeg = value; dom.angleValue.textContent = `${value}°`; }
+                    if (id === 'gravity') { state.g = value; dom.gravityValue.textContent = `${value.toFixed(1)} m/s²`; }
+                    if (!state.isRunning) updateParameters();
+                });
+            });
+
+            dom.startBtn.addEventListener('click', startSimulation);
+            dom.pauseBtn.addEventListener('click', pauseSimulation);
+            dom.resetBtn.addEventListener('click', resetSimulation);
+
+            function addCanvasListeners(canvas) {
+                canvas.addEventListener('wheel', e => {
+                    e.preventDefault();
+                    const zoomFactor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+                    state.scale *= zoomFactor;
+                    drawAll();
+                });
+
+                canvas.addEventListener('mousedown', e => {
+                    const rect = canvas.getBoundingClientRect();
+                    const originY = rect.height - state.origin.y;
+                    if (Math.abs(e.clientX - rect.left - (state.origin.x + state.panOffset.x)) < 10) {
+                        state.isScalingY = true; state.scaleStart = e.clientY;
+                    } else if (Math.abs(e.clientY - rect.top - (originY + state.panOffset.y)) < 10) {
+                        state.isScalingX = true; state.scaleStart = e.clientX;
+                    } else {
+                        state.isPanning = true;
+                        state.panStart = { x: e.clientX - state.panOffset.x, y: e.clientY - state.panOffset.y };
+                    }
+                });
+
+                canvas.addEventListener('mousemove', e => {
+                    const rect = canvas.getBoundingClientRect();
+                    const originY = rect.height - state.origin.y;
+                    if (state.isPanning) {
+                        state.panOffset = { x: e.clientX - state.panStart.x, y: e.clientY - state.panStart.y };
+                    } else if (state.isScalingX) {
+                        const delta = (e.clientX - state.scaleStart) * 0.01;
+                        state.scale += delta;
+                        state.scale = Math.max(0.1, state.scale);
+                        state.scaleStart = e.clientX;
+                    } else if (state.isScalingY) {
+                        const delta = (state.scaleStart - e.clientY) * 0.01;
+                        state.scale += delta;
+                        state.scale = Math.max(0.1, state.scale);
+                        state.scaleStart = e.clientY;
+                    } else {
+                        if (Math.abs(e.clientX - rect.left - (state.origin.x + state.panOffset.x)) < 10) canvas.style.cursor = 'ns-resize';
+                        else if (Math.abs(e.clientY - rect.top - (originY + state.panOffset.y)) < 10) canvas.style.cursor = 'ew-resize';
+                        else canvas.style.cursor = 'grab';
+                    }
+                    drawAll();
+                });
+
+                canvas.addEventListener('mouseup', () => {
+                    state.isPanning = state.isScalingX = state.isScalingY = false;
+                });
+                canvas.addEventListener('mouseleave', () => {
+                    state.isPanning = state.isScalingX = state.isScalingY = false;
+                });
+            }
+
+            addCanvasListeners(dom.canvas);
+            addCanvasListeners(dom.fullscreenCanvas);
+
+            // --- INICIALIZACIÓN ---
+            applyTheme(localStorage.getItem('theme') || 'dark');
+            resizeCanvas(dom.canvas);
+            resetSimulation();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

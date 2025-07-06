@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulador de Proyectil con Resistencia del Aire</title>
+  
+  <!-- Favicon (Emoji) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎯</text></svg>">
+
+  <!-- External Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap" rel="stylesheet">
+
+  <!-- Custom Styles & Tailwind Config -->
+  <style type="text/tailwindcss">
+    @layer base {
+      :root, .light {
+        --background: 240 5% 96%;
+        --foreground: 240 10% 4%;
+        --card: 0 0% 100%;
+        --card-foreground: 240 10% 4%;
+        --primary: 262 82% 57%; /* Purple color from image */
+        --primary-foreground: 0 0% 100%;
+        --secondary: 240 5% 90%;
+        --secondary-foreground: 240 5% 34%;
+        --muted: 240 5% 90%;
+        --muted-foreground: 240 4% 46%;
+        --border: 240 6% 90%;
+        --input: 240 6% 90%;
+        --ring: 262 82% 57%;
+      }
+      .dark {
+        --background: 240 10% 4%;
+        --foreground: 0 0% 98%;
+        --card: 240 6% 10%;
+        --card-foreground: 0 0% 98%;
+        --primary: 262 82% 57%; /* Purple color from image */
+        --primary-foreground: 0 0% 100%;
+        --secondary: 240 5% 16%;
+        --secondary-foreground: 0 0% 98%;
+        --muted: 240 5% 16%;
+        --muted-foreground: 240 5% 65%;
+        --border: 240 4% 16%;
+        --input: 240 4% 16%;
+        --ring: 262 82% 57%;
+      }
+      .neon {
+        --background: 257 100% 3%;
+        --foreground: 300 100% 97%;
+        --card: 260 83% 11%;
+        --card-foreground: 300 100% 97%;
+        --primary: 262 82% 67%; /* Purple color from image */
+        --primary-foreground: 262 100% 95%;
+        --secondary: 260 83% 15%;
+        --secondary-foreground: 300 100% 97%;
+        --muted: 260 83% 15%;
+        --muted-foreground: 248 9% 65%;
+        --border: 260 83% 20%;
+        --input: 260 83% 20%;
+        --ring: 262 82% 67%;
+      }
+    }
+    @layer utilities {
+      .fade-in { animation: fadeIn 0.3s ease-in-out; }
+      .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+      @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      
+      input[type="range"] {
+        -webkit-appearance: none; appearance: none;
+        width: 100%; height: 6px;
+        background: hsl(var(--secondary));
+        border-radius: 5px; outline: none;
+        transition: background 0.3s;
+      }
+      input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none; appearance: none;
+        width: 20px; height: 20px;
+        background: hsl(var(--primary)); cursor: pointer;
+        border-radius: 50%; border: 3px solid hsl(var(--card));
+        box-shadow: 0 0 0 1px hsl(var(--border));
+        transition: transform 0.2s ease;
+      }
+      input[type="range"]::-webkit-slider-thumb:hover {
+          transform: scale(1.1);
+      }
+      input[type="range"]::-moz-range-thumb {
+        width: 20px; height: 20px;
+        background: hsl(var(--primary)); cursor: pointer;
+        border-radius: 50%; border: 3px solid hsl(var(--card));
+        box-shadow: 0 0 0 1px hsl(var(--border));
+      }
+      /* Custom style for color inputs */
+      .color-input-wrapper {
+        position: relative;
+        width: 28px;
+        height: 28px;
+      }
+      .color-input-wrapper input[type="color"] {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+      }
+      .color-input-wrapper .color-swatch {
+        width: 100%;
+        height: 100%;
+        border-radius: 0.5rem;
+        border: 2px solid hsl(var(--border));
+        pointer-events: none;
+        transition: transform 0.2s ease;
+      }
+       .color-input-wrapper:hover .color-swatch {
+        transform: scale(1.1);
+       }
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))', input: 'hsl(var(--input))', ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+            primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+            secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+            muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+            card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+          },
+          borderRadius: { lg: "0.75rem", md: "0.5rem", sm: "0.25rem" },
+          fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] },
+        },
+      },
+    }
+  </script>
+</head>
+
+<body class="bg-background text-foreground font-sans antialiased overflow-hidden">
+
+  <div class="flex flex-col lg:flex-row w-full h-screen">
+    
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-full lg:w-[380px] bg-card border-r border-border p-6 flex flex-col gap-6 transition-transform duration-300 ease-in-out transform -translate-x-full lg:translate-x-0 fixed lg:relative h-full z-40">
+      <div class="flex items-center justify-between">
+        <h1 class="text-2xl font-bold text-primary flex items-center gap-2"><i data-lucide="move-3d"></i><span>Proyectil 3D</span></h1>
+        <button id="close-sidebar-btn" class="lg:hidden p-2 rounded-md hover:bg-secondary">
+          <i data-lucide="x"></i>
+        </button>
+      </div>
+      
+      <div class="flex flex-col gap-4 flex-grow overflow-y-auto pr-2 -mr-2">
+        <!-- Parámetros de Lanzamiento -->
+        <div class="space-y-4">
+            <h2 class="text-lg font-semibold text-card-foreground">Parámetros de Lanzamiento</h2>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label for="initialVelocity" class="text-sm font-medium text-muted-foreground">Velocidad Inicial</label>
+                    <span id="velocityValue" class="font-mono text-primary font-semibold">14 m/s</span>
+                </div>
+                <input type="range" id="initialVelocity" min="5" max="100" value="14" step="1">
+            </div>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label for="launchAngle" class="text-sm font-medium text-muted-foreground">Ángulo</label>
+                    <span id="angleValue" class="font-mono text-primary font-semibold">45°</span>
+                </div>
+                <input type="range" id="launchAngle" min="1" max="89" value="45" step="1">
+            </div>
+             <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label for="gravity" class="text-sm font-medium text-muted-foreground">Gravedad</label>
+                    <span id="gravityValue" class="font-mono text-primary font-semibold">9.8 m/s²</span>
+                </div>
+                <input type="range" id="gravity" min="1" max="20" value="9.8" step="0.1">
+            </div>
+        </div>
+
+        <!-- Parámetros Físicos -->
+        <div class="space-y-4 pt-4 border-t border-border">
+            <h2 class="text-lg font-semibold text-card-foreground">Propiedades Físicas</h2>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label for="mass" class="text-sm font-medium text-muted-foreground">Masa del Proyectil</label>
+                    <span id="massValue" class="font-mono text-primary font-semibold">1.0 kg</span>
+                </div>
+                <input type="range" id="mass" min="0.1" max="10" value="1.0" step="0.1">
+            </div>
+            <div>
+                <div class="flex justify-between items-center mb-1">
+                    <label for="dragCoefficient" class="text-sm font-medium text-muted-foreground">Coef. de Arrastre (β)</label>
+                    <span id="dragValue" class="font-mono text-primary font-semibold">0.51 N·s/m</span>
+                </div>
+                <input type="range" id="dragCoefficient" min="0" max="1" value="0.51" step="0.01">
+            </div>
+        </div>
+
+        <!-- Controles de Simulación -->
+        <div class="pt-4 border-t border-border">
+             <div class="grid grid-cols-3 gap-3">
+                <button id="startBtn" class="w-full flex items-center justify-center gap-2 p-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-all focus:ring-2 focus:ring-ring focus:outline-none"><i data-lucide="play" class="w-5 h-5"></i></button>
+                <button id="pauseBtn" class="w-full flex items-center justify-center gap-2 p-3 bg-secondary text-secondary-foreground font-bold rounded-lg hover:bg-secondary/80 transition-all focus:ring-2 focus:ring-ring focus:outline-none disabled:opacity-50" disabled><i data-lucide="pause" class="w-5 h-5"></i></button>
+                <button id="resetBtn" class="w-full flex items-center justify-center gap-2 p-3 bg-secondary text-secondary-foreground font-bold rounded-lg hover:bg-secondary/80 transition-all focus:ring-2 focus:ring-ring focus:outline-none"><i data-lucide="rotate-cw" class="w-5 h-5"></i></button>
+            </div>
+        </div>
+        
+        <!-- Paneles de Datos -->
+        <div class="space-y-4 pt-4 border-t border-border flex-grow">
+            <div class="bg-secondary p-4 rounded-lg">
+                <h3 class="font-semibold mb-2 text-secondary-foreground">Datos Ideales (sin aire)</h3>
+                <div class="space-y-1 text-sm text-muted-foreground">
+                    <p class="flex justify-between"><span>Altura Máxima:</span> <strong id="maxHeightIdeal" class="font-mono text-card-foreground">-</strong></p>
+                    <p class="flex justify-between"><span>Alcance Máximo:</span> <strong id="maxRangeIdeal" class="font-mono text-card-foreground">-</strong></p>
+                    <p class="flex justify-between"><span>Tiempo de Vuelo:</span> <strong id="flightTimeIdeal" class="font-mono text-card-foreground">-</strong></p>
+                </div>
+            </div>
+            <div class="bg-secondary p-4 rounded-lg">
+                <h3 class="font-semibold mb-2 text-secondary-foreground">Datos en Tiempo Real (con aire)</h3>
+                <div class="space-y-1 text-sm text-muted-foreground">
+                    <p class="flex justify-between"><span>Tiempo:</span> <strong id="currentTime" class="font-mono text-card-foreground">0.00 s</strong></p>
+                    <p class="flex justify-between"><span>Posición X:</span> <strong id="currentX" class="font-mono text-card-foreground">0.00 m</strong></p>
+                    <p class="flex justify-between"><span>Posición Y:</span> <strong id="currentY" class="font-mono text-card-foreground">0.00 m</strong></p>
+                    <p class="flex justify-between"><span>Velocidad:</span> <strong id="currentVelocity" class="font-mono text-card-foreground">0.00 m/s</strong></p>
+                </div>
+            </div>
+        </div>
+        <footer class="text-center text-xs text-muted-foreground/80 py-4 mt-auto">
+            Autor: Msc Néstor Fabio Montoya y Gemini Ai
+        </footer>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main id="main-content" class="relative flex-1 flex flex-col bg-background transition-all duration-300 ease-in-out lg:ml-0">
+      <header class="lg:hidden flex items-center justify-between p-4 border-b border-border bg-card">
+        <button id="open-sidebar-btn" class="p-2 rounded-md hover:bg-secondary">
+          <i data-lucide="menu"></i>
+        </button>
+        <h1 class="text-lg font-bold text-primary">Simulador de Proyectil</h1>
+        <div class="w-10"></div>
+      </header>
+
+      <!-- Top Right Controls -->
+      <div class="absolute top-4 right-4 z-30 flex items-center gap-2 bg-card/50 backdrop-blur-sm p-2 rounded-full border border-border">
+        <button id="view-reset-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Restaurar Vista">
+          <i data-lucide="home" class="w-5 h-5"></i>
+        </button>
+        <button id="palette-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Paleta de Colores">
+          <i data-lucide="palette" class="w-5 h-5"></i>
+        </button>
+        <button id="theme-switcher" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Cambiar Tema">
+          <i data-lucide="sun" class="light-icon w-5 h-5"></i>
+          <i data-lucide="moon" class="dark-icon hidden w-5 h-5"></i>
+          <i data-lucide="zap" class="neon-icon hidden w-5 h-5"></i>
+        </button>
+        <button id="help-modal-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Mostrar Ayuda">
+          <i data-lucide="help-circle" class="w-5 h-5"></i>
+        </button>
+      </div>
+      
+      <div id="output" class="flex-1 flex w-full h-full p-4 lg:p-6">
+        <canvas id="simulationCanvas" class="w-full h-full rounded-lg border border-border bg-card cursor-grab"></canvas>
+      </div>
+
+      <!-- Color Palette Panel -->
+      <div id="color-panel" class="fixed bottom-4 right-4 z-30 bg-card/60 backdrop-blur-md border border-border p-3 rounded-2xl shadow-lg hidden fade-in">
+        <div class="flex items-center gap-3">
+            <label for="path-color-input" class="text-sm font-medium text-muted-foreground">Trayectoria</label>
+            <div class="color-input-wrapper" title="Color de la Trayectoria">
+                <div id="path-swatch" class="color-swatch"></div>
+                <input type="color" id="path-color-input">
+            </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Help Modal -->
+  <div id="help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in">
+      <div class="bg-card border border-border rounded-2xl p-6 w-full max-w-2xl shadow-2xl slide-up max-h-[90vh] flex flex-col">
+          <div class="flex items-center justify-between mb-4 pb-4 border-b border-border">
+              <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="help-circle" class="text-primary"></i> Guía de Usuario</h2>
+              <button class="p-2 rounded-md hover:bg-secondary transition-colors close-modal-btn"><i data-lucide="x"></i></button>
+          </div>
+          <div class="overflow-y-auto prose prose-sm dark:prose-invert max-w-none text-muted-foreground">
+              <h4>🎯 Bienvenido al Simulador de Proyectiles</h4>
+              <p>Esta herramienta visualiza y compara el movimiento parabólico ideal con el movimiento de un proyectil afectado por la resistencia del aire.</p>
+              
+              <h5>Parámetros de Simulación</h5>
+              <ul>
+                <li><strong>Velocidad, Ángulo, Gravedad:</strong> Definen las condiciones de lanzamiento.</li>
+                <li><strong>Masa y Coef. de Arrastre (β):</strong> Propiedades físicas que afectan la resistencia del aire. Un valor de β=0 anula la resistencia.</li>
+              </ul>
+
+              <h5>Visualización y Controles</h5>
+              <ul>
+                <li><span class="text-primary font-semibold">Línea Sólida:</span> Trayectoria real (con aire).</li>
+                <li><span class="opacity-50 font-semibold">Línea Punteada:</span> Trayectoria ideal (sin aire).</li>
+                <li><i data-lucide="home" class="inline-block w-4 h-4"></i> <strong>Restaurar Vista:</strong> Devuelve el zoom y la posición a su estado inicial.</li>
+                <li><i data-lucide="palette" class="inline-block w-4 h-4"></i> <strong>Paleta:</strong> Muestra/oculta el panel para cambiar el color de la gráfica.</li>
+              </ul>
+
+              <h5>Interactuar con el Canvas</h5>
+              <ul>
+                  <li><strong>Zoom:</strong> Usa la <strong>rueda del mouse</strong> para acercar o alejar.</li>
+                  <li><strong>Paneo:</strong> Haz <strong>clic y arrastra</strong> para mover la vista.</li>
+              </ul>
+          </div>
+      </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DOM Elements ---
+        const dom = {
+            sidebar: document.getElementById('sidebar'),
+            openSidebarBtn: document.getElementById('open-sidebar-btn'),
+            closeSidebarBtn: document.getElementById('close-sidebar-btn'),
+            canvas: document.getElementById('simulationCanvas'),
+            themeSwitcher: document.getElementById('theme-switcher'),
+            helpModalBtn: document.getElementById('help-modal-btn'),
+            helpModal: document.getElementById('help-modal'),
+            viewResetBtn: document.getElementById('view-reset-btn'),
+            paletteBtn: document.getElementById('palette-btn'),
+            colorPanel: document.getElementById('color-panel'),
+            
+            // Sliders and Value Displays
+            initialVelocity: { slider: document.getElementById('initialVelocity'), value: document.getElementById('velocityValue') },
+            launchAngle: { slider: document.getElementById('launchAngle'), value: document.getElementById('angleValue') },
+            gravity: { slider: document.getElementById('gravity'), value: document.getElementById('gravityValue') },
+            mass: { slider: document.getElementById('mass'), value: document.getElementById('massValue') },
+            dragCoefficient: { slider: document.getElementById('dragCoefficient'), value: document.getElementById('dragValue') },
+
+            // Buttons
+            startBtn: document.getElementById('startBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+
+            // Data Displays
+            maxHeightIdeal: document.getElementById('maxHeightIdeal'),
+            maxRangeIdeal: document.getElementById('maxRangeIdeal'),
+            flightTimeIdeal: document.getElementById('flightTimeIdeal'),
+            currentTime: document.getElementById('currentTime'),
+            currentX: document.getElementById('currentX'),
+            currentY: document.getElementById('currentY'),
+            currentVelocity: document.getElementById('currentVelocity'),
+
+            // Color Picker
+            pathColor: { input: document.getElementById('path-color-input'), swatch: document.getElementById('path-swatch') },
+        };
+
+        const ctx = dom.canvas.getContext('2d');
+
+        // --- State Management ---
+        const initialState = {
+            v0: 14, angleDeg: 45, g: 9.8, mass: 1.0, beta: 0.51,
+            scale: 60,
+        };
+
+        let state = {
+            ...initialState,
+            // Simulation state
+            t: 0, x: 0, y: 0, vx: 0, vy: 0,
+            path: [], idealPath: [],
+            isRunning: false, isPaused: false, animationFrameId: null,
+            // Canvas state
+            origin: { x: 50, y: 50 },
+            panOffset: { x: 0, y: 0 },
+            isPanning: false,
+            panStart: { x: 0, y: 0 },
+            // Theme & Colors
+            currentTheme: 'light',
+            themes: ['light', 'dark', 'neon'],
+            colors: {
+                path: '#6d28d9', // purple-700
+                idealPath: '#a78bfa', // purple-400
+            }
+        };
+
+        // --- Utility & Setup Functions ---
+        const applyTheme = (theme) => {
+            document.documentElement.classList.remove(...state.themes);
+            document.documentElement.classList.add(theme);
+            state.currentTheme = theme;
+            localStorage.setItem('projectile-sim-theme', theme);
+            document.querySelectorAll('#theme-switcher i').forEach(i => i.style.display = 'none');
+            document.querySelector(`#theme-switcher .${theme}-icon`).style.display = 'block';
+            drawScene();
+        };
+
+        const setupModal = (modal, openBtn) => {
+            const closeModal = () => modal.classList.add('hidden');
+            openBtn.onclick = () => modal.classList.remove('hidden');
+            modal.querySelector('.close-modal-btn').onclick = closeModal;
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+        };
+        
+        const resizeCanvas = () => {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = dom.canvas.getBoundingClientRect();
+            dom.canvas.width = rect.width * dpr;
+            dom.canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            state.origin.y = dom.canvas.getBoundingClientRect().height - 50;
+            drawScene();
+        };
+
+        // --- Physics & Simulation Logic ---
+        function calculateIdealTrajectory() {
+            const angleRad = state.angleDeg * Math.PI / 180;
+            const v0x = state.v0 * Math.cos(angleRad);
+            const v0y = state.v0 * Math.sin(angleRad);
+
+            const time = (2 * v0y) / state.g;
+            const range = v0x * time;
+            const height = (v0y ** 2) / (2 * state.g);
+            
+            dom.flightTimeIdeal.textContent = `${time.toFixed(2)} s`;
+            dom.maxRangeIdeal.textContent = `${range.toFixed(2)} m`;
+            dom.maxHeightIdeal.textContent = `${height.toFixed(2)} m`;
+
+            state.idealPath = [];
+            if (time > 0) {
+                const timeStep = time / 100;
+                for (let t_step = 0; t_step <= time; t_step += timeStep) {
+                    const x = v0x * t_step;
+                    const y = v0y * t_step - 0.5 * state.g * t_step * t_step;
+                    state.idealPath.push({ x, y });
+                }
+            }
+            state.idealPath.push({x: range, y: 0});
+            return { range, height };
+        }
+
+        function resetSimulation() {
+            if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
+            
+            const angleRad = state.angleDeg * Math.PI / 180;
+            state.v0x = state.v0 * Math.cos(angleRad);
+            state.v0y = state.v0 * Math.sin(angleRad);
+
+            Object.assign(state, {
+                t: 0, x: 0, y: 0,
+                vx: state.v0x, vy: state.v0y,
+                path: [{ x: 0, y: 0 }],
+                isRunning: false, isPaused: false, animationFrameId: null
+            });
+            
+            dom.startBtn.disabled = false;
+            dom.pauseBtn.disabled = true;
+            
+            calculateIdealTrajectory();
+            updateRealTimeData();
+            drawScene();
+        }
+        
+        function resetView() {
+            state.scale = initialState.scale;
+            state.panOffset = { x: 0, y: 0 };
+            drawScene();
+        }
+
+        function startSimulation() {
+            if (state.isRunning && !state.isPaused) return;
+            if (state.y < 0 && state.t > 0) {
+                resetSimulation();
+            }
+            Object.assign(state, { isRunning: true, isPaused: false });
+            dom.startBtn.disabled = true;
+            dom.pauseBtn.disabled = false;
+            
+            const angleRad = state.angleDeg * Math.PI / 180;
+            state.v0x = state.v0 * Math.cos(angleRad);
+            state.v0y = state.v0 * Math.sin(angleRad);
+            state.vx = state.v0x;
+            state.vy = state.v0y;
+            state.path = [{x: 0, y: 0}];
+            state.t = 0; state.x = 0; state.y = 0;
+
+            state.animationFrameId = requestAnimationFrame(animate);
+        }
+
+        function pauseSimulation() {
+            if (!state.isRunning || state.isPaused) return;
+            state.isPaused = true;
+            dom.startBtn.disabled = false;
+            dom.pauseBtn.disabled = true;
+            cancelAnimationFrame(state.animationFrameId);
+        }
+
+        function animate() {
+            if (!state.isRunning || state.isPaused) return;
+
+            const dt = 1 / 120; 
+            const b = state.beta > 1e-6 ? state.beta / state.mass : 0;
+            
+            const prev_x = state.x;
+            const prev_y = state.y;
+
+            state.t += dt;
+            
+            if (b > 0) {
+                state.x = (state.v0x / b) * (1 - Math.exp(-b * state.t));
+                state.y = (1 / b) * (state.v0y + state.g / b) * (1 - Math.exp(-b * state.t)) - (state.g / b) * state.t;
+                state.vx = state.v0x * Math.exp(-b * state.t);
+                state.vy = (state.v0y + state.g / b) * Math.exp(-b * state.t) - (state.g / b);
+            } else { // Ideal case if beta is zero
+                state.x = state.v0x * state.t;
+                state.y = state.v0y * state.t - 0.5 * state.g * state.t * state.t;
+                state.vx = state.v0x;
+                state.vy = state.v0y - state.g * state.t;
+            }
+
+            state.path.push({ x: state.x, y: state.y });
+            updateRealTimeData();
+            drawScene();
+
+            if (state.y < 0 && state.t > dt) {
+                const r = -prev_y / (state.y - prev_y);
+                state.x = prev_x + r * (state.x - prev_x);
+                state.y = 0;
+                state.path[state.path.length - 1] = {x: state.x, y: state.y};
+                
+                updateRealTimeData();
+                drawScene();
+                pauseSimulation();
+                state.isRunning = false; 
+            } else {
+                state.animationFrameId = requestAnimationFrame(animate);
+            }
+        }
+
+        function updateRealTimeData() {
+            const v = Math.sqrt(state.vx**2 + state.vy**2);
+            dom.currentTime.textContent = `${state.t.toFixed(2)} s`;
+            dom.currentX.textContent = `${state.x.toFixed(2)} m`;
+            dom.currentY.textContent = `${Math.max(0, state.y).toFixed(2)} m`;
+            dom.currentVelocity.textContent = `${v.toFixed(2)} m/s`;
+        }
+
+        // --- Canvas Drawing ---
+        function drawScene() {
+            const style = getComputedStyle(document.documentElement);
+            const colors = {
+                bg: `hsl(${style.getPropertyValue('--card')})`,
+                grid: `hsl(${style.getPropertyValue('--border')})`,
+                axis: `hsl(${style.getPropertyValue('--muted-foreground')})`,
+                text: `hsl(${style.getPropertyValue('--foreground')})`,
+            };
+            
+            const rect = dom.canvas.getBoundingClientRect();
+            ctx.fillStyle = colors.bg;
+            ctx.fillRect(0, 0, rect.width, rect.height);
+            
+            ctx.save();
+            ctx.translate(state.origin.x + state.panOffset.x, state.origin.y + state.panOffset.y);
+            ctx.scale(state.scale, -state.scale);
+
+            drawGrid(rect, colors);
+            drawPath(state.idealPath, state.colors.idealPath, true);
+            drawPath(state.path, state.colors.path, false);
+            drawProjectile(state.colors.path); // Projectile uses the same color as the path
+            
+            ctx.restore();
+            drawAxes(rect, colors);
+        }
+
+        function drawGrid(rect, colors) {
+            ctx.lineWidth = 1 / state.scale;
+            ctx.strokeStyle = colors.grid;
+            
+            const worldTopLeft = screenToWorld(0, 0);
+            const worldBottomRight = screenToWorld(rect.width, rect.height);
+
+            const step = Math.pow(10, Math.floor(Math.log10(80 / state.scale)));
+
+            for (let x = Math.floor(worldTopLeft.x / step) * step; x < worldBottomRight.x; x += step) {
+                ctx.beginPath(); ctx.moveTo(x, worldTopLeft.y); ctx.lineTo(x, worldBottomRight.y); ctx.stroke();
+            }
+            for (let y = Math.floor(worldBottomRight.y / step) * step; y < worldTopLeft.y; y += step) {
+                ctx.beginPath(); ctx.moveTo(worldTopLeft.x, y); ctx.lineTo(worldBottomRight.x, y); ctx.stroke();
+            }
+        }
+
+        function drawAxes(rect, colors) {
+            ctx.strokeStyle = colors.axis;
+            ctx.fillStyle = colors.text;
+            ctx.lineWidth = 1.5;
+            ctx.font = '10px Inter';
+            
+            const originScreen = { x: state.origin.x + state.panOffset.x, y: state.origin.y + state.panOffset.y };
+
+            ctx.beginPath(); ctx.moveTo(originScreen.x, 0); ctx.lineTo(originScreen.x, rect.height); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, originScreen.y); ctx.lineTo(rect.width, originScreen.y); ctx.stroke();
+
+            const worldTopLeft = screenToWorld(0, 0);
+            const worldBottomRight = screenToWorld(rect.width, rect.height);
+            const step = Math.pow(10, Math.floor(Math.log10(80 / state.scale)));
+
+            ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+            for (let x = Math.floor(worldTopLeft.x / step) * step; x < worldBottomRight.x; x += step) {
+                if (Math.abs(x) > 1e-9) {
+                    const screenPos = worldToScreen(x, 0);
+                    ctx.fillText(x.toFixed(0), screenPos.x, originScreen.y + 5);
+                }
+            }
+
+            ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+            for (let y = Math.floor(worldBottomRight.y / step) * step; y < worldTopLeft.y; y += step) {
+                if (Math.abs(y) > 1e-9) {
+                    const screenPos = worldToScreen(0, y);
+                    ctx.fillText(y.toFixed(0), originScreen.x - 5, screenPos.y);
+                }
+            }
+        }
+
+        function drawPath(path, color, dashed) {
+            if (path.length < 2) return;
+            ctx.beginPath();
+            ctx.moveTo(path[0].x, path[0].y);
+            path.forEach(p => ctx.lineTo(p.x, p.y));
+            ctx.strokeStyle = color;
+            ctx.lineWidth = dashed ? 2 / state.scale : 3 / state.scale;
+            if (dashed) {
+                const idealColor = state.colors.idealPath;
+                ctx.strokeStyle = idealColor.startsWith('#') ? `${idealColor}80` : idealColor; // Add alpha for hex
+                ctx.setLineDash([8 / state.scale, 8 / state.scale]);
+            }
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        function drawProjectile(color) {
+            ctx.beginPath();
+            ctx.arc(state.x, state.y, 5 / state.scale, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = `hsl(${getComputedStyle(document.documentElement).getPropertyValue('--card')})`;
+            ctx.lineWidth = 1.5 / state.scale;
+            ctx.stroke();
+        }
+
+        function screenToWorld(sx, sy) {
+            return {
+                x: (sx - (state.origin.x + state.panOffset.x)) / state.scale,
+                y: (sy - (state.origin.y + state.panOffset.y)) / -state.scale
+            };
+        }
+
+        function worldToScreen(wx, wy) {
+            return {
+                x: wx * state.scale + state.origin.x + state.panOffset.x,
+                y: wy * -state.scale + state.origin.y + state.panOffset.y
+            };
+        }
+
+        // --- Event Listeners ---
+        function setupEventListeners() {
+            window.addEventListener('resize', resizeCanvas);
+            
+            dom.openSidebarBtn.addEventListener('click', () => dom.sidebar.classList.remove('-translate-x-full'));
+            dom.closeSidebarBtn.addEventListener('click', () => dom.sidebar.classList.add('-translate-x-full'));
+
+            dom.themeSwitcher.addEventListener('click', () => {
+                const nextThemeIndex = (state.themes.indexOf(state.currentTheme) + 1) % state.themes.length;
+                applyTheme(state.themes[nextThemeIndex]);
+            });
+
+            setupModal(dom.helpModal, dom.helpModalBtn);
+            
+            dom.viewResetBtn.addEventListener('click', resetView);
+            dom.paletteBtn.addEventListener('click', () => {
+                dom.colorPanel.classList.toggle('hidden');
+            });
+
+            const sliders = [dom.initialVelocity, dom.launchAngle, dom.gravity, dom.mass, dom.dragCoefficient];
+            sliders.forEach(control => {
+                control.slider.addEventListener('input', (e) => {
+                    const value = parseFloat(e.target.value);
+                    const id = control.slider.id;
+                    if (id === 'initialVelocity') { state.v0 = value; control.value.textContent = `${value} m/s`; }
+                    if (id === 'launchAngle') { state.angleDeg = value; control.value.textContent = `${value}°`; }
+                    if (id === 'gravity') { state.g = value; control.value.textContent = `${value.toFixed(1)} m/s²`; }
+                    if (id === 'mass') { state.mass = value; control.value.textContent = `${value.toFixed(1)} kg`; }
+                    if (id === 'dragCoefficient') { state.beta = value; control.value.textContent = `${value.toFixed(2)} N·s/m`; }
+                    
+                    if (!state.isRunning) resetSimulation();
+                });
+            });
+            
+            dom.startBtn.addEventListener('click', startSimulation);
+            dom.pauseBtn.addEventListener('click', pauseSimulation);
+            dom.resetBtn.addEventListener('click', resetSimulation);
+
+            // Color Picker Listener
+            dom.pathColor.input.value = state.colors.path;
+            dom.pathColor.swatch.style.backgroundColor = state.colors.path;
+            dom.pathColor.input.addEventListener('input', (e) => {
+                state.colors.path = e.target.value;
+                dom.pathColor.swatch.style.backgroundColor = e.target.value;
+                if (!state.isRunning) drawScene();
+            });
+
+            // Canvas Interaction
+            dom.canvas.addEventListener('wheel', e => {
+                e.preventDefault();
+                const rect = dom.canvas.getBoundingClientRect();
+                const mousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                const worldPosBeforeZoom = screenToWorld(mousePos.x, mousePos.y);
+                const zoomFactor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
+                state.scale *= zoomFactor;
+                const worldPosAfterZoom = screenToWorld(mousePos.x, mousePos.y);
+                state.panOffset.x += (worldPosAfterZoom.x - worldPosBeforeZoom.x) * state.scale;
+                state.panOffset.y -= (worldPosAfterZoom.y - worldPosBeforeZoom.y) * state.scale;
+                drawScene();
+            }, { passive: false });
+
+            dom.canvas.addEventListener('mousedown', e => {
+                state.isPanning = true;
+                state.panStart = { x: e.clientX - state.panOffset.x, y: e.clientY - state.panOffset.y };
+                dom.canvas.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', e => {
+                if (state.isPanning) {
+                    state.panOffset = { x: e.clientX - state.panOffset.x, y: e.clientY - state.panOffset.y };
+                    drawScene();
+                }
+            });
+
+            window.addEventListener('mouseup', () => {
+                state.isPanning = false;
+                dom.canvas.style.cursor = 'grab';
+            });
+        }
+
+        // --- Initialization ---
+        function init() {
+            const savedTheme = localStorage.getItem('projectile-sim-theme');
+            applyTheme(savedTheme && state.themes.includes(savedTheme) ? savedTheme : 'light');
+            
+            resizeCanvas();
+            setupEventListeners();
+            resetSimulation();
+            drawScene(); // Draw initial scene with fixed scale
+            lucide.createIcons();
+        }
+
+        init();
+    });
+  </script>
+</body>
+</html>

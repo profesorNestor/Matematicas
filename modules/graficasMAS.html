@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Movimiento Armónico Simple (M.A.S.)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background 0.5s ease, color 0.5s ease;
+        }
+        /* --- Light Theme --- */
+        .light-theme {
+            background-color: #f9fafb;
+            color: #111827;
+        }
+        .light-theme .card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .light-theme .header-text { color: #111827; }
+        .light-theme .subheader-text { color: #4b5563; }
+        .light-theme .control-text { color: #374151; }
+        .light-theme .modal-content { background-color: white; color: #111827; }
+        .light-theme .header-btn {
+            background-color: #e5e7eb;
+        }
+         .light-theme .header-btn:hover {
+            background-color: #d1d5db;
+        }
+        .light-theme .header-btn svg {
+            color: #374151;
+        }
+
+        /* --- Dark Theme --- */
+        .dark-theme {
+            background-color: #111827;
+            color: #e5e7eb;
+        }
+        .dark-theme .card {
+            background-color: #1f2937;
+            border: 1px solid #374151;
+        }
+        .dark-theme .header-text { color: white; }
+        .dark-theme .subheader-text { color: #9ca3af; }
+        .dark-theme .control-text { color: #e5e7eb; }
+        .dark-theme .modal-content { background-color: #1f2937; color: #e5e7eb; }
+        .dark-theme .header-btn {
+            background-color: rgba(55, 65, 81, 0.5);
+        }
+        .dark-theme .header-btn:hover {
+            background-color: rgba(75, 85, 99, 0.5);
+        }
+        .dark-theme .header-btn svg {
+            color: white;
+        }
+
+
+        /* --- Glassmorphism Theme --- */
+        .glassmorphism-theme {
+            background: linear-gradient(135deg, #4f46e5 0%, #db2777 100%);
+            color: white;
+        }
+        .glassmorphism-theme .card {
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glassmorphism-theme .header-text { color: white; text-shadow: 0 0 10px rgba(0,0,0,0.3); }
+        .glassmorphism-theme .subheader-text { color: rgba(255,255,255,0.8); }
+        .glassmorphism-theme .control-text { color: white; }
+        .glassmorphism-theme .modal-content {
+             background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            color: white;
+        }
+        .glassmorphism-theme .header-btn {
+            background-color: rgba(55, 65, 81, 0.5);
+        }
+        .glassmorphism-theme .header-btn:hover {
+            background-color: rgba(75, 85, 99, 0.5);
+        }
+        .glassmorphism-theme .header-btn svg {
+            color: white;
+        }
+
+        /* --- QuantumGlass Theme --- */
+        .quantum-theme {
+            background-color: #0B1120;
+            color: #e2e8f0;
+        }
+        .quantum-theme .card {
+            background-color: rgba(23, 31, 51, 0.5);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+        .quantum-theme .header-text { color: #e2e8f0; }
+        .quantum-theme .subheader-text { color: #a0aec0; }
+        .quantum-theme .control-text { color: #e2e8f0; }
+        .quantum-theme .modal-content {
+            background-color: rgba(23, 31, 51, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+        }
+        .quantum-theme .header-btn {
+            background-color: rgba(55, 65, 81, 0.5);
+        }
+        .quantum-theme .header-btn:hover {
+            background-color: rgba(75, 85, 99, 0.5);
+        }
+        .quantum-theme .header-btn svg {
+            color: white;
+        }
+        
+        .slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px;
+            background: #4f46e5; cursor: pointer;
+            border-radius: 50%; border: 2px solid white;
+            transition: background .3s;
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px;
+            background: #4f46e5; cursor: pointer;
+            border-radius: 50%; border: 2px solid white;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px; height: 20px;
+            background: #4f46e5; cursor: pointer;
+            border-radius: 50%; border: 2px solid white;
+        }
+        .card {
+            transition: background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease;
+        }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+    </style>
+</head>
+<body class="dark-theme">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="relative mb-8">
+             <div class="absolute top-0 right-0 flex space-x-2">
+                <button id="theme-toggle-btn" class="p-2 rounded-full transition header-btn" title="Cambiar Tema">
+                    <svg id="theme-icon-dark" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                    <svg id="theme-icon-light" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    <svg id="theme-icon-glass" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><path d="m21.5 2-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2m-1.5-1.5-2 2"/></svg>
+                    <svg id="theme-icon-quantum" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="hidden"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="8"/></svg>
+                </button>
+                 <button id="show-help-btn" class="p-2 rounded-full transition header-btn" title="Ayuda">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+                </button>
+            </div>
+            <div class="pt-12 text-center">
+                <h1 class="text-4xl md:text-5xl font-bold mb-2 header-text">Movimiento Armónico Simple (M.A.S.)</h1>
+                <p class="text-lg subheader-text">Visualiza las ecuaciones de elongación, velocidad y aceleración.</p>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Columna de Controles -->
+            <div class="lg:col-span-1 p-6 rounded-2xl shadow-2xl self-start card">
+                <h2 class="text-2xl font-semibold mb-6 control-text">Parámetros del Movimiento</h2>
+                <div class="space-y-6">
+                    <div>
+                        <label for="amplitude" class="block mb-2 text-sm font-medium control-text">Amplitud (A): <span id="amplitude-value" class="font-bold text-indigo-400">10</span> cm</label>
+                        <input id="amplitude" type="range" min="1" max="50" value="10" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="period" class="block mb-2 text-sm font-medium control-text">Período (T): <span id="period-value" class="font-bold text-indigo-400">2.0</span> s</label>
+                        <input id="period" type="range" min="0.5" max="10" step="0.1" value="2.0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="phase" class="block mb-2 text-sm font-medium control-text">Fase Inicial (\(\alpha\)): <span id="phase-value" class="font-bold text-indigo-400">0</span>°</label>
+                        <input id="phase" type="range" min="0" max="360" step="1" value="0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Columna de Gráficos -->
+            <div class="lg:col-span-2 space-y-8">
+                <div class="plot-container card">
+                    <h3 class="text-xl font-semibold mb-2">Elongación vs. Tiempo (\(x = A \sin(\omega t + \alpha)\))</h3>
+                    <div id="position-plot" class="w-full h-64"></div>
+                </div>
+                 <div class="plot-container card">
+                    <h3 class="text-xl font-semibold mb-2">Velocidad vs. Tiempo (\(v = A\omega \cos(\omega t + \alpha)\))</h3>
+                    <div id="velocity-plot" class="w-full h-64"></div>
+                </div>
+                 <div class="plot-container card">
+                    <h3 class="text-xl font-semibold mb-2">Aceleración vs. Tiempo (\(a = -A\omega^2 \sin(\omega t + \alpha)\))</h3>
+                    <div id="acceleration-plot" class="w-full h-64"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Modal de Ayuda -->
+        <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="card rounded-2xl shadow-2xl w-full max-w-2xl p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold">Ayuda: Movimiento Armónico Simple</h2>
+                    <button id="close-help-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div class="space-y-4 max-h-[70vh] overflow-y-auto pr-4">
+                    <p>El Movimiento Armónico Simple (M.A.S.) describe una oscilación periódica donde la fuerza de restitución es directamente proporcional al desplazamiento y actúa en dirección opuesta a este.</p>
+                    <h3 class="text-xl font-semibold text-indigo-400">Ecuaciones del Movimiento</h3>
+                    <p><b>1. Elongación (Posición):</b> Describe la posición de la partícula en cualquier instante de tiempo \(t\).</p>
+                    <p class="text-center text-lg p-2 bg-black/20 rounded-lg">\(x(t) = A \sin(\omega t + \alpha)\)</p>
+                    <p><b>2. Velocidad:</b> Es la primera derivada de la posición. Alcanza su máximo cuando la elongación es cero.</p>
+                    <p class="text-center text-lg p-2 bg-black/20 rounded-lg">\(v(t) = A\omega \cos(\omega t + \alpha)\)</p>
+                    <p><b>3. Aceleración:</b> Es la segunda derivada de la posición. Es máxima en los extremos y cero en el punto de equilibrio.</p>
+                    <p class="text-center text-lg p-2 bg-black/20 rounded-lg">\(a(t) = -A\omega^2 \sin(\omega t + \alpha) = -\omega^2 x(t)\)</p>
+                     <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li><b>A:</b> Amplitud - máximo desplazamiento desde la posición de equilibrio.</li>
+                        <li><b>T:</b> Período - tiempo para una oscilación completa.</li>
+                        <li>\(\omega = 2\pi/T\): Frecuencia angular.</li>
+                        <li>\(\alpha\): Fase inicial - determina la posición inicial en \(t=0\).</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-12 text-gray-500">
+            <p>Autor: Msc: Néstor Fabio Montoya y Gemini AI</p>
+        </footer>
+    </div>
+
+    <script>
+        const body = document.body;
+        const amplitudeSlider = document.getElementById('amplitude');
+        const periodSlider = document.getElementById('period');
+        const phaseSlider = document.getElementById('phase');
+        
+        const amplitudeValue = document.getElementById('amplitude-value');
+        const periodValue = document.getElementById('period-value');
+        const phaseValue = document.getElementById('phase-value');
+        
+        const positionPlot = document.getElementById('position-plot');
+        const velocityPlot = document.getElementById('velocity-plot');
+        const accelerationPlot = document.getElementById('acceleration-plot');
+
+        const themeToggleBtn = document.getElementById('theme-toggle-btn');
+        const themeIcons = {
+            dark: document.getElementById('theme-icon-dark'),
+            light: document.getElementById('theme-icon-light'),
+            glass: document.getElementById('theme-icon-glass'),
+            quantum: document.getElementById('theme-icon-quantum')
+        };
+        
+        const helpModal = document.getElementById('help-modal');
+        const showHelpBtn = document.getElementById('show-help-btn');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+
+        const themes = ['dark-theme', 'light-theme', 'glassmorphism-theme', 'quantum-theme'];
+        const themeIconNames = ['dark', 'light', 'glass', 'quantum'];
+        let currentThemeIndex = 0;
+
+        function updateSimulation() {
+            const A = parseFloat(amplitudeSlider.value);
+            const T = parseFloat(periodSlider.value);
+            const alphaDeg = parseFloat(phaseSlider.value);
+
+            amplitudeValue.textContent = `${A} cm`;
+            periodValue.textContent = `${T.toFixed(1)} s`;
+            phaseValue.textContent = `${alphaDeg}°`;
+
+            const omega = (2 * Math.PI) / T;
+            const alphaRad = alphaDeg * Math.PI / 180;
+
+            const t = [];
+            const x = [];
+            const v = [];
+            const a = [];
+            
+            const timeEnd = 20; // Fixed time range up to 20s
+            const points = 1000;
+
+            for (let i = 0; i < points; i++) {
+                const currentTime = (i / (points - 1)) * timeEnd;
+                t.push(currentTime);
+                
+                const angle = omega * currentTime + alphaRad;
+                
+                x.push(A * Math.sin(angle));
+                v.push(A * omega * Math.cos(angle));
+                a.push(-A * omega * omega * Math.sin(angle));
+            }
+
+            const yMaxPos = 50 * 1.1;
+            const yMaxVel = 50 * (2 * Math.PI / 0.5) * 1.1;
+            const yMaxAcc = 50 * Math.pow(2 * Math.PI / 0.5, 2) * 1.1;
+
+            drawPlot(positionPlot, t, x, 'Elongación (cm)', '#3b82f6', [-yMaxPos, yMaxPos]);
+            drawPlot(velocityPlot, t, v, 'Velocidad (cm/s)', '#16a34a', [-yMaxVel, yMaxVel]);
+            drawPlot(accelerationPlot, t, a, 'Aceleración (cm/s²)', '#ef4444', [-yMaxAcc, yMaxAcc]);
+        }
+
+        function drawPlot(div, t, y, yTitle, color, yRange) {
+            const plotData = [{
+                x: t,
+                y: y,
+                type: 'scatter',
+                mode: 'lines',
+                line: { color: color, width: 3 }
+            }];
+            
+            const currentTheme = themes[currentThemeIndex];
+            let paperColor, plotColor, fontColor, gridColor, zeroColor;
+
+            if (currentTheme === 'light-theme') {
+                paperColor = 'white';
+                plotColor = '#f9fafb';
+                fontColor = '#374151';
+                gridColor = 'rgba(0, 0, 0, 0.1)';
+                zeroColor = 'rgba(0, 0, 0, 0.3)';
+            } else if (currentTheme === 'glassmorphism-theme') {
+                paperColor = 'rgba(0,0,0,0)';
+                plotColor = 'rgba(0,0,0,0)';
+                fontColor = 'white';
+                gridColor = 'rgba(255, 255, 255, 0.3)';
+                zeroColor = 'rgba(255, 255, 255, 0.6)';
+            } else if (currentTheme === 'quantum-theme') {
+                paperColor = 'rgba(23, 31, 51, 0)';
+                plotColor = 'rgba(23, 31, 51, 0)';
+                fontColor = '#a0aec0';
+                gridColor = 'rgba(255, 255, 255, 0.1)';
+                zeroColor = 'rgba(255, 255, 255, 0.3)';
+            } else { // dark-theme
+                paperColor = '#1f2937';
+                plotColor = '#111827';
+                fontColor = 'white';
+                gridColor = 'rgba(255, 255, 255, 0.2)';
+                zeroColor = 'rgba(255, 255, 255, 0.5)';
+            }
+
+            const layout = {
+                dragmode: 'pan',
+                xaxis: {
+                    title: 'Tiempo (s)',
+                    gridcolor: gridColor,
+                    zerolinecolor: zeroColor,
+                    linecolor: fontColor,
+                    color: fontColor
+                },
+                yaxis: {
+                    title: yTitle,
+                    range: yRange,
+                    gridcolor: gridColor,
+                    zerolinecolor: zeroColor,
+                    linecolor: fontColor,
+                    color: fontColor
+                },
+                paper_bgcolor: paperColor,
+                plot_bgcolor: plotColor,
+                font: { color: fontColor },
+                margin: { l: 60, r: 30, b: 50, t: 30 }
+            };
+
+            const config = {
+                responsive: true,
+                scrollZoom: true,
+                displayModeBar: true
+            };
+
+            Plotly.newPlot(div, plotData, layout, config);
+        }
+
+        function toggleTheme() {
+            body.classList.remove(themes[currentThemeIndex]);
+            themeIcons[themeIconNames[currentThemeIndex]].classList.add('hidden');
+            
+            currentThemeIndex = (currentThemeIndex + 1) % themes.length;
+            
+            body.classList.add(themes[currentThemeIndex]);
+            themeIcons[themeIconNames[currentThemeIndex]].classList.remove('hidden');
+            
+            updateSimulation(); // Redraw plots with new theme colors
+        }
+        
+        function openModal(modal) {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-content').classList.remove('scale-95');
+        }
+
+        function closeModal(modal) {
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('pointer-events-none'), 300);
+        }
+
+        [amplitudeSlider, periodSlider, phaseSlider].forEach(slider => {
+            slider.addEventListener('input', updateSimulation);
+        });
+
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        showHelpBtn.addEventListener('click', () => openModal(helpModal));
+        closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) closeModal(helpModal);
+        });
+
+        window.addEventListener('load', updateSimulation);
+        window.addEventListener('resize', updateSimulation);
+    </script>
+</body>
+</html>

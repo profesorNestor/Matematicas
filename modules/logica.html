@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LogicVerse - Calculadora de Lógica Proposicional</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Estilos personalizados -->
+    <style>
+        :root {
+            --bg-light: #f0f2f5;
+            --bg-dark: #0B1120;
+            --glass-light: rgba(255, 255, 255, 0.6);
+            --glass-dark: rgba(23, 31, 51, 0.5);
+            --border-light: rgba(255, 255, 255, 0.9);
+            --border-dark: rgba(255, 255, 255, 0.1);
+            --text-primary-light: #1a202c;
+            --text-primary-dark: #e2e8f0;
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+        }
+
+        html.dark { color-scheme: dark; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-light);
+            color: var(--text-primary-light);
+            transition: background-color 0.5s ease, color 0.5s ease;
+            background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0), radial-gradient(circle at 10px 10px, rgba(0,0,0,0.05) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        
+        html.dark body {
+            background-color: var(--bg-dark);
+            color: var(--text-primary-dark);
+            background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0), radial-gradient(circle at 10px 10px, rgba(255,255,255,0.05) 1px, transparent 0);
+        }
+
+        .glass-panel {
+            background-color: var(--glass-light);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-light);
+            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.1);
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            transition: all 0.5s ease;
+        }
+        
+        html.dark .glass-panel {
+            background-color: var(--glass-dark);
+            border-color: var(--border-dark);
+        }
+
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .keypad-button {
+            background-color: rgba(0,0,0,0.05);
+            border: 1px solid transparent;
+            color: var(--text-primary-light);
+            border-radius: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            aspect-ratio: 1 / 1;
+        }
+        html.dark .keypad-button {
+            background-color: rgba(255,255,255,0.05);
+            color: var(--text-primary-dark);
+        }
+        .keypad-button:hover {
+            transform: scale(1.05);
+            background-color: rgba(0,0,0,0.1);
+            border-color: var(--primary);
+        }
+        html.dark .keypad-button:hover {
+             background-color: rgba(255,255,255,0.1);
+        }
+
+        .main-button {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .main-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+        }
+        .input-field {
+            background-color: rgba(0,0,0,0.05);
+            border: 1px solid transparent;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            transition: all 0.2s ease;
+        }
+        html.dark .input-field {
+             background-color: rgba(255,255,255,0.05);
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.3);
+        }
+        
+        .truth-table th, .truth-table td {
+            text-align: center;
+            padding: 0.75rem;
+            border: 1px solid rgba(139, 148, 158, 0.2);
+            font-weight: 600;
+        }
+        .truth-table th {
+            font-family: 'Orbitron', sans-serif;
+            background-color: rgba(0,0,0,0.05);
+        }
+        html.dark .truth-table th {
+             background-color: rgba(255,255,255,0.05);
+        }
+        .truth-table .true { color: #16a34a; }
+        .truth-table .false { color: #dc2626; }
+        html.dark .truth-table .true { color: #4ade80; }
+        html.dark .truth-table .false { color: #f87171; }
+
+        /* CORRECCIÓN: Estilo para el texto del modal de ayuda */
+        .modal-text-content {
+            color: var(--text-primary-light);
+        }
+        html.dark .modal-text-content {
+            color: var(--text-primary-dark);
+        }
+        .modal-text-content strong {
+            color: var(--primary);
+        }
+        html.dark .modal-text-content strong {
+            color: #818cf8; /* indigo-400 */
+        }
+        html.dark .modal-text-content .text-green-500 { color: #4ade80; }
+        html.dark .modal-text-content .text-red-500 { color: #f87171; }
+        html.dark .modal-text-content .text-yellow-500 { color: #facc15; }
+
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div class="container mx-auto p-4 min-h-screen flex flex-col items-center justify-center">
+        
+        <header class="w-full max-w-4xl flex justify-between items-center mb-6 px-4">
+            <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3" style="font-family: 'Orbitron', sans-serif;">
+                <i data-lucide="brain-circuit" class="text-indigo-500"></i>
+                LogicVerse
+            </h1>
+            <div class="flex items-center gap-2">
+                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <i data-lucide="sun" class="block dark:hidden"></i>
+                    <i data-lucide="moon" class="hidden dark:block"></i>
+                </button>
+                <button id="help-btn" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                    <i data-lucide="help-circle"></i>
+                </button>
+            </div>
+        </header>
+
+        <div class="glass-panel w-full max-w-4xl">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <div class="space-y-6">
+                    <div>
+                        <label for="num-vars" class="block mb-2 font-semibold text-lg flex items-center gap-2"><i data-lucide="variable" class="w-5 h-5 text-indigo-400"></i>Proposiciones</label>
+                        <select id="num-vars" class="input-field w-full font-sans">
+                            <option value="2">2 (p, q)</option>
+                            <option value="3" selected>3 (p, q, r)</option>
+                            <option value="4">4 (p, q, r, s)</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="expression-input" class="block mb-2 font-semibold text-lg flex items-center gap-2"><i data-lucide="terminal" class="w-5 h-5 text-indigo-400"></i>Expresión Lógica</label>
+                        <input type="text" id="expression-input" placeholder="(p ∧ q) → r" class="input-field w-full">
+                    </div>
+
+                    <div class="grid grid-cols-4 gap-2" id="keypad"></div>
+                    
+                    <button id="calculate-btn" class="main-button w-full text-lg flex items-center justify-center gap-2">
+                        <i data-lucide="play-circle"></i>Calcular
+                    </button>
+                </div>
+
+                <div class="flex flex-col justify-center items-center text-center space-y-4 p-4 rounded-2xl bg-black/5 dark:bg-white/5">
+                     <h2 class="text-2xl font-bold">Resultado</h2>
+                     <div id="result-display" class="text-7xl">
+                        <i data-lucide="help-circle" class="opacity-30"></i>
+                     </div>
+                     <p id="result-text" class="text-xl font-semibold h-8">Esperando cálculo...</p>
+                     <button id="show-table-btn" class="main-button w-full text-lg hidden flex items-center justify-center gap-2">
+                        <i data-lucide="table-2"></i>Mostrar Tabla
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer class="w-full max-w-4xl mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+            Autor: Msc: Néstor Fabio Montoya y Gemini AI
+        </footer>
+    </div>
+
+    <!-- Modales -->
+    <div id="table-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden modal-backdrop">
+        <div class="glass-panel relative w-full max-w-5xl max-h-[90vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 pb-4 border-b border-black/10 dark:border-white/10">
+                <h3 class="text-2xl font-bold flex items-center gap-3" style="font-family: 'Orbitron', sans-serif;"><i data-lucide="table-properties" class="text-indigo-400"></i>Tabla de Verdad</h3>
+                <button class="modal-close-btn p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><i data-lucide="x"></i></button>
+            </div>
+            <div class="overflow-auto">
+                <table id="truth-table-container" class="w-full truth-table"></table>
+            </div>
+        </div>
+    </div>
+
+    <div id="help-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden modal-backdrop">
+        <div class="glass-panel relative w-full max-w-2xl max-h-[90vh] flex flex-col">
+             <div class="flex justify-between items-center mb-4 pb-4 border-b border-black/10 dark:border-white/10">
+                <h3 class="text-2xl font-bold flex items-center gap-3" style="font-family: 'Orbitron', sans-serif;"><i data-lucide="book-open" class="text-indigo-400"></i>Guía de Uso</h3>
+                <button class="modal-close-btn p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><i data-lucide="x"></i></button>
+            </div>
+            <div class="prose max-w-none overflow-y-auto pr-4 modal-text-content">
+                <h4>Bienvenido a LogicVerse</h4>
+                <p>Esta aplicación te permite analizar cualquier expresión de lógica proposicional.</p>
+                
+                <h5>1. Elige las Proposiciones</h5>
+                <p>Usa el menú desplegable para seleccionar con cuántas variables (p, q, r, s) quieres trabajar.</p>
+
+                <h5>2. Construye tu Expresión</h5>
+                <p>Escribe tu fórmula en el campo de texto. Puedes usar el teclado o los botones del panel de operadores. Los operadores disponibles son:</p>
+                <ul>
+                    <li><strong>¬</strong> : Negación (NOT)</li>
+                    <li><strong>∧</strong> : Conjunción (AND)</li>
+                    <li><strong>∨</strong> : Disyunción (OR)</li>
+                    <li><strong>→</strong> : Condicional (Si... entonces)</li>
+                    <li><strong>↔</strong> : Bicondicional (Si y solo si)</li>
+                    <li><strong>( )</strong> : Paréntesis para agrupar</li>
+                </ul>
+
+                <h5>3. Calcula y Analiza</h5>
+                <p>Presiona el botón "Calcular". La aplicación te mostrará si tu expresión es una:</p>
+                <ul>
+                    <li><strong class="text-green-500">Tautología:</strong> Siempre verdadera.</li>
+                    <li><strong class="text-red-500">Contradicción:</strong> Siempre falsa.</li>
+                    <li><strong class="text-yellow-500">Contingencia:</strong> Puede ser verdadera o falsa.</li>
+                </ul>
+                <p>Luego, presiona "Mostrar Tabla" para ver la tabla de verdad completa en una ventana interactiva.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- REFERENCIAS AL DOM ---
+            const dom = {
+                themeToggle: document.getElementById('theme-toggle'),
+                numVarsSelect: document.getElementById('num-vars'),
+                expressionInput: document.getElementById('expression-input'),
+                keypad: document.getElementById('keypad'),
+                calculateBtn: document.getElementById('calculate-btn'),
+                resultDisplay: document.getElementById('result-display'),
+                resultText: document.getElementById('result-text'),
+                showTableBtn: document.getElementById('show-table-btn'),
+                tableModal: document.getElementById('table-modal'),
+                helpModal: document.getElementById('help-modal'),
+                helpBtn: document.getElementById('help-btn'),
+                truthTableContainer: document.getElementById('truth-table-container'),
+            };
+
+            let truthTableData = null;
+
+            // --- LÓGICA DE TEMAS ---
+            const applyTheme = (theme) => {
+                if (theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+                localStorage.setItem('theme', theme);
+            };
+
+            dom.themeToggle.addEventListener('click', () => {
+                const newTheme = document.documentElement.classList.contains('dark') ? 'light' : 'dark';
+                applyTheme(newTheme);
+            });
+            
+            // --- GENERACIÓN DEL TECLADO ---
+            const operators = ['¬', '∧', '∨', '→', '↔', '(', ')'];
+            
+            function generateKeypad() {
+                dom.keypad.innerHTML = '';
+                const numVars = parseInt(dom.numVarsSelect.value);
+                const vars = ['p', 'q', 'r', 's'].slice(0, numVars);
+                
+                [...vars, ...operators].forEach(symbol => {
+                    const button = document.createElement('button');
+                    button.className = 'keypad-button';
+                    button.textContent = symbol;
+                    button.onclick = () => {
+                        dom.expressionInput.value += symbol;
+                        dom.expressionInput.focus();
+                    };
+                    dom.keypad.appendChild(button);
+                });
+            }
+
+            // --- LÓGICA DEL PARSER Y EVALUADOR ---
+            const precedence = { '¬': 4, '∧': 3, '∨': 2, '→': 1, '↔': 0 };
+
+            function shuntingYard(tokens) {
+                const output = [];
+                const ops = [];
+                for (const token of tokens) {
+                    if (/[p-s]/.test(token)) {
+                        output.push(token);
+                    } else if (token === '¬') {
+                        ops.push(token);
+                    } else if (token in precedence) {
+                        while (ops.length && precedence[ops[ops.length - 1]] >= precedence[token]) {
+                            output.push(ops.pop());
+                        }
+                        ops.push(token);
+                    } else if (token === '(') {
+                        ops.push(token);
+                    } else if (token === ')') {
+                        while (ops.length && ops[ops.length - 1] !== '(') {
+                            output.push(ops.pop());
+                        }
+                        if (ops[ops.length - 1] === '(') {
+                            ops.pop();
+                        } else {
+                            throw new Error("Paréntesis no balanceados.");
+                        }
+                    } else {
+                         throw new Error(`Símbolo desconocido: '${token}'`);
+                    }
+                }
+                return output.concat(ops.reverse());
+            }
+
+            function evaluateRPN(rpn, values) {
+                const stack = [];
+                for (const token of rpn) {
+                    if (/[p-s]/.test(token)) {
+                        stack.push(values[token]);
+                    } else {
+                        if (token === '¬') {
+                            const a = stack.pop();
+                            if (typeof a === 'undefined') throw new Error("Argumento faltante para ¬");
+                            stack.push(!a);
+                        } else {
+                            const b = stack.pop();
+                            const a = stack.pop();
+                            if (typeof a === 'undefined' || typeof b === 'undefined') throw new Error(`Argumentos faltantes para ${token}`);
+                            if (token === '∧') stack.push(a && b);
+                            else if (token === '∨') stack.push(a || b);
+                            else if (token === '→') stack.push(!a || b);
+                            else if (token === '↔') stack.push(a === b);
+                        }
+                    }
+                }
+                if (stack.length !== 1) throw new Error("Expresión mal formada.");
+                return stack[0];
+            }
+            
+            function generateTruthTable(expression, numVars) {
+                const vars = ['p', 'q', 'r', 's'].slice(0, numVars);
+                const tokens = expression.replace(/\s/g, '').match(/¬|∧|∨|→|↔|\(|\)|[p-s]/g);
+                if (!tokens) throw new Error("Expresión inválida o vacía.");
+
+                const rpn = shuntingYard(tokens);
+                const table = [];
+                const headers = [...vars, expression];
+                
+                for (let i = 0; i < (1 << numVars); i++) {
+                    const row = {};
+                    const values = {};
+                    for (let j = 0; j < numVars; j++) {
+                        const val = (i >> (numVars - 1 - j)) & 1;
+                        values[vars[j]] = !!val;
+                        row[vars[j]] = !!val;
+                    }
+                    row[expression] = evaluateRPN([...rpn], values);
+                    table.push(row);
+                }
+                return { headers, table };
+            }
+
+            // --- MANEJADORES DE EVENTOS ---
+            dom.numVarsSelect.addEventListener('change', generateKeypad);
+            
+            dom.calculateBtn.addEventListener('click', () => {
+                const expression = dom.expressionInput.value;
+                if (!expression) return;
+
+                try {
+                    const numVars = parseInt(dom.numVarsSelect.value);
+                    truthTableData = generateTruthTable(expression, numVars);
+                    
+                    const finalResults = truthTableData.table.map(row => row[expression]);
+                    const isTautology = finalResults.every(v => v);
+                    const isContradiction = finalResults.every(v => !v);
+
+                    if (isTautology) {
+                        dom.resultDisplay.innerHTML = '<i data-lucide="check-circle-2" class="text-green-400"></i>';
+                        dom.resultText.textContent = 'Tautología';
+                    } else if (isContradiction) {
+                        dom.resultDisplay.innerHTML = '<i data-lucide="x-circle" class="text-red-400"></i>';
+                        dom.resultText.textContent = 'Contradicción';
+                    } else {
+                        dom.resultDisplay.innerHTML = '<i data-lucide="alert-triangle" class="text-yellow-400"></i>';
+                        dom.resultText.textContent = 'Contingencia';
+                    }
+                    dom.showTableBtn.classList.remove('hidden');
+                    lucide.createIcons();
+                } catch (e) {
+                    alert("Error en la expresión: " + e.message);
+                }
+            });
+
+            dom.showTableBtn.addEventListener('click', () => {
+                if (!truthTableData) return;
+
+                dom.truthTableContainer.innerHTML = ''; // Limpiar tabla anterior
+                
+                const thead = document.createElement('thead');
+                let tr = document.createElement('tr');
+                truthTableData.headers.forEach(header => {
+                    const th = document.createElement('th');
+                    th.textContent = header;
+                    tr.appendChild(th);
+                });
+                thead.appendChild(tr);
+                dom.truthTableContainer.appendChild(thead);
+
+                const tbody = document.createElement('tbody');
+                truthTableData.table.forEach(rowData => {
+                    tr = document.createElement('tr');
+                    truthTableData.headers.forEach(header => {
+                        const td = document.createElement('td');
+                        const value = rowData[header];
+                        td.textContent = value ? 'V' : 'F';
+                        td.className = value ? 'true' : 'false';
+                        tr.appendChild(td);
+                    });
+                    tbody.appendChild(tr);
+                });
+                dom.truthTableContainer.appendChild(tbody);
+
+                dom.tableModal.classList.remove('hidden');
+                dom.tableModal.classList.add('flex');
+                lucide.createIcons();
+            });
+
+            // Controles de modales
+            const setupModal = (modal, openBtn) => {
+                openBtn.onclick = () => {
+                    modal.classList.remove('hidden');
+                    modal.classList.add('flex');
+                    lucide.createIcons();
+                };
+                modal.querySelectorAll('.modal-close-btn').forEach(btn => {
+                    btn.onclick = () => {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    };
+                });
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.classList.add('hidden');
+                        modal.classList.remove('flex');
+                    }
+                });
+            };
+
+            setupModal(dom.helpModal, dom.helpBtn);
+            setupModal(dom.tableModal, dom.showTableBtn);
+            
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    dom.helpModal.classList.add('hidden');
+                    dom.helpModal.classList.remove('flex');
+                    dom.tableModal.classList.add('hidden');
+                    dom.tableModal.classList.remove('flex');
+                }
+            });
+
+            // --- INICIALIZACIÓN ---
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            applyTheme(savedTheme);
+            generateKeypad();
+            lucide.createIcons();
+        });
+    </script>
+</body>
+</html>

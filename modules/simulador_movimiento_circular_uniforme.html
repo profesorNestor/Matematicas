@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Movimiento Circular Uniforme (MCU)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.9/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+    <style>
+        body {
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e0f2fe; 
+            color: #1e293b; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+        .simulator-container {
+            background-color: #ffffff;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 1000px;
+            display: grid;
+            grid-template-columns: 1fr; 
+            gap: 1.5rem;
+        }
+        @media (min-width: 1024px) { 
+            .simulator-container {
+                grid-template-columns: 2fr 1fr; 
+            }
+        }
+        .canvas-aspect-enforcer {
+            width: 100%; 
+            max-width: 500px; 
+            margin-left: auto; 
+            margin-right: auto;
+            aspect-ratio: 1 / 1; 
+            position: relative; 
+        }
+        canvas {
+            display: block; 
+            width: 100%;  
+            height: 100%; 
+            border: 2px solid #94a3b8; 
+            border-radius: 0.75rem;
+            background-color: #f8fafc; 
+        }
+        .controls-data-column {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+        .control-group, .info-panel {
+            background-color: #f1f5f9; 
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 1px solid #e2e8f0; 
+        }
+        .control-group h3, .info-panel h3 {
+            margin-top: 0;
+            margin-bottom: 0.75rem;
+            color: #0369a1; 
+            font-weight: 600;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 0.5rem;
+        }
+        label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.875rem;
+            color: #334155; 
+        }
+        input[type="range"], input[type="number"] {
+            width: 100%;
+            padding: 0.5rem;
+            border-radius: 0.375rem;
+            border: 1px solid #cbd5e1;
+            box-sizing: border-box;
+            accent-color: #0ea5e9; 
+        }
+         input[type="number"]::-webkit-outer-spin-button,
+         input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        button {
+            background-image: linear-gradient(to right, #0ea5e9, #0284c7); 
+            color: white;
+            padding: 0.6rem 1.2rem;
+            border: none;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        button:hover {
+            background-image: linear-gradient(to right, #0284c7, #0369a1);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button:active {
+            transform: translateY(0px);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: #334155;
+            cursor: pointer;
+            padding: 0.25rem 0;
+        }
+        .checkbox-group input[type="checkbox"] {
+            accent-color: #0ea5e9;
+            width: 1.1rem;
+            height: 1.1rem;
+            border-radius: 0.25rem;
+        }
+        .info-panel p, .data-real-time p { margin: 0.4rem 0; font-size: 0.9rem; }
+        .info-panel strong, .data-real-time strong { color: #075985; }
+        .footer {
+            text-align: center;
+            margin-top: 2rem;
+            padding: 1rem;
+            font-size: 0.875rem;
+            color: #475569; 
+            width: 100%;
+            border-top: 1px solid #cbd5e1;
+        }
+        .MathJax_Display, .MJXc-display, .MathJax_SVG_Display { 
+            font-size: 1em !important; /* Asegura que el modo display de MathJax no sea demasiado pequeño */
+            margin: 0.5em 0 !important; 
+        }
+        .formulas-display p {
+             font-size: 0.9rem; /* Tamaño base para los párrafos que contienen las fórmulas */
+        }
+        .formulas-display .text-slate-600 { /* Para el texto "Fórmulas:" */
+            font-size: 0.9rem; /* Puede ser igual o ligeramente mayor que el de las fórmulas */
+            margin-bottom: 0.25rem;
+        }
+
+    </style>
+</head>
+<body>
+    <header class="text-center mb-6">
+        <h1 class="text-3xl lg:text-4xl font-bold text-sky-700">🌀 Simulador de Movimiento Circular Uniforme (MCU) 🎡</h1>
+        <p class="text-slate-700 mt-2 text-sm lg:text-base">Visualiza y explora las características del MCU de forma interactiva.</p>
+    </header>
+
+    <div class="simulator-container">
+        <div class="canvas-aspect-enforcer">
+            <canvas id="ucmCanvas"></canvas>
+        </div>
+
+        <div class="controls-data-column">
+            <div class="control-group">
+                <h3><i class="fas fa-sliders-h mr-2 text-sky-600"></i>Parámetros de Simulación</h3>
+                <div>
+                    <label for="radiusSlider">Radio (R): <span id="radiusValue">5</span> m</label>
+                    <input type="range" id="radiusSlider" min="1" max="10" value="5" step="0.1">
+                </div>
+                <div class="mt-3">
+                    <label for="angularVelocitySlider">Velocidad Angular (ω): <span id="angularVelocityValue">1</span> rad/s</label>
+                    <input type="range" id="angularVelocitySlider" min="0.1" max="5" value="1" step="0.1">
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3><i class="fas fa-cogs mr-2 text-sky-600"></i>Controles</h3>
+                <div class="button-group">
+                    <button id="startButton"><i class="fas fa-play"></i> Iniciar</button>
+                    <button id="pauseButton" disabled><i class="fas fa-pause"></i> Pausar</button>
+                    <button id="resetButton"><i class="fas fa-redo"></i> Reiniciar</button>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <h3><i class="fas fa-eye mr-2 text-sky-600"></i>Opciones de Visualización</h3>
+                <div class="checkbox-group space-y-1">
+                    <label><input type="checkbox" id="showCoordsCheck" checked><span>📍 Coordenadas (x, y)</span></label>
+                    <label><input type="checkbox" id="showTangentialVelocityCheck" checked><span><i class="fas fa-arrow-right text-green-600"></i> Velocidad Tangencial (v)</span></label>
+                    <label><input type="checkbox" id="showCentripetalAccelerationCheck" checked><span><i class="fas fa-arrow-down text-red-600"></i> Aceleración Centrípeta (a<sub>c</sub>)</span></label>
+                    <label><input type="checkbox" id="showRadiusLineCheck" checked><span><i class="fas fa-ruler-combined text-blue-600"></i> Radio (R)</span></label>
+                    <label><input type="checkbox" id="showElapsedTimeCheck" checked><span>⏱️ Tiempo Transcurrido</span></label>
+                    <label><input type="checkbox" id="showAngleSweptCheck" checked><span>📐 Ángulo Barrido (Δθ)</span></label>
+                </div>
+            </div>
+            
+            <div class="info-panel data-real-time">
+                <h3><i class="fas fa-tachometer-alt mr-2 text-sky-600"></i>Datos en Tiempo Real</h3>
+                <p>Posición Angular (θ): <strong id="angularPositionDisplay">-</strong> rad</p>
+                <p>Posición Cartesiana (x,y): (<strong id="xPositionDisplay">-</strong> m, <strong id="yPositionDisplay">-</strong> m)</p>
+                <p>Tiempo (t): <strong id="timeDisplay">-</strong> s</p>
+                <p>Ángulo Barrido (Δθ): <strong id="angleSweptDisplay">-</strong> rad</p>
+            </div>
+
+            <div class="info-panel">
+                <h3><i class="fas fa-calculator mr-2 text-sky-600"></i>Magnitudes Derivadas</h3>
+                <p>Velocidad Tangencial (v): <strong id="tangentialVelocityMagDisplay">-</strong> m/s</p>
+                <p>Aceleración Centrípeta (a<sub>c</sub>): <strong id="centripetalAccelerationMagDisplay">-</strong> m/s²</p>
+                <p>Periodo (T): <strong id="periodDisplay">-</strong> s</p>
+                <p>Frecuencia (f): <strong id="frequencyDisplay">-</strong> Hz</p>
+                <div class="mt-2 formulas-display"> 
+                    <p class="text-slate-600">Fórmulas:</p> 
+                    <p class="text-slate-500">\(v = \omega R\), \(a_c = \omega^2 R = \frac{v^2}{R}\)</p>
+                    <p class="text-slate-500">\(\omega = \frac{2\pi}{T} = 2\pi f\)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer">
+        Autor: MSc. Néstor Fabio Montoya Palacios
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('ucmCanvas');
+            const ctx = canvas.getContext('2d');
+            const canvasEnforcer = canvas.parentElement; 
+
+            const radiusSlider = document.getElementById('radiusSlider');
+            const angularVelocitySlider = document.getElementById('angularVelocitySlider');
+            const radiusValueDisplay = document.getElementById('radiusValue');
+            const angularVelocityValueDisplay = document.getElementById('angularVelocityValue');
+
+            const startButton = document.getElementById('startButton');
+            const pauseButton = document.getElementById('pauseButton');
+            const resetButton = document.getElementById('resetButton');
+
+            const showCoordsCheck = document.getElementById('showCoordsCheck');
+            const showTangentialVelocityCheck = document.getElementById('showTangentialVelocityCheck');
+            const showCentripetalAccelerationCheck = document.getElementById('showCentripetalAccelerationCheck');
+            const showRadiusLineCheck = document.getElementById('showRadiusLineCheck');
+            const showElapsedTimeCheck = document.getElementById('showElapsedTimeCheck');
+            const showAngleSweptCheck = document.getElementById('showAngleSweptCheck');
+            
+            const angularPositionDisplay = document.getElementById('angularPositionDisplay');
+            const xPositionDisplay = document.getElementById('xPositionDisplay');
+            const yPositionDisplay = document.getElementById('yPositionDisplay');
+            const timeDisplay = document.getElementById('timeDisplay');
+            const angleSweptDisplay = document.getElementById('angleSweptDisplay');
+
+            const tangentialVelocityMagDisplay = document.getElementById('tangentialVelocityMagDisplay');
+            const centripetalAccelerationMagDisplay = document.getElementById('centripetalAccelerationMagDisplay');
+            const periodDisplay = document.getElementById('periodDisplay');
+            const frequencyDisplay = document.getElementById('frequencyDisplay');
+
+
+            let R = parseFloat(radiusSlider.value); 
+            let omega = parseFloat(angularVelocitySlider.value); 
+            let theta = 0; 
+            let t = 0; 
+            const initialTheta = 0; 
+
+            let animationFrameId;
+            let isRunning = false;
+            let isPaused = false; 
+            
+            const AXIS_COLOR = '#374151'; 
+            const GRID_COLOR = '#d1d5db'; 
+            const PATH_COLOR = '#0ea5e9'; 
+            const OBJECT_COLOR = '#ef4444'; 
+            const VELOCITY_VECTOR_COLOR = '#16a34a'; 
+            const ACCELERATION_VECTOR_COLOR = '#dc2626'; 
+            const RADIUS_LINE_COLOR = '#2563eb'; 
+
+            let canvasCenterX, canvasCenterY;
+            let displayScale = 1.0; 
+
+            function setupCanvas() {
+                canvas.width = canvasEnforcer.clientWidth;
+                canvas.height = canvasEnforcer.clientHeight; 
+
+                canvasCenterX = canvas.width / 2;
+                canvasCenterY = canvas.height / 2;
+                displayScale = canvasCenterX / (10 * 1.1); 
+                draw(); 
+            }
+
+            function drawArrow(fromX, fromY, toX, toY, color, lineWidth = 2) {
+                const headLength = Math.max(6, 8 * Math.min(1, displayScale/20)); 
+                const dx = toX - fromX;
+                const dy = toY - fromY;
+                const angle = Math.atan2(dy, dx);
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = lineWidth;
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fill();
+            }
+            
+            function getNiceStep(rangeInUnits, maxTicks = 6) { 
+                 if (rangeInUnits <= 0 || !isFinite(rangeInUnits)) return 1;
+                 const roughStep = rangeInUnits / maxTicks;
+                 const goodNormalizedSteps = [0.1, 0.2, 0.25, 0.5, 1, 2, 2.5, 5, 10, 20, 25, 50, 100];
+                 const exponent = Math.floor(Math.log10(roughStep));
+                 const powerOf10 = Math.pow(10, exponent);
+                 let step = goodNormalizedSteps[goodNormalizedSteps.length -1] * powerOf10; 
+                 for (let s of goodNormalizedSteps) {
+                     if (s * powerOf10 >= roughStep) {
+                         step = s * powerOf10;
+                         break;
+                     }
+                 }
+                 if (rangeInUnits / step > maxTicks * 1.5 && step > 0) {
+                    for (let s of goodNormalizedSteps) {
+                         if (s * powerOf10 > step && rangeInUnits / (s * powerOf10) <= maxTicks * 1.5) {
+                             step = s * powerOf10;
+                             break;
+                         }
+                     }
+                 }
+                 return Math.max(0.1, step); 
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                ctx.save();
+                ctx.translate(canvasCenterX, canvasCenterY);
+                ctx.scale(1, -1); 
+
+                const maxUnits = canvasCenterX / displayScale; 
+                const commonStep = getNiceStep(maxUnits, 6); 
+
+                ctx.lineWidth = 0.5;
+                ctx.strokeStyle = GRID_COLOR;
+                ctx.fillStyle = AXIS_COLOR; 
+                ctx.font = `${Math.max(8, 10 * Math.min(1, displayScale/15))}px Arial`; 
+
+                ctx.textAlign = "center";
+                if (commonStep > 0 && isFinite(commonStep)) {
+                    for (let i = 0; i <= maxUnits + commonStep; i += commonStep) { 
+                        if (i !== 0) { 
+                            ctx.beginPath();
+                            ctx.moveTo(i * displayScale, -canvasCenterY);
+                            ctx.lineTo(i * displayScale, canvasCenterY);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(-i * displayScale, -canvasCenterY);
+                            ctx.lineTo(-i * displayScale, canvasCenterY);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(-canvasCenterX, i * displayScale);
+                            ctx.lineTo(canvasCenterX, i * displayScale);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            ctx.moveTo(-canvasCenterX, -i * displayScale);
+                            ctx.lineTo(canvasCenterX, -i * displayScale);
+                            ctx.stroke();
+                        }
+                        ctx.save();
+                        ctx.scale(1, -1); 
+                        if (i !== 0) {
+                            ctx.fillText(i.toFixed(i<1 && i!==0 ?1:0), i * displayScale, 15); 
+                            ctx.fillText(-i.toFixed(i<1 && i!==0 ?1:0), -i * displayScale, 15);
+                            ctx.textAlign = "right";
+                            ctx.fillText(i.toFixed(i<1 && i!==0 ?1:0), -10, -i * displayScale + 3); 
+                            ctx.fillText(-i.toFixed(i<1 && i!==0 ?1:0), -10, i * displayScale + 3);
+                            ctx.textAlign = "center"; 
+                        }
+                        ctx.restore();
+                    }
+                }
+                
+                ctx.lineWidth = 1.5;
+                ctx.strokeStyle = AXIS_COLOR;
+                ctx.beginPath(); 
+                ctx.moveTo(-canvasCenterX, 0);
+                ctx.lineTo(canvasCenterX, 0);
+                ctx.stroke();
+                ctx.beginPath(); 
+                ctx.moveTo(0, -canvasCenterY);
+                ctx.lineTo(0, canvasCenterY);
+                ctx.stroke();
+                ctx.save(); ctx.scale(1,-1); ctx.textAlign = "center"; ctx.fillText("0", -5, 12); ctx.restore();
+
+                ctx.beginPath();
+                ctx.arc(0, 0, R * displayScale, 0, 2 * Math.PI);
+                ctx.strokeStyle = PATH_COLOR;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                const objX_sim = R * Math.cos(theta); 
+                const objY_sim = R * Math.sin(theta);
+                const objPxX = objX_sim * displayScale; 
+                const objPxY = objY_sim * displayScale;
+
+                if (showRadiusLineCheck.checked) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0); 
+                    ctx.lineTo(objPxX, objPxY);
+                    ctx.strokeStyle = RADIUS_LINE_COLOR;
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([3, 3]); 
+                    ctx.stroke();
+                    ctx.setLineDash([]); 
+                }
+                
+                if (showAngleSweptCheck.checked && t > 0) {
+                    ctx.beginPath();
+                    ctx.moveTo(0,0);
+                    ctx.arc(0, 0, R * displayScale * 0.3, initialTheta, theta, omega < 0); 
+                    ctx.closePath(); 
+                    ctx.fillStyle = 'rgba(0, 150, 255, 0.2)'; 
+                    ctx.fill();
+                }
+
+                const objectDrawRadius = Math.max(4, 6 * Math.min(1, displayScale/10)); 
+                ctx.beginPath();
+                ctx.arc(objPxX, objPxY, objectDrawRadius, 0, 2 * Math.PI);
+                ctx.fillStyle = OBJECT_COLOR;
+                ctx.fill();
+                ctx.strokeStyle = '#b91c1c'; 
+                ctx.lineWidth = 1;
+                ctx.stroke();
+
+                const vMag = Math.abs(omega * R);
+                const acMag = Math.abs(omega * omega * R);
+                const vectorDisplayLength = Math.min(R * 0.6, 3) * displayScale; 
+
+                const vDirX = -omega * R * Math.sin(theta);
+                const vDirY = omega * R * Math.cos(theta);
+                const currentVMag = Math.sqrt(vDirX*vDirX + vDirY*vDirY); 
+
+                if (showTangentialVelocityCheck.checked && currentVMag > 0.001) { 
+                    const vNormX = vDirX / currentVMag;
+                    const vNormY = vDirY / currentVMag;
+                    drawArrow(objPxX, objPxY, objPxX + vNormX * vectorDisplayLength, objPxY + vNormY * vectorDisplayLength, VELOCITY_VECTOR_COLOR);
+                }
+
+                const acDirX = -omega * omega * R * Math.cos(theta);
+                const acDirY = -omega * omega * R * Math.sin(theta);
+                const currentAcMag = Math.sqrt(acDirX*acDirX + acDirY*acDirY);
+
+                 if (showCentripetalAccelerationCheck.checked && currentAcMag > 0.001) { 
+                    const acNormX = acDirX / currentAcMag;
+                    const acNormY = acDirY / currentAcMag;
+                    drawArrow(objPxX, objPxY, objPxX + acNormX * vectorDisplayLength, objPxY + acNormY * vectorDisplayLength, ACCELERATION_VECTOR_COLOR);
+                }
+                
+                ctx.restore(); 
+
+                if (showCoordsCheck.checked) {
+                    ctx.fillStyle = AXIS_COLOR;
+                    ctx.font = `${Math.max(9, 11 * Math.min(1, displayScale/15))}px Arial`;
+                    const textXOffset = objX_sim >= 0 ? 10 : -(ctx.measureText(`(${objX_sim.toFixed(2)}, ${objY_sim.toFixed(2)})`).width + 10) ;
+                    const textYOffset = objY_sim >= 0 ? -15 : 20; 
+                    
+                    const textScreenX = canvasCenterX + objPxX + textXOffset; 
+                    const textScreenY = canvasCenterY - objPxY + textYOffset; 
+                    ctx.fillText(`(${objX_sim.toFixed(2)}, ${objY_sim.toFixed(2)})`, textScreenX, textScreenY);
+                }
+                
+                updateInfoDisplays(objX_sim, objY_sim, vMag, acMag);
+            }
+            
+            function updateInfoDisplays(currentX, currentY, v, ac) {
+                angularPositionDisplay.textContent = theta.toFixed(2);
+                xPositionDisplay.textContent = currentX.toFixed(2);
+                yPositionDisplay.textContent = currentY.toFixed(2);
+                
+                if (showElapsedTimeCheck.checked || isRunning || isPaused) {
+                    timeDisplay.textContent = t.toFixed(2);
+                } else if (t === 0 && !isRunning && !isPaused) { 
+                     timeDisplay.textContent = "0.00";
+                }
+                else {
+                    timeDisplay.textContent = "-";
+                }
+
+                if (showAngleSweptCheck.checked || isRunning || isPaused) {
+                    angleSweptDisplay.textContent = (theta - initialTheta).toFixed(2);
+                } else if (t === 0 && !isRunning && !isPaused) {
+                    angleSweptDisplay.textContent = "0.00";
+                }
+                 else {
+                     angleSweptDisplay.textContent = "-";
+                }
+
+                tangentialVelocityMagDisplay.textContent = v.toFixed(2);
+                centripetalAccelerationMagDisplay.textContent = ac.toFixed(2);
+                
+                const periodVal = Math.abs(omega) > 0.001 ? (2 * Math.PI / Math.abs(omega)) : Infinity;
+                const frequencyVal = Math.abs(omega) > 0.001 ? (Math.abs(omega) / (2 * Math.PI)) : 0;
+                periodDisplay.textContent = isFinite(periodVal) ? periodVal.toFixed(2) : "∞";
+                frequencyDisplay.textContent = frequencyVal.toFixed(2);
+            }
+
+            let lastTimestamp = 0;
+            function animate(timestamp) {
+                if (!isRunning) return; 
+
+                const deltaTime = lastTimestamp > 0 ? (timestamp - lastTimestamp) / 1000 : 1/60; 
+                lastTimestamp = timestamp;
+                
+                t += deltaTime; 
+                theta = initialTheta + omega * t;
+
+                draw();
+                animationFrameId = requestAnimationFrame(animate);
+            }
+            
+            function startSimulation() {
+                if (!isPaused) { 
+                    t = 0;
+                    theta = initialTheta;
+                    lastTimestamp = 0; 
+                }
+                isRunning = true;
+                isPaused = false;
+                startButton.disabled = true;
+                startButton.innerHTML = '<i class="fas fa-play"></i> En Curso';
+                pauseButton.disabled = false;
+                pauseButton.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+                radiusSlider.disabled = true;
+                angularVelocitySlider.disabled = true;
+                if (!animationFrameId) { 
+                    animationFrameId = requestAnimationFrame(animate);
+                }
+            }
+
+            function pauseSimulation() {
+                if (isRunning) { 
+                    isRunning = false; 
+                    isPaused = true; 
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null; 
+                    startButton.disabled = false;
+                    startButton.innerHTML = '<i class="fas fa-play"></i> Reanudar';
+                    pauseButton.disabled = true;
+                    pauseButton.innerHTML = '<i class="fas fa-pause"></i> Pausado';
+                }
+            }
+
+            function resetSimulation() {
+                isRunning = false;
+                isPaused = false;
+                if (animationFrameId) {
+                    cancelAnimationFrame(animationFrameId);
+                    animationFrameId = null;
+                }
+                lastTimestamp = 0;
+                t = 0;
+                
+                R = parseFloat(radiusSlider.value);
+                omega = parseFloat(angularVelocitySlider.value);
+                theta = initialTheta; 
+                
+                startButton.disabled = false;
+                startButton.innerHTML = '<i class="fas fa-play"></i> Iniciar';
+                pauseButton.disabled = true;
+                pauseButton.innerHTML = '<i class="fas fa-pause"></i> Pausar';
+                radiusSlider.disabled = false;
+                angularVelocitySlider.disabled = false;
+                
+                setupCanvas(); 
+                const initialX = R * Math.cos(initialTheta);
+                const initialY = R * Math.sin(initialTheta);
+                updateInfoDisplays(initialX, initialY, Math.abs(omega * R), Math.abs(omega * omega * R));
+
+                if (typeof MathJax !== "undefined" && MathJax.Hub) {
+                    // Forzar a MathJax a reprocesar el contenido del panel de fórmulas
+                    const formulasPanel = document.querySelector('.formulas-display');
+                    if (formulasPanel) {
+                        MathJax.Hub.Queue(["Typeset", MathJax.Hub, formulasPanel]);
+                    } else {
+                         MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+                    }
+                }
+            }
+
+            startButton.addEventListener('click', startSimulation);
+            pauseButton.addEventListener('click', pauseSimulation);
+            resetButton.addEventListener('click', resetSimulation);
+
+            radiusSlider.addEventListener('input', (e) => {
+                R = parseFloat(e.target.value);
+                radiusValueDisplay.textContent = R.toFixed(1);
+                if (!isRunning && !isPaused) { 
+                     setupCanvas(); 
+                     const currentDrawTheta = isPaused ? theta : initialTheta;
+                     updateInfoDisplays(R * Math.cos(currentDrawTheta), R * Math.sin(currentDrawTheta), Math.abs(omega*R), Math.abs(omega*omega*R));
+                }
+            });
+
+            angularVelocitySlider.addEventListener('input', (e) => {
+                omega = parseFloat(e.target.value);
+                angularVelocityValueDisplay.textContent = omega.toFixed(1);
+                 if (!isRunning && !isPaused) {
+                     const currentDrawTheta = isPaused ? theta : initialTheta;
+                     updateInfoDisplays(R * Math.cos(currentDrawTheta), R * Math.sin(currentDrawTheta), Math.abs(omega*R), Math.abs(omega*omega*R));
+                     draw(); 
+                 }
+            });
+            
+            [showCoordsCheck, showTangentialVelocityCheck, showCentripetalAccelerationCheck, showRadiusLineCheck, showElapsedTimeCheck, showAngleSweptCheck].forEach(check => {
+                check.addEventListener('change', () => {
+                    const currentDrawTheta = (isRunning || isPaused) ? theta : initialTheta;
+                    draw(); 
+                    if (check === showElapsedTimeCheck || check === showAngleSweptCheck) { 
+                         updateInfoDisplays(R * Math.cos(currentDrawTheta), R * Math.sin(currentDrawTheta), Math.abs(omega*R), Math.abs(omega*omega*R));
+                    }
+                });
+            });
+
+            window.addEventListener('resize', setupCanvas);
+            resetSimulation(); 
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Red de Difracción</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #111827;
+            color: #e5e7eb;
+        }
+        .slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+            transition: background .3s;
+        }
+        .slider-thumb::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .slider-thumb::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: #4f46e5;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        .btn-glow {
+            box-shadow: 0 0 5px #4f46e5, 0 0 10px #4f46e5, 0 0 15px #4f46e5;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div class="container mx-auto p-4 md:p-8">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-2">Simulación de Red de Difracción</h1>
+            <p class="text-lg text-gray-400">Explora la interferencia producida por múltiples rendijas.</p>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <!-- Columna de Controles y Visualización -->
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl">
+                <h2 class="text-2xl font-semibold mb-6 text-white">Controles de la Simulación</h2>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label for="wavelength" class="block mb-2 text-sm font-medium text-gray-300">Longitud de Onda (\(\lambda\)): <span id="wavelength-value" class="font-bold text-indigo-400">550</span> nm</label>
+                        <input id="wavelength" type="range" min="380" max="750" value="550" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="slit-width" class="block mb-2 text-sm font-medium text-gray-300">Ancho de Rendija (a): <span id="slit-width-value" class="font-bold text-indigo-400">0.02</span> mm</label>
+                        <input id="slit-width" type="range" min="0.01" max="0.1" step="0.001" value="0.02" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="slit-separation" class="block mb-2 text-sm font-medium text-gray-300">Separación entre Rendijas (d): <span id="slit-separation-value" class="font-bold text-indigo-400">0.1</span> mm</label>
+                        <input id="slit-separation" type="range" min="0.02" max="0.5" step="0.001" value="0.1" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                     <div>
+                        <label for="slit-number" class="block mb-2 text-sm font-medium text-gray-300">Número de Rendijas (N): <span id="slit-number-value" class="font-bold text-indigo-400">5</span></label>
+                        <input id="slit-number" type="range" min="2" max="10" step="1" value="5" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                    <div>
+                        <label for="distance" class="block mb-2 text-sm font-medium text-gray-300">Distancia a la Pared (L): <span id="distance-value" class="font-bold text-indigo-400">2.0</span> m</label>
+                        <input id="distance" type="range" min="0.5" max="5" step="0.1" value="2.0" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb">
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                     <div class="flex justify-between items-center mb-2">
+                        <h3 class="text-xl font-semibold text-white">Patrón de Interferencia</h3>
+                        <button id="expand-pattern-btn" class="p-2 rounded-full hover:bg-gray-700 transition" title="Ampliar Patrón">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                    </div>
+                    <div id="diffraction-pattern-container" class="w-full h-32 bg-black rounded-lg overflow-hidden relative">
+                        <canvas id="main-pattern-canvas"></canvas>
+                    </div>
+                </div>
+                 <div class="mt-8 flex flex-col sm:flex-row gap-4">
+                    <button id="show-maxima-btn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105 btn-glow">
+                        Mostrar Máximos Principales
+                    </button>
+                    <button id="show-help-btn" class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-4 rounded-lg transition-transform transform hover:scale-105">
+                        Ayuda
+                    </button>
+                </div>
+            </div>
+
+            <!-- Columna de Gráfico de Intensidad -->
+            <div class="bg-gray-800 p-6 rounded-2xl shadow-2xl flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-semibold text-white">Curva de Intensidad</h2>
+                    <button id="expand-plot-btn" class="p-2 rounded-full hover:bg-gray-700 transition" title="Ampliar Gráfico">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gray-400"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+                        </button>
+                </div>
+                <div id="intensity-plot" class="w-full h-96 md:h-[500px] flex-grow"></div>
+            </div>
+        </main>
+        
+        <!-- Modales -->
+        <div id="maxima-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Máximos Principales de Interferencia</h2>
+                    <button id="close-maxima-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <p class="text-gray-400 mb-4">Los máximos principales (franjas más brillantes) ocurren cuando: \( d \sin(\theta) = m \lambda \), para \(m = 0, \pm 1, \pm 2, \dots \)</p>
+                <div class="max-h-80 overflow-y-auto">
+                    <table class="w-full text-sm text-left text-gray-400">
+                        <thead class="text-xs text-gray-300 uppercase bg-gray-700 sticky top-0"><tr><th class="px-4 py-2">Orden (m)</th><th class="px-4 py-2">Ángulo (\(\theta\)) [grados]</th><th class="px-4 py-2">Posición (y) [cm]</th></tr></thead>
+                                <tbody id="maxima-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+        
+        <div id="help-modal" class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-3xl p-6 md:p-8 transform scale-95 modal-content">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Ayuda y Explicación</h2>
+                    <button id="close-help-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div class="text-gray-300 space-y-4 max-h-[80vh] overflow-y-auto pr-4">
+                    <h3 class="text-xl font-semibold text-indigo-400">Interferencia por Red de Difracción</h3>
+                    <p>Una red de difracción consiste en un gran número de rendijas paralelas, equidistantes y de igual ancho. El patrón resultante es una combinación de la difracción de una sola rendija y la interferencia de N rendijas.</p>
+                    
+                    <h3 class="text-xl font-semibold text-indigo-400">Fórmula de Intensidad</h3>
+                    <p>La intensidad en la pantalla es el producto del término de difracción (envolvente) y el término de interferencia de N rendijas:</p>
+                    <p class="text-center text-lg p-4 bg-gray-900 rounded-lg">
+                        \( I(\theta) = I_0 \left( \frac{\sin(\beta/2)}{\beta/2} \right)^2 \left( \frac{\sin(N\alpha/2)}{\sin(\alpha/2)} \right)^2 \)
+                    </p>
+                    <p>Donde:</p>
+                    <ul class="list-disc list-inside ml-4 space-y-2">
+                        <li>El primer término con \(\beta\) es la **envolvente de difracción** de una sola rendija.</li>
+                        <li>El segundo término con \(\alpha\) es el factor de **interferencia de N rendijas**, que produce los picos agudos.</li>
+                        <li>\(\alpha = \frac{2\pi d}{\lambda} \sin(\theta)\) y \(\beta = \frac{2\pi a}{\lambda} \sin(\theta)\).</li>
+                        <li>\(a\) es el ancho de una rendija, \(d\) es la separación entre rendijas, y \(N\) es el número de rendijas.</li>
+                    </ul>
+
+                    <h3 class="text-xl font-semibold text-indigo-400">Máximos Principales</h3>
+                    <p>Las franjas más brillantes y nítidas, llamadas máximos principales, ocurren cuando las ondas de todas las rendijas interfieren constructivamente. La condición es:</p>
+                     <p class="text-center text-lg p-2 bg-gray-900 rounded-lg">
+                        \( d \sin(\theta) = m \lambda \quad (m = 0, \pm 1, \pm 2, \dots) \)
+                    </p>
+                    <p>A medida que aumenta el número de rendijas (N), estos máximos se vuelven más estrechos y más intensos.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div id="pattern-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-11/12 h-[90vh] p-6 md:p-8 transform scale-95 modal-content flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Patrón de Interferencia Ampliado</h2>
+                    <button id="close-pattern-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div id="expanded-pattern-container" class="flex-grow bg-black rounded-lg">
+                     <canvas id="expanded-pattern-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div id="plot-modal" class="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-4 z-50 opacity-0 pointer-events-none modal">
+            <div class="bg-gray-800 rounded-2xl shadow-2xl w-full max-w-4xl h-[80vh] p-6 md:p-8 transform scale-95 modal-content flex flex-col">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-white">Curva de Intensidad Ampliada</h2>
+                    <button id="close-plot-btn" class="text-gray-400 hover:text-white text-3xl">&times;</button>
+                </div>
+                <div id="expanded-intensity-plot" class="flex-grow"></div>
+            </div>
+        </div>
+
+        <footer class="text-center mt-12 text-gray-500 text-sm">
+            <p>Autor: Msc: Néstor Fabio Montoya y Gemini AI</p>
+        </footer>
+    </div>
+
+    <script>
+        const wavelengthSlider = document.getElementById('wavelength');
+        const slitWidthSlider = document.getElementById('slit-width');
+        const slitSeparationSlider = document.getElementById('slit-separation');
+        const slitNumberSlider = document.getElementById('slit-number');
+        const distanceSlider = document.getElementById('distance');
+        
+        const wavelengthValue = document.getElementById('wavelength-value');
+        const slitWidthValue = document.getElementById('slit-width-value');
+        const slitSeparationValue = document.getElementById('slit-separation-value');
+        const slitNumberValue = document.getElementById('slit-number-value');
+        const distanceValue = document.getElementById('distance-value');
+        
+        const mainPatternCanvas = document.getElementById('main-pattern-canvas');
+        const intensityPlot = document.getElementById('intensity-plot');
+        
+        const maximaModal = document.getElementById('maxima-modal');
+        const helpModal = document.getElementById('help-modal');
+        const patternModal = document.getElementById('pattern-modal');
+        const plotModal = document.getElementById('plot-modal');
+
+        const showMaximaBtn = document.getElementById('show-maxima-btn');
+        const showHelpBtn = document.getElementById('show-help-btn');
+        const expandPatternBtn = document.getElementById('expand-pattern-btn');
+        const expandPlotBtn = document.getElementById('expand-plot-btn');
+
+        const closeMaximaBtn = document.getElementById('close-maxima-btn');
+        const closeHelpBtn = document.getElementById('close-help-btn');
+        const closePatternBtn = document.getElementById('close-pattern-btn');
+        const closePlotBtn = document.getElementById('close-plot-btn');
+        
+        const maximaTableBody = document.getElementById('maxima-table-body');
+        const expandedPatternCanvas = document.getElementById('expanded-pattern-canvas');
+        const expandedIntensityPlot = document.getElementById('expanded-intensity-plot');
+
+        function wavelengthToRgb(wavelength) {
+            let r, g, b;
+            if (wavelength >= 380 && wavelength < 440) { r = -(wavelength - 440) / (440 - 380); g = 0.0; b = 1.0; } 
+            else if (wavelength >= 440 && wavelength < 490) { r = 0.0; g = (wavelength - 440) / (490 - 440); b = 1.0; } 
+            else if (wavelength >= 490 && wavelength < 510) { r = 0.0; g = 1.0; b = -(wavelength - 510) / (510 - 490); } 
+            else if (wavelength >= 510 && wavelength < 580) { r = (wavelength - 510) / (580 - 510); g = 1.0; b = 0.0; } 
+            else if (wavelength >= 580 && wavelength < 645) { r = 1.0; g = -(wavelength - 645) / (645 - 580); b = 0.0; } 
+            else if (wavelength >= 645 && wavelength <= 750) { r = 1.0; g = 0.0; b = 0.0; } 
+            else { r = 0.0; g = 0.0; b = 0.0; }
+            let factor;
+            if (wavelength >= 380 && wavelength < 420) { factor = 0.3 + 0.7 * (wavelength - 380) / (420 - 380); } 
+            else if (wavelength >= 420 && wavelength < 701) { factor = 1.0; } 
+            else if (wavelength >= 701 && wavelength <= 750) { factor = 0.3 + 0.7 * (750 - wavelength) / (750 - 700); } 
+            else { factor = 0.0; }
+            const gamma = 0.8;
+            return [
+                r > 0 ? 255 * Math.pow(r * factor, gamma) : 0,
+                g > 0 ? 255 * Math.pow(g * factor, gamma) : 0,
+                b > 0 ? 255 * Math.pow(b * factor, gamma) : 0
+            ];
+        }
+        
+        function updateSimulation() {
+            const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+            const a = parseFloat(slitWidthSlider.value) * 1e-3;
+            const d = parseFloat(slitSeparationSlider.value) * 1e-3;
+            const N = parseInt(slitNumberSlider.value);
+            const L = parseFloat(distanceSlider.value);
+            
+            wavelengthValue.textContent = wavelengthSlider.value;
+            slitWidthValue.textContent = slitWidthSlider.value;
+            slitSeparationValue.textContent = slitSeparationSlider.value;
+            slitNumberValue.textContent = N;
+            distanceValue.textContent = distanceSlider.value;
+            
+            slitSeparationSlider.min = slitWidthSlider.value;
+            if (d < a) {
+                slitSeparationSlider.value = slitWidthSlider.value;
+                updateSimulation();
+                return;
+            }
+            
+            const color = wavelengthToRgb(wavelengthSlider.value);
+
+            drawGratingPattern(mainPatternCanvas, lambda, a, d, N, L, color);
+            updateIntensityPlot(lambda, a, d, N, L, `rgb(${color.join(',')})`);
+            updateMaximaTable(lambda, a, d, L);
+            
+            if (!patternModal.classList.contains('pointer-events-none')) {
+                drawGratingPattern(expandedPatternCanvas, lambda, a, d, N, L, color);
+            }
+             if (!plotModal.classList.contains('pointer-events-none')) {
+                updateExpandedPlot(lambda, a, d, N, L, `rgb(${color.join(',')})`);
+            }
+        }
+
+        function drawGratingPattern(canvas, lambda, a, d, N, L, rgbColor) {
+            const container = canvas.parentElement;
+            const patternWidth = container.clientWidth;
+            const patternHeight = container.clientHeight;
+
+            if (patternWidth <= 0 || patternHeight <= 0) return;
+
+            canvas.width = patternWidth;
+            canvas.height = patternHeight;
+            const ctx = canvas.getContext('2d');
+            const imageData = ctx.createImageData(patternWidth, patternHeight);
+            const data = imageData.data;
+
+            const y_max_physical = 5 * lambda * L / d;
+            const physicalWidthOfCanvas = y_max_physical * 2.5;
+
+            for (let x_pixel = 0; x_pixel < patternWidth; x_pixel++) {
+                const y = (x_pixel / patternWidth - 0.5) * physicalWidthOfCanvas;
+                const theta = Math.atan(y / L);
+                
+                let diff_intensity = (theta === 0) ? 1 : Math.pow(Math.sin((Math.PI * a * Math.sin(theta)) / lambda) / ((Math.PI * a * Math.sin(theta)) / lambda), 2);
+                
+                const alpha_half = (Math.PI * d * Math.sin(theta)) / lambda;
+                let int_intensity = (alpha_half === 0) ? N*N : Math.pow(Math.sin(N * alpha_half) / Math.sin(alpha_half), 2);
+                
+                const total_intensity = diff_intensity * int_intensity / (N*N);
+                const displayIntensity = Math.pow(total_intensity, 0.5);
+
+                for (let y_pixel = 0; y_pixel < patternHeight; y_pixel++) {
+                    const index = (y_pixel * patternWidth + x_pixel) * 4;
+                    data[index] = rgbColor[0] * displayIntensity;
+                    data[index + 1] = rgbColor[1] * displayIntensity;
+                    data[index + 2] = rgbColor[2] * displayIntensity;
+                    data[index + 3] = 255;
+                }
+            }
+            ctx.putImageData(imageData, 0, 0);
+        }
+        
+        function generatePlotData(lambda, a, d, N, L, plotRangeMm) {
+            const y_values = [];
+            const intensity_values = [];
+            const envelope_values = [];
+            const n_points = 2000;
+
+            for (let i = 0; i < n_points; i++) {
+                const y_mm = -plotRangeMm + (2 * plotRangeMm * i) / (n_points - 1);
+                y_values.push(y_mm);
+                const y_m = y_mm / 1000.0;
+                const theta = Math.atan(y_m / L);
+                
+                let diff_intensity = (theta === 0) ? 1 : Math.pow(Math.sin((Math.PI * a * Math.sin(theta)) / lambda) / ((Math.PI * a * Math.sin(theta)) / lambda), 2);
+                envelope_values.push(diff_intensity);
+
+                const alpha_half = (Math.PI * d * Math.sin(theta)) / lambda;
+                let int_intensity = (alpha_half === 0 || Math.sin(alpha_half) === 0) ? N*N : Math.pow(Math.sin(N * alpha_half) / Math.sin(alpha_half), 2);
+                
+                intensity_values.push(diff_intensity * int_intensity / (N*N));
+            }
+            return { y_values, intensity_values, envelope_values };
+        }
+
+        function updateIntensityPlot(lambda, a, d, N, L, color) {
+            const y_5th_max_raw = 5 * lambda * L / d;
+            const plotRangeMm = (y_5th_max_raw * 1000) * 1.5;
+            const { y_values, intensity_values, envelope_values } = generatePlotData(lambda, a, d, N, L, plotRangeMm);
+
+            const plotData = [
+                { x: y_values, y: intensity_values, type: 'scatter', mode: 'lines', name: 'Intensidad Total', line: { color: color, width: 2 } },
+                { x: y_values, y: envelope_values, type: 'scatter', mode: 'lines', name: 'Envolvente', line: { color: 'rgba(255, 255, 255, 0.5)', width: 1.5, dash: 'dash' } }
+            ];
+            const layout = {
+                dragmode: 'pan',
+                showlegend: true,
+                legend: { x: 0.6, y: 1.1, orientation: 'h', font: {color: 'white'}},
+                xaxis: { title: 'Posición en la pared (y) [mm]', range: [-plotRangeMm, plotRangeMm], gridcolor: 'rgba(255, 255, 255, 0.1)', zerolinecolor: 'rgba(255, 255, 255, 0.3)', linecolor: 'white', color: 'white'},
+                yaxis: { title: 'I/I₀', range: [0, 1.1], gridcolor: 'rgba(255, 255, 255, 0.1)', zerolinecolor: 'rgba(255, 255, 255, 0.3)', linecolor: 'white', color: 'white' },
+                paper_bgcolor: '#1f2937', plot_bgcolor: '#111827', font: { color: 'white', size: 10 }, margin: { l: 40, r: 20, b: 40, t: 20 }
+            };
+            Plotly.newPlot('intensity-plot', plotData, layout, {responsive: true, scrollZoom: true});
+        }
+        
+        function updateExpandedPlot(lambda, a, d, N, L, color) {
+            const y_10th_max_raw = 10 * lambda * L / d;
+            const plotRangeMm = (y_10th_max_raw * 1000) * 1.2;
+            const { y_values, intensity_values, envelope_values } = generatePlotData(lambda, a, d, N, L, plotRangeMm);
+
+            const plotData = [
+                { x: y_values, y: intensity_values, type: 'scatter', mode: 'lines', name: 'Intensidad Total', line: { color: color, width: 3 } },
+                { x: y_values, y: envelope_values, type: 'scatter', mode: 'lines', name: 'Envolvente', line: { color: 'rgba(255, 255, 255, 0.5)', width: 2, dash: 'dash' } }
+            ];
+            const layout = {
+                dragmode: 'pan',
+                showlegend: true,
+                legend: { x: 0.6, y: 1.1, orientation: 'h', font: {color: 'white'}},
+                xaxis: { title: 'Posición en la pared (y) [mm]', range: [-plotRangeMm, plotRangeMm], gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white' },
+                yaxis: { title: 'Intensidad Relativa (I/I₀)', range: [0, 1.1], gridcolor: 'rgba(255, 255, 255, 0.2)', zerolinecolor: 'rgba(255, 255, 255, 0.5)', linecolor: 'white', color: 'white' },
+                paper_bgcolor: '#1f2937', plot_bgcolor: '#111827', font: { color: 'white' }, margin: { l: 60, r: 30, b: 50, t: 30 }
+            };
+            Plotly.newPlot('expanded-intensity-plot', plotData, layout, {responsive: true, scrollZoom: true});
+        }
+
+        function updateMaximaTable(lambda, a, d, L) {
+            maximaTableBody.innerHTML = '';
+            for (let m = 0; m <= 15; m++) {
+                const sin_theta = m * lambda / d;
+                if (sin_theta >= 1) break;
+
+                const theta_rad = Math.asin(sin_theta);
+                
+                const beta_half = (Math.PI * a * Math.sin(theta_rad)) / lambda;
+                const diff_intensity = (theta_rad === 0) ? 1 : Math.pow(Math.sin(beta_half) / beta_half, 2);
+
+                if (diff_intensity < 0.01 && m !== 0) continue;
+
+                const theta_deg = theta_rad * 180 / Math.PI;
+                const y_cm = L * Math.tan(theta_rad) * 100;
+                
+                const orderText = m === 0 ? '0' : `±${m}`;
+                const angleText = m === 0 ? '0.000' : `±${theta_deg.toFixed(3)}`;
+                const posText = m === 0 ? '0.000' : `±${y_cm.toFixed(3)}`;
+
+                const row = `<tr class="bg-gray-800 border-b border-gray-700"><td class="px-4 py-2">${orderText}</td><td class="px-4 py-2">${angleText}</td><td class="px-4 py-2">${posText}</td></tr>`;
+                maximaTableBody.innerHTML += row;
+            }
+        }
+
+        function openModal(modal) {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            modal.querySelector('.modal-content').classList.remove('scale-95');
+        }
+
+        function closeModal(modal) {
+            modal.classList.add('opacity-0');
+            modal.querySelector('.modal-content').classList.add('scale-95');
+            setTimeout(() => modal.classList.add('pointer-events-none'), 300);
+        }
+
+        [wavelengthSlider, slitWidthSlider, slitSeparationSlider, slitNumberSlider, distanceSlider].forEach(slider => {
+            slider.addEventListener('input', updateSimulation);
+        });
+        
+        showMaximaBtn.addEventListener('click', () => openModal(maximaModal));
+        closeMaximaBtn.addEventListener('click', () => closeModal(maximaModal));
+        maximaModal.addEventListener('click', (e) => e.target === maximaModal && closeModal(maximaModal));
+
+        showHelpBtn.addEventListener('click', () => openModal(helpModal));
+        closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
+        helpModal.addEventListener('click', (e) => e.target === helpModal && closeModal(helpModal));
+        
+        expandPatternBtn.addEventListener('click', () => {
+            openModal(patternModal);
+            setTimeout(() => {
+                const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+                const a = parseFloat(slitWidthSlider.value) * 1e-3;
+                const d = parseFloat(slitSeparationSlider.value) * 1e-3;
+                const N = parseInt(slitNumberSlider.value);
+                const L = parseFloat(distanceSlider.value);
+                const color = wavelengthToRgb(wavelengthSlider.value);
+                drawGratingPattern(expandedPatternCanvas, lambda, a, d, N, L, color);
+            }, 50);
+        });
+        closePatternBtn.addEventListener('click', () => closeModal(patternModal));
+        patternModal.addEventListener('click', (e) => e.target === patternModal && closeModal(patternModal));
+
+        expandPlotBtn.addEventListener('click', () => {
+            openModal(plotModal);
+            const lambda = parseFloat(wavelengthSlider.value) * 1e-9;
+            const a = parseFloat(slitWidthSlider.value) * 1e-3;
+            const d = parseFloat(slitSeparationSlider.value) * 1e-3;
+            const N = parseInt(slitNumberSlider.value);
+            const L = parseFloat(distanceSlider.value);
+            const color = wavelengthToRgb(wavelengthSlider.value);
+            updateExpandedPlot(lambda, a, d, N, L, `rgb(${color.join(',')})`);
+        });
+        closePlotBtn.addEventListener('click', () => closeModal(plotModal));
+        plotModal.addEventListener('click', (e) => e.target === plotModal && closeModal(plotModal));
+
+        window.addEventListener('load', updateSimulation);
+        window.addEventListener('resize', updateSimulation);
+    </script>
+</body>
+</html>
