@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulación de Espejo Esférico Cóncavo v3.0</title>
+    
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Fuentes y MathJax -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Estilos y Configuración de Tailwind -->
+    <style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --background: 220 14.3% 95.9%; /* slate-100 */
+                --foreground: 224 71.4% 4.1%; /* slate-950 */
+                --card: 0 0% 100%; /* white */
+                --card-foreground: 224 71.4% 4.1%;
+                --primary: 220.9 39.3% 11%; /* slate-800 */
+                --primary-foreground: 210 20% 98%; /* slate-50 */
+                --secondary: 220 13% 91%; /* slate-200 */
+                --secondary-foreground: 220.9 39.3% 11%;
+                --muted: 220 13% 91%;
+                --muted-foreground: 225 8.9% 46.1%; /* slate-500 */
+                --accent: 60 92% 50%; /* yellow-400 */
+                --border: 220 13% 85%; /* slate-300 */
+                --ring: 220.9 39.3% 11%;
+                --radius: 0.75rem;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: hsl(var(--background));
+                color: hsl(var(--foreground));
+            }
+            .canvas-container {
+                touch-action: none;
+                overflow: hidden;
+                cursor: default;
+            }
+            .modal {
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+            .modal-content {
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .fade-in { animation: fadeIn 0.3s ease-in-out; }
+            .fade-out { animation: fadeOut 0.3s ease-in-out forwards; }
+            .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+            @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+            @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+            
+            /* Estilos para los sliders */
+            input[type="range"] {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 100%;
+                height: 6px;
+                background: hsl(var(--secondary));
+                border-radius: 9999px;
+                outline: none;
+                transition: background 0.2s;
+            }
+            input[type="range"]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 20px;
+                height: 20px;
+                background: hsl(var(--primary));
+                cursor: pointer;
+                border-radius: 50%;
+                border: 3px solid hsl(var(--card));
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                transition: transform 0.2s ease;
+            }
+            input[type="range"]::-webkit-slider-thumb:hover {
+                transform: scale(1.1);
+            }
+            input[type="range"]::-moz-range-thumb {
+                width: 20px;
+                height: 20px;
+                background: hsl(var(--primary));
+                cursor: pointer;
+                border-radius: 50%;
+                border: 3px solid hsl(var(--card));
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            /* Estilo para <details> (acordeón) */
+            details > summary {
+                list-style: none;
+                cursor: pointer;
+            }
+            details > summary::-webkit-details-marker {
+                display: none;
+            }
+            details summary .lucide-chevron-down {
+                transition: transform 0.2s ease-in-out;
+            }
+            details[open] summary .lucide-chevron-down {
+                transform: rotate(180deg);
+            }
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+                        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+                        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+                        secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+                        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+                        accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+                        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+                    },
+                    borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="antialiased">
+    <div class="relative min-h-screen container mx-auto p-4 md:p-8 overflow-y-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-primary mb-2">
+                Espejos Esféricos Cóncavos
+            </h1>
+            <p class="text-lg text-muted-foreground">Simulación interactiva para explorar la formación de imágenes</p>
+        </header>
+
+        <!-- Botón de Ayuda Flotante -->
+        <div class="absolute top-4 right-4 z-30">
+            <button id="help-modal-btn" class="bg-card p-3 rounded-full shadow-lg border border-border hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Mostrar ayuda">
+                <i data-lucide="help-circle" class="w-6 h-6 text-primary"></i>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Columna de Simulación -->
+            <div class="lg:col-span-2">
+                <div class="canvas-container bg-card border border-border rounded-2xl shadow-lg">
+                    <canvas id="mirror-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Columna de Controles y Datos -->
+            <div class="space-y-6">
+                <div class="bg-card border border-border rounded-2xl shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6 text-primary flex items-center gap-2">
+                        <i data-lucide="sliders-horizontal"></i> Parámetros
+                    </h2>
+                    <div class="space-y-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="focalLength" class="text-sm font-medium text-muted-foreground">Distancia Focal (f)</label>
+                                <span id="f-val" class="px-2 py-1 text-sm font-semibold text-primary bg-secondary rounded-md">150</span>
+                            </div>
+                            <input type="range" id="focalLength" min="50" max="300" value="150">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="objectDistance" class="text-sm font-medium text-muted-foreground">Distancia Objeto (d₀)</label>
+                                <span id="do-val" class="px-2 py-1 text-sm font-semibold text-primary bg-secondary rounded-md">350</span>
+                            </div>
+                            <input type="range" id="objectDistance" min="10" max="500" value="350">
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label for="objectHeight" class="text-sm font-medium text-muted-foreground">Altura Objeto (h₀)</label>
+                                <span id="ho-val" class="px-2 py-1 text-sm font-semibold text-primary bg-secondary rounded-md">80</span>
+                            </div>
+                            <input type="range" id="objectHeight" min="10" max="150" value="80">
+                        </div>
+                    </div>
+                    <p class="text-xs text-muted-foreground mt-6 text-center">
+                        💡 Arrastra la flecha (objeto) o los puntos (F, C) en el lienzo para interactuar.
+                    </p>
+                </div>
+
+                <div class="bg-card border border-border rounded-2xl shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6 text-primary flex items-center gap-2">
+                        <i data-lucide="calculator"></i> Resultados
+                    </h2>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center bg-secondary p-3 rounded-lg">
+                            <span class="font-medium text-secondary-foreground">Distancia Imagen (dᵢ)</span>
+                            <span id="di-value" class="font-bold text-lg text-primary">0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-secondary p-3 rounded-lg">
+                            <span class="font-medium text-secondary-foreground">Altura Imagen (hᵢ)</span>
+                            <span id="hi-value" class="font-bold text-lg text-primary">0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center bg-secondary p-3 rounded-lg">
+                            <span class="font-medium text-secondary-foreground">Aumento (A)</span>
+                            <span id="A-value" class="font-bold text-lg text-primary">0.00</span>
+                        </div>
+                        <div class="border-t border-border pt-4 mt-2">
+                            <p id="image-type" class="font-bold text-center text-lg"></p>
+                        </div>
+                        <div class="border-t border-border pt-4 mt-2">
+                             <div class="bg-secondary p-3 rounded-lg text-center">
+                                <p id="legend-text" class="font-medium text-secondary-foreground text-base"></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center mt-12 py-4 border-t border-border">
+            <p class="text-sm text-muted-foreground">
+                Autor: Msc Néstor Fabio Montoya y Gemini AI
+            </p>
+        </footer>
+
+        <!-- Modal de Ayuda -->
+        <div id="help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
+            <div class="modal-content bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform scale-95">
+                <div class="flex items-center justify-between p-6 border-b border-border">
+                    <h2 class="text-xl font-bold text-primary flex items-center gap-2">
+                        <i data-lucide="book-open-check"></i> Guía y Fórmulas
+                    </h2>
+                    <button id="close-help-btn" class="p-2 rounded-md hover:bg-secondary transition-colors">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto space-y-4">
+                    <details class="bg-secondary/50 p-4 rounded-lg" open>
+                        <summary class="font-semibold text-lg flex justify-between items-center text-primary">
+                            Ecuaciones Fundamentales
+                            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                        </summary>
+                        <div class="mt-4 space-y-4 text-center text-lg font-mono p-4 bg-card rounded-md">
+                            <p><strong>Ecuación del Espejo:</strong><br> $ \frac{1}{f} = \frac{1}{d_o} + \frac{1}{d_i} $</p>
+                            <p><strong>Ecuación de Aumento:</strong><br> $ A = \frac{h_i}{h_o} = -\frac{d_i}{d_o} $</p>
+                        </div>
+                    </details>
+
+                    <details class="bg-secondary/50 p-4 rounded-lg">
+                        <summary class="font-semibold text-lg flex justify-between items-center text-primary">
+                            Convención de Signos
+                            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                        </summary>
+                        <ul class="mt-4 list-disc list-inside ml-2 space-y-2 text-muted-foreground">
+                            <li><strong>Vértice (V):</strong> Origen (0,0). La luz viaja de derecha a izquierda.</li>
+                            <li><strong>Distancia objeto (d₀):</strong> Positiva para objetos reales (a la derecha del espejo).</li>
+                            <li><strong>Distancia imagen (dᵢ):</strong> Positiva para imágenes reales (derecha), negativa para virtuales (izquierda).</li>
+                            <li><strong>Distancia focal (f):</strong> Positiva para espejos cóncavos.</li>
+                            <li><strong>Alturas (h₀, hᵢ):</strong> Positiva hacia arriba, negativa si está invertida.</li>
+                        </ul>
+                    </details>
+                    
+                    <details class="bg-secondary/50 p-4 rounded-lg">
+                        <summary class="font-semibold text-lg flex justify-between items-center text-primary">
+                            Casos de Formación de Imágenes
+                            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                        </summary>
+                        <div class="mt-4 space-y-2 text-muted-foreground">
+                           <p><strong>d₀ > 2f:</strong> Imagen real, invertida, menor.</p>
+                           <p><strong>d₀ = 2f:</strong> Imagen real, invertida, igual tamaño.</p>
+                           <p><strong>f < d₀ < 2f:</strong> Imagen real, invertida, mayor.</p>
+                           <p><strong>d₀ = f:</strong> No se forma imagen (rayos paralelos).</p>
+                           <p><strong>d₀ < f:</strong> Imagen virtual, derecha, mayor.</p>
+                        </div>
+                    </details>
+
+                    <details class="bg-secondary/50 p-4 rounded-lg">
+                        <summary class="font-semibold text-lg flex justify-between items-center text-primary">
+                            Cómo Interactuar
+                            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                        </summary>
+                        <ul class="mt-4 list-disc list-inside ml-2 space-y-2 text-muted-foreground">
+                            <li><strong>Posición del Objeto:</strong> Arrastra la base de la flecha.</li>
+                            <li><strong>Altura del Objeto:</strong> Arrastra la punta de la flecha.</li>
+                            <li><strong>Distancia Focal:</strong> Arrastra los puntos F (foco) o C (centro).</li>
+                            <li>Usa los <strong>deslizadores</strong> para un control preciso.</li>
+                        </ul>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Elementos del DOM ---
+            const canvas = document.getElementById('mirror-canvas');
+            const ctx = canvas.getContext('2d');
+
+            const fSlider = document.getElementById('focalLength');
+            const doSlider = document.getElementById('objectDistance');
+            const hoSlider = document.getElementById('objectHeight');
+            const fVal = document.getElementById('f-val');
+            const doVal = document.getElementById('do-val');
+            const hoVal = document.getElementById('ho-val');
+
+            const diValue = document.getElementById('di-value');
+            const hiValue = document.getElementById('hi-value');
+            const AValue = document.getElementById('A-value');
+            const imageType = document.getElementById('image-type');
+            const legendText = document.getElementById('legend-text');
+
+            const helpModal = document.getElementById('help-modal');
+            const helpModalBtn = document.getElementById('help-modal-btn');
+            const closeHelpBtn = document.getElementById('close-help-btn');
+
+            // --- Estado de la Simulación ---
+            let simState = {
+                f: 150,
+                do: 350,
+                ho: 80,
+                di: 0,
+                hi: 0,
+                A: 0,
+                dragging: null, // 'object', 'height', 'focus', 'center'
+            };
+
+            let width, height, originX, originY;
+
+            // --- Configuración Inicial ---
+            function setupCanvas() {
+                const container = canvas.parentElement;
+                width = container.clientWidth;
+                height = Math.min(width * 0.6, 550);
+                canvas.width = width;
+                canvas.height = height;
+                
+                originX = width / 4;
+                originY = height / 2;
+                
+                draw();
+            }
+
+            // --- Lógica de Cálculo ---
+            function calculateImage() {
+                const { f, do: do_val } = simState;
+                if (Math.abs(f - do_val) < 0.01) {
+                    simState.di = Infinity;
+                    simState.hi = Infinity;
+                    simState.A = Infinity;
+                    return;
+                }
+                simState.di = (do_val * f) / (do_val - f);
+                simState.A = -simState.di / do_val;
+                simState.hi = simState.A * simState.ho;
+            }
+
+            // --- Funciones de Dibujo ---
+            function draw() {
+                calculateImage();
+                ctx.clearRect(0, 0, width, height);
+
+                drawGrid();
+                drawOpticalAxis();
+                drawMirror();
+                drawObject();
+                
+                if (isFinite(simState.di)) {
+                    drawImage();
+                    drawRays(); 
+                }
+                
+                drawPoints();
+                
+                updateUI();
+                updateLegend();
+            }
+            
+            function drawGrid() {
+                const step = 50;
+                ctx.strokeStyle = '#e5e7eb';
+                ctx.lineWidth = 1;
+                ctx.font = '10px Inter';
+                ctx.fillStyle = '#000000';
+                ctx.textAlign = 'center';
+
+                for (let x = originX + step; x < width; x += step) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+                    ctx.fillText((x - originX).toFixed(0), x, originY + 15);
+                }
+                for (let x = originX - step; x > 0; x -= step) {
+                    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, height); ctx.stroke();
+                    ctx.fillText((x - originX).toFixed(0), x, originY + 15);
+                }
+                for (let y = originY + step; y < height; y += step) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+                }
+                for (let y = originY - step; y > 0; y -= step) {
+                    ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(width, y); ctx.stroke();
+                }
+            }
+
+            function drawOpticalAxis() {
+                ctx.strokeStyle = '#000000';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, originY);
+                ctx.lineTo(width, originY);
+                ctx.stroke();
+            }
+
+            function drawMirror() {
+                const { f } = simState;
+                const R = 2 * f;
+                const mirrorHeight = Math.min(height * 0.85, 2 * R * 0.9);
+                const angle = Math.asin(Math.min(mirrorHeight / (2 * R), 1));
+                
+                const grad = ctx.createLinearGradient(originX, originY - mirrorHeight / 2, originX, originY + mirrorHeight / 2);
+                grad.addColorStop(0, '#a5b4fc');
+                grad.addColorStop(0.5, '#6366f1');
+                grad.addColorStop(1, '#a5b4fc');
+
+                ctx.strokeStyle = grad;
+                ctx.lineWidth = 5;
+                ctx.beginPath();
+                ctx.arc(originX + R, originY, R, Math.PI - angle, Math.PI + angle);
+                ctx.stroke();
+            }
+
+            function drawPoints() {
+                const { f } = simState;
+                const C = 2 * f;
+                
+                ctx.font = 'bold 14px Inter';
+                
+                ctx.fillStyle = '#ef4444';
+                ctx.beginPath(); ctx.arc(originX + f, originY, 7, 0, 2 * Math.PI); ctx.fill();
+                ctx.fillStyle = '#dc2626';
+                ctx.fillText('F', originX + f, originY - 18);
+
+                ctx.fillStyle = '#f97316';
+                ctx.beginPath(); ctx.arc(originX + C, originY, 7, 0, 2 * Math.PI); ctx.fill();
+                ctx.fillStyle = '#ea580c';
+                ctx.fillText('C', originX + C, originY - 18);
+                
+                ctx.fillStyle = '#6366f1';
+                ctx.beginPath(); ctx.arc(originX, originY, 7, 0, 2 * Math.PI); ctx.fill();
+            }
+
+            function drawArrow(x, y, h, color, label, isObject = false) {
+                ctx.save();
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 4;
+                
+                ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - h); ctx.stroke();
+                
+                const headSize = 12;
+                const angle = h > 0 ? -Math.PI / 2 : Math.PI / 2;
+                
+                ctx.beginPath();
+                ctx.moveTo(x, y - h);
+                ctx.lineTo(x - headSize * Math.cos(angle - Math.PI / 6), y - h - headSize * Math.sin(angle - Math.PI / 6));
+                ctx.moveTo(x, y - h);
+                ctx.lineTo(x - headSize * Math.cos(angle + Math.PI / 6), y - h - headSize * Math.sin(angle + Math.PI / 6));
+                ctx.stroke();
+                
+                if (isObject) {
+                    ctx.fillStyle = color;
+                    ctx.beginPath(); ctx.arc(x, y, 8, 0, 2 * Math.PI); ctx.fill();
+                }
+                
+                ctx.font = 'bold 12px Inter';
+                ctx.fillStyle = color;
+                ctx.textAlign = h > 0 ? 'left' : 'right';
+                ctx.fillText(label, x + (h > 0 ? 8 : -8), y - h/2);
+                ctx.restore();
+            }
+
+            function drawObject() {
+                const { do: do_val, ho } = simState;
+                drawArrow(originX + do_val, originY, ho, '#22c55e', 'Objeto', true);
+            }
+
+            function drawImage() {
+                const { di, hi } = simState;
+                let color = '#f97316';
+                let label = simState.di > 0 ? 'I. Real' : 'I. Virtual';
+                drawArrow(originX + di, originY, hi, color, label);
+            }
+
+            function drawRays() {
+                const { f, do: do_val, ho, di, hi } = simState;
+                if (!isFinite(di)) return;
+
+                const objX = originX + do_val;
+                const objY = originY - ho;
+                const imgX = originX + di;
+                const imgY = originY - hi;
+                
+                ctx.save();
+                ctx.lineWidth = 1.5;
+
+                const drawFullRayPath = (color, interX, interY, isVirtual) => {
+                    ctx.strokeStyle = color;
+                    ctx.beginPath();
+                    ctx.setLineDash([]);
+                    ctx.moveTo(objX, objY);
+                    ctx.lineTo(interX, interY);
+                    if (!isVirtual) {
+                       ctx.lineTo(imgX, imgY);
+                    } else {
+                       const slope = (interY - imgY) / (interX - imgX);
+                       const endX = width;
+                       const endY = interY + slope * (endX - interX);
+                       ctx.lineTo(endX, endY);
+                    }
+                    ctx.stroke();
+
+                    if (isVirtual) {
+                        ctx.beginPath();
+                        ctx.setLineDash([4, 4]);
+                        ctx.moveTo(imgX, imgY);
+                        ctx.lineTo(interX, interY);
+                        ctx.stroke();
+                    }
+                };
+
+                const isVirtual = di < 0;
+                
+                drawFullRayPath('#3b82f6', originX, originY, isVirtual);
+
+                if (do_val < f) {
+                    ctx.strokeStyle = '#a855f7';
+                    ctx.beginPath();
+                    ctx.setLineDash([5, 5]);
+                    ctx.moveTo(objX, objY);
+                    ctx.lineTo(imgX, imgY);
+                    ctx.stroke();
+                }
+
+                ctx.restore();
+            }
+
+            // --- Actualización de UI y Eventos ---
+            function updateUI() {
+                fVal.textContent = `${simState.f.toFixed(0)}`;
+                doVal.textContent = `${simState.do.toFixed(0)}`;
+                hoVal.textContent = `${simState.ho.toFixed(0)}`;
+                fSlider.value = simState.f;
+                doSlider.value = simState.do;
+                hoSlider.value = simState.ho;
+
+                if (isFinite(simState.di)) {
+                    diValue.textContent = `${simState.di.toFixed(2)}`;
+                    hiValue.textContent = `${simState.hi.toFixed(2)}`;
+                    AValue.textContent = `${simState.A.toFixed(2)}`;
+                } else {
+                    diValue.textContent = '∞';
+                    hiValue.textContent = '∞';
+                    AValue.textContent = '∞';
+                }
+
+                if (Math.abs(simState.do - simState.f) < 1) {
+                    imageType.textContent = '🚫 No se forma imagen';
+                    imageType.className = 'font-bold text-center text-lg text-amber-500';
+                } else if (simState.di > 0) {
+                    imageType.textContent = `✅ Imagen Real, ${simState.hi < 0 ? 'Invertida' : 'Derecha'}`;
+                    imageType.className = 'font-bold text-center text-lg text-green-600';
+                } else {
+                    imageType.textContent = `🔍 Imagen Virtual, ${simState.hi < 0 ? 'Invertida' : 'Derecha'}`;
+                    imageType.className = 'font-bold text-center text-lg text-sky-500';
+                }
+            }
+            
+            function updateLegend() {
+                const { f, do: do_val } = simState;
+                const C = 2 * f;
+                let text = "";
+
+                if (Math.abs(do_val - f) < 1) text = "En F: Rayos paralelos";
+                else if (do_val > C) text = "d₀ > 2f: Real, invertida, menor";
+                else if (Math.abs(do_val - C) < 1.5) text = "d₀ = 2f: Real, invertida, igual";
+                else if (do_val > f && do_val < C) text = "f < d₀ < 2f: Real, invertida, mayor";
+                else if (do_val < f) text = "d₀ < f: Virtual, derecha, mayor";
+                
+                legendText.innerHTML = text;
+            }
+
+            function updateStateFromSliders() {
+                simState.f = parseFloat(fSlider.value);
+                simState.do = parseFloat(doSlider.value);
+                simState.ho = parseFloat(hoSlider.value);
+                draw();
+            }
+
+            function getEventPosition(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                return { x, y };
+            }
+
+            function handleStart(e) {
+                e.preventDefault();
+                const pos = getEventPosition(e);
+                const { f, do: do_val, ho } = simState;
+                const C = 2 * f;
+                
+                const objBaseX = originX + do_val;
+                const objTopY = originY - ho;
+                const focusX = originX + f;
+                const centerX = originX + C;
+
+                const hitRadius = 20;
+                if (Math.hypot(pos.x - objBaseX, pos.y - originY) < hitRadius) simState.dragging = 'object';
+                else if (Math.hypot(pos.x - objBaseX, pos.y - objTopY) < hitRadius) simState.dragging = 'height';
+                else if (Math.hypot(pos.x - focusX, pos.y - originY) < hitRadius) simState.dragging = 'focus';
+                else if (Math.hypot(pos.x - centerX, pos.y - originY) < hitRadius) simState.dragging = 'center';
+                else simState.dragging = null;
+
+                if (simState.dragging) canvas.style.cursor = 'grabbing';
+            }
+
+            function handleEnd(e) {
+                e.preventDefault();
+                simState.dragging = null;
+                canvas.style.cursor = 'default';
+            }
+
+            function handleMove(e) {
+                if (!simState.dragging) return;
+                e.preventDefault();
+                const pos = getEventPosition(e);
+                let newDo, newHo, newF;
+
+                switch (simState.dragging) {
+                    case 'object':
+                        newDo = pos.x - originX;
+                        simState.do = Math.max(10, Math.min(500, newDo));
+                        break;
+                    case 'height':
+                        newHo = originY - pos.y;
+                        simState.ho = Math.max(10, Math.min(150, newHo));
+                        break;
+                    case 'focus':
+                        newF = pos.x - originX;
+                        simState.f = Math.max(50, Math.min(300, newF));
+                        break;
+                    case 'center':
+                        newF = (pos.x - originX) / 2;
+                        simState.f = Math.max(50, Math.min(300, newF));
+                        break;
+                }
+                draw();
+            }
+
+            function openModal(modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                modal.querySelector('.modal-content').classList.remove('scale-95');
+            }
+
+            function closeModal(modal) {
+                modal.classList.add('opacity-0');
+                modal.querySelector('.modal-content').classList.add('scale-95');
+                setTimeout(() => {
+                    modal.classList.add('pointer-events-none');
+                }, 300);
+            }
+
+            fSlider.addEventListener('input', updateStateFromSliders);
+            doSlider.addEventListener('input', updateStateFromSliders);
+            hoSlider.addEventListener('input', updateStateFromSliders);
+
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mouseup', handleEnd);
+            canvas.addEventListener('mouseleave', handleEnd);
+            canvas.addEventListener('mousemove', handleMove);
+            canvas.addEventListener('touchstart', handleStart, { passive: false });
+            canvas.addEventListener('touchend', handleEnd, { passive: false });
+            canvas.addEventListener('touchcancel', handleEnd, { passive: false });
+            canvas.addEventListener('touchmove', handleMove, { passive: false });
+            
+            helpModalBtn.addEventListener('click', () => openModal(helpModal));
+            closeHelpBtn.addEventListener('click', () => closeModal(helpModal));
+            helpModal.addEventListener('click', (e) => {
+                if (e.target === helpModal) closeModal(helpModal);
+            });
+            
+            window.addEventListener('resize', setupCanvas);
+            window.addEventListener('load', () => {
+                setupCanvas();
+                lucide.createIcons();
+            });
+        });
+    </script>
+</body>
+</html>
