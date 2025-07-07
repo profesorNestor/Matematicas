@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Movimiento Parabólico con Rozamiento v1.1</title>
+    <title>Simulador de Movimiento Parabólico con Rozamiento v1.2</title>
     
     <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -257,7 +257,7 @@
             </p>
         </footer>
 
-        <div id="help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
+        <div id="help-modal" role="dialog" aria-modal="true" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
             <div class="modal-content bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform scale-95">
                 <div class="flex items-center justify-between p-6 border-b border-border">
                     <h2 class="text-xl font-bold text-primary flex items-center gap-2">
@@ -285,7 +285,7 @@
             </div>
         </div>
         
-        <div id="expand-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
+        <div id="expand-modal" role="dialog" aria-modal="true" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
             <div class="bg-card w-full h-full rounded-2xl shadow-2xl flex flex-col relative">
                 <div id="expanded-canvas-container" class="flex-grow h-full w-full relative">
                     <canvas id="expandedCanvas" class="w-full h-full"></canvas>
@@ -433,10 +433,14 @@
                 let simVx = v0x;
                 let simVy = v0y;
                 let simMaxHeight = 0;
-                const dt = 0.001; // Small time step for accuracy
+                
+                const dt = 0.01; // Bajar iteraciones para mejorar rendimiento
+                const maxSteps = 9000; // Evitar bucles infinitos
+                let steps = 0;
 
-                // Simulate to find max height
-                while (simVy > 0) {
+
+                // Simular para encontrar la altura máxima
+                while (simVy > 0 && steps++ < maxSteps) {
                     const v = Math.sqrt(simVx**2 + simVy**2);
                     simVx -= (b * simVx * v) * dt;
                     simVy -= (state.g + b * simVy * v) * dt;
@@ -445,14 +449,15 @@
                 }
                 simMaxHeight = simY;
 
-                // Reset and simulate for full flight
+                // Resetear y simular para el vuelo completo
+                steps = 0;
                 simTime = 0;
                 simX = 0;
                 simY = 0;
                 simVx = v0x;
                 simVy = v0y;
 
-                while (simY >= 0) {
+                while (simY >= 0 && steps++ < maxSteps) {
                     const v = Math.sqrt(simVx**2 + simVy**2);
                     simVx -= (b * simVx * v) * dt;
                     simVy -= (state.g + b * simVy * v) * dt;
@@ -543,6 +548,8 @@
                 
                 state.t += dt;
                 state.path.push({ x: state.x, y: state.y });
+                if (state.path.length > 1500) state.path.shift(); // Limitar tamaño de la trayectoria
+
                 updateRealTimeData();
                 drawAllCanvases();
 
@@ -706,7 +713,7 @@
                 }
 
                 ctx.beginPath();
-                const radius = Math.abs(4 / state.scale);
+                const radius = Math.abs(4 / (state.scale * ctx.pixelRatio));
                 if (radius > 0 && isFinite(radius)) {
                     ctx.arc(state.x, state.y, radius, 0, 2 * Math.PI);
                     ctx.fillStyle = projectileColors[state.projectileColorIndex];
@@ -743,27 +750,31 @@
                 const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
                 const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
 
+                let lastLabelX = -Infinity;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
                 for (let x = Math.ceil(startX / step) * step; x < endX; x += step) {
                     if (x <= 0) continue;
                     const screenX = x * state.scale + transformedOrigin.x;
-                    if (screenX < originX + 15 || screenX > rect.width - 15) continue;
+                    if (screenX < originX + 15 || screenX > rect.width - 15 || screenX - lastLabelX < 40) continue;
                     ctx.fillText(x.toFixed(0), screenX, transformedOrigin.y + 8);
+                    lastLabelX = screenX;
                     ctx.beginPath();
                     ctx.moveTo(screenX, transformedOrigin.y - 4);
                     ctx.lineTo(screenX, transformedOrigin.y + 4);
                     ctx.stroke();
                 }
 
+                let lastLabelY = Infinity;
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
                 for (let y = Math.floor(startY / step) * step; y < endY; y += step) {
                     if (y === 0) continue;
                     const screenY = transformedOrigin.y - y * state.scale;
-                    if (screenY < 15 || screenY > rect.height - 15) continue;
+                    if (screenY < 15 || screenY > rect.height - 15 || Math.abs(screenY - lastLabelY) < 20) continue;
                     
                     ctx.fillText(y.toFixed(0), transformedOrigin.x - 10, screenY);
+                    lastLabelY = screenY;
                     ctx.beginPath();
                     ctx.moveTo(transformedOrigin.x - 4, screenY);
                     ctx.lineTo(transformedOrigin.x + 4, screenY);
@@ -964,6 +975,18 @@
             document.addEventListener('click', (e) => {
                 if (dom.colorPicker && !dom.colorPicker.contains(e.target) && !dom.paletteBtn.contains(e.target)) {
                     closeColorPicker();
+                }
+            });
+
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') {
+                    [dom.helpModal, dom.expandModal].forEach(closeModal);
+                }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.hidden) {
+                    pauseSimulation();
                 }
             });
 
