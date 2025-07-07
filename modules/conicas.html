@@ -1,121 +1,27 @@
 <!DOCTYPE html>
-<html lang="es" class="light">
+<html lang="es" class="dark">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Graficador de Cónicas v4.5 | Néstor Montoya</title>
+    <title>Simulador de Secciones Cónicas | Néstor Montoya & Gemini AI</title>
 
-    <!-- ░░░ STYLES & FONTS ░░░ -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    <style type="text/tailwindcss">
-        @layer base {
-            :root {
-                --background: 220 20% 96%;
-                --foreground: 224 71.4% 4.1%;
-                --card: 0 0% 100%;
-                --card-foreground: 224 71.4% 4.1%;
-                --popover: 0 0% 100%;
-                --popover-foreground: 224 71.4% 4.1%;
-                --primary: 221 83% 53%;
-                --primary-foreground: 210 20% 98%;
-                --secondary: 220 13% 91%;
-                --secondary-foreground: 220 14.3% 33.3%;
-                --muted: 220 9% 46%;
-                --muted-foreground: 220 9% 46%;
-                --accent: 258 96% 65%; /* Violeta para la curva */
-                --accent-foreground: 210 20% 98%;
-                --destructive: 0 84.2% 60.2%;
-                --destructive-foreground: 210 20% 98%;
-                --border: 220 13% 88%;
-                --input: 220 13% 80%;
-                --ring: 221 83% 53%;
-                --radius: 0.75rem;
-            }
-            .dark {
-                --background: 222 84% 5%;
-                --foreground: 210 20% 98%;
-                --card: 222 47% 11%;
-                --card-foreground: 210 20% 98%;
-                --popover: 222 84% 5%;
-                --popover-foreground: 210 20% 98%;
-                --primary: 217 91% 60%;
-                --primary-foreground: 222 47% 11%;
-                --secondary: 217 33% 17%;
-                --secondary-foreground: 210 20% 98%;
-                --muted: 217 33% 17%;
-                --muted-foreground: 215 20% 65%;
-                --accent: 258 96% 70%;
-                --accent-foreground: 210 20% 98%;
-                --destructive: 0 63% 31%;
-                --destructive-foreground: 210 20% 98%;
-                --border: 217 33% 17%;
-                --input: 217 33% 17%;
-                --ring: 217 91% 60%;
-            }
-            html, body { 
-                height: 100%; 
-                scroll-behavior: smooth;
-            }
-            body {
-                font-family: 'Inter', sans-serif;
-                background-color: hsl(var(--background));
-                color: hsl(var(--foreground));
-                -webkit-font-smoothing: antialiased;
-                -moz-osx-font-smoothing: grayscale;
-            }
-            /* Custom slider styles */
-            input[type="range"] {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 100%;
-                height: 6px;
-                background: hsl(var(--secondary));
-                border-radius: 99px;
-                outline: none;
-                transition: background 0.2s;
-            }
-            input[type="range"]::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 20px;
-                height: 20px;
-                background: hsl(var(--primary));
-                border: 3px solid hsl(var(--card));
-                border-radius: 50%;
-                cursor: grab;
-                box-shadow: 0 2px 8px -2px hsla(var(--primary)/ 0.5);
-                transition: transform 0.2s ease;
-            }
-            input[type="range"]:active::-webkit-slider-thumb {
-                transform: scale(1.1);
-                cursor: grabbing;
-            }
-            input[type="range"]::-moz-range-thumb {
-                width: 20px;
-                height: 20px;
-                background: hsl(var(--primary));
-                border: 3px solid hsl(var(--card));
-                border-radius: 50%;
-                cursor: grab;
-                box-shadow: 0 2px 8px -2px hsla(var(--primary)/ 0.5);
-                transition: transform 0.2s ease;
-            }
-            input[type="range"]:active::-moz-range-thumb {
-                transform: scale(1.1);
-                cursor: grabbing;
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    
+    <!-- Three.js & OrbitControls -->
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.module.js",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.128.0/examples/jsm/"
             }
         }
-    </style>
+    </script>
 
-    <!-- ░░░ LIBRARIES (CDN) ░░░ -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>tailwind.config = { darkMode: 'class', theme: { extend: { colors: { border: 'hsl(var(--border))', input: 'hsl(var(--input))', ring: 'hsl(var(--ring))', background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))', primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))', }, secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))', }, destructive: { DEFAULT: 'hsl(var(--destructive))', foreground: 'hsl(var(--destructive-foreground))', }, muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))', }, accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))', }, popover: { DEFAULT: 'hsl(var(--popover))', foreground: 'hsl(var(--popover-foreground))', }, card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))', }, }, borderRadius: { lg: `var(--radius)`, md: `calc(var(--radius) - 2px)`, sm: 'calc(var(--radius) - 4px)', }, } } }</script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
-    <script async src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- MathJax -->
     <script>
         window.MathJax = {
             tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
@@ -123,428 +29,341 @@
         };
     </script>
     <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #111827; /* gray-900 */
+            --card-bg: rgba(31, 41, 55, 0.5); /* gray-800 with alpha */
+            --card-border: rgba(255, 255, 255, 0.1);
+            --neumorph-bg: #1f2937; /* gray-800 */
+            --neumorph-shadow-light: rgba(255, 255, 255, 0.05);
+            --neumorph-shadow-dark: rgba(0, 0, 0, 0.5);
+            --primary-accent: #38bdf8; /* sky-400 */
+            --text-light: #f3f4f6; /* gray-100 */
+            --text-dark: #9ca3af; /* gray-400 */
+        }
+
+        html { scroll-behavior: smooth; }
+
+        /* Ensure vertical scroll on small screens */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+        }
+
+        .glassmorphism {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .neumorph-inset {
+            background: var(--neumorph-bg);
+            box-shadow: inset 6px 6px 12px var(--neumorph-shadow-dark), inset -6px -6px 12px var(--neumorph-shadow-light);
+        }
+
+        /* Custom Slider */
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 8px;
+            background: var(--neumorph-bg);
+            border-radius: 8px;
+            box-shadow: inset 3px 3px 6px var(--neumorph-shadow-dark), inset -3px -3px 6px var(--neumorph-shadow-light);
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 24px; height: 24px;
+            background: var(--primary-accent);
+            border-radius: 50%; cursor: grab;
+            box-shadow: 4px 4px 8px var(--neumorph-shadow-dark), -4px -4px 8px var(--neumorph-shadow-light);
+            transition: transform 0.2s ease;
+        }
+        input[type="range"]:active::-webkit-slider-thumb {
+            cursor: grabbing;
+            transform: scale(1.1);
+        }
+        
+        /* Custom Scrollbar for Info Panel */
+        #info-panel::-webkit-scrollbar { width: 8px; height: 8px; }
+        #info-panel::-webkit-scrollbar-track { background: var(--neumorph-bg); border-radius: 10px; }
+        #info-panel::-webkit-scrollbar-thumb { background-color: var(--primary-accent); border-radius: 10px; border: 2px solid var(--neumorph-bg); }
+    </style>
 </head>
 
-<body class="min-h-screen antialiased">
+<body class="min-h-screen">
 
-    <!-- Main Container -->
-    <div id="app-container" class="relative min-h-screen container mx-auto p-4 lg:p-6 flex flex-col">
-
-        <!-- Header -->
-        <header class="text-center py-4">
-            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-foreground">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300">
                 Simulador de Secciones Cónicas
             </h1>
-            <p id="main-equation" class="mt-2 text-lg text-muted-foreground">$r(\theta) = \frac{p}{1 + e \cdot \cos(\theta - \theta_0)}$</p>
+            <p id="main-equation" class="mt-3 text-lg text-gray-400">$r(\theta) = \frac{p}{1 + e \cdot \cos(\theta - \theta_0)}$</p>
         </header>
 
-        <!-- Main Grid -->
-        <main class="flex-grow grid grid-cols-1 lg:grid-cols-5 gap-6 mt-6">
-
+        <main class="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            
             <!-- Left Panel: Controls & Data -->
-            <div class="lg:col-span-2 flex flex-col gap-6">
-                <!-- Parameters Card -->
-                <div class="bg-card border border-border rounded-xl shadow-sm">
-                    <div class="p-6">
-                        <h2 class="text-xl font-bold flex items-center gap-3"><i data-lucide="sliders-horizontal" class="w-5 h-5 text-primary"></i>Parámetros Geométricos</h2>
-                    </div>
-                    <div class="p-6 pt-0 space-y-6">
+            <div class="lg:col-span-2 flex flex-col gap-8">
+                
+                <div class="glassmorphism rounded-2xl p-6">
+                    <h2 class="text-xl font-bold text-sky-400 mb-6">Parámetros Geométricos</h2>
+                    <div class="space-y-6">
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <label for="e" class="font-medium text-sm">Excentricidad ($e$)</label>
-                                <span id="e-value-display" class="font-mono text-sm bg-secondary text-secondary-foreground py-1 px-2 rounded-md">0.50</span>
+                                <label for="e" class="font-medium text-sm whitespace-nowrap">Excentricidad ($e$)</label>
+                                <span id="e-value-display" class="font-mono text-sm bg-gray-900/50 text-sky-300 py-1 px-3 rounded-full ml-4">0.50</span>
                             </div>
                             <input id="e" type="range" min="0" max="2" step="0.01" value="0.5">
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-2">
-                                <label for="p" class="font-medium text-sm">Semilatus Rectum ($p$)</label>
-                                <span id="p-value-display" class="font-mono text-sm bg-secondary text-secondary-foreground py-1 px-2 rounded-md">1.5</span>
+                                <label for="p" class="font-medium text-sm whitespace-nowrap">Semilatus Rectum ($p$)</label>
+                                <span id="p-value-display" class="font-mono text-sm bg-gray-900/50 text-sky-300 py-1 px-3 rounded-full ml-4">1.5</span>
                             </div>
                             <input id="p" type="range" min="0.1" max="10" step="0.1" value="1.5">
                         </div>
                         <div>
-                            <label for="theta0" class="font-medium text-sm mb-2 block">Orientación de la Directriz ($\theta_0$)</label>
-                            <select id="theta0" class="w-full bg-secondary border border-border rounded-md p-2 text-sm focus:ring-2 focus:ring-ring focus:outline-none">
-                                <option value="0">Vertical, apertura izquierda (x > 0)</option>
-                                <option value="180">Vertical, apertura derecha (x < 0)</option>
-                                <option value="90">Horizontal, apertura abajo (y > 0)</option>
-                                <option value="270">Horizontal, apertura arriba (y < 0)</option>
+                            <label for="theta0" class="font-medium text-sm mb-2 block">Orientación ($\theta_0$)</label>
+                            <select id="theta0" class="w-full neumorph-inset p-3 text-sm rounded-lg focus:ring-2 focus:ring-sky-400 focus:outline-none appearance-none">
+                                <option value="0">Vertical, apertura izquierda</option>
+                                <option value="180">Vertical, apertura derecha</option>
+                                <option value="90">Horizontal, apertura abajo</option>
+                                <option value="270">Horizontal, apertura arriba</option>
                             </select>
-                        </div>
-                        <div class="flex items-center justify-between pt-2">
-                            <label for="view-3d-toggle" class="font-medium text-sm flex items-center gap-2">
-                                <i data-lucide="box" class="w-4 h-4"></i>
-                                Vista 3D (Superficie de revolución)
-                            </label>
-                            <input type="checkbox" id="view-3d-toggle" class="h-5 w-5 rounded text-primary focus:ring-primary cursor-pointer">
                         </div>
                     </div>
                 </div>
 
-                <!-- Data Card -->
-                <div class="bg-card border border-border rounded-xl shadow-sm flex flex-col">
-                    <div class="p-6 flex justify-between items-center">
-                        <h2 class="text-xl font-bold flex items-center gap-3"><i data-lucide="function-square" class="w-5 h-5 text-primary"></i>Datos Analíticos</h2>
-                        <button id="copy-button" aria-label="Copiar ecuaciones" class="p-2 rounded-md hover:bg-secondary transition-colors">
-                            <i data-lucide="copy" class="w-5 h-5"></i>
-                        </button>
-                    </div>
-                    <div class="p-6 pt-0 text-sm text-card-foreground flex-grow overflow-auto max-h-72">
-                        <div id="info-panel" class="inline-block min-w-full space-y-3">
-                           <!-- Dynamic content here -->
-                        </div>
-                    </div>
+                <div class="glassmorphism rounded-2xl p-6 flex flex-col">
+                     <h2 class="text-xl font-bold text-sky-400 mb-4">Datos Analíticos</h2>
+                     <div id="info-panel" class="text-sm space-y-3 text-gray-300 max-h-[450px] overflow-auto pr-2">
+                         <!-- Dynamic content here -->
+                     </div>
                 </div>
+
             </div>
 
             <!-- Right Panel: Visualization -->
-            <div class="lg:col-span-3 min-h-[60vh] lg:min-h-0 relative">
-                <div id="plot-container" class="w-full h-full bg-card border border-border rounded-xl shadow-sm overflow-hidden">
-                    <!-- Plotly graph will be injected here -->
-                </div>
-                <div id="three-d-container" class="w-full h-full absolute top-0 left-0 rounded-xl overflow-hidden pointer-events-none opacity-0">
-                    <!-- Three.js canvas will be injected here -->
-                </div>
-                
-                <!-- Floating Toolbar -->
-                <div class="absolute top-3 right-3 z-20 flex items-center gap-1 p-1.5 rounded-full bg-card/60 dark:bg-card/40 border border-border/50 backdrop-blur-md shadow-lg">
-                    <button id="palette-toggle" aria-label="Cambiar colores" class="p-2 rounded-full hover:bg-secondary transition-colors"><i data-lucide="palette" class="w-5 h-5"></i></button>
-                    <button id="home-button" aria-label="Reiniciar vista" class="p-2 rounded-full hover:bg-secondary transition-colors"><i data-lucide="home" class="w-5 h-5"></i></button>
-                    <button id="autoscale-button" aria-label="Autoescalar vista" class="p-2 rounded-full hover:bg-secondary transition-colors"><i data-lucide="maximize" class="w-5 h-5"></i></button>
-                    <button id="theme-toggle" aria-label="Cambiar tema" class="p-2 rounded-full hover:bg-secondary transition-colors">
-                        <i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i>
-                        <i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i>
+            <div class="lg:col-span-3 min-h-[60vh] lg:min-h-0 neumorph-inset rounded-2xl p-2 relative">
+                <div id="plot-container" class="w-full h-full rounded-xl overflow-hidden"></div>
+                <div id="three-d-container" class="w-full h-full absolute top-0 left-0 rounded-xl overflow-hidden pointer-events-none opacity-0 transition-opacity duration-500"></div>
+
+                <!-- 2D/3D Controls -->
+                <div class="absolute top-4 right-4 z-20 flex items-center gap-2 p-2 rounded-full glassmorphism">
+                    <button id="palette-toggle" aria-label="Cambiar color" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z"></path><path d="m12 13.01 3.5-3.5a2.12 2.12 0 1 0-3-3L12 7.01"></path></svg>
                     </button>
-                    <button id="help-toggle" aria-label="Mostrar ayuda" class="p-2 rounded-full hover:bg-secondary transition-colors"><i data-lucide="help-circle" class="w-5 h-5"></i></button>
+                    <button id="view-toggle" aria-label="Cambiar vista" class="p-2 w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700/50 transition-colors font-bold text-sm">3D</button>
+                    <button id="home-button" aria-label="Reiniciar vista" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    </button>
                 </div>
 
                 <!-- Color Palette Widget -->
-                <div id="color-palette" class="absolute top-16 right-3 z-20 bg-card/60 dark:bg-card/40 border border-border/50 backdrop-blur-md shadow-lg rounded-lg p-3 space-y-2 opacity-0 pointer-events-none transition-all duration-300 transform scale-95">
-                    <p class="text-xs font-semibold text-center mb-1">Color de la Curva</p>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button class="color-swatch w-6 h-6 rounded-full ring-2 ring-transparent hover:ring-primary" style="background-color: #8b5cf6;"></button>
-                        <button class="color-swatch w-6 h-6 rounded-full ring-2 ring-transparent hover:ring-primary" style="background-color: #ec4899;"></button>
-                        <button class="color-swatch w-6 h-6 rounded-full ring-2 ring-transparent hover:ring-primary" style="background-color: #22c55e;"></button>
-                        <button class="color-swatch w-6 h-6 rounded-full ring-2 ring-transparent hover:ring-primary" style="background-color: #f97316;"></button>
+                <div id="color-palette-widget" class="absolute top-20 right-4 z-20 p-4 rounded-2xl glassmorphism opacity-0 pointer-events-none transition-all duration-300 transform scale-95 -translate-y-2">
+                    <p class="text-sm font-bold text-center mb-3">Color de la Curva</p>
+                    <div id="color-swatches" class="grid grid-cols-5 gap-3">
+                        <!-- Color swatches will be injected here by JS -->
                     </div>
+                </div>
+                
+                <!-- 3D Specific Controls -->
+                <div id="controls-3d" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 p-2 rounded-full glassmorphism opacity-0 pointer-events-none transition-opacity">
+                    <button id="solid-btn" class="px-3 py-1 text-xs rounded-full bg-sky-500/20">Sólido</button>
+                    <button id="wireframe-btn" class="px-3 py-1 text-xs rounded-full bg-sky-500/20">Malla</button>
+                    <button id="both-btn" class="px-3 py-1 text-xs rounded-full bg-sky-500/50">Ambos</button>
                 </div>
 
-                <!-- Collapsible Legend -->
-                <div id="plot-legend" class="absolute top-3 left-3 z-10 bg-card/60 dark:bg-card/40 border border-border/50 backdrop-blur-md shadow-lg rounded-lg p-2 cursor-pointer transition-all">
-                    <div class="flex items-center gap-2">
-                        <span id="plot-legend-type" class="font-bold text-sm">Elipse</span>
-                        <i id="plot-legend-chevron" data-lucide="chevron-down" class="w-4 h-4 transition-transform"></i>
-                    </div>
-                    <div id="plot-legend-body" class="mt-1 space-y-1 overflow-hidden transition-all max-h-40">
-                        <div class="flex items-center gap-2 text-xs"><div class="w-3 h-3 rounded-full" style="background-color: #8b5cf6;" id="legend-swatch-conic"></div>Cónica</div>
-                        <div class="flex items-center gap-2 text-xs"><div class="w-3 h-3 rounded-full" style="background-color: #dc2626;"></div>Foco</div>
-                        <div class="flex items-center gap-2 text-xs"><div class="w-3 h-3 rounded-full" style="background-color: #2563eb;"></div>Vértice</div>
-                        <div class="flex items-center gap-2 text-xs"><div class="w-3 h-3 rounded-full" style="background-color: #f59e0b;"></div>Centro</div>
-                        <div class="flex items-center gap-2 text-xs"><div class="w-3 h-0.5" style="background-color: #f43f5e;"></div>Asíntota</div>
-                    </div>
-                </div>
             </div>
         </main>
-
-        <!-- Footer -->
-        <footer class="text-center py-6 mt-8 text-sm text-muted-foreground">
-            Autor: Msc Néstor Fabio Montoya Palacios
+        
+        <footer class="text-center text-gray-500 text-sm mt-12 pb-4">
+            Autor: Msc Néstor Fabio Montoya Palacios & Gemini AI
         </footer>
     </div>
 
-    <!-- Help Modal -->
-    <div id="help-modal" class="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none transition-opacity duration-300">
-        <div id="help-modal-content" class="bg-card border border-border rounded-xl shadow-2xl w-full max-w-md transform scale-95 transition-all duration-300">
-            <div class="p-6">
-                <div class="flex justify-between items-center">
-                    <h3 class="text-lg font-bold flex items-center gap-2"><i data-lucide="info" class="w-5 h-5 text-primary"></i>Guía Rápida</h3>
-                    <button id="close-modal-button" aria-label="Cerrar modal" class="p-2 -m-2 rounded-full hover:bg-secondary transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
-                </div>
-                <div class="mt-4 text-sm text-muted-foreground space-y-3">
-                    <p>Este simulador visualiza secciones cónicas definidas por un <strong>foco</strong> en el origen, una <strong>directriz</strong> y una <strong>excentricidad</strong> $e$.</p>
-                    <ul class="list-disc list-inside space-y-2 pl-2">
-                        <li><strong>$e = 0$:</strong> Circunferencia</li>
-                        <li><strong>$0 < e < 1$:</strong> Elipse</li>
-                        <li><strong>$e = 1$:</strong> Parábola</li>
-                        <li><strong>$e > 1$:</strong> Hipérbola</li>
-                    </ul>
-                    <p><strong>Controles del gráfico:</strong></p>
-                    <ul class="list-disc list-inside space-y-2 pl-2">
-                        <li><strong>Arrastrar:</strong> Mover (panear) el gráfico.</li>
-                        <li><strong>Rueda del ratón:</strong> Hacer zoom.</li>
-                        <li><strong>Doble clic:</strong> Autoescalar vista.</li>
-                    </ul>
-                    <p>La vista 3D muestra la superficie generada al rotar la cónica sobre su eje principal.</p>
-                </div>
-                <div class="mt-6 text-right">
-                    <button id="close-modal-button-2" class="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm font-semibold hover:bg-primary/90 transition-colors">Entendido</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Toast Notification -->
-    <div id="toast" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-foreground text-background px-4 py-2 rounded-md shadow-lg text-sm opacity-0 translate-y-4 transition-all duration-300">
-        ¡Copiado al portapapeles!
-    </div>
-
-    <!-- ░░░ MAIN SCRIPT ░░░ -->
     <script type="module">
-        /* 1. CONFIG & DOM ELEMENTS ────────────────────────────────────────── */
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+        /* 1. CONFIG & DOM ELEMENTS */
         const $ = (selector) => document.querySelector(selector);
         
-        // DOM Elements
         const dom = {
-            eSlider: $('#e'),
-            pSlider: $('#p'),
-            theta0Select: $('#theta0'),
-            eValueDisplay: $('#e-value-display'),
-            pValueDisplay: $('#p-value-display'),
-            infoPanel: $('#info-panel'),
-            plotContainer: $('#plot-container'),
-            threeContainer: $('#three-d-container'),
-            view3DToggle: $('#view-3d-toggle'),
-            themeToggle: $('#theme-toggle'),
-            helpToggle: $('#help-toggle'),
-            closeModalButton: $('#close-modal-button'),
-            closeModalButton2: $('#close-modal-button-2'),
-            helpModal: $('#help-modal'),
-            helpModalContent: $('#help-modal-content'),
+            eSlider: $('#e'), pSlider: $('#p'), theta0Select: $('#theta0'),
+            eValueDisplay: $('#e-value-display'), pValueDisplay: $('#p-value-display'),
+            infoPanel: $('#info-panel'), plotContainer: $('#plot-container'),
+            threeContainer: $('#three-d-container'), viewToggle: $('#view-toggle'),
             homeButton: $('#home-button'),
-            autoscaleButton: $('#autoscale-button'),
-            copyButton: $('#copy-button'),
-            toast: $('#toast'),
+            controls3D: $('#controls-3d'), solidBtn: $('#solid-btn'),
+            wireframeBtn: $('#wireframe-btn'), bothBtn: $('#both-btn'),
             paletteToggle: $('#palette-toggle'),
-            colorPalette: $('#color-palette'),
-            colorSwatches: document.querySelectorAll('.color-swatch'),
-            plotLegend: $('#plot-legend'),
-            plotLegendType: $('#plot-legend-type'),
-            plotLegendBody: $('#plot-legend-body'),
-            plotLegendChevron: $('#plot-legend-chevron'),
-            legendSwatchConic: $('#legend-swatch-conic'),
+            paletteWidget: $('#color-palette-widget'),
+            colorSwatchesContainer: $('#color-swatches'),
         };
 
-        // Constants
         const RAD = Math.PI / 180;
-        const PRECISION = 3;
+        const PRECISION = 2;
+        const conicColors = ['#38bdf8', '#fb7185', '#4ade80', '#facc15', '#a78bfa', '#f472b6', '#2dd4bf', '#f87171', '#c084fc', '#fbbf24'];
 
-        // State
-        let state = {
-            e: 0.5,
-            p: 1.5,
-            theta0: 0,
-            show3D: false,
-            theme: 'light',
-            colors: {
-                conic: '#8b5cf6',
-                asymptote: '#f43f5e'
-            }
-        };
+        let state = { e: 0.5, p: 1.5, theta0: 0, show3D: false, currentColor: conicColors[0] };
+        let three = { scene: null, camera: null, renderer: null, solidMesh: null, wireMesh: null, controls: null, animationFrameId: null };
 
-        // 3D Scene objects
-        let three = { scene: null, camera: null, renderer: null, mesh: null, controls: null, animationFrameId: null };
-
-        /* 2. LOCALSTORAGE & THEME ────────────────────────────────────────── */
-        
-        function saveState() {
-            try {
-                localStorage.setItem('conicState_v4', JSON.stringify(state));
-            } catch (e) { console.error("Could not save state to localStorage", e); }
-        }
-
-        function loadState() {
-            try {
-                const savedState = localStorage.getItem('conicState_v4');
-                if (savedState) {
-                    const parsedState = JSON.parse(savedState);
-                    parsedState.show3D = false; 
-                    state = { ...state, ...parsedState };
-                }
-                if (state.theme === 'dark') document.documentElement.classList.add('dark');
-                else document.documentElement.classList.remove('dark');
-            } catch (e) { console.error("Could not load state from localStorage", e); }
-        }
-
-        function updateControlsFromState() {
-            dom.eSlider.value = state.e;
-            dom.pSlider.value = state.p;
-            dom.theta0Select.value = state.theta0;
-            dom.view3DToggle.checked = state.show3D;
-            dom.eValueDisplay.textContent = parseFloat(state.e).toFixed(2);
-            dom.pValueDisplay.textContent = parseFloat(state.p).toFixed(1);
-            dom.legendSwatchConic.style.backgroundColor = state.colors.conic;
-        }
-
-        /* 3. MATHEMATICAL CALCULATIONS ─────────────────────────────────── */
-
+        /* 2. MATHEMATICAL CALCULATIONS */
         function calculateConicProperties() {
             const { e, p } = state;
-            const theta0Rad = state.theta0 * RAD;
-            let props = { e, p, theta0Rad, type: '', cartesianEq: '', vertices: [], foci: [], directrix: {}, center: null, asymptotes: [], boundingBox: {} };
+            const theta0Deg = state.theta0;
+            const theta0Rad = theta0Deg * RAD;
+            
+            let props = { e, p, theta0Rad, type: '', vertices: [], foci: [], center: null, asymptotes: [], directrices: [], cartesianEq: {}, boundingBox: {} };
 
-            // 1. Determine Conic Type
             if (e === 0) props.type = 'Circunferencia';
             else if (e > 0 && e < 1) props.type = 'Elipse';
             else if (e === 1) props.type = 'Parábola';
             else props.type = 'Hipérbola';
 
-            // 2. Calculate geometric properties (a, b, c)
             let a, b, c;
             if (e < 1) { a = p / (1 - e*e); c = a * e; b = Math.sqrt(a*a - c*c); } 
             else if (e > 1) { a = p / (e*e - 1); c = a * e; b = Math.sqrt(c*c - a*a); } 
             else { a = Infinity; c = p / 2; b = Infinity; }
             props.a = a; props.b = b; props.c = c;
 
-            // 3. Calculate Vertices, Foci, Center
             const f1 = {x: 0, y: 0};
             if (e === 0) {
                 props.foci = [f1];
                 props.center = f1;
                 props.vertices = [ {x: p, y: 0}, {x: -p, y: 0}, {x: 0, y: p}, {x: 0, y: -p} ];
+                props.directrices.push({ text: 'No tiene (radio constante)' });
             } else {
                 const r_v1 = p / (1 + e);
                 const v1 = { x: r_v1 * Math.cos(theta0Rad), y: r_v1 * Math.sin(theta0Rad) };
+                
+                const d = p / e;
+                const cosT0 = Math.cos(theta0Rad);
+                const sinT0 = Math.sin(theta0Rad);
+                props.directrices.push({
+                    text: `$${cosT0.toFixed(2)}x ${sinT0 >= 0 ? '+' : '-'} ${Math.abs(sinT0).toFixed(2)}y = ${d.toFixed(2)}$`
+                });
+
                 if (e === 1) {
                     props.vertices = [v1];
                     props.foci = [f1];
-                } else { // Ellipse & Hyperbola
+                } else {
                     const r_v2 = p / (1 - e);
                     const v2 = { x: r_v2 * Math.cos(theta0Rad + Math.PI), y: r_v2 * Math.sin(theta0Rad + Math.PI) };
                     props.vertices = [v1, v2];
                     
                     const centerToFocusDist = c;
                     const centerSign = e < 1 ? -1 : 1;
-                    props.center = { x: centerSign * centerToFocusDist * Math.cos(theta0Rad), y: centerSign * centerToFocusDist * Math.sin(theta0Rad) };
+                    props.center = { x: centerSign * centerToFocusDist * cosT0, y: centerSign * centerToFocusDist * sinT0 };
                     const f2 = { x: 2 * props.center.x, y: 2 * props.center.y };
                     props.foci = [f1, f2];
 
-                    if (e > 1) { // Asymptotes for Hyperbola
+                    const d2_val = 2 * (props.center.x * cosT0 + props.center.y * sinT0) - d;
+                    props.directrices.push({
+                         text: `$${cosT0.toFixed(2)}x ${sinT0 >= 0 ? '+' : '-'} ${Math.abs(sinT0).toFixed(2)}y = ${d2_val.toFixed(2)}$`
+                    });
+
+                    if (e > 1) {
                         const angle1 = theta0Rad + Math.atan2(b, a);
                         const angle2 = theta0Rad - Math.atan2(b, a);
                         props.asymptotes = [Math.tan(angle1), Math.tan(angle2)];
                     }
                 }
             }
-            
-            // 4. Calculate Directrix
-            const d = p / e;
-            if (e > 0) {
-                const lineLength = isFinite(a) ? a * 4 : p * 5;
-                props.directrix = {
-                    d: d,
-                    x1: d * Math.cos(theta0Rad) - lineLength * Math.sin(theta0Rad),
-                    y1: d * Math.sin(theta0Rad) + lineLength * Math.cos(theta0Rad),
-                    x2: d * Math.cos(theta0Rad) + lineLength * Math.sin(theta0Rad),
-                    y2: d * Math.sin(theta0Rad) - lineLength * Math.cos(theta0Rad),
-                };
-            }
 
-            // 5. Calculate Bounding Box for plot
+            const cosT = Math.cos(theta0Rad);
+            const sinT = Math.sin(theta0Rad);
+            props.cartesianEq = {
+                A: 1 - e*e * cosT*cosT,
+                B: -2 * e*e * sinT * cosT,
+                C: 1 - e*e * sinT*sinT,
+                D: 2 * p * e * cosT,
+                E: 2 * p * e * sinT,
+                F: -p*p
+            };
+
             const allPoints = [...props.vertices, ...props.foci];
             if (props.center) allPoints.push(props.center);
-
             let minX = Math.min(...allPoints.map(pt => pt.x));
             let maxX = Math.max(...allPoints.map(pt => pt.x));
             let minY = Math.min(...allPoints.map(pt => pt.y));
             let maxY = Math.max(...allPoints.map(pt => pt.y));
             
             if (e > 0 && e < 1) {
-                const centerX = props.center.x;
-                const centerY = props.center.y;
-                const angle = theta0Rad;
-                const dx = Math.sqrt(a*a * Math.cos(angle)**2 + b*b * Math.sin(angle)**2);
-                const dy = Math.sqrt(a*a * Math.sin(angle)**2 + b*b * Math.cos(angle)**2);
-                minX = Math.min(minX, centerX - dx);
-                maxX = Math.max(maxX, centerX + dx);
-                minY = Math.min(minY, centerY - dy);
-                maxY = Math.max(maxY, centerY + dy);
+                const { x: cx, y: cy } = props.center;
+                const dx = Math.sqrt(a*a * cosT*cosT + b*b * sinT*sinT);
+                const dy = Math.sqrt(a*a * sinT*sinT + b*b * cosT*cosT);
+                minX = Math.min(minX, cx - dx); maxX = Math.max(maxX, cx + dx);
+                minY = Math.min(minY, cy - dy); maxY = Math.max(maxY, cy + dy);
             } else if (e > 1) {
-                const width = maxX - minX;
-                const height = maxY - minY;
-                minX -= width * 0.5;
-                maxX += width * 0.5;
-                minY -= height * 0.5;
-                maxY += height * 0.5;
+                const width = maxX - minX; const height = maxY - minY;
+                minX -= width * 0.5; maxX += width * 0.5;
+                minY -= height * 0.5; maxY += height * 0.5;
             }
 
             const R_raw = Math.max(Math.abs(minX), Math.abs(maxX), Math.abs(minY), Math.abs(maxY));
-            const R_final = (R_raw === 0 || !isFinite(R_raw)) ? 5 : R_raw * 1.15;
-
-            props.boundingBox = {
-                x: [-R_final, R_final],
-                y: [-R_final, R_final]
-            };
-            
-            // 6. Generate Cartesian Equation String
-            if (e > 0) {
-                props.cartesianEq = `\\sqrt{x^2+y^2} = |${p.toFixed(2)} - ${e.toFixed(2)}(x \\cos(${state.theta0}^\\circ) + y \\sin(${state.theta0}^\\circ))|`;
-            } else {
-                props.cartesianEq = `x^2 + y^2 = ${p.toFixed(2)}^2`;
-            }
+            const R_final = (R_raw === 0 || !isFinite(R_raw)) ? 5 : R_raw * 1.2;
+            props.boundingBox = { x: [-R_final, R_final], y: [-R_final, R_final] };
 
             return props;
         }
 
-        /* 4. UI & INFO PANEL UPDATE ─────────────────────────────────────── */
+        /* 3. UI & INFO PANEL UPDATE */
+        function formatNum(num) { return isFinite(num) ? num.toFixed(PRECISION) : '\\infty'; }
+        function formatPoint(p) { return p ? `(${formatNum(p.x)}, ${formatNum(p.y)})` : 'N/A'; }
         
-        function formatNum(num) {
-            return isFinite(num) ? num.toFixed(PRECISION) : '\\infty';
+        function formatCartesianEquation(eq) {
+            const term = (val, label) => {
+                if (Math.abs(val) < 1e-9) return '';
+                const sign = val > 0 ? '+' : '-';
+                const num = Math.abs(val);
+                const numStr = num.toFixed(PRECISION);
+                if (Math.abs(num - 1.0) < 1e-9 && label) return `${sign} ${label}`;
+                return `${sign} ${numStr}${label}`;
+            };
+            let str = `${term(eq.A, 'x^2')} ${term(eq.B, 'xy')} ${term(eq.C, 'y^2')} ${term(eq.D, 'x')} ${term(eq.E, 'y')} ${term(eq.F, '')} = 0`;
+            str = str.trim();
+            if (str.startsWith('+')) str = str.substring(2);
+            return `$${str}$`;
         }
-        
-        function formatPoint(p) {
-            return p ? `(${formatNum(p.x)}, ${formatNum(p.y)})` : 'N/A';
-        }
-        
+
         function updateInfoPanel(props) {
-            dom.plotLegendType.textContent = props.type;
+            let html = `<div class="bg-gray-900/50 rounded-lg p-3 text-center mb-4"><strong class="text-sky-300 text-base">${props.type}</strong></div>`;
             
-            let html = `<div class="bg-secondary/50 rounded-md p-3 text-center"><strong class="text-secondary-foreground">${props.type}</strong></div>`;
-            html += `<p><strong>Ecuación Polar:</strong> $r = \\frac{${props.p.toFixed(2)}}{1 + ${props.e.toFixed(2)}\\cos(\\theta - ${state.theta0}^\\circ)}$</p>`;
-            html += `<p><strong>Ecuación Cartesiana:</strong> $${props.cartesianEq}$</p>`;
-            
+            html += `<div class="space-y-2">`;
+            html += `<p><strong class="font-semibold text-sky-400">Ecuación Cartesiana:</strong><br>${formatCartesianEquation(props.cartesianEq)}</p>`;
             if (props.type !== 'Parábola') {
-                html += `<p><strong>Semieje Mayor (a):</strong> $${formatNum(props.a)}$</p>`;
-                html += `<p><strong>Semieje Menor (b):</strong> $${formatNum(props.b)}$</p>`;
-                html += `<p><strong>Centro:</strong> $${formatPoint(props.center)}$</p>`;
+                html += `<p><strong class="font-semibold text-sky-400">Semieje Mayor (a):</strong> $${formatNum(props.a)}$</p>`;
+                html += `<p><strong class="font-semibold text-sky-400">Semieje Menor (b):</strong> $${formatNum(props.b)}$</p>`;
+                html += `<p><strong class="font-semibold text-sky-400">Centro:</strong> $${formatPoint(props.center)}$</p>`;
             }
-            html += `<p><strong>Distancia Focal (c):</strong> $${formatNum(props.c)}$</p>`;
+            html += `<p><strong class="font-semibold text-sky-400">Distancia Focal (c):</strong> $${formatNum(props.c)}$</p>`;
+            html += `<p><strong class="font-semibold text-sky-400">Vértice(s):</strong> $${props.vertices.map(formatPoint).join(', ')}$</p>`;
+            html += `<p><strong class="font-semibold text-sky-400">Foco(s):</strong> $${props.foci.map(formatPoint).join(', ')}$</p>`;
+            html += `<p><strong class="font-semibold text-sky-400">Directriz/ces:</strong><br>${props.directrices.map(d => d.text).join('<br>')}</p>`;
+            html += `</div>`;
 
-            const verticesStr = props.vertices.map(formatPoint).join(', ');
-            html += `<p><strong>Vértice(s):</strong> $${verticesStr}$</p>`;
-            
-            const fociStr = props.foci.map(formatPoint).join(', ');
-            html += `<p><strong>Foco(s):</strong> $${fociStr}$</p>`;
-
-            if (props.e > 0) {
-                let dirEq;
-                const dStr = props.directrix.d.toFixed(PRECISION);
-                if (state.theta0 === 0) dirEq = `x = ${dStr}`;
-                else if (state.theta0 === 180) dirEq = `x = -${dStr}`;
-                else if (state.theta0 === 90) dirEq = `y = ${dStr}`;
-                else if (state.theta0 === 270) dirEq = `y = -${dStr}`;
-                else {
-                    const cos = Math.cos(props.theta0Rad).toFixed(PRECISION);
-                    const sin = Math.sin(props.theta0Rad).toFixed(PRECISION);
-                    dirEq = `${cos}x + ${sin}y = ${dStr}`;
-                }
-                html += `<p><strong>Directriz:</strong> $${dirEq}$</p>`;
-            }
-
-            if(props.asymptotes.length > 0) {
-                const [m1, m2] = props.asymptotes;
-                html += `<p><strong>Asíntotas:</strong> $y - ${formatNum(props.center.y)} = ${formatNum(m1)}(x - ${formatNum(props.center.x)})$</p>`;
-                html += `<p class="pl-16">$y - ${formatNum(props.center.y)} = ${formatNum(m2)}(x - ${formatNum(props.center.x)})$</p>`;
-            }
-            
             dom.infoPanel.innerHTML = html;
-            if (window.MathJax && window.MathJax.typesetPromise) {
-                window.MathJax.typesetPromise([dom.infoPanel]);
-            }
+            if (window.MathJax) window.MathJax.typesetPromise([dom.infoPanel]);
         }
 
-        /* 5. PLOTLY 2D VISUALIZATION ────────────────────────────────────── */
 
+        /* 4. PLOTLY 2D VISUALIZATION */
         function drawPlot(props) {
             const { e, p, theta0Rad } = props;
             const N = 1001;
@@ -560,18 +379,14 @@
                 y.push(r * Math.sin(th));
             }
 
-            const isDark = document.documentElement.classList.contains('dark');
-            const axisColor = isDark ? '#e5e7eb' : '#111827';
-            const mutedColor = isDark ? '#6b7280' : '#6b7280';
-
             const traces = [
-                { x, y, mode: 'lines', name: 'Cónica', line: { color: state.colors.conic, width: 3.5 }, hoverinfo: 'none' },
-                { x: props.foci.map(f => f.x), y: props.foci.map(f => f.y), mode: 'markers', name: 'Focos', marker: { color: '#dc2626', size: 10, symbol: 'circle', line: { color: 'hsl(var(--card))', width: 2 } }, hoverinfo: 'none' },
-                { x: props.vertices.map(v => v.x), y: props.vertices.map(v => v.y), mode: 'markers', name: 'Vértices', marker: { color: '#2563eb', size: 9, symbol: 'circle' }, hoverinfo: 'none' },
+                { x, y, mode: 'lines', name: 'Cónica', line: { color: state.currentColor, width: 3.5 }, hoverinfo: 'none' },
+                { x: props.foci.map(f => f.x), y: props.foci.map(f => f.y), mode: 'markers+text', name: 'Focos', marker: { color: '#ef4444', size: 10, symbol: 'circle', line: { color: '#111827', width: 2 } }, text: props.foci.map((f, i) => `F${i+1}`), textposition: 'top right', textfont: {color: '#ef4444'}, hoverinfo: 'none' },
+                { x: props.vertices.map(v => v.x), y: props.vertices.map(v => v.y), mode: 'markers+text', name: 'Vértices', marker: { color: '#60a5fa', size: 9, symbol: 'circle' }, text: props.vertices.map((v, i) => `V${i+1}`), textposition: 'bottom left', textfont: {color: '#60a5fa'}, hoverinfo: 'none' },
             ];
             
             if (props.center) {
-                traces.push({ x: [props.center.x], y: [props.center.y], mode: 'markers', name: 'Centro', marker: { color: '#f59e0b', size: 9, symbol: 'diamond' }, hoverinfo: 'none' });
+                traces.push({ x: [props.center.x], y: [props.center.y], mode: 'markers+text', name: 'Centro', marker: { color: '#f59e0b', size: 9, symbol: 'diamond' }, text: ['C'], textposition: 'top center', textfont: {color: '#f59e0b'}, hoverinfo: 'none' });
             }
 
             if (props.asymptotes.length > 0) {
@@ -580,51 +395,37 @@
                 const rangeX = props.boundingBox.x[1];
                 traces.push({
                     x: [center.x - rangeX, center.x + rangeX],
-                    y: [center.y - m1 * rangeX, center.y + m1 * rangeX],
-                    mode: 'lines', name: 'Asíntota', line: { color: state.colors.asymptote, width: 2, dash: 'dot' }, hoverinfo: 'none'
+                    y: [center.y + m1 * ( -rangeX), center.y + m1 * (rangeX)],
+                    mode: 'lines', name: 'Asíntota', line: { color: '#f472b6', width: 2, dash: 'dot' }, hoverinfo: 'none'
                 });
                 traces.push({
                     x: [center.x - rangeX, center.x + rangeX],
-                    y: [center.y - m2 * rangeX, center.y + m2 * rangeX],
-                    mode: 'lines', name: 'Asíntota', line: { color: state.colors.asymptote, width: 2, dash: 'dot' }, hoverinfo: 'none'
+                    y: [center.y + m2 * (-rangeX), center.y + m2 * (rangeX)],
+                    mode: 'lines', name: 'Asíntota', line: { color: '#f472b6', width: 2, dash: 'dot' }, hoverinfo: 'none'
                 });
             }
 
-            const annotations = [];
-            props.foci.forEach((f, i) => {
-                annotations.push({ x: f.x, y: f.y, text: `Foco ${i+1}`, font: {color: '#dc2626', size: 12}, showarrow: true, arrowhead: 0, ax: 20, ay: -25 });
-            });
-            props.vertices.forEach((v, i) => annotations.push({ x: v.x, y: v.y, text: `Vértice ${i+1}`, font: {color: '#2563eb', size: 12}, showarrow: true, arrowhead: 0, ax: -20, ay: -25 }));
-            if (props.center && props.e !== 0) {
-                annotations.push({ x: props.center.x, y: props.center.y, text: 'Centro', font: {color: '#f59e0b', size: 12}, showarrow: true, arrowhead: 0, ax: 0, ay: 25 });
-            }
-
             const layout = {
-                paper_bgcolor: 'transparent',
-                plot_bgcolor: 'transparent',
-                font: { color: isDark ? '#e5e7eb' : '#374151' },
-                margin: { l: 40, r: 20, t: 20, b: 40 },
+                paper_bgcolor: 'transparent', plot_bgcolor: 'transparent',
+                margin: { l: 50, r: 20, t: 20, b: 50 },
                 xaxis: {
-                    title: 'x',
-                    zeroline: true, zerolinecolor: axisColor, zerolinewidth: 2,
-                    gridcolor: isDark ? '#374151' : '#e5e7eb',
+                    title: { text: 'x', font: { color: '#FFFFFF' } },
+                    zeroline: true, zerolinecolor: '#9ca3af', zerolinewidth: 1,
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
                     scaleanchor: 'y', scaleratio: 1,
                     range: props.boundingBox.x,
-                    tickson: 'boundaries',
-                    dtick: Math.round(props.boundingBox.x[1] / 4) || 1
+                    color: '#FFFFFF',
+                    tickfont: { color: '#FFFFFF' }
                 },
                 yaxis: {
-                    title: 'y',
-                    zeroline: true, zerolinecolor: axisColor, zerolinewidth: 2,
-                    gridcolor: isDark ? '#374151' : '#e5e7eb',
+                    title: { text: 'y', font: { color: '#FFFFFF' } },
+                    zeroline: true, zerolinecolor: '#9ca3af', zerolinewidth: 1,
+                    gridcolor: 'rgba(255, 255, 255, 0.1)',
                     range: props.boundingBox.y,
-                    tickson: 'boundaries',
-                    dtick: Math.round(props.boundingBox.y[1] / 4) || 1
+                    color: '#FFFFFF',
+                    tickfont: { color: '#FFFFFF' }
                 },
-                showlegend: false,
-                dragmode: 'pan',
-                hovermode: false,
-                annotations: annotations,
+                showlegend: false, dragmode: 'pan', hovermode: false,
                 transition: { duration: 300, easing: 'cubic-in-out' }
             };
 
@@ -633,50 +434,35 @@
             Plotly.react(dom.plotContainer, traces, layout, config);
         }
         
-        /* 6. 3D VISUALIZATION & EVENT HANDLERS ────────────────────────────────── */
-
+        /* 5. 3D VISUALIZATION */
         function init3D() {
             if (three.renderer) return;
-
             const width = dom.threeContainer.clientWidth;
             const height = dom.threeContainer.clientHeight;
 
             three.scene = new THREE.Scene();
-            three.camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
-            three.camera.position.z = 15;
-
+            three.camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
             three.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
             three.renderer.setSize(width, height);
             three.renderer.setPixelRatio(window.devicePixelRatio);
             dom.threeContainer.appendChild(three.renderer.domElement);
 
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-            three.scene.add(ambientLight);
-            const pointLight = new THREE.PointLight(0xffffff, 0.8);
-            pointLight.position.set(20, 20, 20);
-            three.scene.add(pointLight);
+            three.controls = new OrbitControls(three.camera, three.renderer.domElement);
+            three.controls.enableDamping = true;
+            three.controls.autoRotate = true;
+            three.controls.autoRotateSpeed = 0.5;
 
-            let isDragging = false;
-            let previousMousePosition = { x: 0, y: 0 };
-            dom.threeContainer.addEventListener('mousedown', e => { isDragging = true; });
-            dom.threeContainer.addEventListener('mouseup', e => { isDragging = false; });
-            dom.threeContainer.addEventListener('mouseleave', e => { isDragging = false; });
-            dom.threeContainer.addEventListener('mousemove', e => {
-                if (!isDragging || !three.mesh) return;
-                const deltaMove = {
-                    x: e.offsetX - previousMousePosition.x,
-                    y: e.offsetY - previousMousePosition.y
-                };
-                three.mesh.rotation.y += deltaMove.x * 0.01;
-                three.mesh.rotation.x += deltaMove.y * 0.01;
-                previousMousePosition = { x: e.offsetX, y: e.offsetY };
-            });
+            const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+            hemiLight.position.set(0, 20, 0);
+            three.scene.add(hemiLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            dirLight.position.set(8, 12, 15);
+            three.scene.add(dirLight);
 
             const animate = () => {
                 three.animationFrameId = requestAnimationFrame(animate);
-                if (three.mesh && !isDragging) {
-                    three.mesh.rotation.y += 0.003;
-                }
+                three.controls.update();
                 three.renderer.render(three.scene, three.camera);
             };
             animate();
@@ -695,12 +481,8 @@
 
         function draw3DScene(props) {
             init3D();
-
-            if (three.mesh) {
-                three.scene.remove(three.mesh);
-                three.mesh.geometry.dispose();
-                three.mesh.material.dispose();
-            }
+            if (three.solidMesh) three.scene.remove(three.solidMesh);
+            if (three.wireMesh) three.scene.remove(three.wireMesh);
             
             if (props.e === 1 || props.e === 0) return;
 
@@ -708,8 +490,15 @@
             const points = [];
             const N = 100;
             
-            const startTheta = props.e > 1 ? Math.acos(-1/e) + 1e-3 : -Math.PI;
-            const endTheta = props.e > 1 ? -Math.acos(-1/e) - 1e-3 : Math.PI;
+            let startTheta, endTheta;
+            if (props.e > 1) {
+                const angleLimit = Math.acos(-1 / e);
+                startTheta = -angleLimit + 1e-4;
+                endTheta = angleLimit - 1e-4;
+            } else {
+                startTheta = -Math.PI;
+                endTheta = Math.PI;
+            }
 
             for (let i = 0; i <= N; i++) {
                 const th = startTheta + (endTheta - startTheta) * i / N;
@@ -721,27 +510,66 @@
 
             if (points.length < 2) return;
 
-            const geometry = new THREE.LatheGeometry(points, 32);
-            const material = new THREE.MeshStandardMaterial({
-                color: state.colors.conic,
-                wireframe: true,
-            });
+            const geometry = new THREE.LatheGeometry(points, 64);
+            geometry.center();
             
-            three.mesh = new THREE.Mesh(geometry, material);
-            three.mesh.rotation.z = -theta0Rad;
-            three.scene.add(three.mesh);
+            const solidMaterial = new THREE.MeshStandardMaterial({
+                color: state.currentColor, metalness: 0.2, roughness: 0.5,
+                transparent: true, opacity: 0.8, side: THREE.DoubleSide,
+                polygonOffset: true,
+                polygonOffsetFactor: 1,
+                polygonOffsetUnits: 1
+            });
+            three.solidMesh = new THREE.Mesh(geometry, solidMaterial);
+            
+            const wireMaterial = new THREE.MeshBasicMaterial({
+                color: '#FFFFFF', wireframe: true, transparent: true, opacity: 0.25
+            });
+            three.wireMesh = new THREE.Mesh(geometry, wireMaterial);
+
+            three.solidMesh.rotation.z = -theta0Rad;
+            three.wireMesh.rotation.z = -theta0Rad;
+
+            three.scene.add(three.solidMesh);
+            three.scene.add(three.wireMesh);
+
+            geometry.computeBoundingSphere();
+            const radius = geometry.boundingSphere.radius;
+            const camDistance = radius / Math.sin(three.camera.fov * RAD / 2) * 2.0;
+
+            three.camera.position.set(0, 0, camDistance > 0 ? camDistance : 10);
+            three.controls.target.set(0, 0, 0);
+            three.controls.update();
         }
 
+        /* 6. EVENT HANDLERS & INITIALIZATION */
         function toggle3DView(show) {
             state.show3D = show;
+            dom.viewToggle.textContent = show ? '2D' : '3D';
             if (show) {
-                dom.plotContainer.classList.add('opacity-0', 'pointer-events-none');
+                dom.plotContainer.classList.add('opacity-0');
                 dom.threeContainer.classList.remove('opacity-0', 'pointer-events-none');
                 mainUpdateCycle();
             } else {
-                dom.plotContainer.classList.remove('opacity-0', 'pointer-events-none');
+                dom.plotContainer.classList.remove('opacity-0');
                 dom.threeContainer.classList.add('opacity-0', 'pointer-events-none');
+                dom.controls3D.classList.add('opacity-0', 'pointer-events-none');
             }
+        }
+
+        function update3DDisplay(mode) {
+            const btnActive = 'bg-sky-500/50';
+            const btnInactive = 'bg-sky-500/20';
+            dom.solidBtn.classList.remove(btnActive, btnInactive);
+            dom.wireframeBtn.classList.remove(btnActive, btnInactive);
+            dom.bothBtn.classList.remove(btnActive, btnInactive);
+
+            dom.solidBtn.classList.add(mode === 'solid' ? btnActive : btnInactive);
+            dom.wireframeBtn.classList.add(mode === 'wireframe' ? btnActive : btnInactive);
+            dom.bothBtn.classList.add(mode === 'both' ? btnActive : btnInactive);
+            
+            if (three.solidMesh) three.solidMesh.visible = (mode === 'solid' || mode === 'both');
+            if (three.wireMesh) three.wireMesh.visible = (mode === 'wireframe' || mode === 'both');
         }
 
         function mainUpdateCycle() {
@@ -753,96 +581,59 @@
             dom.pValueDisplay.textContent = state.p.toFixed(1);
 
             const props = calculateConicProperties();
-
             updateInfoPanel(props);
             
             if (state.show3D) {
                 draw3DScene(props);
-            } else {
-                drawPlot(props);
+                update3DDisplay('both');
             }
-            
-            saveState();
+            else drawPlot(props);
         }
 
         function setupEventListeners() {
             [dom.eSlider, dom.pSlider, dom.theta0Select].forEach(el => el.addEventListener('input', mainUpdateCycle));
-
-            dom.view3DToggle.addEventListener('change', (e) => toggle3DView(e.target.checked));
-
-            dom.themeToggle.addEventListener('click', () => {
-                document.documentElement.classList.toggle('dark');
-                state.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+            dom.viewToggle.addEventListener('click', () => toggle3DView(!state.show3D));
+            dom.homeButton.addEventListener('click', () => {
                 mainUpdateCycle();
             });
+
+            dom.solidBtn.addEventListener('click', () => update3DDisplay('solid'));
+            dom.wireframeBtn.addEventListener('click', () => update3DDisplay('wireframe'));
+            dom.bothBtn.addEventListener('click', () => update3DDisplay('both'));
             
-            // Palette Logic
+            // Color Palette Logic
             dom.paletteToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
-                dom.colorPalette.classList.toggle('opacity-0');
-                dom.colorPalette.classList.toggle('pointer-events-none');
-                dom.colorPalette.classList.toggle('scale-95');
+                dom.paletteWidget.classList.toggle('opacity-0');
+                dom.paletteWidget.classList.toggle('pointer-events-none');
+                dom.paletteWidget.classList.toggle('scale-95');
+                dom.paletteWidget.classList.toggle('-translate-y-2');
             });
             document.addEventListener('click', () => {
-                dom.colorPalette.classList.add('opacity-0', 'pointer-events-none', 'scale-95');
+                dom.paletteWidget.classList.add('opacity-0', 'pointer-events-none', 'scale-95', '-translate-y-2');
             });
-            dom.colorPalette.addEventListener('click', e => e.stopPropagation());
+            dom.paletteWidget.addEventListener('click', e => e.stopPropagation());
 
-            dom.colorSwatches.forEach(swatch => {
+            conicColors.forEach(color => {
+                const swatch = document.createElement('button');
+                swatch.className = 'w-7 h-7 rounded-full transition-transform duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white';
+                swatch.style.backgroundColor = color;
+                swatch.dataset.color = color;
+                dom.colorSwatchesContainer.appendChild(swatch);
+
                 swatch.addEventListener('click', () => {
-                    state.colors.conic = swatch.style.backgroundColor;
-                    dom.legendSwatchConic.style.backgroundColor = state.colors.conic;
-                    mainUpdateCycle();
-                });
-            });
-
-            // Legend Logic
-            dom.plotLegend.addEventListener('click', () => {
-                const isCollapsed = dom.plotLegendBody.classList.toggle('max-h-0');
-                dom.plotLegendBody.classList.toggle('max-h-40');
-                dom.plotLegendChevron.classList.toggle('rotate-180', isCollapsed);
-            });
-
-
-            // Modal logic
-            const openModal = () => {
-                dom.helpModal.classList.remove('opacity-0', 'pointer-events-none');
-                dom.helpModalContent.classList.remove('scale-95');
-            };
-            const closeModal = () => {
-                dom.helpModalContent.classList.add('scale-95');
-                dom.helpModal.classList.add('opacity-0', 'pointer-events-none');
-            };
-            dom.helpToggle.addEventListener('click', openModal);
-            [dom.closeModalButton, dom.closeModalButton2].forEach(btn => btn.addEventListener('click', closeModal));
-            dom.helpModal.addEventListener('click', (e) => { if (e.target === dom.helpModal) closeModal(); });
-            
-            dom.homeButton.addEventListener('click', mainUpdateCycle);
-            
-            dom.autoscaleButton.addEventListener('click', () => {
-                const currentLayout = dom.plotContainer.layout;
-                delete currentLayout.xaxis.range;
-                delete currentLayout.yaxis.range;
-                Plotly.relayout(dom.plotContainer, currentLayout);
-            });
-            
-            dom.copyButton.addEventListener('click', () => {
-                const props = calculateConicProperties();
-                const textToCopy = `Tipo: ${props.type}\nEcuación Polar: r = ${props.p.toFixed(2)} / (1 + ${props.e.toFixed(2)}cos(θ - ${state.theta0}°))`;
-                navigator.clipboard.writeText(textToCopy).then(() => {
-                    dom.toast.textContent = "¡Ecuaciones copiadas!";
-                    dom.toast.classList.remove('opacity-0', 'translate-y-4');
-                    setTimeout(() => dom.toast.classList.add('opacity-0', 'translate-y-4'), 2000);
+                    state.currentColor = color;
+                    Plotly.restyle(dom.plotContainer, { 'line.color': color }, [0]);
+                    if (three.solidMesh) {
+                        three.solidMesh.material.color.set(color);
+                    }
+                    // Optional: close palette on selection
+                    dom.paletteToggle.click(); 
                 });
             });
         }
 
-        /* 7. INITIALIZATION ─────────────────────────────────────────────── */
-        
         document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            loadState();
-            updateControlsFromState();
             setupEventListeners();
             mainUpdateCycle();
         });
