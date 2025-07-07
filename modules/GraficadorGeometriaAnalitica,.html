@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graficador de Geometría Analítica</title>
+    
+    <!-- Librerías y Fuentes -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Estilos CSS -->
+    <style>
+        :root {
+            --background: 220 14.3% 95.9%;
+            --foreground: 224 71.4% 4.1%;
+            --card: 0 0% 100%;
+            --card-foreground: 224 71.4% 4.1%;
+            --primary: 220.9 39.3% 11%;
+            --primary-foreground: 210 20% 98%;
+            --secondary: 220 13% 91%;
+            --secondary-foreground: 220.9 39.3% 11%;
+            --muted: 220 13% 91%;
+            --muted-foreground: 225 8.9% 46.1%;
+            --accent: 48 96% 59%;
+            --border: 220 13% 85%;
+            --ring: 220.9 39.3% 11%;
+            --radius: 0.75rem;
+        }
+
+        .dark {
+            --background: 222 83.9% 4.9%;
+            --foreground: 210 20% 98%;
+            --card: 222 47.4% 11.2%;
+            --card-foreground: 210 20% 98%;
+            --primary: 210 20% 98%;
+            --primary-foreground: 222 47.4% 11.2%;
+            --secondary: 217 32.6% 17.5%;
+            --secondary-foreground: 210 20% 98%;
+            --muted: 217 32.6% 17.5%;
+            --muted-foreground: 215 20.2% 65.1%;
+            --border: 217 32.6% 17.5%;
+            --ring: 215 20.2% 65.1%;
+        }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: hsl(var(--background));
+            color: hsl(var(--foreground));
+        }
+        .canvas-container {
+            touch-action: manipulation;
+            overflow: hidden;
+            cursor: grab;
+        }
+        .canvas-container:active { cursor: grabbing; }
+        
+        /* Estilos para Pestañas (Tabs) */
+        .tab-button {
+            transition: all 0.2s ease-in-out;
+            border-bottom: 3px solid transparent;
+            flex-shrink: 1;
+            min-width: 0;
+        }
+        .tab-button.active {
+            color: hsl(var(--primary));
+            border-bottom-color: hsl(var(--primary));
+        }
+        .dark .tab-button.active {
+            color: hsl(var(--accent));
+            border-bottom-color: hsl(var(--accent));
+        }
+        .sub-tab-button {
+             transition: all 0.2s ease-in-out;
+        }
+        .sub-tab-button.active {
+            background-color: hsl(var(--primary)) !important;
+            color: hsl(var(--primary-foreground)) !important;
+        }
+
+        /* Estilos para inputs y modelos de ecuación */
+        .form-input {
+            background-color: hsl(var(--secondary));
+            border: 1px solid hsl(var(--border));
+            color: hsl(var(--foreground));
+        }
+        .equation-model {
+            background-color: hsl(var(--secondary));
+            color: hsl(var(--muted-foreground));
+            font-family: 'Courier New', Courier, monospace;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.5rem;
+            text-align: center;
+            letter-spacing: 1px;
+            font-size: 0.9rem;
+            line-height: 1.2;
+        }
+        
+        /* Estilo para popover de colores */
+        .color-swatch {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            border: 2px solid transparent;
+            transition: transform 0.1s ease-in-out;
+        }
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+        
+        /* Estilos para acordeón de ayuda */
+        details > summary { list-style: none; }
+        details > summary::-webkit-details-marker { display: none; }
+        details > summary svg { transition: transform 0.2s; }
+        details[open] > summary svg { transform: rotate(180deg); }
+        
+        .toolbar-btn.active {
+            background-color: hsl(var(--accent));
+            color: hsl(var(--primary-foreground));
+        }
+        .dark .toolbar-btn.active {
+             background-color: hsl(var(--accent));
+             color: hsl(var(--primary));
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+    <div class="relative min-h-screen container mx-auto p-4 md:p-8 lg:p-12">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-slate-800 dark:text-slate-50 mb-2">
+                Graficador de Geometría Analítica
+            </h1>
+            <p class="text-lg text-slate-500 dark:text-slate-400">Visualiza rectas, cónicas y más.</p>
+        </header>
+
+        <div class="absolute top-4 right-4 z-40 flex items-center gap-2">
+             <button id="toggle-points-btn" class="toolbar-btn p-2 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Mostrar Puntos Notables">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m8 21 4-7 4 7"/><path d="M8 21h8"/><path d="m12 2 3 6H9l3-6Z"/></svg>
+             </button>
+             <button id="color-palette-btn" class="toolbar-btn p-2 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Cambiar Color">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/></svg>
+             </button>
+             <button id="help-btn" class="toolbar-btn p-2 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Mostrar Ayuda">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><point x="12" y="17"/></svg>
+             </button>
+             <button id="theme-toggle-btn" class="toolbar-btn p-2 rounded-full bg-white dark:bg-slate-800 shadow-lg border border-slate-300 dark:border-slate-600 hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Cambiar Tema">
+                <svg class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                <svg class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+             </button>
+             <!-- Popover de Colores -->
+             <div id="color-popover" class="hidden absolute top-14 right-0 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-xl p-4 grid grid-cols-4 gap-3">
+                <button class="color-swatch" data-color="#3b82f6" style="background-color:#3b82f6;"></button>
+                <button class="color-swatch" data-color="#ef4444" style="background-color:#ef4444;"></button>
+                <button class="color-swatch" data-color="#22c55e" style="background-color:#22c55e;"></button>
+                <button class="color-swatch" data-color="#f97316" style="background-color:#f97316;"></button>
+                <button class="color-swatch" data-color="#a855f7" style="background-color:#a855f7;"></button>
+                <button class="color-swatch" data-color="#eab308" style="background-color:#eab308;"></button>
+                <button class="color-swatch" data-color="#ec4899" style="background-color:#ec4899;"></button>
+                <button class="color-swatch" data-color="#14b8a6" style="background-color:#14b8a6;"></button>
+             </div>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+            <!-- Columna de Controles -->
+            <div class="w-full lg:w-2/5 space-y-6">
+                <div class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-lg p-4">
+                    <div id="main-tabs" class="flex justify-around border-b border-slate-200 dark:border-slate-700">
+                        <button class="tab-button flex-1 flex items-center justify-center gap-1 sm:gap-2 p-3 font-semibold text-xs sm:text-sm" data-shape="line">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"/></svg>
+                            <span>Recta</span>
+                        </button>
+                        <button class="tab-button flex-1 flex items-center justify-center gap-1 sm:gap-2 p-3 font-semibold text-xs sm:text-sm" data-shape="circle">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg>
+                            <span>Círculo</span>
+                        </button>
+                        <button class="tab-button flex-1 flex items-center justify-center gap-1 sm:gap-2 p-3 font-semibold text-xs sm:text-sm" data-shape="parabola">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/></svg>
+                            <span>Parábola</span>
+                        </button>
+                        <button class="tab-button flex-1 flex items-center justify-center gap-1 sm:gap-2 p-3 font-semibold text-xs sm:text-sm" data-shape="ellipse">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="8" ry="5"/></svg>
+                            <span>Elipse</span>
+                        </button>
+                        <button class="tab-button flex-1 flex items-center justify-center gap-1 sm:gap-2 p-3 font-semibold text-xs sm:text-sm" data-shape="hyperbola">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+                            <span>Hipérbola</span>
+                        </button>
+                    </div>
+                    
+                    <div id="forms-container" class="p-4">
+                        <!-- Formulario para Recta -->
+                        <div id="form-line" class="space-y-4">
+                            <div class="flex gap-2 rounded-lg bg-slate-100 dark:bg-slate-900 p-1">
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="line-p2">2 Puntos</button>
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="line-ps">Punto-Pendiente</button>
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="line-eq">Ecuación General</button>
+                            </div>
+                            <div id="line-p2" class="form-content space-y-3"><div class="equation-model">P₁=(x₁, y₁), P₂=(x₂, y₂)</div><div class="grid grid-cols-2 gap-4"><input type="number" id="l-p1x" placeholder="x₁" class="form-input p-2 rounded-md w-full"><input type="number" id="l-p1y" placeholder="y₁" class="form-input p-2 rounded-md w-full"><input type="number" id="l-p2x" placeholder="x₂" class="form-input p-2 rounded-md w-full"><input type="number" id="l-p2y" placeholder="y₂" class="form-input p-2 rounded-md w-full"></div></div>
+                            <div id="line-ps" class="form-content hidden space-y-3"><div class="equation-model">y - y₁ = m(x - x₁)</div><div class="grid grid-cols-3 gap-4"><input type="number" id="l-ps-px" placeholder="x₁" class="form-input p-2 rounded-md w-full"><input type="number" id="l-ps-py" placeholder="y₁" class="form-input p-2 rounded-md w-full"><input type="number" id="l-ps-m" placeholder="m" class="form-input p-2 rounded-md w-full"></div></div>
+                            <div id="line-eq" class="form-content hidden space-y-3"><div class="equation-model">Ax + By + C = 0</div><div class="grid grid-cols-3 gap-4"><input type="number" id="l-eq-a" placeholder="A" class="form-input p-2 rounded-md w-full"><input type="number" id="l-eq-b" placeholder="B" class="form-input p-2 rounded-md w-full"><input type="number" id="l-eq-c" placeholder="C" class="form-input p-2 rounded-md w-full"></div></div>
+                        </div>
+                        <!-- Formulario para Círculo -->
+                        <div id="form-circle" class="hidden space-y-4">
+                             <div class="flex gap-2 rounded-lg bg-slate-100 dark:bg-slate-900 p-1">
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="circle-cr">Centro-Radio</button>
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="circle-eq">Ecuación General</button>
+                            </div>
+                            <div id="circle-cr" class="form-content space-y-3"><div class="equation-model">(x-h)² + (y-k)² = r²</div><div class="grid grid-cols-3 gap-4"><input type="number" id="c-h" placeholder="h" class="form-input p-2 rounded-md w-full"><input type="number" id="c-k" placeholder="k" class="form-input p-2 rounded-md w-full"><input type="number" id="c-r" placeholder="radio" class="form-input p-2 rounded-md w-full"></div></div>
+                            <div id="circle-eq" class="form-content hidden space-y-3"><div class="equation-model">x²+y²+Dx+Ey+F=0</div><div class="grid grid-cols-3 gap-4"><input type="number" id="c-eq-d" placeholder="D" class="form-input p-2 rounded-md w-full"><input type="number" id="c-eq-e" placeholder="E" class="form-input p-2 rounded-md w-full"><input type="number" id="c-eq-f" placeholder="F" class="form-input p-2 rounded-md w-full"></div></div>
+                        </div>
+                        <!-- Formulario para Parábola -->
+                        <div id="form-parabola" class="hidden space-y-4">
+                             <div class="flex gap-2 rounded-lg bg-slate-100 dark:bg-slate-900 p-1">
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="parabola-vp">Vértice y P</button>
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="parabola-vf">Vértice y Foco</button>
+                            </div>
+                            <div id="parabola-vp" class="form-content space-y-3"><div class="equation-model" id="parabola-vp-model">(y-k)²=4p(x-h)</div><div class="space-y-4"><div class="grid grid-cols-3 gap-4"><input type="number" id="p-h" placeholder="h (vértice)" class="form-input p-2 rounded-md w-full"><input type="number" id="p-k" placeholder="k (vértice)" class="form-input p-2 rounded-md w-full"><input type="number" id="p-p" placeholder="p (focal)" class="form-input p-2 rounded-md w-full"></div><select id="p-orientation" class="form-input p-2 rounded-md w-full"><option value="horizontal">Eje horizontal (y²)</option><option value="vertical">Eje vertical (x²)</option></select></div></div>
+                            <div id="parabola-vf" class="form-content hidden space-y-3"><div class="equation-model">V=(h,k), F=(x,y)</div><div class="grid grid-cols-2 gap-4"><input type="number" id="p-vf-hx" placeholder="h (vértice)" class="form-input p-2 rounded-md w-full"><input type="number" id="p-vf-hy" placeholder="k (vértice)" class="form-input p-2 rounded-md w-full"><input type="number" id="p-vf-fx" placeholder="x (foco)" class="form-input p-2 rounded-md w-full"><input type="number" id="p-vf-fy" placeholder="y (foco)" class="form-input p-2 rounded-md w-full"></div></div>
+                        </div>
+                        <!-- Formulario para Elipse -->
+                        <div id="form-ellipse" class="hidden space-y-4">
+                            <div class="flex gap-2 rounded-lg bg-slate-100 dark:bg-slate-900 p-1">
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="ellipse-std">Estándar</button>
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="ellipse-eq">Ecuación General</button>
+                            </div>
+                             <div id="ellipse-std" class="form-content space-y-3"><div class="equation-model">(x-h)²/a²+(y-k)²/b²=1</div><div class="grid grid-cols-4 gap-4"><input type="number" id="e-h" placeholder="h" class="form-input p-2 rounded-md w-full"><input type="number" id="e-k" placeholder="k" class="form-input p-2 rounded-md w-full"><input type="number" id="e-a" placeholder="a" class="form-input p-2 rounded-md w-full"><input type="number" id="e-b" placeholder="b" class="form-input p-2 rounded-md w-full"></div></div>
+                             <div id="ellipse-eq" class="form-content hidden space-y-3"><div class="equation-model">Ax²+Cy²+Dx+Ey+F=0</div><div class="grid grid-cols-5 gap-2"><input type="number" id="e-eq-a" placeholder="A" class="form-input p-2 rounded-md w-full"><input type="number" id="e-eq-c" placeholder="C" class="form-input p-2 rounded-md w-full"><input type="number" id="e-eq-d" placeholder="D" class="form-input p-2 rounded-md w-full"><input type="number" id="e-eq-e" placeholder="E" class="form-input p-2 rounded-md w-full"><input type="number" id="e-eq-f" placeholder="F" class="form-input p-2 rounded-md w-full"></div></div>
+                        </div>
+                        <!-- Formulario para Hipérbola -->
+                        <div id="form-hyperbola" class="hidden space-y-4">
+                             <div class="flex gap-2 rounded-lg bg-slate-100 dark:bg-slate-900 p-1">
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="hyperbola-std">Estándar</button>
+                                <button class="sub-tab-button flex-1 text-sm p-2 rounded-md" data-form="hyperbola-eq">Ecuación General</button>
+                            </div>
+                             <div id="hyperbola-std" class="form-content space-y-3"><div class="equation-model">(x-h)²/a²-(y-k)²/b²=1</div><div class="space-y-4"><div class="grid grid-cols-4 gap-4"><input type="number" id="h-h" placeholder="h" class="form-input p-2 rounded-md w-full"><input type="number" id="h-k" placeholder="k" class="form-input p-2 rounded-md w-full"><input type="number" id="h-a" placeholder="a" class="form-input p-2 rounded-md w-full"><input type="number" id="h-b" placeholder="b" class="form-input p-2 rounded-md w-full"></div><select id="h-orientation" class="form-input p-2 rounded-md w-full"><option value="horizontal">Eje horizontal</option><option value="vertical">Eje vertical</option></select></div></div>
+                             <div id="hyperbola-eq" class="form-content hidden space-y-3"><div class="equation-model">Ax²+Cy²+Dx+Ey+F=0</div><div class="grid grid-cols-5 gap-2"><input type="number" id="h-eq-a" placeholder="A" class="form-input p-2 rounded-md w-full"><input type="number" id="h-eq-c" placeholder="C" class="form-input p-2 rounded-md w-full"><input type="number" id="h-eq-d" placeholder="D" class="form-input p-2 rounded-md w-full"><input type="number" id="h-eq-e" placeholder="E" class="form-input p-2 rounded-md w-full"><input type="number" id="h-eq-f" placeholder="F" class="form-input p-2 rounded-md w-full"></div></div>
+                        </div>
+                    </div>
+                    <div class="px-4 pb-4"><button id="graph-button" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition-colors">Graficar</button></div>
+                </div>
+
+                <!-- Panel de Resultados -->
+                <div id="results-panel" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-lg p-6 hidden">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-2xl font-semibold flex items-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>
+                            Resultados
+                        </h2>
+                        <button id="toggle-points-btn-results" class="toolbar-btn p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Mostrar Puntos Notables">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="m8 21 4-7 4 7"/><path d="M8 21h8"/><path d="m12 2 3 6H9l3-6Z"/></svg>
+                        </button>
+                    </div>
+                    <div id="results-content" class="space-y-2 text-sm text-slate-700 dark:text-slate-300"></div>
+                </div>
+            </div>
+            
+            <!-- Columna de Simulación -->
+            <div class="w-full lg:w-3/5">
+                <div id="canvas-container" class="canvas-container bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-xl w-full h-[60vh] lg:h-[calc(100vh-10rem)]">
+                    <canvas id="main-canvas"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <footer class="text-center mt-12 py-4 border-t border-slate-300 dark:border-slate-600"><p class="text-sm text-slate-500 dark:text-slate-400">Graficador Analítico por Gemini</p></footer>
+        
+        <!-- Modal de Ayuda -->
+        <div id="help-modal" class="hidden fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col">
+                <div class="flex items-center justify-between p-6 border-b border-slate-300 dark:border-slate-600">
+                    <h2 class="text-xl font-bold flex items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                        Guía de Parámetros
+                    </h2>
+                    <button id="close-help-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto space-y-3 text-sm">
+                    <details class="bg-slate-100 dark:bg-slate-900/50 p-3 rounded-lg"><summary class="font-semibold cursor-pointer flex justify-between items-center">Parábola <i data-lucide="chevron-down" class="w-5 h-5"></i></summary><div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 space-y-1"><p><strong>(h, k):</strong> Coordenadas del <strong>vértice</strong>.</p><p><strong>p:</strong> Distancia focal (del vértice al foco).</p><p><strong>Foco:</strong> Punto fijo que define la parábola.</p></div></details>
+                    <details class="bg-slate-100 dark:bg-slate-900/50 p-3 rounded-lg"><summary class="font-semibold cursor-pointer flex justify-between items-center">Elipse <i data-lucide="chevron-down" class="w-5 h-5"></i></summary><div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 space-y-1"><p><strong>(h, k):</strong> Coordenadas del <strong>centro</strong>.</p><p><strong>a:</strong> Longitud del semieje mayor.</p><p><strong>b:</strong> Longitud del semieje menor.</p></div></details>
+                    <details class="bg-slate-100 dark:bg-slate-900/50 p-3 rounded-lg"><summary class="font-semibold cursor-pointer flex justify-between items-center">Hipérbola <i data-lucide="chevron-down" class="w-5 h-5"></i></summary><div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 space-y-1"><p><strong>(h, k):</strong> Coordenadas del <strong>centro</strong>.</p><p><strong>a:</strong> Distancia del centro a cada vértice.</p><p><strong>b:</strong> Usado para definir las asíntotas.</p></div></details>
+                    <details class="bg-slate-100 dark:bg-slate-900/50 p-3 rounded-lg"><summary class="font-semibold cursor-pointer flex justify-between items-center">Ecuación General <i data-lucide="chevron-down" class="w-5 h-5"></i></summary><div class="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 space-y-1"><p>La forma <strong>Ax²+Cy²+Dx+Ey+F=0</strong> permite definir cualquier cónica con ejes paralelos a los ejes coordenados.</p><p>• Si A=C (y no son cero), es un <strong>círculo</strong>.</p><p>• Si A y C tienen el mismo signo (y son diferentes), es una <strong>elipse</strong>.</p><p>• Si A o C es cero, es una <strong>parábola</strong>.</p><p>• Si A y C tienen signos opuestos, es una <strong>hipérbola</strong>.</p></div></details>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- REFERENCIAS AL DOM ---
+            const dom = {
+                canvas: document.getElementById('main-canvas'),
+                canvasContainer: document.getElementById('canvas-container'),
+                mainTabs: document.getElementById('main-tabs'),
+                formsContainer: document.getElementById('forms-container'),
+                resultsPanel: document.getElementById('results-panel'),
+                resultsContent: document.getElementById('results-content'),
+                graphButton: document.getElementById('graph-button'),
+                themeToggleBtn: document.getElementById('theme-toggle-btn'),
+                colorPaletteBtn: document.getElementById('color-palette-btn'),
+                colorPopover: document.getElementById('color-popover'),
+                helpBtn: document.getElementById('help-btn'),
+                helpModal: document.getElementById('help-modal'),
+                closeHelpBtn: document.getElementById('close-help-btn'),
+                pOrientationSelect: document.getElementById('p-orientation'),
+                parabolaVpModel: document.querySelector('#parabola-vp .equation-model'),
+                togglePointsBtn: document.getElementById('toggle-points-btn'),
+                togglePointsBtnResults: document.getElementById('toggle-points-btn-results'),
+            };
+
+            const ctx = dom.canvas.getContext('2d');
+            
+            // --- ESTADO DE LA APLICACIÓN ---
+            const state = {
+                currentShape: 'line',
+                currentSubForm: 'line-p2',
+                shapes: [],
+                graphColor: '#3b82f6',
+                showKeyPoints: false,
+                scale: 40, 
+                panOffset: { x: 0, y: 0 },
+                isDragging: false,
+                panStart: { x: 0, y: 0 },
+                width: 0,
+                height: 0
+            };
+
+            // --- LÓGICA DE UI (PESTAÑAS, MODALES, POPOVERS) ---
+            function updateActiveTabs() {
+                dom.mainTabs.querySelectorAll('.tab-button').forEach(btn => btn.classList.toggle('active', btn.dataset.shape === state.currentShape));
+                dom.formsContainer.querySelectorAll('[id^="form-"]').forEach(form => form.classList.toggle('hidden', form.id !== `form-${state.currentShape}`));
+                const currentForm = document.getElementById(`form-${state.currentShape}`);
+                if (currentForm) {
+                    currentForm.querySelectorAll('.sub-tab-button').forEach(btn => btn.classList.toggle('active', btn.dataset.form === state.currentSubForm));
+                    currentForm.querySelectorAll('.form-content').forEach(content => content.classList.toggle('hidden', content.id !== state.currentSubForm));
+                }
+            }
+
+            dom.mainTabs.addEventListener('click', (e) => {
+                const tabButton = e.target.closest('.tab-button');
+                if (tabButton) {
+                    state.currentShape = tabButton.dataset.shape;
+                    const firstSubTab = document.querySelector(`#form-${state.currentShape} .sub-tab-button`);
+                    state.currentSubForm = firstSubTab ? firstSubTab.dataset.form : `form-${state.currentShape}`;
+                    // Limpiar al cambiar de figura principal
+                    state.shapes = [];
+                    dom.resultsPanel.classList.add('hidden');
+                    draw();
+                    updateActiveTabs();
+                }
+            });
+
+            dom.formsContainer.addEventListener('click', (e) => {
+                const subTabButton = e.target.closest('.sub-tab-button');
+                if(subTabButton) {
+                    state.currentSubForm = subTabButton.dataset.form;
+                    updateActiveTabs();
+                }
+            });
+
+            // Modelo de ecuación dinámico para la parábola
+            dom.pOrientationSelect.addEventListener('input', () => {
+                if (dom.pOrientationSelect.value === 'horizontal') {
+                    dom.parabolaVpModel.textContent = '(y-k)² = 4p(x-h)';
+                } else {
+                    dom.parabolaVpModel.textContent = '(x-h)² = 4p(y-k)';
+                }
+            });
+
+            function toggleKeyPoints() {
+                state.showKeyPoints = !state.showKeyPoints;
+                dom.togglePointsBtn.classList.toggle('active', state.showKeyPoints);
+                dom.togglePointsBtnResults.classList.toggle('active', state.showKeyPoints);
+                draw();
+            }
+
+            dom.togglePointsBtn.addEventListener('click', toggleKeyPoints);
+            dom.togglePointsBtnResults.addEventListener('click', toggleKeyPoints);
+            dom.colorPaletteBtn.addEventListener('click', (e) => { e.stopPropagation(); dom.colorPopover.classList.toggle('hidden'); });
+            dom.colorPopover.addEventListener('click', (e) => {
+                const swatch = e.target.closest('.color-swatch');
+                if (swatch) {
+                    state.graphColor = swatch.dataset.color;
+                    dom.colorPopover.classList.add('hidden');
+                    draw();
+                }
+            });
+            dom.helpBtn.addEventListener('click', () => dom.helpModal.classList.remove('hidden'));
+            dom.closeHelpBtn.addEventListener('click', () => dom.helpModal.classList.add('hidden'));
+            window.addEventListener('click', () => dom.colorPopover.classList.add('hidden'));
+
+
+            // --- LÓGICA DE GRAFICACIÓN ---
+            dom.graphButton.addEventListener('click', () => {
+                const shapeData = parseForm();
+                if (shapeData) {
+                    shapeData.keyPoints = calculateKeyPoints(shapeData);
+                    state.shapes = [shapeData];
+                    draw();
+                    displayResults(shapeData);
+                }
+            });
+            
+            function parseForm() {
+                const getVal = id => parseFloat(document.getElementById(id).value) || 0;
+                const subType = state.currentSubForm;
+                
+                try {
+                    switch(subType) {
+                        case 'line-p2': return { type: 'line', subType, p1: { x: getVal('l-p1x'), y: getVal('l-p1y') }, p2: { x: getVal('l-p2x'), y: getVal('l-p2y') } };
+                        case 'line-ps': return { type: 'line', subType, p: { x: getVal('l-ps-px'), y: getVal('l-ps-py') }, m: getVal('l-ps-m') };
+                        case 'line-eq': return { type: 'line', subType, A: getVal('l-eq-a'), B: getVal('l-eq-b'), C: getVal('l-eq-c') };
+                        case 'circle-cr': return { type: 'circle', h: getVal('c-h'), k: getVal('c-k'), r: Math.abs(getVal('c-r')) };
+                        case 'circle-eq': 
+                            const D_c = getVal('c-eq-d'), E_c = getVal('c-eq-e'), F_c = getVal('c-eq-f');
+                            const h_c = -D_c/2, k_c = -E_c/2;
+                            const r_c_sq = h_c**2 + k_c**2 - F_c;
+                            if (r_c_sq < 0) { alert("Los coeficientes no forman un círculo real."); return null; }
+                            return { type: 'circle', h: h_c, k: k_c, r: Math.sqrt(r_c_sq) };
+                        case 'parabola-vp': return { type: 'parabola', h: getVal('p-h'), k: getVal('p-k'), p: getVal('p-p'), orientation: document.getElementById('p-orientation').value };
+                        case 'parabola-vf':
+                            const h_pvf = getVal('p-vf-hx'), k_pvf = getVal('p-vf-hy'), fx = getVal('p-vf-fx'), fy = getVal('p-vf-fy');
+                            const isHorizontal = k_pvf === fy;
+                            return { type: 'parabola', h: h_pvf, k: k_pvf, p: isHorizontal ? fx - h_pvf : fy - k_pvf, orientation: isHorizontal ? 'horizontal' : 'vertical' };
+                        case 'ellipse-std': return { type: 'ellipse', h: getVal('e-h'), k: getVal('e-k'), a: Math.abs(getVal('e-a')), b: Math.abs(getVal('e-b')) };
+                        case 'ellipse-eq':
+                        case 'hyperbola-eq':
+                            const isEllipse = subType === 'ellipse-eq';
+                            const A = getVal(isEllipse ? 'e-eq-a' : 'h-eq-a'), C = getVal(isEllipse ? 'e-eq-c' : 'h-eq-c'), D = getVal(isEllipse ? 'e-eq-d' : 'h-eq-d'), E = getVal(isEllipse ? 'e-eq-e' : 'h-eq-e'), F = getVal(isEllipse ? 'e-eq-f' : 'h-eq-f');
+                            if (A === 0 || C === 0) { alert("En elipse e hipérbola, A y C no pueden ser cero."); return null; }
+                            if (isEllipse && A * C < 0) { alert("Para una elipse, A y C deben tener el mismo signo."); return null; }
+                            if (!isEllipse && A * C > 0) { alert("Para una hipérbola, A y C deben tener signos opuestos."); return null; }
+                            const h = -D / (2 * A), k = -E / (2 * C);
+                            const K = (D**2 / (4 * A)) + (E**2 / (4 * C)) - F;
+                            if (K === 0 && !isEllipse) { alert("Hipérbola degenerada (dos rectas)."); return null; }
+                            const a2 = K / A, b2 = K / C;
+                            if (isEllipse && (a2 <= 0 || b2 <= 0)) { alert("Los coeficientes no forman una elipse real."); return null; }
+                            const orientation = A > 0 ? 'horizontal' : 'vertical';
+                            return { type: isEllipse ? 'ellipse' : 'hyperbola', h, k, a: Math.sqrt(Math.abs(a2)), b: Math.sqrt(Math.abs(b2)), orientation };
+                        case 'hyperbola-std': return { type: 'hyperbola', h: getVal('h-h'), k: getVal('h-k'), a: Math.abs(getVal('h-a')), b: Math.abs(getVal('h-b')), orientation: document.getElementById('h-orientation').value };
+                    }
+                } catch (error) {
+                    console.error("Error parsing form:", error);
+                    alert("Por favor, ingrese valores numéricos válidos.");
+                    return null;
+                }
+            }
+
+            function calculateKeyPoints(shape) {
+                const points = [];
+                if (!shape) return points;
+
+                const addPoint = (p) => { 
+                    if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) { 
+                        points.push(p); 
+                    } 
+                };
+
+                switch(shape.type) {
+                    case 'line':
+                        // Obtener ecuación general Ax + By + C = 0
+                        let A, B, C;
+                        if (shape.subType === 'line-eq') {
+                            A = shape.A; B = shape.B; C = shape.C;
+                        } else if (shape.subType === 'line-ps') {
+                            // y - y₁ = m(x - x₁) → mx - y + (y₁ - mx₁) = 0
+                            A = shape.m; B = -1; C = shape.p.y - shape.m * shape.p.x;
+                        } else { // line-p2
+                            // Forma punto-pendiente desde dos puntos
+                            const dx = shape.p2.x - shape.p1.x;
+                            const dy = shape.p2.y - shape.p1.y;
+                            if (Math.abs(dx) < 1e-10) { // Línea vertical
+                                A = 1; B = 0; C = -shape.p1.x;
+                            } else if (Math.abs(dy) < 1e-10) { // Línea horizontal
+                                A = 0; B = 1; C = -shape.p1.y;
+                            } else {
+                                // (y₂-y₁)x - (x₂-x₁)y + (x₂-x₁)y₁ - (y₂-y₁)x₁ = 0
+                                A = dy; B = -dx; C = dx * shape.p1.y - dy * shape.p1.x;
+                            }
+                        }
+                        
+                        // Intersección con eje X (y = 0)
+                        if (Math.abs(A) > 1e-10) {
+                            addPoint({x: -C/A, y: 0, label: 'Ix'});
+                        }
+                        
+                        // Intersección con eje Y (x = 0)
+                        if (Math.abs(B) > 1e-10) {
+                            addPoint({x: 0, y: -C/B, label: 'Iy'});
+                        }
+                        break;
+
+                    case 'circle':
+                        // Centro
+                        addPoint({ x: shape.h, y: shape.k, label: 'C' });
+                        
+                        // Intersecciones con eje Y (x = 0)
+                        // (0-h)² + (y-k)² = r² → (y-k)² = r² - h²
+                        const discriminantY = shape.r**2 - shape.h**2;
+                        if (discriminantY >= 0) {
+                            const sqrtDiscY = Math.sqrt(discriminantY);
+                            addPoint({x: 0, y: shape.k + sqrtDiscY, label: 'Iy'});
+                            addPoint({x: 0, y: shape.k - sqrtDiscY, label: 'Iy'});
+                        }
+                        
+                        // Intersecciones con eje X (y = 0)
+                        // (x-h)² + (0-k)² = r² → (x-h)² = r² - k²
+                        const discriminantX = shape.r**2 - shape.k**2;
+                        if (discriminantX >= 0) {
+                            const sqrtDiscX = Math.sqrt(discriminantX);
+                            addPoint({x: shape.h + sqrtDiscX, y: 0, label: 'Ix'});
+                            addPoint({x: shape.h - sqrtDiscX, y: 0, label: 'Ix'});
+                        }
+                        break;
+
+                    case 'parabola':
+                        // Vértice
+                        addPoint({ x: shape.h, y: shape.k, label: 'V' });
+                        
+                        if (shape.orientation === 'horizontal') {
+                            // (y-k)² = 4p(x-h)
+                            // Foco
+                            addPoint({ x: shape.h + shape.p, y: shape.k, label: 'F' });
+                            
+                            // Intersección con eje X (y = 0)
+                            // (0-k)² = 4p(x-h) → k² = 4p(x-h) → x = h + k²/(4p)
+                            if (Math.abs(shape.p) > 1e-10) {
+                                addPoint({x: shape.h + (shape.k**2)/(4*shape.p), y: 0, label: 'Ix'});
+                            }
+                            
+                            // Intersección con eje Y (x = 0)
+                            // (y-k)² = 4p(0-h) → (y-k)² = -4ph
+                            const discY = -4 * shape.p * shape.h;
+                            if (discY >= 0) {
+                                const sqrtDiscY = Math.sqrt(discY);
+                                addPoint({x: 0, y: shape.k + sqrtDiscY, label: 'Iy'});
+                                addPoint({x: 0, y: shape.k - sqrtDiscY, label: 'Iy'});
+                            }
+                        } else {
+                            // (x-h)² = 4p(y-k)
+                            // Foco
+                            addPoint({ x: shape.h, y: shape.k + shape.p, label: 'F' });
+                            
+                            // Intersección con eje Y (x = 0)
+                            // (0-h)² = 4p(y-k) → h² = 4p(y-k) → y = k + h²/(4p)
+                            if (Math.abs(shape.p) > 1e-10) {
+                                addPoint({x: 0, y: shape.k + (shape.h**2)/(4*shape.p), label: 'Iy'});
+                            }
+                            
+                            // Intersección con eje X (y = 0)
+                            // (x-h)² = 4p(0-k) → (x-h)² = -4pk
+                            const discX = -4 * shape.p * shape.k;
+                            if (discX >= 0) {
+                                const sqrtDiscX = Math.sqrt(discX);
+                                addPoint({x: shape.h + sqrtDiscX, y: 0, label: 'Ix'});
+                                addPoint({x: shape.h - sqrtDiscX, y: 0, label: 'Ix'});
+                            }
+                        }
+                        break;
+
+                    case 'ellipse':
+                        // Centro
+                        addPoint({ x: shape.h, y: shape.k, label: 'C' });
+                        
+                        // Determinar cuál es el eje mayor
+                        const isHorizontalMajor = shape.a > shape.b;
+                        const c_e = Math.sqrt(Math.abs(shape.a**2 - shape.b**2));
+                        
+                        // Focos
+                        if (isHorizontalMajor) {
+                            addPoint({ x: shape.h + c_e, y: shape.k, label: 'F' });
+                            addPoint({ x: shape.h - c_e, y: shape.k, label: 'F' });
+                        } else {
+                            addPoint({ x: shape.h, y: shape.k + c_e, label: 'F' });
+                            addPoint({ x: shape.h, y: shape.k - c_e, label: 'F' });
+                        }
+                        
+                        // Vértices
+                        addPoint({ x: shape.h + shape.a, y: shape.k, label: 'V' });
+                        addPoint({ x: shape.h - shape.a, y: shape.k, label: 'V' });
+                        addPoint({ x: shape.h, y: shape.k + shape.b, label: 'V' });
+                        addPoint({ x: shape.h, y: shape.k - shape.b, label: 'V' });
+                        
+                        // Intersecciones con eje X (y = 0)
+                        // (x-h)²/a² + (0-k)²/b² = 1 → (x-h)²/a² = 1 - k²/b²
+                        const termX = 1 - (shape.k**2)/(shape.b**2);
+                        if (termX >= 0) {
+                            const sqrtTermX = Math.sqrt(termX) * shape.a;
+                            addPoint({x: shape.h + sqrtTermX, y: 0, label: 'Ix'});
+                            addPoint({x: shape.h - sqrtTermX, y: 0, label: 'Ix'});
+                        }
+                        
+                        // Intersecciones con eje Y (x = 0)
+                        // (0-h)²/a² + (y-k)²/b² = 1 → (y-k)²/b² = 1 - h²/a²
+                        const termY = 1 - (shape.h**2)/(shape.a**2);
+                        if (termY >= 0) {
+                            const sqrtTermY = Math.sqrt(termY) * shape.b;
+                            addPoint({x: 0, y: shape.k + sqrtTermY, label: 'Iy'});
+                            addPoint({x: 0, y: shape.k - sqrtTermY, label: 'Iy'});
+                        }
+                        break;
+
+                    case 'hyperbola':
+                        // Centro
+                        addPoint({ x: shape.h, y: shape.k, label: 'C' });
+                        
+                        const c_h = Math.sqrt(shape.a**2 + shape.b**2);
+                        
+                        if (shape.orientation === 'horizontal') {
+                            // (x-h)²/a² - (y-k)²/b² = 1
+                            // Vértices
+                            addPoint({ x: shape.h + shape.a, y: shape.k, label: 'V' });
+                            addPoint({ x: shape.h - shape.a, y: shape.k, label: 'V' });
+                            
+                            // Focos
+                            addPoint({ x: shape.h + c_h, y: shape.k, label: 'F' });
+                            addPoint({ x: shape.h - c_h, y: shape.k, label: 'F' });
+                            
+                            // Intersecciones con eje X (y = 0)
+                            // (x-h)²/a² - (0-k)²/b² = 1 → (x-h)²/a² = 1 + k²/b²
+                            const termX_h = 1 + (shape.k**2)/(shape.b**2);
+                            const sqrtTermX_h = Math.sqrt(termX_h) * shape.a;
+                            addPoint({x: shape.h + sqrtTermX_h, y: 0, label: 'Ix'});
+                            addPoint({x: shape.h - sqrtTermX_h, y: 0, label: 'Ix'});
+                            
+                            // Intersecciones con eje Y (x = 0)
+                            // (0-h)²/a² - (y-k)²/b² = 1 → (y-k)²/b² = h²/a² - 1
+                            const termY_h = (shape.h**2)/(shape.a**2) - 1;
+                            if (termY_h >= 0) {
+                                const sqrtTermY_h = Math.sqrt(termY_h) * shape.b;
+                                addPoint({x: 0, y: shape.k + sqrtTermY_h, label: 'Iy'});
+                                addPoint({x: 0, y: shape.k - sqrtTermY_h, label: 'Iy'});
+                            }
+                        } else {
+                            // (y-k)²/a² - (x-h)²/b² = 1
+                            // Vértices
+                            addPoint({ x: shape.h, y: shape.k + shape.a, label: 'V' });
+                            addPoint({ x: shape.h, y: shape.k - shape.a, label: 'V' });
+                            
+                            // Focos
+                            addPoint({ x: shape.h, y: shape.k + c_h, label: 'F' });
+                            addPoint({ x: shape.h, y: shape.k - c_h, label: 'F' });
+                            
+                            // Intersecciones con eje Y (x = 0)
+                            // (y-k)²/a² - (0-h)²/b² = 1 → (y-k)²/a² = 1 + h²/b²
+                            const termY_v = 1 + (shape.h**2)/(shape.b**2);
+                            const sqrtTermY_v = Math.sqrt(termY_v) * shape.a;
+                            addPoint({x: 0, y: shape.k + sqrtTermY_v, label: 'Iy'});
+                            addPoint({x: 0, y: shape.k - sqrtTermY_v, label: 'Iy'});
+                            
+                            // Intersecciones con eje X (y = 0)
+                            // (0-k)²/a² - (x-h)²/b² = 1 → (x-h)²/b² = k²/a² - 1
+                            const termX_v = (shape.k**2)/(shape.a**2) - 1;
+                            if (termX_v >= 0) {
+                                const sqrtTermX_v = Math.sqrt(termX_v) * shape.b;
+                                addPoint({x: shape.h + sqrtTermX_v, y: 0, label: 'Ix'});
+                                addPoint({x: shape.h - sqrtTermX_v, y: 0, label: 'Ix'});
+                            }
+                        }
+                        break;
+                }
+                return points;
+            }
+
+            function displayResults(shape) {
+                let html = '';
+                const format = n => Number.isFinite(n) ? n.toFixed(2).replace(/\.00$/, '') : '0';
+                
+                switch(shape.type) {
+                    case 'line':
+                        let { A, B, C } = shape;
+                        if (shape.subType === 'line-p2') { 
+                            const dx = shape.p2.x - shape.p1.x;
+                            const dy = shape.p2.y - shape.p1.y;
+                            if (Math.abs(dx) < 1e-10) {
+                                A = 1; B = 0; C = -shape.p1.x;
+                            } else if (Math.abs(dy) < 1e-10) {
+                                A = 0; B = 1; C = -shape.p1.y;
+                            } else {
+                                A = dy; B = -dx; C = dx * shape.p1.y - dy * shape.p1.x;
+                            }
+                        } 
+                        else if (shape.subType === 'line-ps') { 
+                            A = shape.m; B = -1; C = shape.p.y - shape.m * shape.p.x; 
+                        }
+                        html = `<p><strong>Ecuación General:</strong> ${format(A)}x + ${format(B)}y + ${format(C)} = 0</p>`;
+                        break;
+                    case 'circle':
+                        html = `<p><strong>Centro:</strong> (${format(shape.h)}, ${format(shape.k)})</p><p><strong>Radio:</strong> ${format(shape.r)}</p><p><strong>Ecuación:</strong> (x - ${format(shape.h)})² + (y - ${format(shape.k)})² = ${format(shape.r**2)}</p>`;
+                        break;
+                    case 'parabola':
+                        html = `<p><strong>Vértice:</strong> (${format(shape.h)}, ${format(shape.k)})</p><p><strong>Distancia Focal (p):</strong> ${format(shape.p)}</p>`;
+                        if (shape.orientation === 'horizontal') { 
+                            html += `<p><strong>Foco:</strong> (${format(shape.h + shape.p)}, ${format(shape.k)})</p><p><strong>Directriz:</strong> x = ${format(shape.h - shape.p)}</p><p><strong>Ecuación:</strong> (y - ${format(shape.k)})² = ${format(4 * shape.p)}(x - ${format(shape.h)})</p>`; 
+                        } 
+                        else { 
+                            html += `<p><strong>Foco:</strong> (${format(shape.h)}, ${format(shape.k + shape.p)})</p><p><strong>Directriz:</strong> y = ${format(shape.k - shape.p)}</p><p><strong>Ecuación:</strong> (x - ${format(shape.h)})² = ${format(4 * shape.p)}(y - ${format(shape.k)})</p>`; 
+                        }
+                        break;
+                    case 'ellipse':
+                         const c_e = Math.sqrt(Math.abs(shape.a**2 - shape.b**2));
+                         const isHorizontalMajor = shape.a > shape.b;
+                         html = `<p><strong>Centro:</strong> (${format(shape.h)}, ${format(shape.k)})</p><p><strong>Semiejes:</strong> a=${format(shape.a)}, b=${format(shape.b)}</p>`;
+                         if (isHorizontalMajor) {
+                             html += `<p><strong>Focos:</strong> (${format(shape.h-c_e)}, ${format(shape.k)}) y (${format(shape.h+c_e)}, ${format(shape.k)})</p>`;
+                         } else {
+                             html += `<p><strong>Focos:</strong> (${format(shape.h)}, ${format(shape.k-c_e)}) y (${format(shape.h)}, ${format(shape.k+c_e)})</p>`;
+                         }
+                         html += `<p><strong>Ecuación:</strong> (x - ${format(shape.h)})²/(${format(shape.a**2)}) + (y - ${format(shape.k)})²/(${format(shape.b**2)}) = 1</p>`;
+                        break;
+                    case 'hyperbola':
+                        const c_h = Math.sqrt(shape.a**2 + shape.b**2);
+                        html = `<p><strong>Centro:</strong> (${format(shape.h)}, ${format(shape.k)})</p><p><strong>Semiejes:</strong> a=${format(shape.a)}, b=${format(shape.b)}</p>`;
+                        if (shape.orientation === 'horizontal') { 
+                            html += `<p><strong>Focos:</strong> (${format(shape.h-c_h)}, ${format(shape.k)}) y (${format(shape.h+c_h)}, ${format(shape.k)})</p><p><strong>Ecuación:</strong> (x - ${format(shape.h)})²/(${format(shape.a**2)}) - (y - ${format(shape.k)})²/(${format(shape.b**2)}) = 1</p>`; 
+                        } 
+                        else { 
+                            html += `<p><strong>Focos:</strong> (${format(shape.h)}, ${format(shape.k-c_h)}) y (${format(shape.h)}, ${format(shape.k+c_h)})</p><p><strong>Ecuación:</strong> (y - ${format(shape.k)})²/(${format(shape.a**2)}) - (x - ${format(shape.h)})²/(${format(shape.b**2)}) = 1</p>`; 
+                        }
+                        break;
+                }
+                if (shape.keyPoints && shape.keyPoints.length > 0) {
+                    html += '<hr class="my-2 border-slate-200 dark:border-slate-700"><h3 class="font-semibold">Puntos Notables:</h3><ul class="list-disc list-inside">';
+                    shape.keyPoints.forEach(p => {
+                        html += `<li>${p.label}: (${format(p.x)}, ${format(p.y)})</li>`;
+                    });
+                    html += '</ul>';
+                }
+                dom.resultsContent.innerHTML = html;
+                dom.resultsPanel.classList.remove('hidden');
+                dom.togglePointsBtnResults.classList.toggle('active', state.showKeyPoints);
+            }
+
+
+            // --- FUNCIONES DEL CANVAS ---
+            function setupCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = dom.canvasContainer.getBoundingClientRect();
+                state.width = rect.width; 
+                state.height = rect.height;
+                
+                // Limitar el tamaño máximo del canvas para evitar el error "Canvas exceeds max size"
+                const maxCanvasSize = 16384; // Tamaño máximo seguro para la mayoría de navegadores
+                const effectiveDpr = Math.min(dpr, maxCanvasSize / Math.max(state.width, state.height));
+                
+                try {
+                    dom.canvas.width = state.width * effectiveDpr; 
+                    dom.canvas.height = state.height * effectiveDpr;
+                    ctx.scale(effectiveDpr, effectiveDpr);
+                } catch (error) {
+                    // Fallback si aún hay problemas
+                    console.warn('Canvas size error, using fallback:', error);
+                    dom.canvas.width = state.width; 
+                    dom.canvas.height = state.height;
+                    // No aplicar scale si hay error
+                }
+                
+                draw();
+            }
+
+            function draw() {
+                const { width, height, scale, panOffset } = state;
+                if (width === 0 || height === 0) return;
+                
+                // Agregar protección contra errores de canvas
+                try {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    const theme = { bg: isDark ? '#1e293b' : '#ffffff', grid: isDark ? '#334155' : '#e2e8f0', axis: isDark ? '#94a3b8' : '#64748b', text: isDark ? '#94a3b8' : '#64748b', pointColor: isDark ? '#facc15' : '#ca8a04', labelBg: isDark ? 'rgba(30, 41, 59, 0.7)' : 'rgba(255, 255, 255, 0.7)', directrix: '#ef4444' };
+                    
+                    ctx.save();
+                    ctx.fillStyle = theme.bg; 
+                    ctx.fillRect(0, 0, width, height);
+                    const centerX = width / 2 + panOffset.x, centerY = height / 2 + panOffset.y;
+                    
+                    drawGridAndAxes(theme, centerX, centerY);
+                    
+                    ctx.translate(centerX, centerY); 
+                    ctx.scale(scale, -scale);
+                    
+                    state.shapes.forEach(shape => {
+                        if (shape.type === 'hyperbola') { drawHyperbolaAsymptotes(shape, theme); }
+                        if (shape.type === 'parabola' && state.showKeyPoints) { drawDirectrix(shape, theme); }
+                        ctx.save(); 
+                        ctx.strokeStyle = state.graphColor; 
+                        ctx.lineWidth = 3 / scale;
+                        ctx.beginPath(); 
+                        drawShape(shape); 
+                        ctx.stroke(); 
+                        ctx.restore();
+                        if (state.showKeyPoints && shape.keyPoints) { drawKeyPoints(shape.keyPoints, theme); }
+                    });
+                    ctx.restore();
+                } catch (error) {
+                    console.error('Error during canvas drawing:', error);
+                    // Intentar resetear el canvas si hay error
+                    ctx.restore();
+                    setupCanvas();
+                }
+            }
+            
+            function drawGridAndAxes(theme, centerX, centerY) {
+                try {
+                    const { width, height, scale } = state;
+                    const baseTick = 60; 
+                    let unit = 1;
+                    const multipliers = [2, 2.5, 2]; 
+                    let i = 0;
+                    while (scale * unit < baseTick) {
+                        unit *= multipliers[i % multipliers.length];
+                        i++;
+                    }
+
+                    ctx.strokeStyle = theme.grid; ctx.lineWidth = 1;
+                    for (let x = centerX % (scale*unit); x < width; x += (scale*unit)) { 
+                        ctx.beginPath(); 
+                        ctx.moveTo(x, 0); 
+                        ctx.lineTo(x, height); 
+                        ctx.stroke(); 
+                    }
+                    for (let y = centerY % (scale*unit); y < height; y += (scale*unit)) { 
+                        ctx.beginPath(); 
+                        ctx.moveTo(0, y); 
+                        ctx.lineTo(width, y); 
+                        ctx.stroke(); 
+                    }
+                    
+                    ctx.strokeStyle = theme.axis; ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(width, centerY); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, height); ctx.stroke();
+
+                    ctx.fillStyle = theme.text; ctx.font = '12px Inter'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                    for (let i = unit; (centerX + i * scale) < width || (centerX - i * scale) > 0; i+=unit) {
+                        if (centerX + i * scale < width) ctx.fillText(i, centerX + i * scale, centerY + 5);
+                        if (centerX - i * scale > 0) ctx.fillText(-i, centerX - i * scale, centerY + 5);
+                    }
+                    ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+                    for (let i = unit; (centerY + i * scale) < height || (centerY - i * scale) > 0; i+=unit) {
+                        if (centerY - i * scale > 0) ctx.fillText(i, centerX - 5, centerY - i * scale);
+                        if (centerY + i * scale < height) ctx.fillText(-i, centerX - 5, centerY + i * scale);
+                    }
+                } catch (error) {
+                    console.error('Error drawing grid:', error);
+                }
+            }
+
+            function drawKeyPoints(points, theme) {
+                try {
+                    ctx.save();
+                    const pointColors = { C: '#a855f7', V: '#22c55e', F: '#f97316', D: '#ef4444', Ix: '#14b8a6', Iy: '#14b8a6' };
+                    points.forEach(p => {
+                        if (!Number.isFinite(p.x) || !Number.isFinite(p.y)) return;
+                        
+                        // Dibujar el punto como un círculo simple
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 4 / state.scale, 0, 2 * Math.PI);
+                        ctx.fillStyle = pointColors[p.label] || theme.pointColor;
+                        ctx.fill();
+                        
+                        // Dibujar borde del punto
+                        ctx.beginPath();
+                        ctx.arc(p.x, p.y, 4 / state.scale, 0, 2 * Math.PI);
+                        ctx.strokeStyle = 'white';
+                        ctx.lineWidth = 1.5 / state.scale;
+                        ctx.stroke();
+                    });
+                    ctx.restore();
+                } catch (error) {
+                    console.error('Error drawing key points:', error);
+                    ctx.restore();
+                }
+            }
+
+            function drawDirectrix(shape, theme) {
+                 const { width, height, scale, panOffset } = state;
+                const x_min = (-width / 2 - panOffset.x) / scale, x_max = (width / 2 - panOffset.x) / scale;
+                const y_min = (-height / 2 - panOffset.y) / scale, y_max = (height / 2 + panOffset.y) / scale;
+                ctx.save();
+                ctx.strokeStyle = theme.directrix;
+                ctx.lineWidth = 2 / scale;
+                ctx.setLineDash([6 / scale, 4 / scale]);
+                ctx.beginPath();
+                if (shape.orientation === 'horizontal') {
+                    const x = shape.h - shape.p;
+                    ctx.moveTo(x, y_min); ctx.lineTo(x, y_max);
+                } else {
+                    const y = shape.k - shape.p;
+                    ctx.moveTo(x_min, y); ctx.lineTo(x_max, y);
+                }
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function drawHyperbolaAsymptotes(shape, theme) {
+                const { width, height, scale, panOffset } = state;
+                const x_min = (-width / 2 - panOffset.x) / scale, x_max = (width / 2 - panOffset.x) / scale;
+                ctx.save();
+                ctx.strokeStyle = theme.axis;
+                ctx.lineWidth = 1.5 / scale;
+                ctx.setLineDash([8 / scale, 6 / scale]);
+                ctx.beginPath();
+                const slope = shape.orientation === 'horizontal' ? (shape.b / shape.a) : (shape.a / shape.b);
+                const y1 = slope * (x_min - shape.h) + shape.k;
+                const y2 = slope * (x_max - shape.h) + shape.k;
+                ctx.moveTo(x_min, y1); ctx.lineTo(x_max, y2);
+                const y3 = -slope * (x_min - shape.h) + shape.k;
+                const y4 = -slope * (x_max - shape.h) + shape.k;
+                ctx.moveTo(x_min, y3); ctx.lineTo(x_max, y4);
+                ctx.stroke();
+                ctx.restore();
+            }
+
+            function drawShape(shape) {
+                const { width, height, scale, panOffset } = state;
+                const x_min = (-width / 2 - panOffset.x) / scale, x_max = (width / 2 - panOffset.x) / scale;
+                const y_min = (-height / 2 - panOffset.y) / scale, y_max = (height / 2 + panOffset.y) / scale;
+                const step = 1 / scale;
+                
+                switch (shape.type) {
+                    case 'line':
+                        let A, B, C;
+                        if (shape.subType === 'line-eq') {
+                            A = shape.A; B = shape.B; C = shape.C;
+                        } else if (shape.subType === 'line-ps') {
+                            A = shape.m; B = -1; C = shape.p.y - shape.m * shape.p.x;
+                        } else { // line-p2
+                            const dx = shape.p2.x - shape.p1.x;
+                            const dy = shape.p2.y - shape.p1.y;
+                            if (Math.abs(dx) < 1e-10) {
+                                A = 1; B = 0; C = -shape.p1.x;
+                            } else if (Math.abs(dy) < 1e-10) {
+                                A = 0; B = 1; C = -shape.p1.y;
+                            } else {
+                                A = dy; B = -dx; C = dx * shape.p1.y - dy * shape.p1.x;
+                            }
+                        }
+                        
+                        if (Math.abs(B) > 1e-9) { 
+                            ctx.moveTo(x_min, (-C - A * x_min) / B); 
+                            ctx.lineTo(x_max, (-C - A * x_max) / B); 
+                        } else { 
+                            const x = -C / A; 
+                            ctx.moveTo(x, y_min); 
+                            ctx.lineTo(x, y_max); 
+                        }
+                        break;
+                    case 'circle': 
+                        if (shape.r > 0) ctx.arc(shape.h, shape.k, shape.r, 0, 2 * Math.PI); 
+                        break;
+                    case 'ellipse': 
+                        if (shape.a > 0 && shape.b > 0) ctx.ellipse(shape.h, shape.k, shape.a, shape.b, 0, 0, 2 * Math.PI); 
+                        break;
+                    case 'parabola':
+                        if (shape.orientation === 'vertical') { 
+                            for (let x = x_min; x <= x_max; x += step) { 
+                                const y = ((x - shape.h) ** 2) / (4 * shape.p) + shape.k; 
+                                x === x_min ? ctx.moveTo(x,y) : ctx.lineTo(x, y); 
+                            } 
+                        } else { 
+                            for (let y = y_min; y <= y_max; y += step) { 
+                                const x = ((y - shape.k) ** 2) / (4 * shape.p) + shape.h; 
+                                y === y_min ? ctx.moveTo(x,y) : ctx.lineTo(x, y); 
+                            } 
+                        }
+                        break;
+                    case 'hyperbola':
+                        if (!shape.a || !shape.b) return;
+                        const t_range = Math.max(Math.abs(x_max), Math.abs(x_min), Math.abs(y_max), Math.abs(y_min)) * 2 / Math.min(shape.a, shape.b);
+                        
+                        ctx.beginPath(); // Start a new path for both branches
+                        if (shape.orientation === 'horizontal') {
+                            // Right branch
+                            for (let t = -t_range; t <= t_range; t += step) {
+                                const x = shape.h + shape.a * Math.cosh(t);
+                                const y = shape.k + shape.b * Math.sinh(t);
+                                t === -t_range ? ctx.moveTo(x,y) : ctx.lineTo(x, y);
+                            }
+                            // Left branch
+                            for (let t = -t_range; t <= t_range; t += step) {
+                                const x = shape.h - shape.a * Math.cosh(t);
+                                const y = shape.k + shape.b * Math.sinh(t);
+                                t === -t_range ? ctx.moveTo(x,y) : ctx.lineTo(x, y);
+                            }
+                        } else { // Vertical
+                            // Top branch
+                            for (let t = -t_range; t <= t_range; t += step) {
+                                const x = shape.h + shape.b * Math.sinh(t);
+                                const y = shape.k + shape.a * Math.cosh(t);
+                                t === -t_range ? ctx.moveTo(x,y) : ctx.lineTo(x, y);
+                            }
+                            // Bottom branch
+                             for (let t = -t_range; t <= t_range; t += step) {
+                                const x = shape.h + shape.b * Math.sinh(t);
+                                const y = shape.k - shape.a * Math.cosh(t);
+                                t === -t_range ? ctx.moveTo(x,y) : ctx.lineTo(x, y);
+                            }
+                        }
+                        break;
+                }
+            }
+
+
+            // --- MANEJO DE EVENTOS DEL CANVAS (PAN & ZOOM) ---
+            function addCanvasListeners() {
+                const getPos = (e, i=0) => ({ x: (e.touches ? e.touches[i].clientX : e.clientX) - dom.canvas.getBoundingClientRect().left, y: (e.touches ? e.touches[i].clientY : e.clientY) - dom.canvas.getBoundingClientRect().top });
+                dom.canvas.addEventListener('mousedown', e => { state.isDragging = true; state.panStart = { x: e.clientX - state.panOffset.x, y: e.clientY - state.panOffset.y }; });
+                dom.canvas.addEventListener('mousemove', e => { if (state.isDragging) { state.panOffset = { x: e.clientX - state.panStart.x, y: e.clientY - state.panStart.y }; draw(); } });
+                dom.canvas.addEventListener('mouseup', () => state.isDragging = false);
+                dom.canvas.addEventListener('mouseleave', () => state.isDragging = false);
+                dom.canvas.addEventListener('wheel', e => { e.preventDefault(); const zoom = e.deltaY < 0 ? 1.1 : 1/1.1; state.scale = Math.max(5, Math.min(500, state.scale * zoom)); draw(); }, { passive: false });
+                
+                let lastPinchDistance = 0;
+                dom.canvas.addEventListener('touchstart', e => {
+                    if (e.touches.length === 1) { state.isDragging = true; state.panStart = { x: e.touches[0].clientX - state.panOffset.x, y: e.touches[0].clientY - state.panOffset.y }; } 
+                    else if (e.touches.length === 2) { const p1 = getPos(e,0), p2 = getPos(e,1); lastPinchDistance = Math.hypot(p1.x - p2.x, p1.y - p2.y); }
+                }, { passive: true });
+                dom.canvas.addEventListener('touchmove', e => {
+                    if (e.touches.length === 2) { const p1 = getPos(e,0), p2 = getPos(e,1); const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y); if (lastPinchDistance > 0) { const zoom = dist / lastPinchDistance; state.scale = Math.max(5, Math.min(500, state.scale * zoom)); } lastPinchDistance = dist; draw(); } 
+                    else if (state.isDragging && e.touches.length === 1) { state.panOffset = { x: e.touches[0].clientX - state.panStart.x, y: e.touches[0].clientY - state.panStart.y }; draw(); }
+                }, { passive: true });
+                dom.canvas.addEventListener('touchend', e => { if (e.touches.length < 2) lastPinchDistance = 0; if (e.touches.length < 1) state.isDragging = false; });
+            }
+
+            // --- INICIALIZACIÓN ---
+            function init() {
+                // Configurar tema
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+                dom.themeToggleBtn.addEventListener('click', () => {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    localStorage.setItem('theme', isDark ? 'light' : 'dark');
+                    document.documentElement.classList.toggle('dark');
+                    draw();
+                });
+                
+                updateActiveTabs();
+                setupCanvas();
+                addCanvasListeners();
+                window.addEventListener('resize', setupCanvas);
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
