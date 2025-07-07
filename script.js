@@ -41,9 +41,19 @@ const categories = [
 
 /* ---- Geometría Analítica -------------------------------- */
 {
-  name: 'Geometría Analítica', icon: '📐', children: [
-    { name: 'Secciones cónicas',    slug: 'conicas',              icon: '📐' }, // conicas.html
-    { name: 'Graficador analítico', slug: 'GraficadorGeometriaAnalitica',  icon: '📊' }  // GraficadorGeometriaAnalitica.html
+  name: 'Geometría Analítica',
+  icon: '📐',
+  children: [
+    {
+      name: 'Secciones cónicas',
+      slug: 'conicas',               // Archivo: conicas.html
+      icon: '📐'
+    },
+    {
+      name: 'Graficador analítico',
+      slug: 'GraficadorGeometriaAnalitica',  // Archivo: GraficadorGeometriaAnalitica.html (sin coma)
+      icon: '📊'
+    }
   ]
 },
 
