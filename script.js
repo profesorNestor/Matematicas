@@ -39,13 +39,22 @@ const categories = [
     ]
   },
 
+/* ---- Geometría Analítica -------------------------------- */
+{
+  name: 'Geometría Analítica', icon: '📐', children: [
+    { name: 'Secciones cónicas',    slug: 'conicas',              icon: '📐' }, // conicas.html
+    { name: 'Graficador analítico', slug: 'GraficadorGeometriaAnalitica',  icon: '📊' }  // GraficadorGeometriaAnalitica.html
+  ]
+},
+
   /* ---- Trigonometría -------------------------------------- */
   {
     name: 'Trigonometría', icon: '📏', children: [
       { name: 'Conversión de Ángulos', slug: 'ConversionAngular', icon: '🔄' },
       { name: 'Triángulos',            slug: 'triangulos',        icon: '🔺' },
       { name: 'Trigonometría',         slug: 'trigonometria',     icon: '📐' },
-      { name: 'Vectores',              slug: 'vectores',          icon: '🧭' }
+      { name: 'Vectores',              slug: 'vectores',          icon: '🧭' },
+      { name: 'Círculo trigonométrico', slug: 'CirculoTrigonometrico', icon: '🎯' }
     ]
   },
 
