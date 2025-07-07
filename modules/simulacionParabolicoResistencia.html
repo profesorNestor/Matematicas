@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Movimiento Parabólico con Rozamiento v1.2</title>
+    <title>Simulador de Movimiento Parabólico con Rozamiento v1.3</title>
     
     <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -434,12 +434,10 @@
                 let simVy = v0y;
                 let simMaxHeight = 0;
                 
-                const dt = 0.01; // Bajar iteraciones para mejorar rendimiento
-                const maxSteps = 9000; // Evitar bucles infinitos
+                const dt = 0.01; 
+                const maxSteps = 9000;
                 let steps = 0;
 
-
-                // Simular para encontrar la altura máxima
                 while (simVy > 0 && steps++ < maxSteps) {
                     const v = Math.sqrt(simVx**2 + simVy**2);
                     simVx -= (b * simVx * v) * dt;
@@ -449,7 +447,6 @@
                 }
                 simMaxHeight = simY;
 
-                // Resetear y simular para el vuelo completo
                 steps = 0;
                 simTime = 0;
                 simX = 0;
@@ -548,7 +545,7 @@
                 
                 state.t += dt;
                 state.path.push({ x: state.x, y: state.y });
-                if (state.path.length > 1500) state.path.shift(); // Limitar tamaño de la trayectoria
+                if (state.path.length > 1500) state.path.shift();
 
                 updateRealTimeData();
                 drawAllCanvases();
@@ -613,14 +610,6 @@
                 const ctx = canvas.getContext('2d');
                 ctx.scale(dpr, dpr);
                 ctx.pixelRatio = dpr;
-            }
-
-            function niceStep(scale) {
-                const targetPx = 70;
-                const raw = targetPx / scale;
-                const mag = 10 ** Math.floor(Math.log10(raw));
-                const nice = [1, 2, 5].find(n => n * mag >= raw) || 10;
-                return nice * mag;
             }
             
             function autoScaleAndCenter(canvas) {
@@ -689,7 +678,7 @@
                 
                 ctx.lineWidth = 1 / (state.scale * ctx.pixelRatio);
                 
-                const step = niceStep(state.scale);
+                const step = 10; // Escala fija de 10x10
 
                 const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
                 const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
@@ -746,7 +735,7 @@
                 ctx.lineTo(rect.width, transformedOrigin.y);
                 ctx.stroke();
 
-                const step = niceStep(state.scale);
+                const step = 10; // Escala fija de 10x10
                 const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
                 const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
 
