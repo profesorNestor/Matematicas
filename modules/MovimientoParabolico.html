@@ -1,269 +1,341 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PhysiVerse - Simulador de Movimiento Parabólico</title>
+    <title>Simulador de Movimiento Parabólico v3.9</title>
     
-    <!-- Tailwind CSS -->
+    <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Fuentes -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
-
-    <!-- Estilos personalizados -->
-    <style>
-        :root {
-            --bg-light: #f0f2f5;
-            --bg-dark: #0B1120;
-            --glass-light: rgba(255, 255, 255, 0.6);
-            --glass-dark: rgba(23, 31, 51, 0.5);
-            --border-light: rgba(255, 255, 255, 0.9);
-            --border-dark: rgba(255, 255, 255, 0.1);
-            --text-primary-light: #1a202c;
-            --text-primary-dark: #e2e8f0;
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
+    <!-- Estilos y Configuración de Tailwind -->
+    <style type="text/tailwindcss">
+        @layer base {
+            :root {
+                --background: 220 14.3% 95.9%; /* slate-100 */
+                --foreground: 224 71.4% 4.1%; /* slate-950 */
+                --card: 0 0% 100%; /* white */
+                --card-foreground: 224 71.4% 4.1%;
+                --primary: 220.9 39.3% 11%; /* slate-800 */
+                --primary-foreground: 210 20% 98%; /* slate-50 */
+                --secondary: 220 13% 91%; /* slate-200 */
+                --secondary-foreground: 220.9 39.3% 11%;
+                --muted: 220 13% 91%;
+                --muted-foreground: 225 8.9% 46.1%; /* slate-500 */
+                --accent: 48 96% 59%; /* amber-500 */
+                --border: 220 13% 85%; /* slate-300 */
+                --ring: 220.9 39.3% 11%;
+                --radius: 0.75rem;
+            }
+            .dark {
+                --background: 222 83.9% 4.9%;
+                --foreground: 210 20% 98%;
+                --card: 222 47.4% 11.2%;
+                --card-foreground: 210 20% 98%;
+                --primary: 210 20% 98%;
+                --primary-foreground: 222 47.4% 11.2%;
+                --secondary: 217 32.6% 17.5%;
+                --secondary-foreground: 210 20% 98%;
+                --muted: 217 32.6% 17.5%;
+                --muted-foreground: 215 20.2% 65.1%;
+                --border: 217 32.6% 17.5%;
+                --ring: 215 20.2% 65.1%;
+            }
+            body {
+                font-family: 'Inter', sans-serif;
+                background-color: hsl(var(--background));
+                color: hsl(var(--foreground));
+                transition: background-color 0.3s, color 0.3s;
+            }
+            .canvas-container {
+                touch-action: none;
+                overflow: hidden;
+                cursor: grab;
+                position: relative;
+            }
+            .canvas-container:active {
+                cursor: grabbing;
+            }
+            .modal {
+                transition: opacity 0.3s ease, visibility 0.3s ease;
+            }
+            .modal-content {
+                transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            
+            /* Estilos para los sliders */
+            input[type="range"] {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 100%;
+                height: 6px;
+                background: hsl(var(--secondary));
+                border-radius: 9999px;
+                outline: none;
+                transition: background 0.2s;
+            }
+            input[type="range"]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 20px;
+                height: 20px;
+                background: hsl(var(--primary));
+                cursor: pointer;
+                border-radius: 50%;
+                border: 3px solid hsl(var(--card));
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                transition: transform 0.2s ease;
+            }
+            input[type="range"]::-webkit-slider-thumb:hover {
+                transform: scale(1.1);
+            }
+            input[type="range"]::-moz-range-thumb {
+                width: 20px;
+                height: 20px;
+                background: hsl(var(--primary));
+                cursor: pointer;
+                border-radius: 50%;
+                border: 3px solid hsl(var(--card));
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+            /* Estilo para <details> (acordeón) */
+            details > summary {
+                list-style: none;
+                cursor: pointer;
+            }
+            details > summary::-webkit-details-marker {
+                display: none;
+            }
+            details summary .lucide-chevron-down {
+                transition: transform 0.2s ease-in-out;
+            }
+            details[open] summary .lucide-chevron-down {
+                transform: rotate(180deg);
+            }
         }
-
-        html.dark { color-scheme: dark; }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: var(--bg-light);
-            color: var(--text-primary-light);
-            transition: background-color 0.5s ease, color 0.5s ease;
-            background-image: radial-gradient(circle at 1px 1px, rgba(0,0,0,0.05) 1px, transparent 0), radial-gradient(circle at 10px 10px, rgba(0,0,0,0.05) 1px, transparent 0);
-            background-size: 20px 20px;
-        }
-        
-        html.dark body {
-            background-color: var(--bg-dark);
-            color: var(--text-primary-dark);
-            background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0), radial-gradient(circle at 10px 10px, rgba(255,255,255,0.05) 1px, transparent 0);
-        }
-
-        .glass-panel {
-            background-color: var(--glass-light);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid var(--border-light);
-            box-shadow: 0 8px 32px 0 rgba(0,0,0,0.1);
-            border-radius: 1.5rem;
-            padding: 1.5rem;
-            transition: all 0.5s ease;
-        }
-        
-        html.dark .glass-panel {
-            background-color: var(--glass-dark);
-            border-color: var(--border-dark);
-        }
-
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(10px);
-        }
-
-        .main-button {
-            background: var(--primary);
-            color: white;
-            font-weight: 600;
-            border-radius: 0.75rem;
-            padding: 0.75rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-        }
-        .main-button:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
-        }
-        .main-button:disabled {
-            background: #6b7280;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        input[type="range"] {
-            -webkit-appearance: none; appearance: none;
-            width: 100%; height: 8px;
-            background: rgba(0,0,0,0.1);
-            border-radius: 5px; outline: none;
-        }
-        html.dark input[type="range"] { background: rgba(255,255,255,0.1); }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; appearance: none;
-            width: 20px; height: 20px;
-            background: var(--primary); cursor: pointer;
-            border-radius: 50%; border: 2px solid white;
-        }
-        html.dark input[type="range"]::-webkit-slider-thumb { border: 2px solid var(--bg-dark); }
-        
-        .data-display {
-            background: rgba(0,0,0,0.05); padding: 1rem;
-            border-radius: 1rem;
-        }
-        html.dark .data-display { background: rgba(255,255,255,0.05); }
-
-        .modal-text-content strong { color: var(--primary); }
-        html.dark .modal-text-content strong { color: #818cf8; }
-
-        .canvas-container { position: relative; }
-        canvas {
-            background-color: rgba(0,0,0,0.03);
-            border-radius: 1rem; cursor: grab;
-            width: 100%; height: 100%;
-        }
-        html.dark canvas { background-color: rgba(255,255,255,0.03); }
-        canvas:active { cursor: grabbing; }
-
     </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+                        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+                        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+                        secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+                        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+                        accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+                        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+                    },
+                    borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                },
+            },
+        }
+    </script>
 </head>
-
-<body class="min-h-screen flex items-center justify-center p-4">
-    <div class="w-full max-w-7xl">
-        <header class="w-full flex justify-between items-center mb-6 px-4">
-            <h1 class="text-2xl md:text-3xl font-bold flex items-center gap-3" style="font-family: 'Orbitron', sans-serif;">
-                <i data-lucide="atom" class="text-indigo-500"></i>
-                PhysiVerse
+<body class="antialiased">
+    <div class="relative min-h-screen container mx-auto p-4 md:p-8 overflow-y-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-primary mb-2">
+                Movimiento Parabólico
             </h1>
-            <div class="flex items-center gap-2">
-                 <button id="theme-toggle" class="p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
-                    <i data-lucide="sun" class="block dark:hidden"></i>
-                    <i data-lucide="moon" class="hidden dark:block"></i>
-                </button>
-                <button id="help-btn" class="main-button !p-2 !rounded-full">
-                    <i data-lucide="help-circle"></i>
-                </button>
-            </div>
+            <p class="text-lg text-muted-foreground">Simulación interactiva de lanzamiento de proyectiles</p>
         </header>
 
-        <main class="glass-panel">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                <!-- Columna de Controles -->
-                <div class="lg:col-span-1 space-y-6 flex flex-col">
-                    <h2 class="text-xl font-bold" style="font-family: 'Orbitron', sans-serif;">Parámetros de Lanzamiento</h2>
-                    
-                    <div class="space-y-4">
+        <!-- Barra de Herramientas Flotante -->
+        <div class="absolute top-4 right-4 z-40 bg-card p-2 rounded-full shadow-lg border border-border flex items-center gap-1">
+            <button id="home-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Reiniciar">
+                <i data-lucide="home" class="w-5 h-5 text-primary"></i>
+            </button>
+            <button id="autoscale-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Auto Escala">
+                <i data-lucide="locate-fixed" class="w-5 h-5 text-primary"></i>
+            </button>
+            <div class="relative">
+                <button id="palette-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Cambiar Color">
+                    <i data-lucide="palette" class="w-5 h-5 text-primary"></i>
+                </button>
+                <div id="color-picker" class="absolute top-full right-0 mt-2 bg-card p-2 rounded-lg shadow-xl border border-border flex gap-2 opacity-0 pointer-events-none transition-all duration-300 scale-95">
+                    <!-- Swatches de color se añadirán aquí por JS -->
+                </div>
+            </div>
+            <button id="theme-toggle-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Cambiar Tema">
+                <i data-lucide="sun" class="w-5 h-5 text-primary block dark:hidden"></i>
+                <i data-lucide="moon" class="w-5 h-5 text-primary hidden dark:block"></i>
+            </button>
+            <button id="help-modal-btn" class="p-2 rounded-full hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Mostrar ayuda">
+                <i data-lucide="help-circle" class="w-5 h-5 text-primary"></i>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:items-start">
+            <!-- Columna de Controles y Datos -->
+            <div class="space-y-6">
+                <div id="parameters-panel" class="bg-card border border-border rounded-2xl shadow-lg p-6">
+                    <h2 class="text-2xl font-semibold mb-6 text-primary flex items-center gap-2">
+                        <i data-lucide="sliders-horizontal"></i> Parámetros de Lanzamiento
+                    </h2>
+                    <div class="space-y-6">
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label for="initialVelocity" class="font-semibold">Velocidad Inicial</label>
-                                <span id="velocityValue" class="font-bold text-indigo-500 text-lg">45 m/s</span>
+                                <label for="initialVelocity" class="text-sm font-medium text-muted-foreground">Velocidad Inicial (v₀)</label>
+                                <span id="velocityValue" class="px-2 py-1 text-sm font-semibold text-primary bg-secondary rounded-md">45 m/s</span>
                             </div>
                             <input type="range" id="initialVelocity" min="5" max="100" value="45" step="1">
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label for="launchAngle" class="font-semibold">Ángulo</label>
-                                <span id="angleValue" class="font-bold text-indigo-500 text-lg">45°</span>
+                                <label for="launchAngle" class="text-sm font-medium text-muted-foreground">Ángulo (θ)</label>
+                                <span id="angleValue" class="px-2 py-1 text-sm font-semibold text-primary bg-secondary rounded-md">45°</span>
                             </div>
                             <input type="range" id="launchAngle" min="1" max="89" value="45" step="1">
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-1">
-                                <label for="gravity" class="font-semibold">Gravedad</label>
-                                <span id="gravityValue" class="font-bold text-indigo-500 text-lg">9.8 m/s²</span>
+                                <label for="gravity" class="text-sm font-medium text-muted-foreground">Gravedad (g)</label>
+                                <span id="gravityValue" class="px-2 py-1 text-sm font-semibold text-primary bg-secondary rounded-md">9.8 m/s²</span>
                             </div>
                             <input type="range" id="gravity" min="1" max="20" value="9.8" step="0.1">
                         </div>
                     </div>
-
-                    <div class="grid grid-cols-3 gap-3">
-                        <button id="startBtn" class="main-button"><i data-lucide="play"></i></button>
-                        <button id="pauseBtn" class="main-button" disabled><i data-lucide="pause"></i></button>
-                        <button id="resetBtn" class="main-button"><i data-lucide="rotate-cw"></i></button>
+                    <div class="grid grid-cols-3 gap-4 mt-6">
+                        <button id="startBtn" class="flex items-center justify-center gap-2 py-2 px-4 bg-primary text-primary-foreground font-semibold rounded-lg shadow-md hover:bg-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed"><i data-lucide="play"></i></button>
+                        <button id="pauseBtn" class="flex items-center justify-center gap-2 py-2 px-4 bg-secondary text-secondary-foreground font-semibold rounded-lg shadow-md hover:bg-muted transition-all disabled:opacity-50 disabled:cursor-not-allowed" disabled><i data-lucide="pause"></i></button>
+                        <button id="resetBtn" class="flex items-center justify-center gap-2 py-2 px-4 bg-secondary text-secondary-foreground font-semibold rounded-lg shadow-md hover:bg-muted transition-all"><i data-lucide="rotate-cw"></i></button>
                     </div>
-
-                    <div class="space-y-4 flex-grow flex flex-col justify-end">
-                        <div class="data-display">
-                            <h3 class="font-bold mb-2 text-lg" style="font-family: 'Orbitron', sans-serif;">Datos Teóricos</h3>
-                            <div class="space-y-1 text-sm">
-                                <p class="flex justify-between"><span>Altura Máxima:</span> <strong id="maxHeight">-</strong></p>
-                                <p class="flex justify-between"><span>Alcance Máximo:</span> <strong id="maxRange">-</strong></p>
-                                <p class="flex justify-between"><span>Tiempo de Vuelo:</span> <strong id="flightTime">-</strong></p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-card border border-border rounded-2xl shadow-lg p-6">
+                        <h2 class="text-xl font-semibold mb-4 text-primary flex items-center gap-2">
+                            <i data-lucide="calculator"></i> Datos Teóricos
+                        </h2>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center bg-secondary p-2 rounded-lg">
+                                <span class="text-sm font-medium text-secondary-foreground">Altura Máxima</span>
+                                <span id="maxHeight" class="font-bold text-base text-primary">-</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-secondary p-2 rounded-lg">
+                                <span class="text-sm font-medium text-secondary-foreground">Alcance Máximo</span>
+                                <span id="maxRange" class="font-bold text-base text-primary">-</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-secondary p-2 rounded-lg">
+                                <span class="text-sm font-medium text-secondary-foreground">Tiempo de Vuelo</span>
+                                <span id="flightTime" class="font-bold text-base text-primary">-</span>
                             </div>
                         </div>
-                        <div class="data-display">
-                            <h3 class="font-bold mb-2 text-lg" style="font-family: 'Orbitron', sans-serif;">Datos en Tiempo Real</h3>
-                            <div class="space-y-1 text-sm">
-                                <p class="flex justify-between"><span>Tiempo:</span> <strong id="currentTime">0.00 s</strong></p>
-                                <p class="flex justify-between"><span>Posición X:</span> <strong id="currentX">0.00 m</strong></p>
-                                <p class="flex justify-between"><span>Posición Y:</span> <strong id="currentY">0.00 m</strong></p>
-                                <p class="flex justify-between"><span>Velocidad:</span> <strong id="currentVelocity">0.00 m/s</strong></p>
+                    </div>
+
+                    <div class="bg-card border border-border rounded-2xl shadow-lg p-6">
+                        <h2 class="text-xl font-semibold mb-4 text-primary flex items-center gap-2">
+                            <i data-lucide="gauge-circle"></i> Datos en Vivo
+                        </h2>
+                        <div class="space-y-3">
+                            <div class="flex justify-between items-center bg-secondary p-2 rounded-lg">
+                                <span class="text-sm font-medium text-secondary-foreground">Tiempo</span>
+                                <span id="currentTime" class="font-bold text-base text-primary">0.00 s</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-secondary p-2 rounded-lg">
+                                <span class="text-sm font-medium text-secondary-foreground">Posición X</span>
+                                <span id="currentX" class="font-bold text-base text-primary">0.00 m</span>
+                            </div>
+                            <div class="flex justify-between items-center bg-secondary p-2 rounded-lg">
+                                <span class="text-sm font-medium text-secondary-foreground">Posición Y</span>
+                                <span id="currentY" class="font-bold text-base text-primary">0.00 m</span>
+                            </div>
+                             <div class="flex justify-between items-center bg-secondary p-2 rounded-lg">
+                                <span class="text-sm font-medium text-secondary-foreground">Velocidad</span>
+                                <span id="currentVelocity" class="font-bold text-base text-primary">0.00 m/s</span>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Columna del Canvas -->
-                <div class="lg:col-span-1 min-h-[50vh] lg:min-h-0 canvas-container">
+            </div>
+            
+            <!-- Columna de Simulación -->
+            <div class="lg:col-span-1 min-h-[50vh] lg:min-h-0">
+                 <div id="canvas-container" class="canvas-container bg-card border border-border rounded-2xl shadow-lg w-full h-full">
                     <canvas id="simulationCanvas"></canvas>
-                    <button id="expand-btn" class="main-button !p-2 !rounded-full absolute top-3 right-3">
+                    <button id="expand-btn" class="absolute bottom-2 right-2 p-2 rounded-full bg-primary/80 text-primary-foreground hover:bg-primary transition-all backdrop-blur-sm" aria-label="Expandir vista">
                         <i data-lucide="expand"></i>
                     </button>
                 </div>
             </div>
-        </main>
-    </div>
+        </div>
+        
+        <footer class="text-center mt-12 py-4 border-t border-border">
+            <p class="text-sm text-muted-foreground">
+                Autor: Msc Néstor Fabio Montoya y Gemini AI
+            </p>
+        </footer>
 
-    <!-- Modal de Ayuda -->
-    <div id="help-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden modal-backdrop">
-        <div class="glass-panel relative w-full max-w-2xl max-h-[90vh] flex flex-col">
-             <div class="flex justify-between items-center mb-4 pb-4 border-b border-black/10 dark:border-white/10">
-                <h3 class="text-2xl font-bold flex items-center gap-3" style="font-family: 'Orbitron', sans-serif;"><i data-lucide="book-open" class="text-indigo-400"></i>Guía de Uso</h3>
-                <button class="modal-close-btn p-2 rounded-full hover:bg-black/10 dark:hover:bg-white/10"><i data-lucide="x"></i></button>
-            </div>
-            <div class="prose max-w-none overflow-y-auto pr-4 modal-text-content text-primary-light dark:text-primary-dark">
-                <h4>🚀 Bienvenido a PhysiVerse</h4>
-                <p>Este es un simulador interactivo para explorar el movimiento parabólico de un proyectil.</p>
-                <h5>1. Ajusta los Parámetros</h5>
-                <p>Utiliza los deslizadores para cambiar la <strong>Velocidad Inicial</strong>, el <strong>Ángulo</strong> y la <strong>Gravedad</strong>.</p>
-                <h5>2. Controla la Simulación</h5>
-                <p>Usa los botones para <strong>Iniciar</strong>, <strong>Pausar</strong> y <strong>Reiniciar</strong> la animación.</p>
-                <h5>3. Interactúa con el Canvas</h5>
-                <ul>
-                    <li><strong>Zoom:</strong> Usa la <strong>rueda del mouse</strong> para acercar o alejar la vista.</li>
-                    <li><strong>Paneo:</strong> Haz <strong>clic y arrastra</strong> con el botón izquierdo para mover la vista.</li>
-                    <li><strong>Reescalar Ejes:</strong> Mueve el cursor cerca de un eje hasta que cambie. Luego, haz <strong>clic y arrastra</strong> para cambiar la escala de la vista.</li>
-                    <li><strong>Pantalla Completa:</strong> Usa el botón <i data-lucide="expand" class="inline-block w-4 h-4"></i> para una vista inmersiva.</li>
-                </ul>
+        <!-- Modal de Ayuda -->
+        <div id="help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
+            <div class="modal-content bg-card border border-border rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform scale-95">
+                <div class="flex items-center justify-between p-6 border-b border-border">
+                    <h2 class="text-xl font-bold text-primary flex items-center gap-2">
+                        <i data-lucide="book-open-check"></i> Guía y Fórmulas
+                    </h2>
+                    <button id="close-help-btn" class="p-2 rounded-md hover:bg-secondary transition-colors">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto space-y-4">
+                    <details class="bg-secondary/50 p-4 rounded-lg" open>
+                        <summary class="font-semibold text-lg flex justify-between items-center text-primary">
+                            Cómo Interactuar
+                            <i data-lucide="chevron-down" class="w-5 h-5"></i>
+                        </summary>
+                        <ul class="mt-4 list-disc list-inside ml-2 space-y-2 text-muted-foreground">
+                            <li><strong>Ajusta Parámetros:</strong> Usa los deslizadores para cambiar velocidad, ángulo y gravedad.</li>
+                            <li><strong>Controla la Simulación:</strong> Usa los botones para Iniciar, Pausar y Reiniciar.</li>
+                            <li><strong>Zoom:</strong> Usa la rueda del mouse para acercar o alejar la vista.</li>
+                            <li><strong>Mover Vista (Paneo):</strong> Haz clic y arrastra para mover la vista del canvas.</li>
+                        </ul>
+                    </details>
+                </div>
             </div>
         </div>
-    </div>
-
-    <!-- Modal de Canvas Fullscreen -->
-    <div id="fullscreen-modal" class="fixed inset-0 z-40 items-center justify-center p-4 hidden modal-backdrop">
-        <div class="bg-white dark:bg-gray-900 w-full h-full rounded-2xl flex flex-col relative p-4">
-            <canvas id="fullscreenCanvas"></canvas>
-            <button id="fullscreen-close-btn" class="main-button !p-2 !rounded-full absolute top-5 right-5 z-50">
-                <i data-lucide="x"></i>
-            </button>
+        
+        <!-- Modal de Vista Expandida -->
+        <div id="expand-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
+            <div class="bg-card w-full h-full rounded-2xl shadow-2xl flex flex-col relative">
+                <div id="expanded-canvas-container" class="flex-grow h-full w-full relative">
+                    <canvas id="expandedCanvas" class="w-full h-full"></canvas>
+                    <div id="modal-info-container" class="absolute bottom-4 left-4 w-64">
+                         <details class="bg-card/80 backdrop-blur-sm p-3 rounded-lg border border-border text-sm" open>
+                            <summary class="font-semibold cursor-pointer flex justify-between items-center text-primary">
+                                <span>Datos del Lanzamiento</span>
+                                <i data-lucide="chevron-down" class="w-5 h-5 transition-transform"></i>
+                            </summary>
+                            <div id="modal-info-panel" class="mt-2 space-y-2">
+                                <!-- Info se llenará aquí -->
+                            </div>
+                        </details>
+                    </div>
+                </div>
+                 <button id="close-expand-btn" class="absolute top-4 right-4 p-2 rounded-full bg-primary/80 text-primary-foreground hover:bg-primary transition-all" aria-label="Cerrar vista expandida">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
         </div>
+
     </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             // --- REFERENCIAS AL DOM ---
             const dom = {
-                themeToggle: document.getElementById('theme-toggle'),
-                helpBtn: document.getElementById('help-btn'),
-                helpModal: document.getElementById('help-modal'),
-                canvas: document.getElementById('simulationCanvas'),
-                fullscreenCanvas: document.getElementById('fullscreenCanvas'),
-                expandBtn: document.getElementById('expand-btn'),
-                fullscreenModal: document.getElementById('fullscreen-modal'),
-                fullscreenCloseBtn: document.getElementById('fullscreen-close-btn'),
+                mainCanvas: document.getElementById('simulationCanvas'),
+                expandedCanvas: document.getElementById('expandedCanvas'),
+                canvasContainer: document.getElementById('canvas-container'),
+                expandedCanvasContainer: document.getElementById('expanded-canvas-container'),
+                parametersPanel: document.getElementById('parameters-panel'),
                 initialVelocitySlider: document.getElementById('initialVelocity'),
                 launchAngleSlider: document.getElementById('launchAngle'),
                 gravitySlider: document.getElementById('gravity'),
@@ -280,49 +352,93 @@
                 currentX: document.getElementById('currentX'),
                 currentY: document.getElementById('currentY'),
                 currentVelocity: document.getElementById('currentVelocity'),
+                // Toolbar buttons
+                homeBtn: document.getElementById('home-btn'),
+                autoscaleBtn: document.getElementById('autoscale-btn'),
+                paletteBtn: document.getElementById('palette-btn'),
+                themeToggleBtn: document.getElementById('theme-toggle-btn'),
+                helpModalBtn: document.getElementById('help-modal-btn'),
+                expandBtn: document.getElementById('expand-btn'),
+                // Modals & Popovers
+                helpModal: document.getElementById('help-modal'),
+                closeHelpBtn: document.getElementById('close-help-btn'),
+                expandModal: document.getElementById('expand-modal'),
+                closeExpandBtn: document.getElementById('close-expand-btn'),
+                colorPicker: document.getElementById('color-picker'),
+                modalInfoPanel: document.getElementById('modal-info-panel'),
             };
 
-            const mainCtx = dom.canvas.getContext('2d');
-            const fsCtx = dom.fullscreenCanvas.getContext('2d');
+            const mainCtx = dom.mainCanvas.getContext('2d');
+            const expandedCtx = dom.expandedCanvas.getContext('2d');
 
             // --- ESTADO DE LA SIMULACIÓN ---
+            const projectileColors = ['#ef4444', '#3b82f6', '#22c55e', '#f97316', '#a855f7', '#ec4899'];
             let state = {
                 v0: 45, angleDeg: 45, g: 9.8,
                 t: 0, x: 0, y: 0, v0x: 0, v0y: 0,
                 path: [],
                 isRunning: false, isPaused: false, animationFrameId: null,
-                scale: 20, // Píxeles por metro
+                scale: 10,
                 origin: { x: 40, y: 40 },
                 panOffset: { x: 0, y: 0 },
                 isPanning: false, panStart: { x: 0, y: 0 },
-                isScalingX: false, isScalingY: false, scaleStart: 0,
+                projectileColorIndex: 0,
             };
 
-            // --- LÓGICA DE TEMAS Y MODALES ---
-            const applyTheme = (theme) => {
+            // --- LÓGICA DE MODALES, POPOVERS Y TEMA ---
+            function openModal(modal) {
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                const content = modal.querySelector('.modal-content') || modal.children[0];
+                content.classList.remove('scale-95');
+            }
+
+            function closeModal(modal) {
+                modal.classList.add('opacity-0');
+                const content = modal.querySelector('.modal-content') || modal.children[0];
+                content.classList.add('scale-95');
+                setTimeout(() => modal.classList.add('pointer-events-none'), 300);
+            }
+            
+            function applyTheme(theme, shouldDraw = true) {
                 document.documentElement.classList.toggle('dark', theme === 'dark');
                 localStorage.setItem('theme', theme);
-            };
-            dom.themeToggle.addEventListener('click', () => {
-                applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark');
-                drawAll();
-            });
-            const setupModal = (modal, openBtn, closeBtn) => {
-                openBtn.onclick = () => {
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                    if (modal === dom.fullscreenModal) {
-                        resizeCanvas(dom.fullscreenCanvas);
+                if (shouldDraw) drawAllCanvases();
+            }
+
+            function populateColorPicker() {
+                dom.colorPicker.innerHTML = '';
+                projectileColors.forEach((color, index) => {
+                    const swatch = document.createElement('button');
+                    swatch.className = 'w-6 h-6 rounded-full cursor-pointer transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-ring';
+                    swatch.style.backgroundColor = color;
+                    swatch.dataset.index = index;
+                    if (index === state.projectileColorIndex) {
+                        swatch.classList.add('ring-2', 'ring-offset-2', 'ring-primary');
                     }
-                    lucide.createIcons();
-                };
-                closeBtn.onclick = () => modal.classList.add('hidden');
-                modal.addEventListener('click', (e) => {
-                    if (e.target === modal) modal.classList.add('hidden');
+                    swatch.addEventListener('click', () => {
+                        state.projectileColorIndex = index;
+                        closeColorPicker();
+                        populateColorPicker();
+                        drawAllCanvases();
+                    });
+                    dom.colorPicker.appendChild(swatch);
                 });
-            };
-            setupModal(dom.helpModal, dom.helpBtn, dom.helpModal.querySelector('.modal-close-btn'));
-            setupModal(dom.fullscreenModal, dom.expandBtn, dom.fullscreenCloseBtn);
+            }
+
+            function toggleColorPicker() {
+                const picker = dom.colorPicker;
+                if (picker.classList.contains('opacity-0')) {
+                    picker.classList.remove('opacity-0', 'pointer-events-none', 'scale-95');
+                } else {
+                    closeColorPicker();
+                }
+            }
+            
+            function closeColorPicker() {
+                const picker = dom.colorPicker;
+                picker.classList.add('opacity-0', 'scale-95');
+                setTimeout(() => picker.classList.add('pointer-events-none'), 300);
+            }
 
             // --- LÓGICA DE LA SIMULACIÓN ---
             function calculateTheoreticalValues() {
@@ -338,29 +454,37 @@
                 return { range, height };
             }
 
-            function updateParameters() {
-                if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
-                Object.assign(state, { t: 0, x: 0, y: 0, path: [{ x: 0, y: 0 }], isRunning: false, isPaused: false });
-                dom.startBtn.disabled = false;
-                dom.pauseBtn.disabled = true;
-                calculateTheoreticalValues();
-                updateRealTimeData();
-                drawAll();
+            function updateParametersUI() {
+                dom.velocityValue.textContent = `${state.v0} m/s`;
+                dom.angleValue.textContent = `${state.angleDeg}°`;
+                dom.gravityValue.textContent = `${state.g.toFixed(1)} m/s²`;
             }
 
-            function resetSimulation() {
-                updateParameters();
-                autoScaleAndCenter(); // Solo el reset completo re-escala
+            function resetSimulationState(shouldDraw = true) {
+                if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId);
+                Object.assign(state, { t: 0, x: 0, y: 0, path: [{ x: 0, y: 0 }], isRunning: false, isPaused: false, animationFrameId: null });
+                dom.startBtn.disabled = false;
+                dom.pauseBtn.disabled = true;
+                dom.pauseBtn.classList.add('disabled:opacity-50');
+                calculateTheoreticalValues();
+                updateRealTimeData();
+                if (shouldDraw) {
+                    drawAllCanvases();
+                }
+            }
+            
+            function fullReset() {
+                 resetSimulationState(false);
+                 autoScaleAndCenter(dom.mainCanvas);
             }
 
             function startSimulation() {
                 if (state.isRunning && !state.isPaused) return;
-                if (state.y < 0) {
-                    updateParameters();
-                }
+                if (state.y < 0) resetSimulationState();
                 Object.assign(state, { isRunning: true, isPaused: false });
                 dom.startBtn.disabled = true;
                 dom.pauseBtn.disabled = false;
+                dom.pauseBtn.classList.remove('disabled:opacity-50');
                 state.animationFrameId = requestAnimationFrame(animate);
             }
 
@@ -369,6 +493,7 @@
                 state.isPaused = true;
                 dom.startBtn.disabled = false;
                 dom.pauseBtn.disabled = true;
+                dom.pauseBtn.classList.add('disabled:opacity-50');
                 cancelAnimationFrame(state.animationFrameId);
             }
             
@@ -380,7 +505,7 @@
                 state.y = state.v0y * state.t - 0.5 * state.g * state.t * state.t;
                 state.path.push({ x: state.x, y: state.y });
                 updateRealTimeData();
-                drawAll();
+                drawAllCanvases();
 
                 if (state.y < 0) {
                     state.y = 0;
@@ -388,7 +513,7 @@
                     state.x = state.v0x * state.t;
                     state.path[state.path.length - 1] = {x: state.x, y: state.y};
                     updateRealTimeData();
-                    drawAll();
+                    drawAllCanvases();
                     pauseSimulation();
                     state.isRunning = false;
                 } else {
@@ -397,121 +522,195 @@
             }
 
             function updateRealTimeData() {
-                const vx = state.v0x, vy = state.v0y - state.g * state.t;
+                const vx = state.v0x;
+                const vy = state.v0y - state.g * state.t;
                 const v = Math.sqrt(vx**2 + vy**2);
                 dom.currentTime.textContent = `${state.t.toFixed(2)} s`;
                 dom.currentX.textContent = `${state.x.toFixed(2)} m`;
                 dom.currentY.textContent = `${Math.max(0, state.y).toFixed(2)} m`;
                 dom.currentVelocity.textContent = `${v.toFixed(2)} m/s`;
             }
+            
+            function updateModalInfo() {
+                const { range, height } = calculateTheoreticalValues();
+                const angleRad = state.angleDeg * Math.PI / 180;
+                const tanTheta = Math.tan(angleRad).toFixed(2);
+                const cosTheta = Math.cos(angleRad);
+                const gOver2v02cos2 = (state.g / (2 * state.v0**2 * cosTheta**2)).toFixed(4);
 
-            // --- LÓGICA DEL CANVAS (GENERALIZADA) ---
-            function resizeCanvas(canvas) {
+                dom.modalInfoPanel.innerHTML = `
+                    <p><strong>Altura Máxima:</strong> ${height.toFixed(2)} m</p>
+                    <p><strong>Alcance Máximo:</strong> ${range.toFixed(2)} m</p>
+                    <p><strong>Tiempo de Vuelo:</strong> ${(2 * state.v0y / state.g).toFixed(2)} s</p>
+                    <p class="font-mono mt-2">y(x) = ${tanTheta}x - ${gOver2v02cos2}x²</p>
+                `;
+            }
+
+            // --- LÓGICA DEL CANVAS Y LAYOUT ---
+            function adjustLayout() {
+                if (window.innerWidth >= 1024) { // lg breakpoint
+                    const panelHeight = dom.parametersPanel.clientHeight;
+                    dom.canvasContainer.style.height = `${panelHeight}px`;
+                } else {
+                    dom.canvasContainer.style.height = '50vh';
+                }
+                setupCanvas(dom.mainCanvas, dom.canvasContainer);
+            }
+
+            function setupCanvas(canvas, container) {
                 const dpr = window.devicePixelRatio || 1;
-                const rect = canvas.getBoundingClientRect();
+                const rect = container.getBoundingClientRect();
                 canvas.width = rect.width * dpr;
                 canvas.height = rect.height * dpr;
                 canvas.getContext('2d').scale(dpr, dpr);
-                drawAll();
-            }
-
-            function autoScaleAndCenter() {
-                const { range, height } = calculateTheoreticalValues();
-                const rect = dom.canvas.getBoundingClientRect();
-                const padding = 40;
-                const scaleX = (rect.width - padding * 2) / (range || 1);
-                const scaleY = (rect.height - padding * 2) / (height || 1);
-                state.scale = Math.min(scaleX, scaleY) * 0.9;
-                if (!isFinite(state.scale) || state.scale <= 0) state.scale = 20;
-                state.panOffset = { x: 0, y: 0 };
-            }
-
-            function drawAll() {
-                drawScene(dom.canvas, mainCtx);
-                if (!dom.fullscreenModal.classList.contains('hidden')) {
-                    drawScene(dom.fullscreenCanvas, fsCtx);
-                }
             }
             
+            function autoScaleAndCenter(canvas) {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) return;
+                
+                const yMin = -20;
+                const yMax = 160;
+                const xMax = 220; 
+
+                const ySpan = yMax - yMin;
+
+                const viewWidth = rect.width - state.origin.x - 20;
+                const viewHeight = rect.height - state.origin.y - 20;
+
+                const scaleX = viewWidth / xMax;
+                const scaleY = viewHeight / ySpan;
+
+                state.scale = Math.min(scaleX, scaleY);
+
+                if (!isFinite(state.scale) || state.scale <= 0) {
+                    state.scale = 5; // Fallback scale
+                }
+
+                const yCenter = yMin + ySpan / 2;
+                const panYInWorld = yCenter - (rect.height / 2 / state.scale);
+                
+                state.panOffset = { x: 0, y: panYInWorld * state.scale };
+                drawAllCanvases();
+            }
+            
+            function drawAllCanvases() {
+                drawScene(dom.mainCanvas, mainCtx);
+                if (dom.expandModal && !dom.expandModal.classList.contains('opacity-0')) {
+                    drawScene(dom.expandedCanvas, expandedCtx);
+                }
+            }
+
             function drawScene(canvas, ctx) {
+                const container = canvas.parentElement;
+                if (!container) return;
+                const rect = container.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) return;
+
                 const isDark = document.documentElement.classList.contains('dark');
-                const colors = {
-                    text: isDark ? 'rgba(226, 232, 240, 0.7)' : 'rgba(26, 32, 44, 0.7)',
-                    grid: isDark ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)',
-                    projectile: '#4f46e5', path: '#4f46e5'
-                };
-                const rect = canvas.getBoundingClientRect();
                 ctx.clearRect(0, 0, rect.width, rect.height);
                 
                 const originY = rect.height - state.origin.y;
+                
                 ctx.save();
                 ctx.translate(state.origin.x + state.panOffset.x, originY + state.panOffset.y);
                 ctx.scale(state.scale, -state.scale);
 
-                drawGridAndPath(canvas, ctx, rect, colors);
+                drawGridAndPath(ctx, rect, isDark);
                 
                 ctx.restore();
-                drawAxes(canvas, ctx, rect, colors.text);
+                drawAxes(ctx, rect, isDark);
             }
 
-            function drawGridAndPath(canvas, ctx, rect, colors) {
+            function drawGridAndPath(ctx, rect, isDark) {
+                const gridColor = isDark ? '#374151' : '#e5e7eb';
+                
                 ctx.lineWidth = 1 / state.scale;
                 const step = Math.pow(10, Math.floor(Math.log10(50 / state.scale)));
-                const world = screenToWorld(canvas, 0, 0);
-                const world2 = screenToWorld(canvas, rect.width, rect.height);
 
-                ctx.strokeStyle = colors.grid;
-                for (let x = Math.floor(world.x / step) * step; x < world2.x; x += step) {
-                    ctx.beginPath(); ctx.moveTo(x, world.y); ctx.lineTo(x, world2.y); ctx.stroke();
+                const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
+                const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
+
+                ctx.strokeStyle = gridColor;
+                for (let x = Math.floor(startX / step) * step; x < endX; x += step) {
+                    if (x < 0) continue;
+                    ctx.beginPath(); ctx.moveTo(x, startY); ctx.lineTo(x, endY); ctx.stroke();
                 }
-                for (let y = Math.floor(world2.y / step) * step; y < world.y; y += step) {
-                    ctx.beginPath(); ctx.moveTo(world.x, y); ctx.lineTo(world2.x, y); ctx.stroke();
+                for (let y = Math.floor(startY / step) * step; y < endY; y += step) {
+                    ctx.beginPath(); ctx.moveTo(startX, y); ctx.lineTo(endX, y); ctx.stroke();
                 }
 
                 if (state.path.length > 1) {
                     ctx.beginPath();
                     ctx.moveTo(state.path[0].x, state.path[0].y);
                     state.path.forEach(p => ctx.lineTo(p.x, p.y));
-                    ctx.strokeStyle = colors.path;
+                    ctx.strokeStyle = projectileColors[state.projectileColorIndex];
                     ctx.lineWidth = 2 / state.scale;
                     ctx.stroke();
                 }
 
                 ctx.beginPath();
-                ctx.arc(state.x, state.y, 4 / state.scale, 0, 2 * Math.PI);
-                ctx.fillStyle = colors.projectile;
+                const radius = Math.abs(4 / state.scale);
+                ctx.arc(state.x, state.y, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = projectileColors[state.projectileColorIndex];
                 ctx.fill();
             }
 
-            function drawAxes(canvas, ctx, rect, color) {
-                ctx.strokeStyle = color; ctx.fillStyle = color;
-                ctx.lineWidth = 1; ctx.font = '10px Inter';
+            function drawAxes(ctx, rect, isDark) {
+                const color = isDark ? '#9ca3af' : '#4b5563';
+                ctx.strokeStyle = color;
+                ctx.fillStyle = color;
+                ctx.lineWidth = 1; 
+                ctx.font = '500 11px Inter';
                 const originY = rect.height - state.origin.y;
+                const originX = state.origin.x;
 
-                ctx.beginPath(); ctx.moveTo(state.origin.x + state.panOffset.x, 0); ctx.lineTo(state.origin.x + state.panOffset.x, rect.height); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, originY + state.panOffset.y); ctx.lineTo(rect.width, originY + state.panOffset.y); ctx.stroke();
-                
+                const transformedOrigin = {
+                    x: originX + state.panOffset.x,
+                    y: originY + state.panOffset.y
+                };
+
+                ctx.beginPath();
+                ctx.moveTo(transformedOrigin.x, 0);
+                ctx.lineTo(transformedOrigin.x, rect.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, transformedOrigin.y);
+                ctx.lineTo(rect.width, transformedOrigin.y);
+                ctx.stroke();
+
                 const step = Math.pow(10, Math.floor(Math.log10(50 / state.scale)));
-                const world = screenToWorld(canvas, 0, 0);
-                const world2 = screenToWorld(canvas, rect.width, rect.height);
-                
-                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
-                for (let x = Math.floor(world.x / step) * step; x < world2.x; x += step) {
-                    if (Math.abs(x) < 1e-9) continue;
-                    const screenPos = worldToScreen(canvas, x, 0);
-                    ctx.fillText(x.toFixed(0), screenPos.x, originY + 5 + state.panOffset.y);
+                const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
+                const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                for (let x = 0; x < endX; x += step) {
+                    if (x < 0) continue;
+                    if (x === 0 && transformedOrigin.x < 25) continue;
+                    const screenX = x * state.scale + transformedOrigin.x;
+                    ctx.fillText(x.toFixed(0), screenX, transformedOrigin.y + 5);
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, transformedOrigin.y - 4);
+                    ctx.lineTo(screenX, transformedOrigin.y + 4);
+                    ctx.stroke();
                 }
 
-                ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-                 for (let y = Math.floor(world2.y / step) * step; y < world.y; y += step) {
-                    if (Math.abs(y) < 1e-9) continue;
-                    const screenPos = worldToScreen(canvas, 0, y);
-                    ctx.fillText(y.toFixed(0), state.origin.x - 5 + state.panOffset.x, screenPos.y);
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                for (let y = Math.floor(startY / step) * step; y < endY; y += step) {
+                    if (y === 0) continue;
+                    const screenY = transformedOrigin.y - y * state.scale;
+                    ctx.fillText(y.toFixed(0), transformedOrigin.x - 8, screenY);
+                    ctx.beginPath();
+                    ctx.moveTo(transformedOrigin.x - 4, screenY);
+                    ctx.lineTo(transformedOrigin.x + 4, screenY);
+                    ctx.stroke();
                 }
             }
-
-            function screenToWorld(canvas, sx, sy) {
-                const rect = canvas.getBoundingClientRect();
+            
+            function screenToWorld(rect, sx, sy) {
                 const originY = rect.height - state.origin.y;
                 return {
                     x: (sx - state.origin.x - state.panOffset.x) / state.scale,
@@ -519,98 +718,136 @@
                 };
             }
 
-            function worldToScreen(canvas, wx, wy) {
-                const rect = canvas.getBoundingClientRect();
-                const originY = rect.height - state.origin.y;
-                return {
-                    x: wx * state.scale + state.origin.x + state.panOffset.x,
-                    y: wy * -state.scale + originY + state.panOffset.y
-                };
-            }
-
             // --- EVENT LISTENERS ---
             window.addEventListener('resize', () => {
-                resizeCanvas(dom.canvas);
-                if (!dom.fullscreenModal.classList.contains('hidden')) {
-                    resizeCanvas(dom.fullscreenCanvas);
-                }
+                adjustLayout();
+                autoScaleAndCenter();
             });
             
             [dom.initialVelocitySlider, dom.launchAngleSlider, dom.gravitySlider].forEach(slider => {
                 slider.addEventListener('input', (e) => {
                     const id = e.target.id;
                     const value = parseFloat(e.target.value);
-                    if (id === 'initialVelocity') { state.v0 = value; dom.velocityValue.textContent = `${value} m/s`; }
-                    if (id === 'launchAngle') { state.angleDeg = value; dom.angleValue.textContent = `${value}°`; }
-                    if (id === 'gravity') { state.g = value; dom.gravityValue.textContent = `${value.toFixed(1)} m/s²`; }
-                    if (!state.isRunning) updateParameters();
+                    if (id === 'initialVelocity') state.v0 = value;
+                    if (id === 'launchAngle') state.angleDeg = value;
+                    if (id === 'gravity') state.g = value;
+                    
+                    updateParametersUI();
+                    if (!state.isRunning) {
+                        resetSimulationState();
+                    }
                 });
             });
 
+            // Main controls
             dom.startBtn.addEventListener('click', startSimulation);
             dom.pauseBtn.addEventListener('click', pauseSimulation);
-            dom.resetBtn.addEventListener('click', resetSimulation);
+            dom.resetBtn.addEventListener('click', resetSimulationState);
 
+            // Toolbar controls
+            dom.homeBtn.addEventListener('click', fullReset);
+            dom.autoscaleBtn.addEventListener('click', autoScaleAndCenter);
+            dom.helpModalBtn.addEventListener('click', () => openModal(dom.helpModal));
+            dom.closeHelpBtn.addEventListener('click', () => closeModal(dom.helpModal));
+            dom.themeToggleBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.classList.contains('dark');
+                applyTheme(isDark ? 'light' : 'dark');
+            });
+            dom.paletteBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                toggleColorPicker();
+            });
+            
+            // Expand modal controls
+            if (dom.expandBtn) {
+                dom.expandBtn.addEventListener('click', () => {
+                    openModal(dom.expandModal);
+                    setupCanvas(dom.expandedCanvas, dom.expandedCanvasContainer);
+                    autoScaleAndCenter(dom.expandedCanvas);
+                    updateModalInfo();
+                });
+            }
+            if(dom.closeExpandBtn) {
+                dom.closeExpandBtn.addEventListener('click', () => closeModal(dom.expandModal));
+            }
+
+
+            // Canvas interactions
             function addCanvasListeners(canvas) {
+                if (!canvas) return;
+                function getEventPosition(e) {
+                    const rect = canvas.getBoundingClientRect();
+                    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                    return { x, y };
+                }
+
                 canvas.addEventListener('wheel', e => {
                     e.preventDefault();
                     const zoomFactor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
                     state.scale *= zoomFactor;
-                    drawAll();
-                });
+                    drawAllCanvases();
+                }, { passive: false });
 
                 canvas.addEventListener('mousedown', e => {
-                    const rect = canvas.getBoundingClientRect();
-                    const originY = rect.height - state.origin.y;
-                    if (Math.abs(e.clientX - rect.left - (state.origin.x + state.panOffset.x)) < 10) {
-                        state.isScalingY = true; state.scaleStart = e.clientY;
-                    } else if (Math.abs(e.clientY - rect.top - (originY + state.panOffset.y)) < 10) {
-                        state.isScalingX = true; state.scaleStart = e.clientX;
-                    } else {
-                        state.isPanning = true;
-                        state.panStart = { x: e.clientX - state.panOffset.x, y: e.clientY - state.panOffset.y };
-                    }
+                    state.isPanning = true;
+                    const pos = getEventPosition(e);
+                    state.panStart = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y };
                 });
+                
+                canvas.addEventListener('touchstart', e => {
+                    if (e.touches.length !== 1) return;
+                    state.isPanning = true;
+                    const pos = getEventPosition(e);
+                    state.panStart = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y };
+                }, { passive: false });
 
-                canvas.addEventListener('mousemove', e => {
-                    const rect = canvas.getBoundingClientRect();
-                    const originY = rect.height - state.origin.y;
-                    if (state.isPanning) {
-                        state.panOffset = { x: e.clientX - state.panStart.x, y: e.clientY - state.panStart.y };
-                    } else if (state.isScalingX) {
-                        const delta = (e.clientX - state.scaleStart) * 0.01;
-                        state.scale += delta;
-                        state.scale = Math.max(0.1, state.scale);
-                        state.scaleStart = e.clientX;
-                    } else if (state.isScalingY) {
-                        const delta = (state.scaleStart - e.clientY) * 0.01;
-                        state.scale += delta;
-                        state.scale = Math.max(0.1, state.scale);
-                        state.scaleStart = e.clientY;
-                    } else {
-                        if (Math.abs(e.clientX - rect.left - (state.origin.x + state.panOffset.x)) < 10) canvas.style.cursor = 'ns-resize';
-                        else if (Math.abs(e.clientY - rect.top - (originY + state.panOffset.y)) < 10) canvas.style.cursor = 'ew-resize';
-                        else canvas.style.cursor = 'grab';
-                    }
-                    drawAll();
-                });
+                function handleMove(e) {
+                    if (!state.isPanning) return;
+                    e.preventDefault();
+                    const pos = getEventPosition(e);
+                    state.panOffset = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y };
+                    drawAllCanvases();
+                }
 
-                canvas.addEventListener('mouseup', () => {
-                    state.isPanning = state.isScalingX = state.isScalingY = false;
-                });
-                canvas.addEventListener('mouseleave', () => {
-                    state.isPanning = state.isScalingX = state.isScalingY = false;
-                });
+                canvas.addEventListener('mousemove', handleMove);
+                canvas.addEventListener('touchmove', handleMove, { passive: false });
+
+                function handleEnd() {
+                    state.isPanning = false;
+                }
+
+                canvas.addEventListener('mouseup', handleEnd);
+                canvas.addEventListener('mouseleave', handleEnd);
+                canvas.addEventListener('touchend', handleEnd);
+                canvas.addEventListener('touchcancel', handleEnd);
             }
-
-            addCanvasListeners(dom.canvas);
-            addCanvasListeners(dom.fullscreenCanvas);
+            
+            addCanvasListeners(dom.mainCanvas);
+            addCanvasListeners(dom.expandedCanvas);
+            
+            document.addEventListener('click', (e) => {
+                if (dom.colorPicker && !dom.colorPicker.contains(e.target) && !dom.paletteBtn.contains(e.target)) {
+                    closeColorPicker();
+                }
+            });
 
             // --- INICIALIZACIÓN ---
-            applyTheme(localStorage.getItem('theme') || 'dark');
-            resizeCanvas(dom.canvas);
-            resetSimulation();
-            lucide.createIcons();
+            function init() {
+                const savedTheme = localStorage.getItem('theme') || 'light';
+                applyTheme(savedTheme, false);
+                populateColorPicker();
+                adjustLayout();
+                fullReset();
+                lucide.createIcons();
+            }
+
+            // A robust way to ensure layout is ready before the first draw.
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
         });
     </script>
 </body>
