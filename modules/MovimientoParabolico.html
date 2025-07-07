@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Movimiento Parabólico v4.5</title>
+    <title>Simulador de Movimiento Parabólico v4.6</title>
     
     <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -558,25 +558,15 @@
                 const rect = container.getBoundingClientRect();
                 const dpr = window.devicePixelRatio || 1;
                 
-                // Mantener el tamaño CSS para el layout
                 canvas.style.width = rect.width + 'px';
                 canvas.style.height = rect.height + 'px';
 
-                // Ajustar el tamaño real del canvas por el DPR
                 canvas.width = rect.width * dpr;
                 canvas.height = rect.height * dpr;
 
                 const ctx = canvas.getContext('2d');
-                ctx.scale(dpr, dpr); // Escalar el contexto para mantener la nitidez
-                ctx.pixelRatio = dpr; // Guardar el DPR para compensar en el dibujado
-            }
-
-            function niceStep(scale) {
-                const targetPx = 70; // Queremos ~70px entre líneas de la cuadrícula
-                const raw = targetPx / scale; // Distancia equivalente en unidades del mundo
-                const mag = 10 ** Math.floor(Math.log10(raw));
-                const nice = [1, 2, 5].find(n => n * mag >= raw) || 10;
-                return nice * mag; // p. ej. 20, 50, 100…
+                ctx.scale(dpr, dpr);
+                ctx.pixelRatio = dpr;
             }
             
             function autoScaleAndCenter(canvas) {
@@ -591,7 +581,7 @@
                 state.origin = { x: originX, y: originY };
 
                 const { range, height } = calculateTheoreticalValues();
-                const yMin = -30;
+                const yMin = -10; // Iniciar eje Y en -10
                 const xMax = Math.max(range * 1.1, isMobile ? 40 : 80);
                 const yMax = Math.max(height * 1.2, 60);
                 const ySpan = yMax - yMin;
@@ -626,7 +616,7 @@
                 if (rect.width === 0 || rect.height === 0) return;
 
                 const isDark = document.documentElement.classList.contains('dark');
-                ctx.clearRect(0, 0, canvas.width, canvas.height); // Usar canvas.width/height
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
                 const originY = rect.height - state.origin.y;
                 
@@ -643,10 +633,9 @@
             function drawGridAndPath(ctx, rect, isDark) {
                 const gridColor = isDark ? '#374151' : '#e5e7eb';
                 
-                // Compensar el grosor de línea por el DPR
                 ctx.lineWidth = 1 / (state.scale * ctx.pixelRatio);
                 
-                const step = niceStep(state.scale);
+                const step = 10; // Cuadrícula fija de 10x10
 
                 const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
                 const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
@@ -681,7 +670,6 @@
                 ctx.strokeStyle = color;
                 ctx.fillStyle = color;
                 ctx.lineWidth = 1.5 / ctx.pixelRatio;
-                // Compensar tamaño de fuente por el DPR
                 ctx.font = `600 ${12 / ctx.pixelRatio}px Inter`;
                 
                 const originY = rect.height - state.origin.y;
@@ -702,31 +690,35 @@
                 ctx.lineTo(rect.width, transformedOrigin.y);
                 ctx.stroke();
 
-                const step = niceStep(state.scale);
+                const step = 10; // Escalas fijas de 10 en 10
                 const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
                 const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
 
+                let lastLabelX = -Infinity;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
                 for (let x = Math.ceil(startX / step) * step; x < endX; x += step) {
                     if (x <= 0) continue;
                     const screenX = x * state.scale + transformedOrigin.x;
-                    if (screenX < originX + 15 || screenX > rect.width - 15) continue;
+                    if (screenX < originX + 15 || screenX > rect.width - 15 || Math.abs(screenX - lastLabelX) < 40) continue;
                     ctx.fillText(x.toFixed(0), screenX, transformedOrigin.y + 8);
+                    lastLabelX = screenX;
                     ctx.beginPath();
                     ctx.moveTo(screenX, transformedOrigin.y - 4);
                     ctx.lineTo(screenX, transformedOrigin.y + 4);
                     ctx.stroke();
                 }
 
+                let lastLabelY = Infinity;
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
                 for (let y = Math.floor(startY / step) * step; y < endY; y += step) {
                     if (y === 0) continue;
                     const screenY = transformedOrigin.y - y * state.scale;
-                    if (screenY < 15 || screenY > rect.height - 15) continue;
+                    if (screenY < 15 || screenY > rect.height - 15 || Math.abs(screenY - lastLabelY) < 25) continue;
                     
                     ctx.fillText(y.toFixed(0), transformedOrigin.x - 10, screenY);
+                    lastLabelY = screenY;
                     ctx.beginPath();
                     ctx.moveTo(transformedOrigin.x - 4, screenY);
                     ctx.lineTo(transformedOrigin.x + 4, screenY);
@@ -869,8 +861,8 @@
                         state.scale *= zoomFactor;
                         
                         const worldPosAfter = screenToWorld(rect, center.x, center.y);
-                        state.panOffset.x += (worldPosAfter.x - worldPosBefore.x) * state.scale;
-                        state.panOffset.y -= (worldPosAfter.y - worldPosBefore.y) * state.scale;
+                        state.panOffset.x += (worldPosAfter.x - worldPosBeforeZoom.x) * state.scale;
+                        state.panOffset.y -= (worldPosAfter.y - worldPosBeforeZoom.y) * state.scale;
 
                         state.initialPinchDistance = newDist;
                         drawAllCanvases();
