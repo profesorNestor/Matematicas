@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Movimiento Parabólico v4.2</title>
+    <title>Simulador de Movimiento Parabólico v4.3</title>
     
     <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -567,6 +567,9 @@
                 if (rect.width === 0 || rect.height === 0) return;
                 
                 const isMobile = window.innerWidth < 768;
+                const MIN_SCALE = isMobile ? 1.0 : 2.0;
+                const MAX_SCALE = isMobile ? 15.0 : 20.0;
+
                 const originX = isMobile ? 35 : 40;
                 const originY = isMobile ? 35 : 40;
                 const padding = isMobile ? 10 : 20;
@@ -575,8 +578,8 @@
 
                 const { range, height } = calculateTheoreticalValues();
                 const yMin = -30;
-                const xMax = Math.max(range * 1.1, 50);
-                const yMax = Math.max(height * 1.2, 50);
+                const xMax = Math.max(range * 1.1, 80); 
+                const yMax = Math.max(height * 1.2, 60);
                 const ySpan = yMax - yMin;
 
                 const viewWidth = rect.width - originX - padding;
@@ -585,16 +588,15 @@
                 const scaleX = viewWidth / xMax;
                 const scaleY = viewHeight / ySpan;
 
-                state.scale = Math.min(scaleX, scaleY);
+                let newScale = Math.min(scaleX, scaleY);
+                
+                // Clamp the scale to prevent extreme zoom levels
+                newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
+                
+                state.scale = newScale;
 
-                // En móvil, la escala calculada puede sentirse demasiado "zoom in" o "gigante".
-                // Se reduce ligeramente para dar una mejor visión general.
-                if (isMobile) {
-                    state.scale *= 0.7; // Reducir la escala un 30% en dispositivos móviles
-                }
-
-                if (!isFinite(state.scale) || state.scale <= 0) {
-                    state.scale = isMobile ? 2 : 5;
+                if (!isFinite(state.scale)) {
+                    state.scale = isMobile ? 2 : 5; // Fallback
                 }
                 
                 state.panOffset = { x: 0, y: yMin * state.scale };
@@ -696,7 +698,7 @@
                 for (let x = Math.ceil(startX / step) * step; x < endX; x += step) {
                     if (x <= 0) continue;
                     const screenX = x * state.scale + transformedOrigin.x;
-                    if (screenX < originX + 15) continue;
+                    if (screenX < transformedOrigin.x + 15 || screenX > rect.width) continue;
                     ctx.fillText(x.toFixed(0), screenX, transformedOrigin.y + 8);
                     ctx.beginPath();
                     ctx.moveTo(screenX, transformedOrigin.y - 4);
@@ -709,10 +711,11 @@
                 for (let y = Math.floor(startY / step) * step; y < endY; y += step) {
                     if (y === 0) continue;
                     const screenY = transformedOrigin.y - y * state.scale;
-                    ctx.fillText(y.toFixed(0), originX - 10, screenY);
+                    if (screenY < 0 || screenY > rect.height) continue;
+                    ctx.fillText(y.toFixed(0), transformedOrigin.x - 10, screenY);
                     ctx.beginPath();
-                    ctx.moveTo(originX - 4, screenY);
-                    ctx.lineTo(originX + 4, screenY);
+                    ctx.moveTo(transformedOrigin.x - 4, screenY);
+                    ctx.lineTo(transformedOrigin.x + 4, screenY);
                     ctx.stroke();
                 }
             }
