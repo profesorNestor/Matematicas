@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Movimiento Parabólico v3.9</title>
+    <title>Simulador de Movimiento Parabólico v4.1</title>
     
     <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -52,7 +52,7 @@
                 transition: background-color 0.3s, color 0.3s;
             }
             .canvas-container {
-                touch-action: none;
+                /* Se elimina 'touch-action: none' para permitir el scroll vertical por defecto */
                 overflow: hidden;
                 cursor: grab;
                 position: relative;
@@ -140,7 +140,7 @@
     </script>
 </head>
 <body class="antialiased">
-    <div class="relative min-h-screen container mx-auto p-4 md:p-8 overflow-y-auto">
+    <div class="relative min-h-screen container mx-auto p-4 md:p-8">
         <header class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold text-primary mb-2">
                 Movimiento Parabólico
@@ -294,8 +294,9 @@
                         <ul class="mt-4 list-disc list-inside ml-2 space-y-2 text-muted-foreground">
                             <li><strong>Ajusta Parámetros:</strong> Usa los deslizadores para cambiar velocidad, ángulo y gravedad.</li>
                             <li><strong>Controla la Simulación:</strong> Usa los botones para Iniciar, Pausar y Reiniciar.</li>
-                            <li><strong>Zoom:</strong> Usa la rueda del mouse para acercar o alejar la vista.</li>
-                            <li><strong>Mover Vista (Paneo):</strong> Haz clic y arrastra para mover la vista del canvas.</li>
+                            <li><strong>Zoom (Escritorio):</strong> Usa la rueda del mouse para acercar o alejar.</li>
+                            <li><strong>Zoom (Móvil):</strong> Pellizca la pantalla con dos dedos para acercar o alejar.</li>
+                            <li><strong>Mover Vista (Paneo):</strong> Haz clic y arrastra (o usa un dedo en móvil) para mover la vista.</li>
                         </ul>
                     </details>
                 </div>
@@ -352,14 +353,12 @@
                 currentX: document.getElementById('currentX'),
                 currentY: document.getElementById('currentY'),
                 currentVelocity: document.getElementById('currentVelocity'),
-                // Toolbar buttons
                 homeBtn: document.getElementById('home-btn'),
                 autoscaleBtn: document.getElementById('autoscale-btn'),
                 paletteBtn: document.getElementById('palette-btn'),
                 themeToggleBtn: document.getElementById('theme-toggle-btn'),
                 helpModalBtn: document.getElementById('help-modal-btn'),
                 expandBtn: document.getElementById('expand-btn'),
-                // Modals & Popovers
                 helpModal: document.getElementById('help-modal'),
                 closeHelpBtn: document.getElementById('close-help-btn'),
                 expandModal: document.getElementById('expand-modal'),
@@ -382,6 +381,7 @@
                 origin: { x: 40, y: 40 },
                 panOffset: { x: 0, y: 0 },
                 isPanning: false, panStart: { x: 0, y: 0 },
+                isPinching: false, initialPinchDistance: 0,
                 projectileColorIndex: 0,
             };
 
@@ -569,11 +569,11 @@
                 const rect = canvas.parentElement.getBoundingClientRect();
                 if (rect.width === 0 || rect.height === 0) return;
                 
-                const yMin = -20;
-                const yMax = 160;
-                const xMax = 220; 
-
-                const ySpan = yMax - yMin;
+                const { range, height } = calculateTheoreticalValues();
+                const yMin = -30; // Mostrar eje Y desde -30
+                const xMax = Math.max(range * 1.1, 50);
+                const yMax = Math.max(height * 1.2, 50);
+                const ySpan = yMax - yMin; // Rango vertical total
 
                 const viewWidth = rect.width - state.origin.x - 20;
                 const viewHeight = rect.height - state.origin.y - 20;
@@ -586,11 +586,9 @@
                 if (!isFinite(state.scale) || state.scale <= 0) {
                     state.scale = 5; // Fallback scale
                 }
-
-                const yCenter = yMin + ySpan / 2;
-                const panYInWorld = yCenter - (rect.height / 2 / state.scale);
                 
-                state.panOffset = { x: 0, y: panYInWorld * state.scale };
+                // Panear verticalmente para que yMin sea visible en la parte inferior
+                state.panOffset = { x: 0, y: yMin * state.scale };
                 drawAllCanvases();
             }
             
@@ -657,11 +655,11 @@
             }
 
             function drawAxes(ctx, rect, isDark) {
-                const color = isDark ? '#9ca3af' : '#4b5563';
+                const color = isDark ? '#cbd5e1' : '#4b5563'; // Color mejorado para visibilidad
                 ctx.strokeStyle = color;
                 ctx.fillStyle = color;
-                ctx.lineWidth = 1; 
-                ctx.font = '500 11px Inter';
+                ctx.lineWidth = 1.5; // Ejes más gruesos
+                ctx.font = '600 12px Inter'; // Fuente más grande y legible
                 const originY = rect.height - state.origin.y;
                 const originX = state.origin.x;
 
@@ -680,17 +678,17 @@
                 ctx.lineTo(rect.width, transformedOrigin.y);
                 ctx.stroke();
 
-                const step = Math.pow(10, Math.floor(Math.log10(50 / state.scale)));
+                const step = Math.pow(10, Math.floor(Math.log10(70 / state.scale))); // Paso optimizado para móviles
                 const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
                 const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
 
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
-                for (let x = 0; x < endX; x += step) {
-                    if (x < 0) continue;
-                    if (x === 0 && transformedOrigin.x < 25) continue;
+                for (let x = Math.ceil(startX / step) * step; x < endX; x += step) {
+                    if (x <= 0) continue; // Solo mostrar eje X positivo
                     const screenX = x * state.scale + transformedOrigin.x;
-                    ctx.fillText(x.toFixed(0), screenX, transformedOrigin.y + 5);
+                    if (screenX < transformedOrigin.x + 15) continue; // Evitar superposición cerca del eje Y
+                    ctx.fillText(x.toFixed(0), screenX, transformedOrigin.y + 8);
                     ctx.beginPath();
                     ctx.moveTo(screenX, transformedOrigin.y - 4);
                     ctx.lineTo(screenX, transformedOrigin.y + 4);
@@ -700,9 +698,9 @@
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
                 for (let y = Math.floor(startY / step) * step; y < endY; y += step) {
-                    if (y === 0) continue;
+                    if (y === 0) continue; // Omitir el origen
                     const screenY = transformedOrigin.y - y * state.scale;
-                    ctx.fillText(y.toFixed(0), transformedOrigin.x - 8, screenY);
+                    ctx.fillText(y.toFixed(0), transformedOrigin.x - 10, screenY);
                     ctx.beginPath();
                     ctx.moveTo(transformedOrigin.x - 4, screenY);
                     ctx.lineTo(transformedOrigin.x + 4, screenY);
@@ -721,7 +719,7 @@
             // --- EVENT LISTENERS ---
             window.addEventListener('resize', () => {
                 adjustLayout();
-                autoScaleAndCenter();
+                autoScaleAndCenter(dom.mainCanvas);
             });
             
             [dom.initialVelocitySlider, dom.launchAngleSlider, dom.gravitySlider].forEach(slider => {
@@ -735,18 +733,19 @@
                     updateParametersUI();
                     if (!state.isRunning) {
                         resetSimulationState();
+                        autoScaleAndCenter(dom.mainCanvas);
                     }
                 });
             });
 
-            // Main controls
             dom.startBtn.addEventListener('click', startSimulation);
             dom.pauseBtn.addEventListener('click', pauseSimulation);
-            dom.resetBtn.addEventListener('click', resetSimulationState);
-
-            // Toolbar controls
+            dom.resetBtn.addEventListener('click', () => {
+                resetSimulationState();
+                autoScaleAndCenter(dom.mainCanvas);
+            });
             dom.homeBtn.addEventListener('click', fullReset);
-            dom.autoscaleBtn.addEventListener('click', autoScaleAndCenter);
+            dom.autoscaleBtn.addEventListener('click', () => autoScaleAndCenter(dom.mainCanvas));
             dom.helpModalBtn.addEventListener('click', () => openModal(dom.helpModal));
             dom.closeHelpBtn.addEventListener('click', () => closeModal(dom.helpModal));
             dom.themeToggleBtn.addEventListener('click', () => {
@@ -758,7 +757,6 @@
                 toggleColorPicker();
             });
             
-            // Expand modal controls
             if (dom.expandBtn) {
                 dom.expandBtn.addEventListener('click', () => {
                     openModal(dom.expandModal);
@@ -771,56 +769,136 @@
                 dom.closeExpandBtn.addEventListener('click', () => closeModal(dom.expandModal));
             }
 
-
-            // Canvas interactions
+            // --- MANEJO DE INTERACCIONES DEL CANVAS (ESCRITORIO Y MÓVIL) ---
             function addCanvasListeners(canvas) {
                 if (!canvas) return;
-                function getEventPosition(e) {
-                    const rect = canvas.getBoundingClientRect();
-                    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-                    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-                    return { x, y };
-                }
+                
+                let touchStartPos = { x: 0, y: 0 };
+                let lastPanPos = { x: 0, y: 0 };
+                let isDragging = false; // Para diferenciar scroll de paneo
 
+                // --- Eventos de Rueda de Mouse (Zoom Escritorio) ---
                 canvas.addEventListener('wheel', e => {
                     e.preventDefault();
+                    const rect = canvas.getBoundingClientRect();
+                    const mousePos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+                    const worldPosBeforeZoom = screenToWorld(rect, mousePos.x, mousePos.y);
+                    
                     const zoomFactor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
                     state.scale *= zoomFactor;
+
+                    const worldPosAfterZoom = screenToWorld(rect, mousePos.x, mousePos.y);
+                    
+                    state.panOffset.x += (worldPosAfterZoom.x - worldPosBeforeZoom.x) * state.scale;
+                    state.panOffset.y -= (worldPosAfterZoom.y - worldPosBeforeZoom.y) * state.scale;
+
                     drawAllCanvases();
                 }, { passive: false });
 
+                // --- Eventos de Mouse (Paneo Escritorio) ---
                 canvas.addEventListener('mousedown', e => {
                     state.isPanning = true;
-                    const pos = getEventPosition(e);
-                    state.panStart = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y };
+                    lastPanPos = { x: e.clientX, y: e.clientY };
+                    canvas.style.cursor = 'grabbing';
                 });
-                
-                canvas.addEventListener('touchstart', e => {
-                    if (e.touches.length !== 1) return;
-                    state.isPanning = true;
-                    const pos = getEventPosition(e);
-                    state.panStart = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y };
-                }, { passive: false });
 
-                function handleMove(e) {
+                window.addEventListener('mousemove', e => {
                     if (!state.isPanning) return;
-                    e.preventDefault();
-                    const pos = getEventPosition(e);
-                    state.panOffset = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y };
+                    const dx = e.clientX - lastPanPos.x;
+                    const dy = e.clientY - lastPanPos.y;
+                    state.panOffset.x += dx;
+                    state.panOffset.y += dy;
+                    lastPanPos = { x: e.clientX, y: e.clientY };
                     drawAllCanvases();
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (state.isPanning) {
+                        state.isPanning = false;
+                        canvas.style.cursor = 'grab';
+                    }
+                });
+
+                // --- Eventos Táctiles (Paneo y Zoom Móvil) ---
+                canvas.addEventListener('touchstart', e => {
+                    if (e.touches.length === 1) {
+                        // Inicio de posible paneo
+                        const touch = e.touches[0];
+                        touchStartPos = { x: touch.clientX, y: touch.clientY };
+                        lastPanPos = { x: touch.clientX, y: touch.clientY };
+                        isDragging = false; // Aún no se sabe si es scroll o paneo
+                    } else if (e.touches.length === 2) {
+                        // Inicio de zoom
+                        e.preventDefault(); // Prevenir zoom nativo del navegador
+                        state.isPinching = true;
+                        state.initialPinchDistance = getPinchDistance(e.touches);
+                    }
+                }, { passive: true }); // passive: true para permitir scroll por defecto
+
+                canvas.addEventListener('touchmove', e => {
+                    if (state.isPinching && e.touches.length === 2) {
+                        e.preventDefault();
+                        // Lógica de Zoom (Pinch)
+                        const newDist = getPinchDistance(e.touches);
+                        const zoomFactor = newDist / state.initialPinchDistance;
+                        
+                        const rect = canvas.getBoundingClientRect();
+                        const center = getPinchCenter(e.touches, rect);
+                        const worldPosBefore = screenToWorld(rect, center.x, center.y);
+
+                        state.scale *= zoomFactor;
+                        
+                        const worldPosAfter = screenToWorld(rect, center.x, center.y);
+                        state.panOffset.x += (worldPosAfter.x - worldPosBefore.x) * state.scale;
+                        state.panOffset.y -= (worldPosAfter.y - worldPosBefore.y) * state.scale;
+
+                        state.initialPinchDistance = newDist;
+                        drawAllCanvases();
+
+                    } else if (!state.isPinching && e.touches.length === 1) {
+                        // Lógica de Paneo vs. Scroll
+                        const touch = e.touches[0];
+                        const dx = touch.clientX - touchStartPos.x;
+                        const dy = touch.clientY - touchStartPos.y;
+
+                        if (!isDragging) {
+                            // Decidir si es paneo o scroll basado en el primer movimiento
+                            if (Math.abs(dx) > Math.abs(dy) + 2) { // Umbral para favorecer el paneo horizontal
+                                isDragging = true; // Es paneo
+                            } else {
+                                return; // Es scroll, no hacer nada
+                            }
+                        }
+                        
+                        if(isDragging) {
+                            e.preventDefault(); // Prevenir scroll solo si es paneo
+                            const panDx = touch.clientX - lastPanPos.x;
+                            const panDy = touch.clientY - lastPanPos.y;
+                            state.panOffset.x += panDx;
+                            state.panOffset.y += panDy;
+                            lastPanPos = { x: touch.clientX, y: touch.clientY };
+                            drawAllCanvases();
+                        }
+                    }
+                }, { passive: false }); // passive: false para poder usar preventDefault
+
+                canvas.addEventListener('touchend', e => {
+                    if (e.touches.length < 2) state.isPinching = false;
+                    if (e.touches.length < 1) isDragging = false;
+                });
+
+                function getPinchDistance(touches) {
+                    const dx = touches[0].clientX - touches[1].clientX;
+                    const dy = touches[0].clientY - touches[1].clientY;
+                    return Math.sqrt(dx * dx + dy * dy);
                 }
-
-                canvas.addEventListener('mousemove', handleMove);
-                canvas.addEventListener('touchmove', handleMove, { passive: false });
-
-                function handleEnd() {
-                    state.isPanning = false;
+                
+                function getPinchCenter(touches, rect) {
+                    return {
+                        x: ((touches[0].clientX + touches[1].clientX) / 2) - rect.left,
+                        y: ((touches[0].clientY + touches[1].clientY) / 2) - rect.top,
+                    };
                 }
-
-                canvas.addEventListener('mouseup', handleEnd);
-                canvas.addEventListener('mouseleave', handleEnd);
-                canvas.addEventListener('touchend', handleEnd);
-                canvas.addEventListener('touchcancel', handleEnd);
             }
             
             addCanvasListeners(dom.mainCanvas);
@@ -842,7 +920,6 @@
                 lucide.createIcons();
             }
 
-            // A robust way to ensure layout is ready before the first draw.
             if (document.readyState === 'loading') {
                 document.addEventListener('DOMContentLoaded', init);
             } else {
