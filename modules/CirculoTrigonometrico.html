@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Círculo Trigonométrico Interactivo</title>
     
     <!-- Librerías y Fuentes -->
@@ -56,34 +56,23 @@
             --ring: 215 20.2% 65.1%;
         }
 
+        html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', sans-serif;
             background-color: hsl(var(--background));
             color: hsl(var(--foreground));
             transition: background-color 0.3s, color 0.3s;
-            overscroll-behavior: none;
         }
-
         .canvas-container {
-            touch-action: none;
+            touch-action: manipulation;
             overflow: hidden;
-            cursor: crosshair;
+            cursor: grab;
             position: relative;
         }
-
-        .canvas-container:active {
-            cursor: grabbing;
-        }
-
-        .modal {
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-
-        .modal-content {
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-        }
+        .canvas-container:active { cursor: grabbing; }
+        .modal { transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-content { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease; }
         
-        /* Estilos para los sliders */
         input[type="range"] {
             -webkit-appearance: none;
             appearance: none;
@@ -92,9 +81,7 @@
             background: hsl(var(--secondary));
             border-radius: 9999px;
             outline: none;
-            transition: background 0.2s;
         }
-
         input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
@@ -107,11 +94,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
             transition: transform 0.2s ease;
         }
-
-        input[type="range"]::-webkit-slider-thumb:hover {
-            transform: scale(1.1);
-        }
-
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.1); }
         input[type="range"]::-moz-range-thumb {
             width: 20px;
             height: 20px;
@@ -119,40 +102,25 @@
             cursor: pointer;
             border-radius: 50%;
             border: 3px solid hsl(var(--card));
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
-
-        /* Animación para transiciones suaves */
-        .smooth-transition {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* Estilos para botones de ángulos especiales */
-        .angle-button {
-            transition: all 0.2s ease;
-        }
-
+        .angle-button { transition: all 0.2s ease; }
         .angle-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-
         .angle-button.active {
             background-color: hsl(var(--primary));
             color: hsl(var(--primary-foreground));
         }
-
-        /* Canvas de leyenda */
         .legend-canvas {
             border: 1px solid hsl(var(--border));
             border-radius: 8px;
-            margin: 8px 0;
         }
     </style>
 </head>
 
 <body class="antialiased">
-    <div class="relative min-h-screen container mx-auto p-4 md:p-8 lg:p-12 overflow-y-auto">
+    <div class="relative min-h-screen container mx-auto p-4 md:p-8 lg:p-12">
         <header class="text-center mb-8">
             <h1 class="text-4xl md:text-5xl font-bold text-slate-800 dark:text-slate-50 mb-2">
                 Círculo Trigonométrico
@@ -162,56 +130,42 @@
 
         <!-- Barra de Herramientas Flotante -->
         <div class="absolute top-4 right-4 z-40 bg-white dark:bg-slate-800 p-2 rounded-full shadow-lg border border-slate-300 dark:border-slate-600 flex items-center gap-1">
-            <button id="home-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-slate-800 dark:focus:ring-slate-200 focus:outline-none" aria-label="Reiniciar">
-                <i data-lucide="home" class="w-5 h-5 text-slate-800 dark:text-slate-50"></i>
-            </button>
-            <button id="animate-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-slate-800 dark:focus:ring-slate-200 focus:outline-none" aria-label="Animar">
-                <i data-lucide="play" class="w-5 h-5 text-slate-800 dark:text-slate-50"></i>
-            </button>
-            <button id="legend-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-slate-800 dark:focus:ring-slate-200 focus:outline-none" aria-label="Mostrar Leyenda">
-                <i data-lucide="info" class="w-5 h-5 text-slate-800 dark:text-slate-50"></i>
-            </button>
-            <button id="theme-toggle-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-slate-800 dark:focus:ring-slate-200 focus:outline-none" aria-label="Cambiar Tema">
-                <i data-lucide="sun" class="w-5 h-5 text-slate-800 dark:text-slate-50 block dark:hidden"></i>
-                <i data-lucide="moon" class="w-5 h-5 text-slate-800 dark:text-slate-50 hidden dark:block"></i>
-            </button>
-            <button id="help-modal-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors focus:ring-2 focus:ring-slate-800 dark:focus:ring-slate-200 focus:outline-none" aria-label="Mostrar ayuda">
-                <i data-lucide="help-circle" class="w-5 h-5 text-slate-800 dark:text-slate-50"></i>
-            </button>
+            <button id="home-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Reiniciar"><i data-lucide="home" class="w-5 h-5"></i></button>
+            <button id="animate-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Animar"><i data-lucide="play" class="w-5 h-5"></i></button>
+            <button id="legend-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Mostrar Leyenda"><i data-lucide="book-image" class="w-5 h-5"></i></button>
+            <button id="theme-toggle-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Cambiar Tema"><i data-lucide="sun" class="w-5 h-5 block dark:hidden"></i><i data-lucide="moon" class="w-5 h-5 hidden dark:block"></i></button>
+            <button id="help-modal-btn" class="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700" aria-label="Mostrar ayuda"><i data-lucide="help-circle" class="w-5 h-5"></i></button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 lg:items-start">
-            <!-- Columna de Controles y Datos -->
-            <div class="space-y-6">
+        <!-- Layout principal con Flexbox -->
+        <div class="flex flex-col lg:flex-row gap-8 lg:gap-12">
+            <!-- Columna de Controles y Datos (ocupa 1/3 del ancho en LG) -->
+            <div class="w-full lg:w-1/3 space-y-6">
                 <div id="parameters-panel" class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-lg p-6">
-                    <h2 class="text-2xl font-semibold mb-6 text-slate-800 dark:text-slate-50 flex items-center gap-2">
-                        <i data-lucide="sliders-horizontal"></i> Controles
-                    </h2>
+                    <h2 class="text-2xl font-semibold mb-6 flex items-center gap-2"><i data-lucide="sliders-horizontal"></i> Controles</h2>
                     <div class="space-y-6">
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label for="angle-slider" class="text-sm font-medium text-slate-500 dark:text-slate-400">Ángulo (θ)</label>
                                 <div class="flex items-center gap-2">
-                                    <span id="angle-value" class="px-2 py-1 text-sm font-semibold text-slate-800 dark:text-slate-50 bg-slate-100 dark:bg-slate-700 rounded-md">45°</span>
-                                    <span id="angle-rad" class="px-2 py-1 text-sm font-medium text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-700 rounded-md">π/4 rad</span>
+                                    <span id="angle-value" class="px-2 py-1 text-sm font-semibold rounded-md bg-slate-100 dark:bg-slate-700">45°</span>
+                                    <span id="angle-rad" class="px-2 py-1 text-sm font-medium rounded-md bg-slate-100 dark:bg-slate-700">π/4 rad</span>
                                 </div>
                             </div>
                             <input type="range" id="angle-slider" min="0" max="360" value="45" step="1">
-                            
-                            <!-- Botones de ángulos especiales -->
-                            <div class="mt-3 grid grid-cols-6 gap-2">
-                                <button class="angle-button px-2 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md smooth-transition" data-angle="0">0°</button>
-                                <button class="angle-button px-2 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md smooth-transition" data-angle="30">30°</button>
-                                <button class="angle-button px-2 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md smooth-transition" data-angle="45">45°</button>
-                                <button class="angle-button px-2 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md smooth-transition" data-angle="60">60°</button>
-                                <button class="angle-button px-2 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md smooth-transition" data-angle="90">90°</button>
-                                <button class="angle-button px-2 py-1 text-sm font-medium bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 rounded-md smooth-transition" data-angle="180">180°</button>
+                            <div class="mt-3 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-4 gap-2">
+                                <button class="angle-button px-2 py-1 text-sm font-medium rounded-md bg-slate-100 dark:bg-slate-700" data-angle="0">0°</button>
+                                <button class="angle-button px-2 py-1 text-sm font-medium rounded-md bg-slate-100 dark:bg-slate-700" data-angle="30">30°</button>
+                                <button class="angle-button px-2 py-1 text-sm font-medium rounded-md bg-slate-100 dark:bg-slate-700" data-angle="45">45°</button>
+                                <button class="angle-button px-2 py-1 text-sm font-medium rounded-md bg-slate-100 dark:bg-slate-700" data-angle="60">60°</button>
+                                <button class="angle-button px-2 py-1 text-sm font-medium rounded-md bg-slate-100 dark:bg-slate-700" data-angle="90">90°</button>
+                                <button class="angle-button px-2 py-1 text-sm font-medium rounded-md bg-slate-100 dark:bg-slate-700" data-angle="180">180°</button>
                             </div>
                         </div>
                         <div>
                             <div class="flex justify-between items-center mb-1">
                                 <label for="radius-slider" class="text-sm font-medium text-slate-500 dark:text-slate-400">Radio (r)</label>
-                                <span id="radius-value" class="px-2 py-1 text-sm font-semibold text-slate-800 dark:text-slate-50 bg-slate-100 dark:bg-slate-700 rounded-md">1.0</span>
+                                <span id="radius-value" class="px-2 py-1 text-sm font-semibold rounded-md bg-slate-100 dark:bg-slate-700">1.0</span>
                             </div>
                             <input type="range" id="radius-slider" min="0.5" max="2.5" value="1.0" step="0.1">
                         </div>
@@ -219,118 +173,81 @@
                 </div>
                 
                 <div class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-50 flex items-center gap-2">
-                        <i data-lucide="calculator"></i> Valores de las Funciones
-                    </h2>
-                    <div id="values-grid" class="grid grid-cols-2 gap-4">
-                        <!-- Los valores se insertarán aquí dinámicamente -->
-                    </div>
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2"><i data-lucide="calculator"></i> Valores</h2>
+                    <div id="values-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2 gap-4"></div>
                 </div>
 
-                <!-- Panel de Coordenadas -->
                 <div class="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-lg p-6">
-                    <h2 class="text-xl font-semibold mb-4 text-slate-800 dark:text-slate-50 flex items-center gap-2">
-                        <i data-lucide="compass"></i> Coordenadas del Punto
-                    </h2>
+                    <h2 class="text-xl font-semibold mb-4 flex items-center gap-2"><i data-lucide="compass"></i> Coordenadas</h2>
                     <div class="grid grid-cols-2 gap-3">
-                        <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-2 rounded-lg">
-                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300">X (cos θ)</span>
-                            <span id="coord-x" class="font-bold text-base text-slate-800 dark:text-slate-50">0.71</span>
-                        </div>
-                        <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-2 rounded-lg">
-                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Y (sin θ)</span>
-                            <span id="coord-y" class="font-bold text-base text-slate-800 dark:text-slate-50">0.71</span>
-                        </div>
+                        <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-2 rounded-lg"><span class="text-sm font-medium text-slate-600 dark:text-slate-300">X (cos θ)</span><span id="coord-x" class="font-bold text-base">0.71</span></div>
+                        <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-2 rounded-lg"><span class="text-sm font-medium text-slate-600 dark:text-slate-300">Y (sin θ)</span><span id="coord-y" class="font-bold text-base">0.71</span></div>
                     </div>
-                    <div class="mt-3 flex justify-center">
-                        <div class="bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-lg">
-                            <span class="text-sm font-medium text-slate-600 dark:text-slate-300">Cuadrante: </span>
-                            <span id="quadrant" class="font-bold text-base text-slate-800 dark:text-slate-50">I</span>
-                        </div>
-                    </div>
+                    <div class="mt-3 flex justify-center"><div class="bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-lg"><span class="text-sm font-medium text-slate-600 dark:text-slate-300">Cuadrante: </span><span id="quadrant" class="font-bold text-base">I</span></div></div>
                 </div>
             </div>
             
-            <!-- Columna de Simulación -->
-            <div class="lg:col-span-1 min-h-[70vh] lg:min-h-[600px]">
-                <div id="canvas-container" class="canvas-container bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-xl w-full h-full relative overflow-hidden">
+            <!-- Columna de Simulación (ocupa el espacio restante) -->
+            <div class="w-full lg:flex-1">
+                <!-- Contenedor con altura fija y grande -->
+                <div id="canvas-container" class="canvas-container bg-gradient-to-br from-white via-white to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-xl w-full h-[75vh] lg:h-[calc(100vh-12rem)]">
                     <canvas id="trig-canvas"></canvas>
                 </div>
             </div>
         </div>
         
-        <footer class="text-center mt-12 py-4 border-t border-slate-300 dark:border-slate-600">
-            <p class="text-sm text-slate-500 dark:text-slate-400">
-                Versión mejorada del círculo trigonométrico interactivo
-            </p>
-        </footer>
+        <footer class="text-center mt-12 py-4 border-t border-slate-300 dark:border-slate-600"><p class="text-sm text-slate-500 dark:text-slate-400">Círculo Trigonométrico Interactivo por Gemini</p></footer>
 
-        <!-- Modal de Leyenda Mejorada -->
+        <!-- Modal de Leyenda (Diseño Mejorado) -->
         <div id="legend-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
-            <div class="modal-content bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden transform scale-95">
+            <div class="modal-content bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform scale-95">
                 <div class="flex items-center justify-between p-6 border-b border-slate-300 dark:border-slate-600">
-                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-50 flex items-center gap-2">
-                        <i data-lucide="palette"></i> Leyenda Visual de Funciones Trigonométricas
-                    </h2>
-                    <button id="close-legend-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                        <i data-lucide="x"></i>
-                    </button>
+                    <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="palette"></i> Leyenda de Funciones</h2>
+                    <button id="close-legend-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700"><i data-lucide="x"></i></button>
                 </div>
-                <div class="p-6 space-y-4 overflow-y-auto">
-                    <!-- Canvas para cada función -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
-                            <h3 class="font-semibold mb-2 flex items-center gap-2">
-                                <div class="w-6 h-1 bg-[#ef4444] rounded-full"></div>
-                                Seno (sin θ)
-                            </h3>
-                            <canvas id="legend-sin" class="legend-canvas w-full h-32 bg-white dark:bg-slate-800"></canvas>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">Proyección vertical del punto sobre el eje Y</p>
+                <div class="p-6 overflow-y-auto">
+                    <div class="space-y-6">
+                        <div class="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                            <div class="flex-1 space-y-2">
+                                <div class="flex items-center gap-3"><div class="w-5 h-5 rounded" style="background-color: #ef4444;"></div><h3 class="font-bold text-lg">Seno (sin θ)</h3></div>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 ml-8">Es la <strong>proyección vertical</strong> (coordenada Y) del punto en el círculo. Representa la altura del punto desde el eje X.</p>
+                            </div>
+                            <div class="w-full sm:w-40 h-32 flex-shrink-0"><canvas id="legend-sin" class="legend-canvas w-full h-full bg-white dark:bg-slate-800"></canvas></div>
                         </div>
-                        
-                        <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
-                            <h3 class="font-semibold mb-2 flex items-center gap-2">
-                                <div class="w-6 h-1 bg-[#3b82f6] rounded-full"></div>
-                                Coseno (cos θ)
-                            </h3>
-                            <canvas id="legend-cos" class="legend-canvas w-full h-32 bg-white dark:bg-slate-800"></canvas>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">Proyección horizontal del punto sobre el eje X</p>
+                        <div class="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                            <div class="flex-1 space-y-2">
+                                <div class="flex items-center gap-3"><div class="w-5 h-5 rounded" style="background-color: #3b82f6;"></div><h3 class="font-bold text-lg">Coseno (cos θ)</h3></div>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 ml-8">Es la <strong>proyección horizontal</strong> (coordenada X) del punto en el círculo. Representa la distancia horizontal desde el eje Y.</p>
+                            </div>
+                            <div class="w-full sm:w-40 h-32 flex-shrink-0"><canvas id="legend-cos" class="legend-canvas w-full h-full bg-white dark:bg-slate-800"></canvas></div>
                         </div>
-                        
-                        <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
-                            <h3 class="font-semibold mb-2 flex items-center gap-2">
-                                <div class="w-6 h-1 bg-[#16a34a] rounded-full"></div>
-                                Tangente (tan θ)
-                            </h3>
-                            <canvas id="legend-tan" class="legend-canvas w-full h-32 bg-white dark:bg-slate-800"></canvas>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">Línea vertical desde x=1 hasta la prolongación del radio</p>
+                        <div class="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                            <div class="flex-1 space-y-2">
+                                <div class="flex items-center gap-3"><div class="w-5 h-5 rounded" style="background-color: #16a34a;"></div><h3 class="font-bold text-lg">Tangente (tan θ)</h3></div>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 ml-8">Segmento de la línea <strong>tangente vertical</strong> al círculo en (r, 0), desde el eje X hasta la prolongación del radio.</p>
+                            </div>
+                            <div class="w-full sm:w-40 h-32 flex-shrink-0"><canvas id="legend-tan" class="legend-canvas w-full h-full bg-white dark:bg-slate-800"></canvas></div>
                         </div>
-                        
-                        <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
-                            <h3 class="font-semibold mb-2 flex items-center gap-2">
-                                <div class="w-6 h-1 bg-[#f97316] rounded-full"></div>
-                                Cotangente (cot θ)
-                            </h3>
-                            <canvas id="legend-cot" class="legend-canvas w-full h-32 bg-white dark:bg-slate-800"></canvas>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">Línea horizontal desde y=1 hasta la prolongación del radio</p>
+                        <div class="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                            <div class="flex-1 space-y-2">
+                                <div class="flex items-center gap-3"><div class="w-5 h-5 rounded" style="background-color: #f97316;"></div><h3 class="font-bold text-lg">Cotangente (cot θ)</h3></div>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 ml-8">Segmento de la línea <strong>tangente horizontal</strong> al círculo en (0, r), desde el eje Y hasta la prolongación del radio.</p>
+                            </div>
+                            <div class="w-full sm:w-40 h-32 flex-shrink-0"><canvas id="legend-cot" class="legend-canvas w-full h-full bg-white dark:bg-slate-800"></canvas></div>
                         </div>
-                        
-                        <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
-                            <h3 class="font-semibold mb-2 flex items-center gap-2">
-                                <div class="w-6 h-1 bg-[#a855f7] rounded-full"></div>
-                                Secante (sec θ)
-                            </h3>
-                            <canvas id="legend-sec" class="legend-canvas w-full h-32 bg-white dark:bg-slate-800"></canvas>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">Distancia desde el origen hasta el punto de la tangente</p>
+                        <div class="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                            <div class="flex-1 space-y-2">
+                                <div class="flex items-center gap-3"><div class="w-5 h-5 rounded" style="background-color: #a855f7;"></div><h3 class="font-bold text-lg">Secante (sec θ)</h3></div>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 ml-8">Línea que va desde el <strong>origen hasta el punto final</strong> de la línea de la tangente.</p>
+                            </div>
+                            <div class="w-full sm:w-40 h-32 flex-shrink-0"><canvas id="legend-sec" class="legend-canvas w-full h-full bg-white dark:bg-slate-800"></canvas></div>
                         </div>
-                        
-                        <div class="bg-slate-50 dark:bg-slate-900 p-4 rounded-lg">
-                            <h3 class="font-semibold mb-2 flex items-center gap-2">
-                                <div class="w-6 h-1 bg-[#eab308] rounded-full"></div>
-                                Cosecante (csc θ)
-                            </h3>
-                            <canvas id="legend-csc" class="legend-canvas w-full h-32 bg-white dark:bg-slate-800"></canvas>
-                            <p class="text-sm text-slate-600 dark:text-slate-400 mt-2">Distancia desde el origen hasta el punto de la cotangente</p>
+                        <div class="flex flex-col sm:flex-row items-center gap-4 p-4 bg-slate-50 dark:bg-slate-900/50 rounded-lg">
+                            <div class="flex-1 space-y-2">
+                                <div class="flex items-center gap-3"><div class="w-5 h-5 rounded" style="background-color: #eab308;"></div><h3 class="font-bold text-lg">Cosecante (csc θ)</h3></div>
+                                <p class="text-sm text-slate-600 dark:text-slate-400 ml-8">Línea que va desde el <strong>origen hasta el punto final</strong> de la línea de la cotangente.</p>
+                            </div>
+                            <div class="w-full sm:w-40 h-32 flex-shrink-0"><canvas id="legend-csc" class="legend-canvas w-full h-full bg-white dark:bg-slate-800"></canvas></div>
                         </div>
                     </div>
                 </div>
@@ -341,42 +258,18 @@
         <div id="help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 opacity-0 pointer-events-none modal">
             <div class="modal-content bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col transform scale-95">
                 <div class="flex items-center justify-between p-6 border-b border-slate-300 dark:border-slate-600">
-                    <h2 class="text-xl font-bold text-slate-800 dark:text-slate-50 flex items-center gap-2">
-                        <i data-lucide="book-open-check"></i> Guía de Uso
-                    </h2>
-                    <button id="close-help-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors">
-                        <i data-lucide="x"></i>
-                    </button>
+                    <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="book-open-check"></i> Guía de Uso</h2>
+                    <button id="close-help-btn" class="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700"><i data-lucide="x"></i></button>
                 </div>
                 <div class="p-6 overflow-y-auto space-y-4">
                     <div class="bg-slate-100/50 dark:bg-slate-700/50 p-4 rounded-lg">
-                        <h3 class="font-semibold text-lg mb-3 text-slate-800 dark:text-slate-50">Cómo Interactuar</h3>
+                        <h3 class="font-semibold text-lg mb-3">Cómo Interactuar</h3>
                         <ul class="list-disc list-inside ml-2 space-y-2 text-slate-600 dark:text-slate-300">
-                            <li><strong>Ajusta el Ángulo:</strong> Usa el deslizador o haz clic en los botones de ángulos especiales</li>
-                            <li><strong>Clic en el Círculo:</strong> Haz clic directamente en el círculo para ajustar el ángulo</li>
-                            <li><strong>Modifica el Radio:</strong> Cambia el tamaño del círculo con el deslizador de radio</li>
-                            <li><strong>Animación:</strong> Presiona el botón de play para ver una animación continua</li>
-                            <li><strong>Zoom:</strong> Usa la rueda del mouse para acercar o alejar la vista</li>
-                            <li><strong>Mover Vista:</strong> Mantén presionado y arrastra para desplazar la vista</li>
+                            <li><strong>Zoom:</strong> Pellizca la pantalla o usa la rueda del mouse.</li>
+                            <li><strong>Mover Vista (Pan):</strong> Arrastra con un dedo o con el mouse.</li>
+                            <li><strong>Ajustar Ángulo:</strong> Usa el deslizador, los botones o toca/haz clic en el círculo.</li>
+                            <li><strong>Leyenda:</strong> Presiona el ícono <i data-lucide="book-image" class="inline-block w-4 h-4"></i> para ver la guía de colores.</li>
                         </ul>
-                    </div>
-                    <div class="bg-slate-100/50 dark:bg-slate-700/50 p-4 rounded-lg">
-                        <h3 class="font-semibold text-lg mb-3 text-slate-800 dark:text-slate-50">Conceptos Matemáticos</h3>
-                        <p class="text-slate-600 dark:text-slate-300 mb-2">
-                            El círculo trigonométrico es una herramienta fundamental para entender las funciones trigonométricas:
-                        </p>
-                        <ul class="list-disc list-inside ml-2 space-y-1 text-sm text-slate-600 dark:text-slate-300">
-                            <li><strong>Seno y Coseno:</strong> Son las coordenadas (x,y) del punto en el círculo</li>
-                            <li><strong>Tangente:</strong> Es la razón sin/cos, representada por la línea vertical en x=1</li>
-                            <li><strong>Funciones Recíprocas:</strong> sec = 1/cos, csc = 1/sin, cot = 1/tan</li>
-                            <li><strong>Periodicidad:</strong> Las funciones se repiten cada 360° (2π radianes)</li>
-                        </ul>
-                    </div>
-                    <div class="bg-amber-100/50 dark:bg-amber-900/20 p-4 rounded-lg">
-                        <h3 class="font-semibold text-lg mb-2 text-slate-800 dark:text-slate-50">💡 Tip</h3>
-                        <p class="text-sm text-slate-600 dark:text-slate-300">
-                            Observa cómo las funciones cambian en los cuadrantes. Por ejemplo, el seno es positivo en los cuadrantes I y II, mientras que el coseno es positivo en los cuadrantes I y IV.
-                        </p>
                     </div>
                 </div>
             </div>
@@ -385,18 +278,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Función para cargar iconos de forma segura
-            function loadIcons() {
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                } else {
-                    setTimeout(loadIcons, 100);
-                }
-            }
-            
-            // Cargar iconos cuando estén disponibles
-            loadIcons();
-            
             // --- REFERENCIAS AL DOM ---
             const dom = {
                 canvas: document.getElementById('trig-canvas'),
@@ -409,18 +290,16 @@
                 valuesGrid: document.getElementById('values-grid'),
                 coordX: document.getElementById('coord-x'),
                 coordY: document.getElementById('coord-y'),
-                // Toolbar buttons
+                quadrant: document.getElementById('quadrant'),
                 homeBtn: document.getElementById('home-btn'),
                 animateBtn: document.getElementById('animate-btn'),
                 legendBtn: document.getElementById('legend-btn'),
                 themeToggleBtn: document.getElementById('theme-toggle-btn'),
                 helpModalBtn: document.getElementById('help-modal-btn'),
-                // Modals
                 legendModal: document.getElementById('legend-modal'),
                 closeLegendBtn: document.getElementById('close-legend-btn'),
                 helpModal: document.getElementById('help-modal'),
                 closeHelpBtn: document.getElementById('close-help-btn'),
-                // Legend canvases
                 legendSin: document.getElementById('legend-sin'),
                 legendCos: document.getElementById('legend-cos'),
                 legendTan: document.getElementById('legend-tan'),
@@ -431,785 +310,234 @@
 
             const ctx = dom.canvas.getContext('2d');
             
-            // --- ESTADO ---
-            const state = {
-                angle: 45, // en grados
-                radius: 1.0,
-                scale: 140, // píxeles por unidad (aumentado para mejor visualización)
-                panOffset: { x: 0, y: 0 },
-                isPanning: false,
-                panStart: { x: 0, y: 0 },
-                isAnimating: false,
-                animationId: null,
-            };
+            // --- ESTADO Y COLORES ---
+            const state = { angle: 45, radius: 1.0, scale: 140, panOffset: { x: 0, y: 0 }, isDragging: false, panStart: { x: 0, y: 0 }, isAnimating: false, animationId: null, lastPinchDistance: 0, width: 0, height: 0 };
+            const colors = { sin: '#ef4444', cos: '#3b82f6', tan: '#16a34a', cot: '#f97316', sec: '#a855f7', csc: '#eab308', radius: '#6b7280', point: '#1e293b' };
 
-            const colors = {
-                sin: '#ef4444', 
-                cos: '#3b82f6', 
-                tan: '#16a34a',
-                cot: '#f97316', 
-                sec: '#a855f7', 
-                csc: '#eab308',
-                radius: '#6b7280',
-                point: '#1e293b'
-            };
-
-            // --- FUNCIONES UTILITARIAS ---
-            function toRadians(degrees) {
-                return degrees * Math.PI / 180;
-            }
-
-            function formatRadians(degrees) {
-                const rad = degrees * Math.PI / 180;
-                const pi = Math.PI;
-                
-                // Casos especiales comunes
-                if (degrees === 0) return '0';
-                if (degrees === 30) return 'π/6';
-                if (degrees === 45) return 'π/4';
-                if (degrees === 60) return 'π/3';
-                if (degrees === 90) return 'π/2';
-                if (degrees === 120) return '2π/3';
-                if (degrees === 135) return '3π/4';
-                if (degrees === 150) return '5π/6';
-                if (degrees === 180) return 'π';
-                if (degrees === 210) return '7π/6';
-                if (degrees === 225) return '5π/4';
-                if (degrees === 240) return '4π/3';
-                if (degrees === 270) return '3π/2';
-                if (degrees === 300) return '5π/3';
-                if (degrees === 315) return '7π/4';
-                if (degrees === 330) return '11π/6';
-                if (degrees === 360) return '2π';
-                
-                // Para otros valores, mostrar en decimales
-                return (rad / pi).toFixed(3) + 'π';
-            }
-
-            // --- FUNCIONES DE MODALES ---
+            // --- FUNCIONES UTILITARIAS Y DE UI ---
+            const toRadians = (degrees) => degrees * Math.PI / 180;
+            const formatRadians = (degrees) => ({ 0: '0', 30: 'π/6', 45: 'π/4', 60: 'π/3', 90: 'π/2', 120: '2π/3', 135: '3π/4', 150: '5π/6', 180: 'π', 210: '7π/6', 225: '5π/4', 240: '4π/3', 270: '3π/2', 300: '5π/3', 315: '7π/4', 330: '11π/6', 360: '2π' }[degrees] || (degrees * Math.PI / 180 / Math.PI).toFixed(2) + 'π');
+            
             function openModal(modal) {
                 modal.classList.remove('opacity-0', 'pointer-events-none');
-                const content = modal.querySelector('.modal-content');
-                content.classList.remove('scale-95');
-                
-                // Si es el modal de leyenda, dibujar los mini canvas
-                if (modal === dom.legendModal) {
-                    drawLegendCanvases();
-                }
+                modal.querySelector('.modal-content').classList.remove('scale-95');
+                if (modal === dom.legendModal) drawLegendCanvases();
             }
-
             function closeModal(modal) {
                 modal.classList.add('opacity-0');
-                const content = modal.querySelector('.modal-content');
-                content.classList.add('scale-95');
+                modal.querySelector('.modal-content').classList.add('scale-95');
                 setTimeout(() => modal.classList.add('pointer-events-none'), 300);
             }
-
-            // --- FUNCIONES DE TEMA ---
             function applyTheme(theme) {
                 document.documentElement.classList.toggle('dark', theme === 'dark');
                 localStorage.setItem('theme', theme);
                 draw();
-                if (dom.legendModal.classList.contains('opacity-0') === false) {
-                    drawLegendCanvases();
-                }
+                if (!dom.legendModal.classList.contains('opacity-0')) drawLegendCanvases();
             }
 
-            // --- FUNCIONES DE ACTUALIZACIÓN ---
             function updateValues() {
                 const angleRad = toRadians(state.angle);
-                const cos_a = Math.cos(angleRad);
-                const sin_a = Math.sin(angleRad);
-                
-                const f = {
-                    sin: sin_a,
-                    cos: cos_a,
-                    tan: Math.tan(angleRad),
-                    cot: 1 / Math.tan(angleRad),
-                    sec: 1 / cos_a,
-                    csc: 1 / sin_a,
-                };
-
+                const f = { sin: Math.sin(angleRad), cos: Math.cos(angleRad), tan: Math.tan(angleRad), cot: 1 / Math.tan(angleRad), sec: 1 / Math.cos(angleRad), csc: 1 / Math.sin(angleRad) };
                 dom.angleValue.textContent = `${state.angle}°`;
                 dom.angleRad.textContent = formatRadians(state.angle);
                 dom.radiusValue.textContent = state.radius.toFixed(1);
-                
-                // Actualizar coordenadas
-                dom.coordX.textContent = (state.radius * cos_a).toFixed(3);
-                dom.coordY.textContent = (state.radius * sin_a).toFixed(3);
-                
-                // Actualizar valores de funciones con colores y tooltips
-                dom.valuesGrid.innerHTML = `
-                    <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-3 rounded-lg hover:shadow-md transition-shadow">
-                        <span class="text-sm font-medium" style="color: ${colors.sin}">sin θ</span>
-                        <strong class="text-base" style="color: ${colors.sin}">${f.sin.toFixed(4)}</strong>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-3 rounded-lg hover:shadow-md transition-shadow">
-                        <span class="text-sm font-medium" style="color: ${colors.cos}">cos θ</span>
-                        <strong class="text-base" style="color: ${colors.cos}">${f.cos.toFixed(4)}</strong>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-3 rounded-lg hover:shadow-md transition-shadow">
-                        <span class="text-sm font-medium" style="color: ${colors.tan}">tan θ</span>
-                        <strong class="text-base" style="color: ${colors.tan}">${isFinite(f.tan) ? f.tan.toFixed(4) : '∞'}</strong>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-3 rounded-lg hover:shadow-md transition-shadow">
-                        <span class="text-sm font-medium" style="color: ${colors.cot}">cot θ</span>
-                        <strong class="text-base" style="color: ${colors.cot}">${isFinite(f.cot) ? f.cot.toFixed(4) : '∞'}</strong>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-3 rounded-lg hover:shadow-md transition-shadow">
-                        <span class="text-sm font-medium" style="color: ${colors.sec}">sec θ</span>
-                        <strong class="text-base" style="color: ${colors.sec}">${isFinite(f.sec) ? f.sec.toFixed(4) : '∞'}</strong>
-                    </div>
-                    <div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-3 rounded-lg hover:shadow-md transition-shadow">
-                        <span class="text-sm font-medium" style="color: ${colors.csc}">csc θ</span>
-                        <strong class="text-base" style="color: ${colors.csc}">${isFinite(f.csc) ? f.csc.toFixed(4) : '∞'}</strong>
-                    </div>
-                `;
-
-                // Actualizar botones de ángulos especiales
-                document.querySelectorAll('.angle-button').forEach(btn => {
-                    const btnAngle = parseInt(btn.dataset.angle);
-                    btn.classList.toggle('active', btnAngle === state.angle);
-                });
+                dom.coordX.textContent = (state.radius * f.cos).toFixed(3);
+                dom.coordY.textContent = (state.radius * f.sin).toFixed(3);
+                dom.quadrant.textContent = (state.angle > 0 && state.angle < 90) ? 'I' : (state.angle > 90 && state.angle < 180) ? 'II' : (state.angle > 180 && state.angle < 270) ? 'III' : (state.angle > 270 && state.angle < 360) ? 'IV' : 'Eje';
+                dom.valuesGrid.innerHTML = Object.entries(f).map(([key, value]) => `<div class="flex justify-between items-center bg-slate-100 dark:bg-slate-700 p-3 rounded-lg"><span class="text-sm font-medium" style="color: ${colors[key]}">${key} θ</span><strong class="text-base" style="color: ${colors[key]}">${isFinite(value) ? value.toFixed(4) : '∞'}</strong></div>`).join('');
+                document.querySelectorAll('.angle-button').forEach(btn => btn.classList.toggle('active', parseInt(btn.dataset.angle) === state.angle));
             }
 
-            // --- FUNCIONES DEL CANVAS ---
-            function adjustLayout() {
-                const parametersPanel = document.getElementById('parameters-panel');
-                if (window.innerWidth >= 1024) { // lg breakpoint
-                    // Hacer el canvas más alto que el panel de parámetros
-                    const panelHeight = parametersPanel.clientHeight;
-                    dom.canvasContainer.style.height = `${Math.max(panelHeight + 100, 600)}px`;
-                } else {
-                    dom.canvasContainer.style.height = '70vh';
-                }
-                setupCanvas();
-            }
-
+            // --- FUNCIONES DEL CANVAS PRINCIPAL ---
             function setupCanvas() {
                 const dpr = window.devicePixelRatio || 1;
                 const rect = dom.canvasContainer.getBoundingClientRect();
-                dom.canvas.width = rect.width * dpr;
-                dom.canvas.height = rect.height * dpr;
+                state.width = rect.width;
+                state.height = rect.height;
+                
+                dom.canvas.width = state.width * dpr;
+                dom.canvas.height = state.height * dpr;
                 ctx.scale(dpr, dpr);
                 draw();
             }
 
             function draw() {
-                const rect = dom.canvasContainer.getBoundingClientRect();
-                const isDark = document.documentElement.classList.contains('dark');
-                const bgColor = isDark ? '#0f172a' : '#ffffff';
-                const gridColor = isDark ? '#374151' : '#e5e7eb';
-                const axisColor = isDark ? '#9ca3af' : '#4b5563';
-                const circleColor = isDark ? '#e2e8f0' : '#1e293b';
-                const textColor = isDark ? '#9ca3af' : '#6b7280';
+                const width = state.width;
+                const height = state.height;
+                if (width === 0 || height === 0) return;
 
-                // Limpiar con color de fondo
-                ctx.fillStyle = bgColor;
-                ctx.fillRect(0, 0, rect.width, rect.height);
-                
-                const centerX = rect.width / 2 + state.panOffset.x;
-                const centerY = rect.height / 2 + state.panOffset.y;
-                
+                const isDark = document.documentElement.classList.contains('dark');
+                const theme = { bg: isDark ? '#0f172a' : '#ffffff', grid: isDark ? '#374151' : '#e5e7eb', axis: isDark ? '#9ca3af' : '#4b5563', circle: isDark ? '#e2e8f0' : '#1e293b', text: isDark ? '#9ca3af' : '#6b7280', point: isDark ? '#fbbf24' : '#1e293b', pointBorder: '#ffffff' };
+                ctx.fillStyle = theme.bg;
+                ctx.fillRect(0, 0, width, height);
+                const centerX = width / 2 + state.panOffset.x;
+                const centerY = height / 2 + state.panOffset.y;
                 ctx.save();
                 ctx.translate(centerX, centerY);
-                ctx.scale(state.scale, -state.scale); // Invertir eje Y
-
-                // Dibujar grilla más extensa
-                ctx.strokeStyle = gridColor;
-                ctx.lineWidth = 0.5 / state.scale;
-                const maxUnits = Math.max(rect.width, rect.height) / state.scale + 2;
-                for (let i = -Math.ceil(maxUnits); i <= Math.ceil(maxUnits); i++) {
-                    ctx.beginPath(); 
-                    ctx.moveTo(i, -maxUnits); 
-                    ctx.lineTo(i, maxUnits); 
-                    ctx.stroke();
-                    ctx.beginPath(); 
-                    ctx.moveTo(-maxUnits, i); 
-                    ctx.lineTo(maxUnits, i); 
-                    ctx.stroke();
-                }
-
-                // Dibujar ejes con marcas
-                ctx.strokeStyle = axisColor;
-                ctx.lineWidth = 3 / state.scale;
+                ctx.scale(state.scale, -state.scale);
+                const maxUnits = Math.max(width, height) / state.scale + 2;
                 
-                // Eje X
-                ctx.beginPath(); 
-                ctx.moveTo(-maxUnits, 0); 
-                ctx.lineTo(maxUnits, 0); 
-                ctx.stroke();
+                // Grilla y Ejes (Líneas más finas)
+                ctx.strokeStyle = theme.grid; ctx.lineWidth = 0.5 / state.scale;
+                for (let i = -Math.ceil(maxUnits); i <= Math.ceil(maxUnits); i++) { ctx.beginPath(); ctx.moveTo(i, -maxUnits); ctx.lineTo(i, maxUnits); ctx.stroke(); ctx.beginPath(); ctx.moveTo(-maxUnits, i); ctx.lineTo(maxUnits, i); ctx.stroke(); }
+                ctx.strokeStyle = theme.axis; ctx.lineWidth = 1.5 / state.scale;
+                ctx.beginPath(); ctx.moveTo(-maxUnits, 0); ctx.lineTo(maxUnits, 0); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, -maxUnits); ctx.lineTo(0, maxUnits); ctx.stroke();
                 
-                // Eje Y
-                ctx.beginPath(); 
-                ctx.moveTo(0, -maxUnits); 
-                ctx.lineTo(0, maxUnits); 
-                ctx.stroke();
-                
-                // Marcas en los ejes con números
-                ctx.fillStyle = textColor;
-                ctx.font = `${12 / state.scale}px Inter`;
-                ctx.save();
-                ctx.scale(1, -1); // Voltear texto
-                
-                // Etiquetas de ejes y marcas
+                // Etiquetas de Ejes
+                ctx.fillStyle = theme.text; ctx.font = `${14 / state.scale}px Inter`;
+                ctx.save(); ctx.scale(1, -1);
+                const tickStep = state.scale > 70 ? 1 : 2;
                 for (let i = -Math.floor(maxUnits); i <= Math.floor(maxUnits); i++) {
-                    if (i !== 0 && Math.abs(i) <= 3) { // Solo mostrar números del -3 al 3
-                        // Marcas en X
-                        ctx.beginPath();
-                        ctx.moveTo(i, -0.05);
-                        ctx.lineTo(i, 0.05);
-                        ctx.stroke();
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'top';
-                        ctx.fillText(i.toString(), i, 0.1);
-                        
-                        // Marcas en Y
-                        ctx.beginPath();
-                        ctx.moveTo(-0.05, -i);
-                        ctx.lineTo(0.05, -i);
-                        ctx.stroke();
-                        ctx.textAlign = 'left';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(i.toString(), 0.1, -i);
+                    if (i !== 0 && i % tickStep === 0) {
+                        ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(i.toString(), i, 0.1);
+                        ctx.textAlign = 'right'; ctx.textBaseline = 'middle'; ctx.fillText(i.toString(), -0.1, -i);
                     }
                 }
-                
-                // Etiquetas de los ejes
-                ctx.font = `bold ${14 / state.scale}px Inter`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('X', maxUnits - 0.5, 0.15);
-                ctx.fillText('Y', 0.15, -maxUnits + 0.5);
-                ctx.restore();
-                
-                // Dibujar círculo principal
-                ctx.strokeStyle = circleColor;
-                ctx.lineWidth = 4 / state.scale;
-                ctx.beginPath(); 
-                ctx.arc(0, 0, state.radius, 0, 2 * Math.PI); 
-                ctx.stroke();
-                
-                // Dibujar ángulos principales (0°, 90°, 180°, 270°)
-                ctx.save();
-                ctx.scale(1, -1); // Voltear texto
-                ctx.fillStyle = textColor;
-                ctx.font = `${16 / state.scale}px Inter`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                const labelOffset = 1.4;
-                ctx.fillText('0°', state.radius * labelOffset, 0);
-                ctx.fillText('90°', 0, -state.radius * labelOffset);
-                ctx.fillText('180°', -state.radius * labelOffset, 0);
-                ctx.fillText('270°', 0, state.radius * labelOffset);
-                
-                // Etiquetas adicionales en 45°, 135°, 225°, 315°
-                const diagonalOffset = labelOffset * 0.9;
-                ctx.font = `${14 / state.scale}px Inter`;
-                ctx.fillText('45°', state.radius * diagonalOffset * 0.707, -state.radius * diagonalOffset * 0.707);
-                ctx.fillText('135°', -state.radius * diagonalOffset * 0.707, -state.radius * diagonalOffset * 0.707);
-                ctx.fillText('225°', -state.radius * diagonalOffset * 0.707, state.radius * diagonalOffset * 0.707);
-                ctx.fillText('315°', state.radius * diagonalOffset * 0.707, state.radius * diagonalOffset * 0.707);
                 ctx.restore();
 
-                drawTrigFunctions(isDark, maxUnits);
+                // Círculo y Funciones
+                ctx.strokeStyle = theme.circle; ctx.lineWidth = 2 / state.scale;
+                ctx.beginPath(); ctx.arc(0, 0, state.radius, 0, 2 * Math.PI); ctx.stroke();
+                drawTrigFunctions(theme, maxUnits);
                 ctx.restore();
             }
             
-            function drawTrigFunctions(isDark, maxUnits) {
-                const r = state.radius;
-                const angleRad = toRadians(state.angle);
-                const cos_a = Math.cos(angleRad);
-                const sin_a = Math.sin(angleRad);
+            function drawTrigFunctions(theme, maxUnits) {
+                const r = state.radius, angleRad = toRadians(state.angle), cos_a = Math.cos(angleRad), sin_a = Math.sin(angleRad), P = { x: r * cos_a, y: r * sin_a };
                 
-                const P = { x: r * cos_a, y: r * sin_a };
-
-                ctx.lineWidth = 4 / state.scale;
+                // Funciones principales (Líneas más finas)
+                ctx.lineWidth = 2.5 / state.scale; 
+                ctx.strokeStyle = colors.sin; ctx.beginPath(); ctx.moveTo(P.x, 0); ctx.lineTo(P.x, P.y); ctx.stroke();
+                ctx.strokeStyle = colors.cos; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(P.x, 0); ctx.stroke();
                 
-                // Seno (línea vertical desde el punto hasta el eje X)
-                ctx.strokeStyle = colors.sin;
-                ctx.beginPath(); 
-                ctx.moveTo(P.x, 0); 
-                ctx.lineTo(P.x, P.y); 
-                ctx.stroke();
-                
-                // Punto en el eje X para seno
-                ctx.fillStyle = colors.sin;
-                ctx.beginPath();
-                ctx.arc(P.x, 0, 5 / state.scale, 0, 2 * Math.PI);
-                ctx.fill();
-                
-                // Coseno (línea horizontal desde el origen hasta la proyección X)
-                ctx.strokeStyle = colors.cos;
-                ctx.beginPath(); 
-                ctx.moveTo(0, 0); 
-                ctx.lineTo(P.x, 0); 
-                ctx.stroke();
-
-                // Radio con estilo punteado
-                ctx.strokeStyle = colors.radius;
-                ctx.lineWidth = 3 / state.scale;
-                ctx.setLineDash([5 / state.scale, 5 / state.scale]);
-                ctx.beginPath(); 
-                ctx.moveTo(0, 0); 
-                ctx.lineTo(P.x, P.y); 
-                ctx.stroke();
+                // Radio y líneas secundarias
+                ctx.lineWidth = 1.5 / state.scale;
+                ctx.strokeStyle = colors.radius; ctx.setLineDash([4 / state.scale, 4 / state.scale]);
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(P.x, P.y); ctx.stroke();
                 ctx.setLineDash([]);
-
-                // Tangente y Secante
+                
                 if (Math.abs(cos_a) > 1e-9) {
-                    const tan_val = r * (sin_a / cos_a);
-                    const T = { x: r, y: tan_val };
-                    
-                    // Limitar la visualización de la tangente
-                    const maxTan = maxUnits * 2;
-                    if (Math.abs(T.y) < maxTan) {
-                        // Tangente (línea vertical desde (r,0) hasta la intersección)
-                        ctx.strokeStyle = colors.tan;
-                        ctx.lineWidth = 4 / state.scale;
-                        ctx.beginPath(); 
-                        ctx.moveTo(r, 0); 
-                        ctx.lineTo(T.x, T.y); 
-                        ctx.stroke();
-                        
-                        // Punto de tangente
-                        ctx.fillStyle = colors.tan;
-                        ctx.beginPath();
-                        ctx.arc(T.x, T.y, 5 / state.scale, 0, 2 * Math.PI);
-                        ctx.fill();
-                        
-                        // Secante (línea desde el origen hasta T)
-                        ctx.strokeStyle = colors.sec;
-                        ctx.lineWidth = 3 / state.scale;
-                        ctx.setLineDash([3 / state.scale, 3 / state.scale]);
-                        ctx.beginPath(); 
-                        ctx.moveTo(0, 0); 
-                        ctx.lineTo(T.x, T.y); 
-                        ctx.stroke();
-                        ctx.setLineDash([]);
+                    const T = { x: r, y: r * (sin_a / cos_a) };
+                    if (Math.abs(T.y) < maxUnits * 1.5) {
+                        ctx.strokeStyle = colors.tan; ctx.lineWidth = 2.5 / state.scale; ctx.beginPath(); ctx.moveTo(r, 0); ctx.lineTo(T.x, T.y); ctx.stroke();
+                        ctx.strokeStyle = colors.sec; ctx.lineWidth = 1.5 / state.scale; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(T.x, T.y); ctx.stroke();
                     }
                 }
-                
-                // Cotangente y Cosecante
                 if (Math.abs(sin_a) > 1e-9) {
-                    const cot_val = r * (cos_a / sin_a);
-                    const Q = { x: cot_val, y: r };
-                    
-                    // Limitar la visualización de la cotangente
-                    const maxCot = maxUnits * 2;
-                    if (Math.abs(Q.x) < maxCot) {
-                        // Cotangente (línea horizontal desde (0,r) hasta la intersección)
-                        ctx.strokeStyle = colors.cot;
-                        ctx.lineWidth = 4 / state.scale;
-                        ctx.beginPath(); 
-                        ctx.moveTo(0, r); 
-                        ctx.lineTo(Q.x, Q.y); 
-                        ctx.stroke();
-                        
-                        // Punto de cotangente
-                        ctx.fillStyle = colors.cot;
-                        ctx.beginPath();
-                        ctx.arc(Q.x, Q.y, 5 / state.scale, 0, 2 * Math.PI);
-                        ctx.fill();
-                        
-                        // Cosecante (línea desde el origen hasta Q)
-                        ctx.strokeStyle = colors.csc;
-                        ctx.lineWidth = 3 / state.scale;
-                        ctx.setLineDash([3 / state.scale, 3 / state.scale]);
-                        ctx.beginPath(); 
-                        ctx.moveTo(0, 0); 
-                        ctx.lineTo(Q.x, Q.y); 
-                        ctx.stroke();
-                        ctx.setLineDash([]);
+                    const Q = { x: r * (cos_a / sin_a), y: r };
+                     if (Math.abs(Q.x) < maxUnits * 1.5) {
+                        ctx.strokeStyle = colors.cot; ctx.lineWidth = 2.5 / state.scale; ctx.beginPath(); ctx.moveTo(0, r); ctx.lineTo(Q.x, Q.y); ctx.stroke();
+                        ctx.strokeStyle = colors.csc; ctx.lineWidth = 1.5 / state.scale; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Q.x, Q.y); ctx.stroke();
                     }
                 }
-
-                // Arco del ángulo
-                ctx.fillStyle = 'rgba(100, 116, 139, 0.25)';
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.arc(0, 0, r * 0.3, 0, angleRad);
-                ctx.closePath();
-                ctx.fill();
                 
-                // Etiqueta del ángulo
-                ctx.save();
-                ctx.scale(1, -1);
-                ctx.fillStyle = isDark ? '#e2e8f0' : '#1e293b';
-                ctx.font = `bold ${16 / state.scale}px Inter`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                const labelAngle = angleRad / 2;
-                const labelRadius = r * 0.45;
-                ctx.fillText(`${state.angle}°`, labelRadius * Math.cos(labelAngle), -labelRadius * Math.sin(labelAngle));
-                ctx.restore();
-
-                // Dibujar el punto principal más grande
-                ctx.fillStyle = isDark ? '#fbbf24' : '#1e293b';
-                ctx.strokeStyle = isDark ? '#ffffff' : '#ffffff';
-                ctx.lineWidth = 3 / state.scale;
-                ctx.beginPath();
-                ctx.arc(P.x, P.y, 8 / state.scale, 0, 2 * Math.PI);
-                ctx.fill();
-                ctx.stroke();
+                // Arco y Punto
+                ctx.fillStyle = 'rgba(100, 116, 139, 0.25)'; ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r * 0.3, 0, angleRad); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = theme.point; ctx.strokeStyle = theme.pointBorder; ctx.lineWidth = 1.5 / state.scale;
+                ctx.beginPath(); ctx.arc(P.x, P.y, 5 / state.scale, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
             }
 
             // --- FUNCIONES DE LEYENDA ---
             function drawLegendCanvases() {
-                const canvases = [
-                    { canvas: dom.legendSin, type: 'sin' },
-                    { canvas: dom.legendCos, type: 'cos' },
-                    { canvas: dom.legendTan, type: 'tan' },
-                    { canvas: dom.legendCot, type: 'cot' },
-                    { canvas: dom.legendSec, type: 'sec' },
-                    { canvas: dom.legendCsc, type: 'csc' }
-                ];
-
-                canvases.forEach(({ canvas, type }) => {
-                    const ctx = canvas.getContext('2d');
-                    const rect = canvas.getBoundingClientRect();
-                    canvas.width = rect.width;
-                    canvas.height = rect.height;
-                    
-                    drawMiniTrigFunction(ctx, rect.width, rect.height, type);
+                const legendCanvases = { sin: dom.legendSin, cos: dom.legendCos, tan: dom.legendTan, cot: dom.legendCot, sec: dom.legendSec, csc: dom.legendCsc };
+                Object.entries(legendCanvases).forEach(([type, canvas]) => {
+                    if(canvas) {
+                        const ctx = canvas.getContext('2d');
+                        const rect = canvas.getBoundingClientRect();
+                        canvas.width = rect.width; canvas.height = rect.height;
+                        drawMiniTrigFunction(ctx, rect.width, rect.height, type);
+                    }
                 });
             }
 
             function drawMiniTrigFunction(ctx, width, height, type) {
                 const isDark = document.documentElement.classList.contains('dark');
-                const bgColor = isDark ? '#0f172a' : '#ffffff';
-                const gridColor = isDark ? '#374151' : '#e5e7eb';
-                const circleColor = isDark ? '#94a3b8' : '#64748b';
+                const theme = { bg: isDark ? '#1e293b' : '#ffffff', grid: isDark ? '#475569' : '#e2e8f0', circle: isDark ? '#94a3b8' : '#64748b' };
+                ctx.fillStyle = theme.bg; ctx.fillRect(0, 0, width, height);
+                const centerX = width / 2, centerY = height / 2, scale = Math.min(width, height) * 0.35;
+                ctx.save(); ctx.translate(centerX, centerY); ctx.scale(scale, -scale);
+                ctx.strokeStyle = theme.grid; ctx.lineWidth = 1 / scale;
+                ctx.beginPath(); ctx.moveTo(-1.5, 0); ctx.lineTo(1.5, 0); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, -1.5); ctx.lineTo(0, 1.5); ctx.stroke();
+                ctx.strokeStyle = theme.circle; ctx.lineWidth = 1.5 / scale; ctx.beginPath(); ctx.arc(0, 0, 1, 0, 2 * Math.PI); ctx.stroke();
+                const angle = Math.PI / 4, cos_a = Math.cos(angle), sin_a = Math.sin(angle), P = { x: cos_a, y: sin_a };
                 
-                // Limpiar y configurar
-                ctx.fillStyle = bgColor;
-                ctx.fillRect(0, 0, width, height);
-                
-                const centerX = width / 2;
-                const centerY = height / 2;
-                const scale = Math.min(width, height) * 0.35;
-                
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.scale(scale, -scale);
-                
-                // Dibujar ejes
-                ctx.strokeStyle = gridColor;
-                ctx.lineWidth = 1 / scale;
+                ctx.strokeStyle = colors[type]; ctx.lineWidth = 2.5 / scale;
                 ctx.beginPath();
-                ctx.moveTo(-1.5, 0);
-                ctx.lineTo(1.5, 0);
-                ctx.stroke();
-                ctx.beginPath();
-                ctx.moveTo(0, -1.5);
-                ctx.lineTo(0, 1.5);
-                ctx.stroke();
-                
-                // Dibujar círculo
-                ctx.strokeStyle = circleColor;
-                ctx.lineWidth = 2 / scale;
-                ctx.beginPath();
-                ctx.arc(0, 0, 1, 0, 2 * Math.PI);
-                ctx.stroke();
-                
-                // Ángulo de ejemplo (45°)
-                const angle = Math.PI / 4;
-                const cos_a = Math.cos(angle);
-                const sin_a = Math.sin(angle);
-                const P = { x: cos_a, y: sin_a };
-                
-                // Dibujar la función específica
-                ctx.lineWidth = 3 / scale;
-                
                 switch(type) {
-                    case 'sin':
-                        ctx.strokeStyle = colors.sin;
-                        ctx.beginPath();
-                        ctx.moveTo(P.x, 0);
-                        ctx.lineTo(P.x, P.y);
-                        ctx.stroke();
-                        break;
-                        
-                    case 'cos':
-                        ctx.strokeStyle = colors.cos;
-                        ctx.beginPath();
-                        ctx.moveTo(0, 0);
-                        ctx.lineTo(P.x, 0);
-                        ctx.stroke();
-                        break;
-                        
-                    case 'tan':
-                        ctx.strokeStyle = colors.tan;
-                        const tan_y = Math.tan(angle);
-                        ctx.beginPath();
-                        ctx.moveTo(1, 0);
-                        ctx.lineTo(1, tan_y);
-                        ctx.stroke();
-                        break;
-                        
-                    case 'cot':
-                        ctx.strokeStyle = colors.cot;
-                        const cot_x = 1 / Math.tan(angle);
-                        ctx.beginPath();
-                        ctx.moveTo(0, 1);
-                        ctx.lineTo(cot_x, 1);
-                        ctx.stroke();
-                        break;
-                        
-                    case 'sec':
-                        ctx.strokeStyle = colors.sec;
-                        const sec_y = Math.tan(angle);
-                        ctx.beginPath();
-                        ctx.moveTo(0, 0);
-                        ctx.lineTo(1, sec_y);
-                        ctx.stroke();
-                        break;
-                        
-                    case 'csc':
-                        ctx.strokeStyle = colors.csc;
-                        const csc_x = 1 / Math.tan(angle);
-                        ctx.beginPath();
-                        ctx.moveTo(0, 0);
-                        ctx.lineTo(csc_x, 1);
-                        ctx.stroke();
-                        break;
+                    case 'sin': ctx.moveTo(P.x, 0); ctx.lineTo(P.x, P.y); break;
+                    case 'cos': ctx.moveTo(0, 0); ctx.lineTo(P.x, 0); break;
+                    case 'tan': ctx.moveTo(1, 0); ctx.lineTo(1, Math.tan(angle)); break;
+                    case 'cot': ctx.moveTo(0, 1); ctx.lineTo(1 / Math.tan(angle), 1); break;
+                    case 'sec': ctx.moveTo(0, 0); ctx.lineTo(1, Math.tan(angle)); break;
+                    case 'csc': ctx.moveTo(0, 0); ctx.lineTo(1 / Math.tan(angle), 1); break;
                 }
-                
-                // Radio
-                ctx.strokeStyle = colors.radius;
-                ctx.lineWidth = 1 / scale;
-                ctx.setLineDash([3 / scale, 3 / scale]);
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(P.x, P.y);
                 ctx.stroke();
                 
-                // Punto
-                ctx.fillStyle = colors.point;
-                ctx.beginPath();
-                ctx.arc(P.x, P.y, 4 / scale, 0, 2 * Math.PI);
-                ctx.fill();
-                
+                ctx.strokeStyle = colors.radius; ctx.lineWidth = 1 / scale; ctx.setLineDash([3 / scale, 3 / scale]);
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(P.x, P.y); ctx.stroke();
+                ctx.fillStyle = isDark ? '#f1f5f9' : '#1e293b'; ctx.beginPath(); ctx.arc(P.x, P.y, 4 / scale, 0, 2 * Math.PI); ctx.fill();
                 ctx.restore();
             }
 
-            // --- ANIMACIÓN ---
+            // --- ANIMACIÓN Y EVENTOS ---
             function toggleAnimation() {
-                if (state.isAnimating) {
-                    state.isAnimating = false;
-                    if (state.animationId) {
-                        cancelAnimationFrame(state.animationId);
-                    }
-                    dom.animateBtn.innerHTML = '<i data-lucide="play" class="w-5 h-5"></i>';
-                } else {
-                    state.isAnimating = true;
-                    dom.animateBtn.innerHTML = '<i data-lucide="pause" class="w-5 h-5"></i>';
-                    animate();
-                }
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
+                state.isAnimating = !state.isAnimating;
+                dom.animateBtn.innerHTML = `<i data-lucide="${state.isAnimating ? 'pause' : 'play'}" class="w-5 h-5"></i>`;
+                loadIcons();
+                if (state.isAnimating) animate(); else cancelAnimationFrame(state.animationId);
             }
-
             function animate() {
                 if (!state.isAnimating) return;
-                
-                state.angle = (state.angle + 1) % 360;
-                dom.angleSlider.value = state.angle;
+                state.angle = (state.angle + 0.5) % 360;
+                dom.angleSlider.value = state.angle; 
                 updateValues();
                 draw();
-                
                 state.animationId = requestAnimationFrame(animate);
             }
 
-            // --- EVENT LISTENERS ---
-            window.addEventListener('resize', adjustLayout);
-            
-            // Controles
-            dom.angleSlider.addEventListener('input', (e) => {
-                state.angle = parseInt(e.target.value);
-                updateValues();
-                draw();
-            });
-            
-            dom.radiusSlider.addEventListener('input', (e) => {
-                state.radius = parseFloat(e.target.value);
-                updateValues();
-                setupCanvas();
-            });
-
-            // Botones de ángulos especiales
-            document.querySelectorAll('.angle-button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    state.angle = parseInt(btn.dataset.angle);
-                    dom.angleSlider.value = state.angle;
-                    updateValues();
-                    draw();
-                });
-            });
-
-            // Botones de la barra de herramientas
-            dom.homeBtn.addEventListener('click', () => {
-                state.panOffset = { x: 0, y: 0 };
-                state.scale = 140;
-                state.angle = 45;
-                state.radius = 1.0;
-                dom.angleSlider.value = 45;
-                dom.radiusSlider.value = 1.0;
-                updateValues();
-                draw();
-            });
-
-            dom.animateBtn.addEventListener('click', toggleAnimation);
-
-            dom.legendBtn.addEventListener('click', () => openModal(dom.legendModal));
-            dom.closeLegendBtn.addEventListener('click', () => closeModal(dom.legendModal));
-
-            dom.helpModalBtn.addEventListener('click', () => openModal(dom.helpModal));
-            dom.closeHelpBtn.addEventListener('click', () => closeModal(dom.helpModal));
-
-            dom.themeToggleBtn.addEventListener('click', () => {
-                const isDark = document.documentElement.classList.contains('dark');
-                applyTheme(isDark ? 'light' : 'dark');
-            });
-
-            // Interacciones del canvas
-            function addCanvasListeners(canvas) {
-                function getEventPosition(e, touchIndex = 0) {
-                    const rect = canvas.getBoundingClientRect();
-                    return {
-                        x: (e.touches ? e.touches[touchIndex].clientX : e.clientX) - rect.left,
-                        y: (e.touches ? e.touches[touchIndex].clientY : e.clientY) - rect.top
-                    };
-                }
-
-                // Clic en el círculo para ajustar ángulo
-                canvas.addEventListener('click', (e) => {
-                    if (!state.isPanning) {
-                        const rect = canvas.getBoundingClientRect();
-                        const pos = getEventPosition(e);
-                        const centerX = rect.width / 2 + state.panOffset.x;
-                        const centerY = rect.height / 2 + state.panOffset.y;
-                        
-                        const dx = pos.x - centerX;
-                        const dy = centerY - pos.y; // Invertir Y
-                        
-                        let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            function addCanvasListeners() {
+                const getPos = (e, i=0) => ({ x: (e.touches ? e.touches[i].clientX : e.clientX) - dom.canvas.getBoundingClientRect().left, y: (e.touches ? e.touches[i].clientY : e.clientY) - dom.canvas.getBoundingClientRect().top });
+                dom.canvas.addEventListener('mousedown', e => { state.isDragging = true; const pos = getPos(e); state.panStart = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y }; });
+                dom.canvas.addEventListener('mousemove', e => { if (state.isDragging) { const pos = getPos(e); state.panOffset = { x: pos.x - state.panStart.x, y: pos.y - state.panStart.y }; draw(); } });
+                dom.canvas.addEventListener('mouseup', () => state.isDragging = false);
+                dom.canvas.addEventListener('mouseleave', () => state.isDragging = false);
+                dom.canvas.addEventListener('wheel', e => { e.preventDefault(); const zoom = e.deltaY < 0 ? 1.1 : 1/1.1; state.scale = Math.max(40, Math.min(600, state.scale * zoom)); draw(); }, { passive: false });
+                let touchStartPos = null, touchStartTime = 0, isPinch = false;
+                dom.canvas.addEventListener('touchstart', e => {
+                    if (e.touches.length === 1) { isPinch = false; state.isDragging = true; touchStartPos = getPos(e); touchStartTime = Date.now(); state.panStart = { x: touchStartPos.x - state.panOffset.x, y: touchStartPos.y - state.panOffset.y }; } 
+                    else if (e.touches.length === 2) { isPinch = true; state.isDragging = false; const p1 = getPos(e,0), p2 = getPos(e,1); state.lastPinchDistance = Math.hypot(p1.x - p2.x, p1.y - p2.y); }
+                }, { passive: true });
+                dom.canvas.addEventListener('touchmove', e => {
+                    if (isPinch && e.touches.length === 2) { const p1 = getPos(e,0), p2 = getPos(e,1); const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y); if (state.lastPinchDistance > 0) { const zoom = dist / state.lastPinchDistance; state.scale = Math.max(40, Math.min(600, state.scale * zoom)); } state.lastPinchDistance = dist; draw(); } 
+                    else if (state.isDragging && e.touches.length === 1) { const pos = getPos(e); state.panOffset = { x: pos.x - state.panStart.x, y: pos.y - state.panStart.y }; draw(); }
+                }, { passive: true });
+                dom.canvas.addEventListener('touchend', e => {
+                    if (!isPinch && (Date.now() - touchStartTime < 250) && (Math.hypot(getPos(e.changedTouches[0]).x - touchStartPos.x, getPos(e.changedTouches[0]).y - touchStartPos.y) < 10)) {
+                        const rect = dom.canvas.getBoundingClientRect(), centerX = rect.width / 2 + state.panOffset.x, centerY = rect.height / 2 + state.panOffset.y;
+                        let angle = Math.atan2(centerY - touchStartPos.y, touchStartPos.x - centerX) * 180 / Math.PI;
                         if (angle < 0) angle += 360;
-                        
-                        state.angle = Math.round(angle);
-                        dom.angleSlider.value = state.angle;
-                        updateValues();
-                        draw();
+                        state.angle = Math.round(angle); dom.angleSlider.value = state.angle; updateValues(); draw();
                     }
-                });
-
-                // Zoom con rueda del mouse
-                canvas.addEventListener('wheel', e => {
-                    e.preventDefault();
-                    const zoomFactor = e.deltaY < 0 ? 1.1 : 1 / 1.1;
-                    const newScale = state.scale * zoomFactor;
-                    
-                    // Limitar el zoom
-                    if (newScale >= 50 && newScale <= 500) {
-                        state.scale = newScale;
-                        draw();
-                    }
-                }, { passive: false });
-
-                // Pan con mouse
-                let mouseDownTime = 0;
-                canvas.addEventListener('mousedown', e => {
-                    mouseDownTime = Date.now();
-                    state.isPanning = true;
-                    const pos = getEventPosition(e);
-                    state.panStart = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y };
-                });
-
-                canvas.addEventListener('mousemove', e => {
-                    if (!state.isPanning) return;
-                    const pos = getEventPosition(e);
-                    state.panOffset = { x: pos.x - state.panStart.x, y: pos.y - state.panStart.y };
-                    draw();
-                });
-
-                canvas.addEventListener('mouseup', () => {
-                    // Solo considerar como paneo si el mouse estuvo presionado más de 150ms
-                    if (Date.now() - mouseDownTime < 150) {
-                        state.isPanning = false;
-                    }
-                    setTimeout(() => {
-                        state.isPanning = false;
-                    }, 10);
-                });
-
-                canvas.addEventListener('mouseleave', () => {
-                    state.isPanning = false;
-                });
-
-                // Touch support
-                let lastPinchDistance = 0;
-
-                canvas.addEventListener('touchstart', e => {
-                    if (e.touches.length === 2) {
-                        const pos1 = getEventPosition(e, 0);
-                        const pos2 = getEventPosition(e, 1);
-                        lastPinchDistance = Math.hypot(pos1.x - pos2.x, pos1.y - pos2.y);
-                        state.isPanning = false;
-                    } else if (e.touches.length === 1) {
-                        state.isPanning = true;
-                        const pos = getEventPosition(e);
-                        state.panStart = { x: pos.x - state.panOffset.x, y: pos.y - state.panOffset.y };
-                    }
-                }, { passive: false });
-
-                canvas.addEventListener('touchmove', e => {
-                    e.preventDefault();
-                    if (e.touches.length === 2) {
-                        const pos1 = getEventPosition(e, 0);
-                        const pos2 = getEventPosition(e, 1);
-                        const currentDist = Math.hypot(pos1.x - pos2.x, pos1.y - pos2.y);
-                        const zoomFactor = currentDist / lastPinchDistance;
-                        const newScale = state.scale * zoomFactor;
-                        
-                        if (newScale >= 50 && newScale <= 500) {
-                            state.scale = newScale;
-                        }
-                        lastPinchDistance = currentDist;
-                        draw();
-                    } else if (e.touches.length === 1 && state.isPanning) {
-                        const pos = getEventPosition(e);
-                        state.panOffset = { x: pos.x - state.panStart.x, y: pos.y - state.panStart.y };
-                        draw();
-                    }
-                }, { passive: false });
-
-                canvas.addEventListener('touchend', () => {
-                    state.isPanning = false;
-                    lastPinchDistance = 0;
+                    if (e.touches.length < 2) isPinch = false;
+                    if (e.touches.length < 1) state.isDragging = false;
                 });
             }
 
-            addCanvasListeners(dom.canvas);
-
             // --- INICIALIZACIÓN ---
-            // Cargar iconos inicialmente
-            setTimeout(() => {
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            }, 100);
-            
-            window.addEventListener('load', () => {
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                applyTheme(savedTheme);
-                adjustLayout();
-                updateValues();
-                if (typeof lucide !== 'undefined') {
-                    lucide.createIcons();
-                }
-            });
+            function loadIcons() { if (typeof lucide !== 'undefined') lucide.createIcons(); else setTimeout(loadIcons, 100); }
+            window.addEventListener('resize', setupCanvas);
+            dom.angleSlider.addEventListener('input', e => { state.angle = parseInt(e.target.value); updateValues(); draw(); });
+            dom.radiusSlider.addEventListener('input', e => { state.radius = parseFloat(e.target.value); updateValues(); draw(); });
+            document.querySelectorAll('.angle-button').forEach(btn => btn.addEventListener('click', () => { state.angle = parseInt(btn.dataset.angle); dom.angleSlider.value = state.angle; updateValues(); draw(); }));
+            dom.homeBtn.addEventListener('click', () => { Object.assign(state, { panOffset: { x: 0, y: 0 }, scale: 140, angle: 45, radius: 1.0 }); dom.angleSlider.value = 45; dom.radiusSlider.value = 1.0; updateValues(); draw(); });
+            dom.animateBtn.addEventListener('click', toggleAnimation);
+            dom.legendBtn.addEventListener('click', () => openModal(dom.legendModal));
+            dom.closeLegendBtn.addEventListener('click', () => closeModal(dom.legendModal));
+            dom.helpModalBtn.addEventListener('click', () => openModal(dom.helpModal));
+            dom.closeHelpBtn.addEventListener('click', () => closeModal(dom.helpModal));
+            dom.themeToggleBtn.addEventListener('click', () => applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark'));
+            addCanvasListeners();
+            window.addEventListener('load', () => { applyTheme(localStorage.getItem('theme') || 'light'); setupCanvas(); updateValues(); loadIcons(); });
         });
     </script>
 </body>
