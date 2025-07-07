@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Funciones Trigonométricas</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js (Updated to a specific, recent version) -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    
+    <!-- MathJax -->
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-color: #1f2937; /* gray-800 */
+            --neumorph-shadow-light: rgba(255, 255, 255, 0.05);
+            --neumorph-shadow-dark: rgba(0, 0, 0, 0.5);
+            --glass-bg: rgba(31, 41, 55, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --accent-color: #38bdf8; /* sky-400 */
+            --text-color: #e5e7eb; /* gray-200 */
+            --text-muted-color: #9ca3af; /* gray-400 */
+            --white-color: #ffffff;
+            --asymptote-color: rgba(255, 100, 100, 0.6);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+
+        /* Neumorphism Style */
+        .neumorph {
+            border-radius: 1rem;
+            background: var(--bg-color);
+            box-shadow: 6px 6px 12px var(--neumorph-shadow-dark), -6px -6px 12px var(--neumorph-shadow-light);
+            transition: all 0.2s ease-in-out;
+        }
+
+        .neumorph-inset {
+            border-radius: 1rem;
+            background: var(--bg-color);
+            box-shadow: inset 6px 6px 12px var(--neumorph-shadow-dark), inset -6px -6px 12px var(--neumorph-shadow-light);
+        }
+        
+        .neumorph-button {
+            border-radius: 0.75rem;
+            background: var(--bg-color);
+            box-shadow: 4px 4px 8px var(--neumorph-shadow-dark), -4px -4px 8px var(--neumorph-shadow-light);
+            transition: all 0.15s ease-in-out;
+        }
+
+        .neumorph-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 6px 6px 12px var(--neumorph-shadow-dark), -6px -6px 12px var(--neumorph-shadow-light);
+        }
+
+        .neumorph-button:active, .neumorph-button.active {
+            box-shadow: inset 4px 4px 8px var(--neumorph-shadow-dark), inset -4px -4px 8px var(--neumorph-shadow-light);
+            transform: translateY(0);
+            color: var(--accent-color);
+        }
+
+        /* Glassmorphism Style */
+        .glassmorphism {
+            background: var(--glass-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 1rem;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        /* Custom Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 120px;
+            height: 34px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-color); transition: .4s; border-radius: 34px;
+            box-shadow: inset 3px 3px 6px var(--neumorph-shadow-dark), inset -3px -3px 6px var(--neumorph-shadow-light);
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 26px; width: 55px; left: 4px; bottom: 4px;
+            background-color: var(--accent-color); transition: .4s; border-radius: 30px;
+            box-shadow: 2px 2px 4px var(--neumorph-shadow-dark), -2px -2px 4px var(--neumorph-shadow-light);
+        }
+        input:checked + .slider:before { transform: translateX(55px); }
+        .toggle-labels {
+            position: absolute; top: 50%; left: 0; right: 0; transform: translateY(-50%);
+            display: flex; justify-content: space-around; color: var(--text-muted-color);
+            font-weight: 500; pointer-events: none;
+        }
+        
+        /* Modal styles */
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal.hidden {
+            opacity: 0;
+            transform: scale(0.95);
+            pointer-events: none;
+        }
+        
+        /* Micro-animations */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Custom Color Input */
+        .color-input-wrapper {
+            position: relative;
+            width: 100%;
+            height: 40px;
+        }
+        .color-input-wrapper input[type="color"] {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .color-input-wrapper .color-display {
+            width: 100%;
+            height: 100%;
+            border-radius: 0.5rem;
+            border: 2px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            pointer-events: none;
+            transition: background-color 0.2s;
+        }
+    </style>
+</head>
+<body class="bg-gray-800 text-gray-200 min-h-screen p-4 sm:p-6 lg:p-8">
+
+    <div class="max-w-7xl mx-auto relative">
+        <!-- Header -->
+        <header class="text-center mb-8 fade-in">
+            <h1 class="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300">
+                Visualizador Trigonométrico
+            </h1>
+            <p class="text-gray-400 mt-2">Explora las funciones trigonométricas de forma interactiva</p>
+        </header>
+
+        <!-- Top Right Buttons -->
+        <div class="absolute top-0 right-0 flex space-x-2 p-2 z-10">
+            <button id="color-palette-btn" class="neumorph-button w-12 h-12 flex items-center justify-center text-gray-400 hover:text-sky-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z"></path><path d="M12 22.31V12"></path></svg>
+            </button>
+            <button id="help-btn" class="neumorph-button w-12 h-12 flex items-center justify-center text-gray-400 hover:text-sky-400">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+            </button>
+        </div>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Controls and Info Panel -->
+            <div class="lg:col-span-1 space-y-6">
+                <!-- Function Selector -->
+                <div class="neumorph p-4 fade-in" style="animation-delay: 0.1s;">
+                    <h2 class="text-lg font-bold mb-4 text-sky-400">1. Elige una Función</h2>
+                    <div id="function-selector" class="grid grid-cols-3 gap-2">
+                        <button class="neumorph-button p-3 active" data-func="sin">sin(x)</button>
+                        <button class="neumorph-button p-3" data-func="cos">cos(x)</button>
+                        <button class="neumorph-button p-3" data-func="tan">tan(x)</button>
+                        <button class="neumorph-button p-3" data-func="csc">csc(x)</button>
+                        <button class="neumorph-button p-3" data-func="sec">sec(x)</button>
+                        <button class="neumorph-button p-3" data-func="cot">cot(x)</button>
+                    </div>
+                </div>
+
+                <!-- Unit Selector -->
+                <div class="neumorph p-4 fade-in" style="animation-delay: 0.2s;">
+                    <h2 class="text-lg font-bold mb-4 text-sky-400">2. Elige las Unidades</h2>
+                    <div class="flex justify-center items-center">
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="unit-toggle">
+                            <span class="slider"></span>
+                            <div class="toggle-labels">
+                                <span>Rad</span>
+                                <span>Deg</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Information Panel -->
+                <div id="info-panel" class="glassmorphism p-5 space-y-3 fade-in" style="animation-delay: 0.3s;">
+                    <h2 class="text-2xl font-bold text-center" id="info-title"></h2>
+                    <div class="text-sm space-y-3 text-gray-300">
+                        <p><strong class="font-semibold text-sky-400">Dominio:</strong> <span id="info-domain"></span></p>
+                        <p><strong class="font-semibold text-sky-400">Rango:</strong> <span id="info-range"></span></p>
+                        <p><strong class="font-semibold text-sky-400">Período:</strong> <span id="info-period"></span></p>
+                        <p><strong class="font-semibold text-sky-400">Asíntotas Verticales:</strong> <span id="info-asymptotes"></span></p>
+                    </div>
+                    <div class="flex justify-center mt-4">
+                        <button id="show-table-btn" class="neumorph-button py-2 px-4 text-sm font-semibold">Ver Tabla de Valores</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graph -->
+            <div class="lg:col-span-2 neumorph-inset p-2 fade-in relative" style="animation-delay: 0.4s;">
+                <div id="graph-title" class="absolute top-5 left-1/2 -translate-x-1/2 text-white text-xl font-semibold z-10 pointer-events-none"></div>
+                <div id="plot" class="w-full h-[500px] lg:h-full"></div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="table-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="glassmorphism w-full max-w-md p-6 relative">
+            <button class="close-modal-btn absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+            <h3 class="text-xl font-bold text-center mb-4 text-sky-400">Tabla de Valores para <span id="table-title"></span></h3>
+            <div class="max-h-80 overflow-y-auto neumorph-inset p-3">
+                <table class="w-full text-center">
+                    <thead class="sticky top-0 bg-gray-800 bg-opacity-70">
+                        <tr>
+                            <th class="p-2 font-semibold" id="table-header-x">x</th>
+                            <th class="p-2 font-semibold">y = f(x)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="table-body"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div id="help-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="glassmorphism w-full max-w-lg p-6 relative">
+            <button class="close-modal-btn absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+            <h3 class="text-xl font-bold text-center mb-4 text-sky-400">Guía de Usuario</h3>
+            <div class="space-y-4 text-gray-300">
+                <p><strong>Interactuar con la Gráfica:</strong></p>
+                <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li><strong>Arrastre (Paneo):</strong> Haz clic y arrastra la gráfica para moverla. En móvil, usa un dedo.</li>
+                    <li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar. En móvil, usa el gesto de "pellizcar".</li>
+                    <li><strong>Escalar Ejes:</strong> Coloca el cursor sobre un eje hasta que cambie a una flecha de dos puntas, luego haz clic y arrastra para escalar solo ese eje.</li>
+                    <li><strong>Doble Clic:</strong> Haz doble clic en la gráfica para restablecer la vista original.</li>
+                </ul>
+                <p><strong>Personalización:</strong></p>
+                 <ul class="list-disc list-inside ml-4 space-y-2">
+                    <li>Usa los botones en la esquina superior derecha para abrir la paleta de colores o esta ventana de ayuda.</li>
+                    <li>En la paleta, puedes cambiar el color de la curva de la función y de las líneas de asíntota.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div id="color-modal" class="modal hidden fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50">
+        <div class="glassmorphism w-full max-w-sm p-6 relative">
+            <button class="close-modal-btn absolute top-3 right-4 text-gray-400 hover:text-white text-2xl font-bold">&times;</button>
+            <h3 class="text-xl font-bold text-center mb-4 text-sky-400">Paleta de Colores</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="font-semibold mb-2 block text-gray-300">Color de la Curva</label>
+                    <div class="color-input-wrapper neumorph-inset p-1">
+                        <div id="curve-color-display" class="color-display"></div>
+                        <input type="color" id="curve-color-input">
+                    </div>
+                </div>
+                 <div>
+                    <label class="font-semibold mb-2 block text-gray-300">Color de las Asíntotas</label>
+                    <div class="color-input-wrapper neumorph-inset p-1">
+                        <div id="asymptote-color-display" class="color-display"></div>
+                        <input type="color" id="asymptote-color-input">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-gray-500 text-sm mt-12 pb-4">
+        Autor: Msc Néstor Fabio Montoya Palacios y Gemini AI
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DOM Elements ---
+            const plotDiv = document.getElementById('plot');
+            const graphTitleEl = document.getElementById('graph-title');
+            const functionSelector = document.getElementById('function-selector');
+            const unitToggle = document.getElementById('unit-toggle');
+            const infoPanel = {
+                title: document.getElementById('info-title'),
+                domain: document.getElementById('info-domain'),
+                range: document.getElementById('info-range'),
+                period: document.getElementById('info-period'),
+                asymptotes: document.getElementById('info-asymptotes'),
+            };
+            const modals = {
+                table: document.getElementById('table-modal'),
+                help: document.getElementById('help-modal'),
+                color: document.getElementById('color-modal'),
+            };
+            const buttons = {
+                showTable: document.getElementById('show-table-btn'),
+                help: document.getElementById('help-btn'),
+                colorPalette: document.getElementById('color-palette-btn'),
+            };
+            const table = {
+                title: document.getElementById('table-title'),
+                headerX: document.getElementById('table-header-x'),
+                body: document.getElementById('table-body'),
+            };
+            const colorPickers = {
+                curve: document.getElementById('curve-color-input'),
+                curveDisplay: document.getElementById('curve-color-display'),
+                asymptote: document.getElementById('asymptote-color-input'),
+                asymptoteDisplay: document.getElementById('asymptote-color-display'),
+            };
+
+            // --- State ---
+            let currentFunc = 'sin';
+            let useDegrees = false;
+            let curveColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+            let asymptoteColor = getComputedStyle(document.documentElement).getPropertyValue('--asymptote-color').trim();
+
+            // --- Initialize Color Pickers ---
+            colorPickers.curve.value = curveColor;
+            colorPickers.curveDisplay.style.backgroundColor = curveColor;
+            colorPickers.curveDisplay.textContent = curveColor;
+            const asymptoteHex = rgbaToHex(asymptoteColor);
+            colorPickers.asymptote.value = asymptoteHex;
+            colorPickers.asymptoteDisplay.style.backgroundColor = asymptoteColor;
+            colorPickers.asymptoteDisplay.textContent = asymptoteColor;
+
+            // --- Data for each function (unchanged) ---
+            const funcData = {
+                sin: { title: 'Seno: $f(x) = \\sin(x)$', func: Math.sin, domain: '$\\mathbb{R}$ (todos los números reales)', range: '$[-1, 1]$', period: '$2\\pi$ radianes ($360^\\circ$)', asymptotes: 'No tiene', tableValuesRad: [0, Math.PI/6, Math.PI/4, Math.PI/3, Math.PI/2, 2*Math.PI/3, 3*Math.PI/4, 5*Math.PI/6, Math.PI], tableValuesDeg: [0, 30, 45, 60, 90, 120, 135, 150, 180] },
+                cos: { title: 'Coseno: $f(x) = \\cos(x)$', func: Math.cos, domain: '$\\mathbb{R}$', range: '$[-1, 1]$', period: '$2\\pi$ radianes ($360^\\circ$)', asymptotes: 'No tiene', tableValuesRad: [0, Math.PI/6, Math.PI/4, Math.PI/3, Math.PI/2, 2*Math.PI/3, 3*Math.PI/4, 5*Math.PI/6, Math.PI], tableValuesDeg: [0, 30, 45, 60, 90, 120, 135, 150, 180] },
+                tan: { title: 'Tangente: $f(x) = \\tan(x)$', func: Math.tan, domain: '$x \\neq \\frac{\\pi}{2} + n\\pi$, donde $n \\in \\mathbb{Z}$', range: '$\\mathbb{R}$', period: '$\\pi$ radianes ($180^\\circ$)', asymptotes: '$x = \\frac{\\pi}{2} + n\\pi$', tableValuesRad: [-Math.PI/3, -Math.PI/4, -Math.PI/6, 0, Math.PI/6, Math.PI/4, Math.PI/3], tableValuesDeg: [-60, -45, -30, 0, 30, 45, 60] },
+                csc: { title: 'Cosecante: $f(x) = \\csc(x)$', func: x => 1 / Math.sin(x), domain: '$x \\neq n\\pi$, donde $n \\in \\mathbb{Z}$', range: '$(-\\infty, -1] \\cup [1, \\infty)$', period: '$2\\pi$ radianes ($360^\\circ$)', asymptotes: '$x = n\\pi$', tableValuesRad: [Math.PI/6, Math.PI/4, Math.PI/3, Math.PI/2, 2*Math.PI/3, 3*Math.PI/4, 5*Math.PI/6], tableValuesDeg: [30, 45, 60, 90, 120, 135, 150] },
+                sec: { title: 'Secante: $f(x) = \\sec(x)$', func: x => 1 / Math.cos(x), domain: '$x \\neq \\frac{\\pi}{2} + n\\pi$, donde $n \\in \\mathbb{Z}$', range: '$(-\\infty, -1] \\cup [1, \\infty)$', period: '$2\\pi$ radianes ($360^\\circ$)', asymptotes: '$x = \\frac{\\pi}{2} + n\\pi$', tableValuesRad: [-Math.PI/3, -Math.PI/4, -Math.PI/6, 0, Math.PI/6, Math.PI/4, Math.PI/3], tableValuesDeg: [-60, -45, -30, 0, 30, 45, 60] },
+                cot: { title: 'Cotangente: $f(x) = \\cot(x)$', func: x => 1 / Math.tan(x), domain: '$x \\neq n\\pi$, donde $n \\in \\mathbb{Z}$', range: '$\\mathbb{R}$', period: '$\\pi$ radianes ($180^\\circ$)', asymptotes: '$x = n\\pi$', tableValuesRad: [Math.PI/6, Math.PI/4, Math.PI/3, Math.PI/2, 2*Math.PI/3, 3*Math.PI/4, 5*Math.PI/6], tableValuesDeg: [30, 45, 60, 90, 120, 135, 150] }
+            };
+            
+            // --- Core Functions ---
+
+            function generateAxisTicks(useDegrees) {
+                const tickvals = [];
+                const ticktext = [];
+                
+                if (useDegrees) {
+                    const step = 90;
+                    const limit = 720; // Generate ticks up to +/- 720 degrees
+                    for (let i = -limit; i <= limit; i += step) {
+                        tickvals.push(i);
+                        ticktext.push(`${i}°`);
+                    }
+                } else { // Radians
+                    const limit = 4; // Generate ticks up to +/- 4π
+                    // Ticks at multiples of π/2
+                    for (let i = -limit * 2; i <= limit * 2; i++) {
+                        const val = i * Math.PI / 2;
+                        tickvals.push(val);
+
+                        if (i === 0) {
+                            ticktext.push('0');
+                        } else if (i % 2 === 0) { // Multiple of π
+                            const multiple = i / 2;
+                            if (multiple === 1) ticktext.push('π');
+                            else if (multiple === -1) ticktext.push('-π');
+                            else ticktext.push(`${multiple}π`);
+                        } else { // Multiple of π/2
+                            if (i === 1) ticktext.push('π/2');
+                            else if (i === -1) ticktext.push('-π/2');
+                            else ticktext.push(`${i}π/2`);
+                        }
+                    }
+                }
+                return { tickvals, ticktext };
+            }
+
+            function drawGraph() {
+                const dataFunc = funcData[currentFunc].func;
+                const x = [];
+                const y = [];
+                const range = useDegrees ? 360 : 2 * Math.PI;
+                const step = useDegrees ? 0.5 : Math.PI / 360;
+                const precision = 1e-10;
+
+                for (let i = -2 * range; i <= 2 * range; i += step) {
+                    const radValue = useDegrees ? i * Math.PI / 180 : i;
+                    x.push(i);
+                    let yVal;
+                    if (currentFunc === 'tan' || currentFunc === 'sec') {
+                        if (Math.abs(Math.cos(radValue)) < precision) yVal = null;
+                        else yVal = dataFunc(radValue);
+                    } else if (currentFunc === 'csc' || currentFunc === 'cot') {
+                        if (Math.abs(Math.sin(radValue)) < precision) yVal = null;
+                        else yVal = dataFunc(radValue);
+                    } else {
+                        yVal = dataFunc(radValue);
+                    }
+                    y.push(yVal);
+                }
+
+                const trace = {
+                    x: x, y: y, mode: 'lines',
+                    line: { color: curveColor, width: 3 },
+                    connectgaps: false, hoverinfo: 'x+y'
+                };
+                
+                const { tickvals, ticktext } = generateAxisTicks(useDegrees);
+
+                const layout = {
+                    paper_bgcolor: 'rgba(0,0,0,0)',
+                    plot_bgcolor: 'rgba(0,0,0,0)',
+                    // The title is now handled by a separate HTML element
+                    xaxis: {
+                        title: {
+                            text: useDegrees ? 'x (Grados)' : 'x (Radianes)',
+                            font: { color: '#FFFFFF' }
+                        },
+                        tickvals: tickvals,
+                        ticktext: ticktext,
+                        tickfont: { color: '#FFFFFF' },
+                        linecolor: '#FFFFFF',
+                        tickcolor: '#FFFFFF',
+                        gridcolor: 'rgba(255, 255, 255, 0.2)',
+                        zerolinecolor: 'rgba(255, 255, 255, 0.5)'
+                    },
+                    yaxis: {
+                        title: {
+                            text: 'y = f(x)',
+                            font: { color: '#FFFFFF' }
+                        },
+                        tickfont: { color: '#FFFFFF' },
+                        linecolor: '#FFFFFF',
+                        tickcolor: '#FFFFFF',
+                        gridcolor: 'rgba(255, 255, 255, 0.2)',
+                        zerolinecolor: 'rgba(255, 255, 255, 0.5)',
+                        range: ['sin', 'cos'].includes(currentFunc) ? [-1.5, 1.5] : [-10, 10]
+                    },
+                    margin: { l: 60, r: 30, b: 50, t: 60 },
+                    shapes: getAsymptoteShapes(),
+                    dragmode: 'pan'
+                };
+                
+                const config = {
+                    scrollZoom: true,
+                    displaylogo: false,
+                    responsive: true
+                };
+
+                Plotly.newPlot(plotDiv, [trace], layout, config);
+                
+                // Update the separate HTML title and render with MathJax
+                graphTitleEl.innerHTML = funcData[currentFunc].title;
+                if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                    MathJax.typesetPromise([graphTitleEl]).catch(err => console.error('MathJax error:', err));
+                }
+            }
+
+            function getAsymptoteShapes() {
+                const shapes = [];
+                const range = useDegrees ? 360 : 2 * Math.PI;
+                const asymptoteFuncs = {
+                    tan: n => (n + 0.5) * (useDegrees ? 180 : Math.PI),
+                    sec: n => (n + 0.5) * (useDegrees ? 180 : Math.PI),
+                    csc: n => n * (useDegrees ? 180 : Math.PI),
+                    cot: n => n * (useDegrees ? 180 : Math.PI),
+                };
+
+                if (!asymptoteFuncs[currentFunc]) return [];
+
+                const getX = asymptoteFuncs[currentFunc];
+                const nMax = Math.ceil(2 * range / (useDegrees ? 180 : Math.PI));
+
+                for (let n = -nMax; n <= nMax; n++) {
+                    shapes.push({
+                        type: 'line', x0: getX(n), x1: getX(n), y0: -20, y1: 20,
+                        line: { color: asymptoteColor, width: 2, dash: 'dash' }
+                    });
+                }
+                return shapes;
+            }
+
+            function updateInfoPanel() {
+                const data = funcData[currentFunc];
+                infoPanel.title.textContent = data.title;
+                infoPanel.domain.textContent = data.domain;
+                infoPanel.range.textContent = data.range;
+                infoPanel.period.textContent = data.period;
+                infoPanel.asymptotes.textContent = data.asymptotes;
+                if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                    MathJax.typesetPromise([infoPanel.title, infoPanel.domain, infoPanel.range, infoPanel.period, infoPanel.asymptotes]).catch(err => console.error('MathJax error:', err));
+                }
+            }
+
+            function updateTable() {
+                const data = funcData[currentFunc];
+                const values = useDegrees ? data.tableValuesDeg : data.tableValuesRad;
+                const dataFunc = data.func;
+                table.title.textContent = data.title.replace(/\$/g, '');
+                table.headerX.textContent = useDegrees ? 'x (°)' : 'x (rad)';
+                table.body.innerHTML = '';
+                values.forEach(val => {
+                    const radValue = useDegrees ? val * Math.PI / 180 : val;
+                    let yVal = dataFunc(radValue);
+                    let yDisplay;
+                    if (Math.abs(yVal) > 1e10) yDisplay = '$\\infty$';
+                    else if (Math.abs(yVal) < 1e-10) yDisplay = '0';
+                    else yDisplay = yVal.toFixed(3);
+                    const xDisplay = useDegrees ? `${val}°` : formatRadian(val);
+                    const row = `<tr class="border-b border-gray-700 last:border-b-0"><td class="p-2">${xDisplay}</td><td class="p-2">${yDisplay}</td></tr>`;
+                    table.body.insertAdjacentHTML('beforeend', row);
+                });
+                if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                    MathJax.typesetPromise([table.body]).catch(err => console.error('MathJax error:', err));
+                }
+            }
+
+            function formatRadian(rad) { /* Unchanged */
+                if (rad === 0) return '0'; if (rad === Math.PI) return '$\\pi$'; if (rad === -Math.PI) return '$-\\pi$';
+                const multiple = rad / Math.PI; if (Math.abs(multiple) === 1) return (multiple > 0 ? '' : '-') + '$\\pi$';
+                for (let d = 1; d <= 12; d++) {
+                    let n = Math.round(multiple * d);
+                    if (Math.abs(multiple - n / d) < 1e-9) {
+                        if (n === 0) return '0'; if (d === 1) return (n > 1 ? n : (n === -1 ? '-' : '')) + '$\\pi$';
+                        const nStr = Math.abs(n) === 1 ? '' : Math.abs(n); const sign = n < 0 ? '-' : '';
+                        return `$${sign}\\frac{${nStr}\\pi}{${d}}$`;
+                    }
+                }
+                return rad.toFixed(3);
+            }
+
+            function rgbaToHex(rgba) {
+                if (rgba.startsWith('#')) return rgba;
+                const parts = rgba.substring(rgba.indexOf('(')).replace('(', '').replace(')', '').split(',');
+                const r = parseInt(parts[0].trim(), 10).toString(16).padStart(2, '0');
+                const g = parseInt(parts[1].trim(), 10).toString(16).padStart(2, '0');
+                const b = parseInt(parts[2].trim(), 10).toString(16).padStart(2, '0');
+                return `#${r}${g}${b}`;
+            }
+
+            // --- Event Listeners ---
+            functionSelector.addEventListener('click', e => {
+                if (e.target.tagName === 'BUTTON') {
+                    currentFunc = e.target.dataset.func;
+                    functionSelector.querySelectorAll('button').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                    updateAll();
+                }
+            });
+
+            unitToggle.addEventListener('change', e => {
+                useDegrees = e.target.checked;
+                updateAll();
+            });
+
+            // Modal Toggles
+            buttons.showTable.addEventListener('click', () => { updateTable(); modals.table.classList.remove('hidden'); });
+            buttons.help.addEventListener('click', () => modals.help.classList.remove('hidden'));
+            buttons.colorPalette.addEventListener('click', () => modals.color.classList.remove('hidden'));
+
+            document.querySelectorAll('.modal').forEach(modal => {
+                modal.addEventListener('click', e => {
+                    if (e.target === modal || e.target.classList.contains('close-modal-btn')) {
+                        modal.classList.add('hidden');
+                    }
+                });
+            });
+            
+            // Color Picker Listeners
+            colorPickers.curve.addEventListener('input', e => {
+                curveColor = e.target.value;
+                colorPickers.curveDisplay.style.backgroundColor = curveColor;
+                colorPickers.curveDisplay.textContent = curveColor;
+                Plotly.restyle(plotDiv, { 'line.color': curveColor }, [0]);
+            });
+
+            colorPickers.asymptote.addEventListener('input', e => {
+                asymptoteColor = e.target.value;
+                colorPickers.asymptoteDisplay.style.backgroundColor = asymptoteColor;
+                colorPickers.asymptoteDisplay.textContent = asymptoteColor;
+                Plotly.relayout(plotDiv, { shapes: getAsymptoteShapes() });
+            });
+
+            function updateAll() {
+                drawGraph();
+                updateInfoPanel();
+            }
+            
+            // --- Initial Load ---
+            updateAll();
+        });
+    </script>
+
+</body>
+</html>

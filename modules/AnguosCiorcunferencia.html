@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <title>Geometría Interactiva · Ángulos en la Circunferencia</title>
+
+  <!-- Tailwind CSS (JIT vía CDN + tokens HSL) -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'hsl-background-start': 'hsl(var(--background-start) / <alpha-value>)',
+            'hsl-background-end':   'hsl(var(--background-end) / <alpha-value>)',
+            'hsl-foreground':       'hsl(var(--foreground) / <alpha-value>)',
+            'hsl-card':             'hsl(var(--card) / <alpha-value>)',
+            'hsl-card-foreground':  'hsl(var(--card-foreground) / <alpha-value>)',
+            'hsl-primary':          'hsl(var(--primary) / <alpha-value>)',
+            'hsl-ring':             'hsl(var(--ring) / <alpha-value>)',
+            'hsl-muted':            'hsl(var(--muted) / <alpha-value>)',
+            'hsl-muted-foreground': 'hsl(var(--muted-foreground) / <alpha-value>)',
+            'hsl-accent':           'hsl(var(--accent) / <alpha-value>)',
+            'hsl-border':           'hsl(var(--border) / <alpha-value>)'
+          }
+        }
+      }
+    };
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fuente Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <!-- Plotly -->
+  <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+
+  <!-- MathJax -->
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [
+          ['$', '$'],
+          ['\\(', '\\)']
+        ],
+        displayMath: [
+          ['$$', '$$'],
+          ['\\[', '\\]']
+        ]
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script async id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+  <!-- Estilos base y utilidades personalizadas -->
+  <style type="text/tailwindcss">
+    @layer base {
+      :root {
+        --background-start: 200 100% 97%;
+        --background-end:   250 100% 97%;
+        --foreground:       220 10% 20%;
+        --card:             220 30% 100%;
+        --card-foreground:  220 10% 15%;
+        --primary:          262.1 83.3% 57.8%;
+        --ring:             262.1 83.3% 57.8%;
+        --muted:            220 10% 90%;
+        --muted-foreground: 220 8% 45%;
+        --accent:           220 10% 85%;
+        --border:           220 30% 100%;
+        --radius: 1rem;
+      }
+
+      .dark {
+        --background-start: 220 15% 12%;
+        --background-end:   260 30% 15%;
+        --foreground:       210 20% 98%;
+        --card:             220 15% 10%;
+        --card-foreground:  210 20% 98%;
+        --muted:            220 15% 20%;
+        --muted-foreground: 210 20% 80%;
+        --accent:           220 15% 25%;
+        --border:           210 20% 98%;
+      }
+
+      body {
+        @apply antialiased min-h-screen;
+        font-family: 'Inter', sans-serif;
+        background-image: linear-gradient(135deg, hsl(var(--background-start)), hsl(var(--background-end)));
+        background-attachment: fixed;
+        color: hsl(var(--foreground));
+        overflow-x: hidden;
+      }
+    }
+
+    @layer components {
+      .panel {
+        @apply p-4 lg:p-6 rounded-[var(--radius)] shadow-lg;
+        background: hsla(var(--card) / 0.4);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid hsla(var(--border) / 0.4);
+      }
+
+      .neumorph-btn {
+        @apply rounded-[var(--radius)] transition-all duration-200;
+        background: hsla(var(--card) / 0.15);
+        border: 1px solid hsla(var(--border) / 0.2);
+        box-shadow: 0 2px 10px rgba(0 0 0 / 0.05);
+      }
+      .neumorph-btn:hover {
+        background: hsla(var(--card) / 0.25);
+        transform: translateY(-1px);
+      }
+      .neumorph-btn:active,
+      .neumorph-btn.active {
+        background: hsla(var(--card) / 0.35);
+        transform: translateY(0);
+      }
+
+      .header-btn {
+        @apply p-2.5 rounded-full transition-all duration-300;
+        background: hsla(var(--card) / 0.2);
+        backdrop-filter: blur(5px);
+        border: 1px solid hsla(var(--border) / 0.3);
+        box-shadow: 0 2px 8px rgba(0 0 0 / 0.05);
+      }
+      .header-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 6px 16px rgba(0 0 0 / 0.1);
+        background: hsla(var(--card) / 0.4);
+      }
+    }
+
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: hsla(var(--border) / 0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: hsla(var(--border) / 0.5); }
+
+    :focus-visible {
+      outline: 2px solid hsl(var(--ring));
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body class="transition-colors duration-300">
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <div id="app-wrapper" class="max-w-screen-2xl mx-auto px-4 md:px-6 lg:px-8 pb-10">
+    <!-- CABECERA -->
+    <header class="flex justify-between items-center my-6">
+      <div class="flex items-center gap-3">
+        <i data-lucide="compass" class="w-8 h-8 text-[hsl(var(--primary))]"></i>
+        <h1 class="text-2xl md:text-3xl font-bold tracking-tight">Geometría de la Circunferencia</h1>
+      </div>
+
+      <div class="flex items-center gap-4">
+        <!-- Selector de tema -->
+        <div class="flex items-center gap-2 panel px-3 py-1.5">
+          <i data-lucide="sun" class="w-5 h-5"></i>
+          <label for="theme-toggle" class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="theme-toggle" class="sr-only peer" />
+            <div class="w-11 h-6 bg-hsl-muted/50 rounded-full peer peer-focus:ring-2 peer-focus:ring-hsl-ring peer-checked:bg-hsl-primary transition-all duration-300"></div>
+            <span class="absolute left-1 top-0.5 w-5 h-5 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-full"></span>
+          </label>
+          <i data-lucide="moon" class="w-5 h-5"></i>
+        </div>
+
+        <button id="palette-btn" aria-label="Paleta de colores" class="header-btn">
+          <i data-lucide="palette" class="w-5 h-5"></i>
+        </button>
+        <button id="help-btn" aria-label="Ayuda" class="header-btn">
+          <i data-lucide="help-circle" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- GRID PRINCIPAL -->
+    <main class="grid grid-cols-1 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <!-- VISOR -->
+      <section class="lg:col-span-2 xl:col-span-3 panel min-h-[500px] md:min-h-[600px]">
+        <div id="plotly-viewer" class="w-full h-full cursor-grab active:cursor-grabbing"></div>
+      </section>
+
+      <!-- PANEL DE CONTROL -->
+      <aside class="panel flex flex-col gap-6 h-fit">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <i data-lucide="sliders-horizontal" class="w-5 h-5"></i>Panel de Control
+        </h2>
+
+        <div class="space-y-3">
+          <h3 class="font-semibold text-hsl-muted-foreground">Mostrar ángulos</h3>
+          <div id="angle-toggles" class="grid grid-cols-1 gap-3"></div>
+        </div>
+
+        <div class="space-y-4">
+          <h3 class="font-semibold text-hsl-muted-foreground">Ajustes generales</h3>
+          <div>
+            <label for="radius-slider" class="block text-sm font-medium mb-1">Radio: <span id="radius-value">10</span></label>
+            <input id="radius-slider" type="range" min="5" max="20" value="10" step="0.5"
+              class="w-full h-2 bg-hsl-muted/50 rounded-lg appearance-none cursor-pointer" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-4 border-t border-hsl-border/40">
+          <button id="reset-btn" class="neumorph-btn flex items-center justify-center gap-2 p-3 text-sm font-semibold">
+            <i data-lucide="rotate-cw" class="w-4 h-4"></i>Reset
+          </button>
+          <button id="autoscale-btn" class="neumorph-btn flex items-center justify-center gap-2 p-3 text-sm font-semibold">
+            <i data-lucide="maximize" class="w-4 h-4"></i>Autoscale
+          </button>
+        </div>
+      </aside>
+
+      <!-- PANEL TEÓRICO -->
+      <section class="lg:col-span-3 xl:col-span-4 panel">
+        <h2 class="text-xl font-bold flex items-center gap-2 mb-4">
+          <i data-lucide="book-open-check" class="w-5 h-5"></i>Fundamentos Teóricos
+        </h2>
+        <div id="theory-content" class="prose prose-sm md:prose-base max-w-none dark:prose-invert space-y-6"></div>
+      </section>
+    </main>
+
+    <!-- PIE -->
+    <footer class="text-center mt-8 text-sm text-hsl-muted-foreground/80">
+      <p>Créditos: Msc Néstor Fabio Montoya Palacios</p>
+      <p>Desarrollado con ❤️ por una IA avanzada</p>
+    </footer>
+  </div>
+
+  <!-- MODAL PALETA -->
+  <div id="color-modal"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300">
+    <div class="panel w-full max-w-md max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true"
+      aria-labelledby="color-modal-title">
+      <div class="flex justify-between items-center mb-6">
+        <h2 id="color-modal-title" class="text-2xl font-bold flex items-center gap-2">
+          <i data-lucide="palette" class="w-6 h-6"></i>Paleta de Colores
+        </h2>
+        <button id="close-color-modal-btn" aria-label="Cerrar" class="p-2 rounded-full hover:bg-hsl-accent transition-colors">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <div id="color-palette-container" class="space-y-4"></div>
+    </div>
+  </div>
+
+  <!-- MODAL AYUDA -->
+  <div id="help-modal"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300">
+    <div class="panel w-full max-w-2xl max-h-[90vh] overflow-y-auto" role="dialog" aria-modal="true"
+      aria-labelledby="help-modal-title">
+      <div class="flex justify-between items-center mb-4">
+        <h2 id="help-modal-title" class="text-2xl font-bold flex items-center gap-2">
+          <i data-lucide="help-circle" class="w-6 h-6"></i>Guía de Uso
+        </h2>
+        <button id="close-help-modal-btn" aria-label="Cerrar" class="p-2 rounded-full hover:bg-hsl-accent transition-colors">
+          <i data-lucide="x" class="w-6 h-6"></i>
+        </button>
+      </div>
+      <div class="prose prose-sm md:prose-base dark:prose-invert max-w-none">
+        <h3>Visor interactivo</h3>
+        <p>Arrastra los puntos sobre la circunferencia o fuera de ella para formar cada tipo de ángulo. Haz zoom con la
+          rueda o gestos táctiles.</p>
+        <h3>Panel de control</h3>
+        <ul>
+          <li><strong>Mostrar ángulos:</strong> Activa o desactiva cada tipo.</li>
+          <li><strong>Radio:</strong> Ajusta el tamaño de la circunferencia.</li>
+          <li><strong>Reset:</strong> Vuelve al estado inicial.</li>
+          <li><strong>Autoscale:</strong> Centra y ajusta el zoom automáticamente.</li>
+        </ul>
+        <h3>Paleta de colores</h3>
+        <p>Personaliza el color de cada ángulo; los cambios se guardan en <em>localStorage</em>.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- LÓGICA DE LA APLICACIÓN -->
+  <script type="module">
+    /* UTILIDADES */
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => document.querySelectorAll(sel);
+    const debounce = (fn, wait) => {
+      let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn.apply(this, a), wait); };
+    };
+    const storage = {
+      get: (k, d) => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch { return d; } },
+      set: (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+      remove: k => { try { localStorage.removeItem(k); } catch {} }
+    };
+
+    /* ESTADO */
+    const AppState = {
+      radius: storage.get('geo-radius', 10),
+      points: {
+        A: { theta: Math.PI / 4,   r: 10 },
+        B: { theta: 3 * Math.PI/4, r: 10 },
+        C: { theta: 5 * Math.PI/4, r: 10 },
+        P: { theta: 0,             r: 15 }
+      },
+      angles: {
+        inscrito:   { name: 'Inscrito',        visible: true,  color: storage.get('color-inscrito',   '#3b82f6') },
+        semiInscrito:{ name: 'Semi-inscrito',  visible: false, color: storage.get('color-semiInscrito','#16a34a') },
+        interior:   { name: 'Interior',        visible: false, color: storage.get('color-interior',   '#f97316') },
+        exterior:   { name: 'Exterior',        visible: false, color: storage.get('color-exterior',   '#ef4444') },
+        exInscrito: { name: 'Ex-inscrito',     visible: false, color: storage.get('color-exInscrito', '#8b5cf6') }
+      }
+    };
+
+    /* ELEMENTOS DOM */
+    const DOM = {
+      viewer: $('#plotly-viewer'),
+      radiusSlider: $('#radius-slider'),
+      radiusValue: $('#radius-value'),
+      angleToggles: $('#angle-toggles'),
+      resetBtn: $('#reset-btn'),
+      autoscaleBtn: $('#autoscale-btn'),
+      themeToggle: $('#theme-toggle'),
+      helpBtn: $('#help-btn'),
+      helpModal: $('#help-modal'),
+      closeHelpModalBtn: $('#close-help-modal-btn'),
+      paletteBtn: $('#palette-btn'),
+      colorModal: $('#color-modal'),
+      closeColorModalBtn: $('#close-color-modal-btn'),
+      paletteContainer: $('#color-palette-container'),
+      theory: $('#theory-content')
+    };
+
+    /* TEMA */
+    const Theme = {
+      apply() {
+        const pref = storage.get('geo-theme', 'system');
+        const sysDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        const dark = pref === 'dark' || (pref === 'system' && sysDark);
+        document.documentElement.classList.toggle('dark', dark);
+        DOM.themeToggle.checked = dark;
+        Plot.draw();
+      },
+      init() {
+        this.apply();
+        DOM.themeToggle.addEventListener('change', e => {
+          storage.set('geo-theme', e.target.checked ? 'dark' : 'light');
+          this.apply();
+        });
+        window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => this.apply());
+      }
+    };
+
+    /* PLOTLY */
+    const Plot = {
+      pointColors: { A: '#f43f5e', B: '#38bdf8', C: '#34d399', P: '#f59e0b' },
+      dragged: null,
+      dragging: false,
+
+      toCartesian: (r, t) => ({ x: r * Math.cos(t), y: r * Math.sin(t) }),
+      toPolar: (x, y) => ({ r: Math.hypot(x, y), theta: Math.atan2(y, x) }),
+
+      init() {
+        Plotly.newPlot(DOM.viewer, [], this.layout(), { responsive: true, displaylogo: false, scrollZoom: true });
+        DOM.viewer.on('plotly_afterplot', () => this.draw());
+        this.dragHandlers();
+      },
+
+      layout() {
+        const R = AppState.radius * 2.2;
+        return {
+          xaxis: { range: [-R, R], visible: false },
+          yaxis: { range: [-R, R], scaleanchor: 'x', scaleratio: 1, visible: false },
+          plot_bgcolor: 'transparent', paper_bgcolor: 'transparent',
+          margin: { l: 20, r: 20, b: 20, t: 20 }, hovermode: 'closest', dragmode: false
+        };
+      },
+
+      draw: debounce(function () {
+        const data = [], shapes = [], ann = [], R = AppState.radius;
+        /* circunferencia */
+        const cx = [], cy = [];
+        for (let i = 0; i <= 360; i++) {
+          const a = i * Math.PI / 180; cx.push(R * Math.cos(a)); cy.push(R * Math.sin(a));
+        }
+        data.push({ x: cx, y: cy, type: 'scatter', mode: 'lines',
+          line: { color: document.documentElement.classList.contains('dark') ? '#475569' : '#cbd5e1', width: 2 },
+          hoverinfo: 'none'
+        });
+
+        /* puntos */
+        const pts = Object.fromEntries(Object.entries(AppState.points).map(([k, { r, theta }]) => [k, this.toCartesian(r, theta)]));
+        const pSize = R * 0.1;
+        for (const [k, p] of Object.entries(pts)) {
+          shapes.push({ type: 'circle', x0: p.x - pSize, y0: p.y - pSize, x1: p.x + pSize, y1: p.y + pSize,
+            fillcolor: this.pointColors[k], line: { color: 'white', width: 2 } });
+          ann.push({ x: p.x, y: p.y, text: `<b>${k}</b>`, showarrow: false, font: { color: '#fff', size: 14 } });
+        }
+
+        /* función auxiliar ángulo */
+        const angle = (p1, v, p2) => {
+          const a1 = Math.atan2(p1.y - v.y, p1.x - v.x);
+          const a2 = Math.atan2(p2.y - v.y, p2.x - v.x);
+          let deg = (a2 - a1) * 180 / Math.PI;
+          if (deg < 0) deg += 360;
+          if (deg > 180) deg = 360 - deg;
+          return deg;
+        };
+
+        /* ÁNGULOS */
+        if (AppState.angles.inscrito.visible) {
+          const deg = angle(pts.A, pts.C, pts.B);
+          shapes.push({ type: 'path', path: `M ${pts.A.x},${pts.A.y} L ${pts.C.x},${pts.C.y} L ${pts.B.x},${pts.B.y}`,
+            line: { color: AppState.angles.inscrito.color, width: 2 } });
+          ann.push({ x: pts.C.x * 0.8, y: pts.C.y * 0.8, text: `${deg.toFixed(1)}°`, showarrow: false,
+            font: { color: AppState.angles.inscrito.color, size: 14 } });
+        }
+        if (AppState.angles.semiInscrito.visible) {
+          const T = { x: -pts.A.y + pts.A.x, y: pts.A.x + pts.A.y }; /* tangente aproximada */
+          const deg = angle(T, pts.A, pts.B);
+          shapes.push({ type: 'path', path: `M ${T.x},${T.y} L ${pts.A.x},${pts.A.y} L ${pts.B.x},${pts.B.y}`,
+            line: { color: AppState.angles.semiInscrito.color, width: 2, dash: 'dot' } });
+          ann.push({ x: pts.A.x * 1.1, y: pts.A.y * 1.1, text: `${deg.toFixed(1)}°`, showarrow: false,
+            font: { color: AppState.angles.semiInscrito.color, size: 14 } });
+        }
+        if (AppState.angles.interior.visible) {
+          const D = this.toCartesian(R, AppState.points.B.theta + Math.PI);
+          const inter = this.intersect(pts.A, pts.C, pts.B, D);
+          if (inter) {
+            const deg = angle(pts.A, inter, pts.B);
+            shapes.push({ type: 'path', path:
+              `M ${pts.A.x},${pts.A.y} L ${pts.C.x},${pts.C.y} M ${pts.B.x},${pts.B.y} L ${D.x},${D.y}`,
+              line: { color: AppState.angles.interior.color, width: 2 } });
+            ann.push({ x: inter.x, y: inter.y, text: `${deg.toFixed(1)}°`, showarrow: true,
+              ax: 20, ay: -20, font: { color: AppState.angles.interior.color, size: 14 } });
+          }
+        }
+        if (AppState.angles.exterior.visible && AppState.points.P.r > R) {
+          const deg = angle(pts.A, pts.P, pts.C);
+          shapes.push({ type: 'path', path: `M ${pts.P.x},${pts.P.y} L ${pts.A.x},${pts.A.y} M ${pts.P.x},${pts.P.y} L ${pts.C.x},${pts.C.y}`,
+            line: { color: AppState.angles.exterior.color, width: 2 } });
+          ann.push({ x: pts.P.x, y: pts.P.y, text: `${deg.toFixed(1)}°`, showarrow: true,
+            ax: -30, ay: 0, font: { color: AppState.angles.exterior.color, size: 14 } });
+        }
+        if (AppState.angles.exInscrito.visible) {
+          const E = { x: pts.B.x + (pts.B.x - pts.A.x), y: pts.B.y + (pts.B.y - pts.A.y) };
+          const deg = angle(E, pts.B, pts.C);
+          shapes.push({ type: 'path', path:
+            `M ${pts.A.x},${pts.A.y} L ${pts.B.x},${pts.B.y} L ${E.x},${E.y} M ${pts.B.x},${pts.B.y} L ${pts.C.x},${pts.C.y}`,
+            line: { color: AppState.angles.exInscrito.color, width: 2 } });
+          ann.push({ x: pts.B.x * 1.1, y: pts.B.y * 1.1, text: `${deg.toFixed(1)}°`, showarrow: false,
+            font: { color: AppState.angles.exInscrito.color, size: 14 } });
+        }
+
+        Plotly.react(DOM.viewer, data, { ...this.layout(), shapes, annotations: ann });
+      }, 10),
+
+      intersect(p1, p2, p3, p4) {
+        const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+        if (!den) return null;
+        const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
+        const u = ((p1.x - p3.x) * (p1.y - p2.y) - (p1.y - p3.y) * (p1.x - p2.x)) / den;
+        if (t <= 0 || t >= 1 || u <= 0 || u >= 1) return null;
+        return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+      },
+
+      dragHandlers() {
+        DOM.viewer.onmousedown = e => this.startDrag(e);
+        DOM.viewer.ontouchstart = e => this.startDrag(e);
+        window.onmousemove = e => this.moveDrag(e);
+        window.ontouchmove = e => this.moveDrag(e);
+        window.onmouseup = () => (this.dragging = false, this.dragged = null);
+        window.ontouchend = () => (this.dragging = false, this.dragged = null);
+      },
+
+      startDrag(e) {
+        const bb = DOM.viewer.getBoundingClientRect();
+        const cx = (e.touches ? e.touches[0].clientX : e.clientX) - bb.left;
+        const cy = bb.bottom - (e.touches ? e.touches[0].clientY : e.clientY);
+        const { xaxis, yaxis } = DOM.viewer._fullLayout;
+        const x = (cx / bb.width) * (xaxis.range[1] - xaxis.range[0]) + xaxis.range[0];
+        const y = (cy / bb.height) * (yaxis.range[1] - yaxis.range[0]) + yaxis.range[0];
+
+        let close = null, minD = Infinity;
+        for (const [k, p] of Object.entries(AppState.points)) {
+          const c = this.toCartesian(p.r, p.theta);
+          const d = Math.hypot(c.x - x, c.y - y);
+          if (d < minD) { minD = d; close = k; }
+        }
+        if (minD < AppState.radius * 0.3) { this.dragged = close; this.dragging = true; e.preventDefault(); }
+      },
+
+      moveDrag(e) {
+        if (!this.dragging) return;
+        const bb = DOM.viewer.getBoundingClientRect();
+        const cx = (e.touches ? e.touches[0].clientX : e.clientX) - bb.left;
+        const cy = bb.bottom - (e.touches ? e.touches[0].clientY : e.clientY);
+        const { xaxis, yaxis } = DOM.viewer._fullLayout;
+        const x = (cx / bb.width) * (xaxis.range[1] - xaxis.range[0]) + xaxis.range[0];
+        const y = (cy / bb.height) * (yaxis.range[1] - yaxis.range[0]) + yaxis.range[0];
+        const pol = this.toPolar(x, y);
+        if (this.dragged === 'P') {
+          AppState.points.P = pol;
+        } else {
+          AppState.points[this.dragged].theta = pol.theta;
+          AppState.points[this.dragged].r = AppState.radius;
+        }
+        this.draw();
+      },
+
+      autoscale() {
+        const R = AppState.radius * 1.5;
+        Plotly.relayout(DOM.viewer, { 'xaxis.range': [-R, R], 'yaxis.range': [-R, R] });
+      }
+    };
+
+    /* UI */
+    const UI = {
+      init() {
+        DOM.radiusSlider.value = AppState.radius;
+        DOM.radiusValue.textContent = AppState.radius;
+        DOM.radiusSlider.addEventListener('input', e => {
+          AppState.radius = parseFloat(e.target.value);
+          DOM.radiusValue.textContent = AppState.radius;
+          for (const k of ['A', 'B', 'C']) AppState.points[k].r = AppState.radius;
+          storage.set('geo-radius', AppState.radius);
+          Plot.draw();
+        });
+
+        DOM.resetBtn.addEventListener('click', () => location.reload());
+        DOM.autoscaleBtn.addEventListener('click', () => Plot.autoscale());
+
+        this.renderToggles();
+        this.renderPalette();
+        this.renderTheory();
+
+        DOM.paletteBtn.addEventListener('click', () => this.modal(DOM.colorModal, true));
+        DOM.closeColorModalBtn.addEventListener('click', () => this.modal(DOM.colorModal, false));
+        DOM.helpBtn.addEventListener('click', () => this.modal(DOM.helpModal, true));
+        DOM.closeHelpModalBtn.addEventListener('click', () => this.modal(DOM.helpModal, false));
+        document.addEventListener('keydown', e => {
+          if (e.key === 'Escape') { this.modal(DOM.colorModal, false); this.modal(DOM.helpModal, false); }
+        });
+      },
+
+      modal(el, show) { el.classList.toggle('hidden', !show); },
+
+      renderToggles() {
+        DOM.angleToggles.innerHTML = Object.entries(AppState.angles).map(
+          ([k, v]) => `
+          <div class="flex items-center justify-between">
+            <label for="${k}-toggle" class="text-sm font-medium">${v.name}</label>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="${k}-toggle" class="sr-only peer" ${v.visible ? 'checked' : ''}>
+              <div class="w-9 h-5 bg-hsl-muted/50 rounded-full peer peer-focus:ring-2 peer-focus:ring-hsl-ring peer-checked:bg-hsl-primary transition-all duration-300"></div>
+              <span class="absolute left-0.5 top-0.5 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-full"></span>
+            </label>
+          </div>`
+        ).join('');
+        $$('#angle-toggles input').forEach(t =>
+          t.addEventListener('change', e => { const key = e.target.id.replace('-toggle', ''); AppState.angles[key].visible = e.target.checked; Plot.draw(); })
+        );
+      },
+
+      renderPalette() {
+        DOM.paletteContainer.innerHTML = Object.entries(AppState.angles).map(
+          ([k, v]) => `
+          <div class="flex items-center justify-between">
+            <label for="${k}-color" class="text-sm font-medium">${v.name}</label>
+            <input type="color" id="${k}-color" value="${v.color}" class="w-8 h-8 rounded-lg cursor-pointer">
+          </div>`
+        ).join('');
+        $$('#color-palette-container input').forEach(inp =>
+          inp.addEventListener('input', e => {
+            const key = e.target.id.replace('-color', '');
+            AppState.angles[key].color = e.target.value;
+            storage.set('color-' + key, e.target.value);
+            Plot.draw();
+          })
+        );
+      },
+
+      renderTheory() {
+        const list = [
+          { key: 'inscrito',    t: 'Ángulo inscrito',    f: '$\\angle ACB = \\tfrac{1}{2}\\,\\widehat{AB}$',                                                          d: 'Vértice sobre la circunferencia; lados secantes. Su medida es la mitad del arco que abarca.' },
+          { key: 'semiInscrito',t: 'Ángulo semi-inscrito',f:'$\\angle tAB = \\tfrac{1}{2}\\,\\widehat{AB}$',                                                         d: 'Vértice en la circunferencia; un lado tangente y otro secante. Mide la mitad del arco del lado secante.' },
+          { key: 'interior',    t: 'Ángulo interior',    f: '$\\angle = \\tfrac{1}{2}(\\widehat{AB}+\\widehat{CD})$',                                                d: 'Vértice interior. Mide la semisuma de los arcos interceptados por los lados y sus prolongaciones.' },
+          { key: 'exterior',    t: 'Ángulo exterior',    f: '$\\angle = \\tfrac{1}{2}(\\widehat{AB}-\\widehat{CD})$',                                                d: 'Vértice exterior. Mide la semidiferencia de los arcos interceptados.' },
+          { key: 'exInscrito',  t: 'Ángulo ex-inscrito', f: '$\\angle = \\tfrac{1}{2}\\,(360^\\circ-\\widehat{AB}) = \\tfrac{1}{2}\\,\\widehat{BAC}$',               d: 'Adyacente a un inscrito; su medida es la mitad del arco grande que no corresponde al ángulo inscrito.' }
+        ];
+        DOM.theory.innerHTML = list.map(o => `
+          <div>
+            <h4 class="font-bold text-lg">${o.t}</h4>
+            <p class="mt-1">${o.d}</p>
+            <p class="text-center font-mono bg-hsl-muted/50 p-2 rounded-md my-2">${o.f}</p>
+          </div>`).join('');
+        if (window.MathJax?.typesetPromise) MathJax.typesetPromise([DOM.theory]);
+      }
+    };
+
+    /* INICIALIZACIÓN */
+    window.onload = () => {
+      Theme.init();
+      Plot.init();
+      UI.init();
+      lucide.createIcons();
+      console.log('Aplicación de geometría inicializada');
+    };
+  </script>
+</body>
+</html>
