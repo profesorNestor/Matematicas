@@ -64,7 +64,8 @@ const categories = [
       { name: 'Triángulos',            slug: 'triangulos',        icon: '🔺' },
       { name: 'Trigonometría',         slug: 'trigonometria',     icon: '📐' },
       { name: 'Vectores',              slug: 'vectores',          icon: '🧭' },
-      { name: 'Círculo trigonométrico', slug: 'CirculoTrigonometrico', icon: '🎯' }
+      { name: 'Círculo trigonométrico', slug: 'CirculoTrigonometrico', icon: '🎯' },
+      { name: 'Graficador trigonométrico', slug: 'GraficadorTrigonometrico', icon: '📊' },
     ]
   },
 
