@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulador de Movimiento Parabólico v4.3</title>
+    <title>Simulador de Movimiento Parabólico v4.4</title>
     
     <!-- Librerías Externas -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -567,9 +567,6 @@
                 if (rect.width === 0 || rect.height === 0) return;
                 
                 const isMobile = window.innerWidth < 768;
-                const MIN_SCALE = isMobile ? 1.0 : 2.0;
-                const MAX_SCALE = isMobile ? 15.0 : 20.0;
-
                 const originX = isMobile ? 35 : 40;
                 const originY = isMobile ? 35 : 40;
                 const padding = isMobile ? 10 : 20;
@@ -588,14 +585,9 @@
                 const scaleX = viewWidth / xMax;
                 const scaleY = viewHeight / ySpan;
 
-                let newScale = Math.min(scaleX, scaleY);
+                state.scale = Math.min(scaleX, scaleY);
                 
-                // Clamp the scale to prevent extreme zoom levels
-                newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, newScale));
-                
-                state.scale = newScale;
-
-                if (!isFinite(state.scale)) {
+                if (!isFinite(state.scale) || state.scale <= 0) {
                     state.scale = isMobile ? 2 : 5; // Fallback
                 }
                 
@@ -693,26 +685,34 @@
                 const {x: startX, y: endY} = screenToWorld(rect, 0, 0);
                 const {x: endX, y: startY} = screenToWorld(rect, rect.width, rect.height);
 
+                // Control de densidad para etiquetas del eje X
+                let lastLabelX = -Infinity;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
                 for (let x = Math.ceil(startX / step) * step; x < endX; x += step) {
                     if (x <= 0) continue;
                     const screenX = x * state.scale + transformedOrigin.x;
-                    if (screenX < transformedOrigin.x + 15 || screenX > rect.width) continue;
+                    if (screenX < originX + 15 || screenX > rect.width - 15 || Math.abs(screenX - lastLabelX) < 30) continue;
                     ctx.fillText(x.toFixed(0), screenX, transformedOrigin.y + 8);
+                    lastLabelX = screenX;
                     ctx.beginPath();
                     ctx.moveTo(screenX, transformedOrigin.y - 4);
                     ctx.lineTo(screenX, transformedOrigin.y + 4);
                     ctx.stroke();
                 }
 
+                // Control de densidad para etiquetas del eje Y
+                let lastLabelY = -Infinity;
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'middle';
                 for (let y = Math.floor(startY / step) * step; y < endY; y += step) {
                     if (y === 0) continue;
                     const screenY = transformedOrigin.y - y * state.scale;
-                    if (screenY < 0 || screenY > rect.height) continue;
+                    if (screenY < 15 || screenY > rect.height - 15 || Math.abs(screenY - lastLabelY) < 20) continue;
+                    
+                    // CORRECCIÓN CRÍTICA: Usar transformedOrigin.x para la posición de la etiqueta, no originX.
                     ctx.fillText(y.toFixed(0), transformedOrigin.x - 10, screenY);
+                    lastLabelY = screenY;
                     ctx.beginPath();
                     ctx.moveTo(transformedOrigin.x - 4, screenY);
                     ctx.lineTo(transformedOrigin.x + 4, screenY);
