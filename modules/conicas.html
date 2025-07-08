@@ -50,7 +50,6 @@
 
         html { scroll-behavior: smooth; }
 
-        /* Ensure vertical scroll on small screens */
         body {
             font-family: 'Inter', sans-serif;
             background-color: var(--bg-color);
@@ -73,7 +72,6 @@
             box-shadow: inset 6px 6px 12px var(--neumorph-shadow-dark), inset -6px -6px 12px var(--neumorph-shadow-light);
         }
 
-        /* Custom Slider */
         input[type="range"] {
             -webkit-appearance: none; appearance: none;
             width: 100%; height: 8px;
@@ -96,14 +94,13 @@
             transform: scale(1.1);
         }
         
-        /* Custom Scrollbar for Info Panel */
         #info-panel::-webkit-scrollbar { width: 8px; height: 8px; }
         #info-panel::-webkit-scrollbar-track { background: var(--neumorph-bg); border-radius: 10px; }
         #info-panel::-webkit-scrollbar-thumb { background-color: var(--primary-accent); border-radius: 10px; border: 2px solid var(--neumorph-bg); }
     </style>
 </head>
 
-<body class="min-h-screen">
+<body class="min-h-screen overflow-y-auto">
 
     <div class="container mx-auto p-4 sm:p-6 lg:p-8">
         
@@ -116,7 +113,6 @@
 
         <main class="grid grid-cols-1 lg:grid-cols-5 gap-8">
             
-            <!-- Left Panel: Controls & Data -->
             <div class="lg:col-span-2 flex flex-col gap-8">
                 
                 <div class="glassmorphism rounded-2xl p-6">
@@ -132,9 +128,9 @@
                         <div>
                             <div class="flex justify-between items-center mb-2">
                                 <label for="p" class="font-medium text-sm whitespace-nowrap">Semilatus Rectum ($p$)</label>
-                                <span id="p-value-display" class="font-mono text-sm bg-gray-900/50 text-sky-300 py-1 px-3 rounded-full ml-4">1.5</span>
+                                <span id="p-value-display" class="font-mono text-sm bg-gray-900/50 text-sky-300 py-1 px-3 rounded-full ml-4">4.0</span>
                             </div>
-                            <input id="p" type="range" min="0.1" max="10" step="0.1" value="1.5">
+                            <input id="p" type="range" min="0.1" max="10" step="0.1" value="4.0">
                         </div>
                         <div>
                             <label for="theta0" class="font-medium text-sm mb-2 block">Orientación ($\theta_0$)</label>
@@ -142,8 +138,14 @@
                                 <option value="0">Vertical, apertura izquierda</option>
                                 <option value="180">Vertical, apertura derecha</option>
                                 <option value="90">Horizontal, apertura abajo</option>
-                                <option value="270">Horizontal, apertura arriba</option>
+                                <option value="270" selected>Horizontal, apertura arriba</option>
                             </select>
+                        </div>
+                        <div id="branch-toggle-container" class="hidden">
+                            <label class="flex items-center gap-2 text-xs cursor-pointer">
+                              <input id="branch-toggle" type="checkbox" class="accent-sky-400 w-4 h-4">
+                              Mostrar ambas ramas
+                            </label>
                         </div>
                     </div>
                 </div>
@@ -151,21 +153,21 @@
                 <div class="glassmorphism rounded-2xl p-6 flex flex-col">
                      <h2 class="text-xl font-bold text-sky-400 mb-4">Datos Analíticos</h2>
                      <div id="info-panel" class="text-sm space-y-3 text-gray-300 max-h-[450px] overflow-auto pr-2">
-                         <!-- Dynamic content here -->
                      </div>
                 </div>
 
             </div>
 
-            <!-- Right Panel: Visualization -->
             <div class="lg:col-span-3 min-h-[60vh] lg:min-h-0 neumorph-inset rounded-2xl p-2 relative">
                 <div id="plot-container" class="w-full h-full rounded-xl overflow-hidden"></div>
                 <div id="three-d-container" class="w-full h-full absolute top-0 left-0 rounded-xl overflow-hidden pointer-events-none opacity-0 transition-opacity duration-500"></div>
 
-                <!-- 2D/3D Controls -->
                 <div class="absolute top-4 right-4 z-20 flex items-center gap-2 p-2 rounded-full glassmorphism">
-                    <button id="palette-toggle" aria-label="Cambiar color" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors">
+                    <button id="palette-toggle" aria-label="Cambiar color de la curva" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors">
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z"></path><path d="m12 13.01 3.5-3.5a2.12 2.12 0 1 0-3-3L12 7.01"></path></svg>
+                    </button>
+                    <button id="asymptote-palette-toggle" aria-label="Cambiar color de asíntotas" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors hidden">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
                     </button>
                     <button id="view-toggle" aria-label="Cambiar vista" class="p-2 w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-700/50 transition-colors font-bold text-sm">3D</button>
                     <button id="home-button" aria-label="Reiniciar vista" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors">
@@ -173,15 +175,18 @@
                     </button>
                 </div>
 
-                <!-- Color Palette Widget -->
                 <div id="color-palette-widget" class="absolute top-20 right-4 z-20 p-4 rounded-2xl glassmorphism opacity-0 pointer-events-none transition-all duration-300 transform scale-95 -translate-y-2">
                     <p class="text-sm font-bold text-center mb-3">Color de la Curva</p>
                     <div id="color-swatches" class="grid grid-cols-5 gap-3">
-                        <!-- Color swatches will be injected here by JS -->
                     </div>
                 </div>
                 
-                <!-- 3D Specific Controls -->
+                <div id="asymptote-color-palette-widget" class="absolute top-20 right-4 z-20 p-4 rounded-2xl glassmorphism opacity-0 pointer-events-none transition-all duration-300 transform scale-95 -translate-y-2">
+                    <p class="text-sm font-bold text-center mb-3">Color de Asíntotas</p>
+                    <div id="asymptote-color-swatches" class="grid grid-cols-5 gap-3">
+                    </div>
+                </div>
+                
                 <div id="controls-3d" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2 p-2 rounded-full glassmorphism opacity-0 pointer-events-none transition-opacity">
                     <button id="solid-btn" class="px-3 py-1 text-xs rounded-full bg-sky-500/20">Sólido</button>
                     <button id="wireframe-btn" class="px-3 py-1 text-xs rounded-full bg-sky-500/20">Malla</button>
@@ -200,7 +205,6 @@
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-        /* 1. CONFIG & DOM ELEMENTS */
         const $ = (selector) => document.querySelector(selector);
         
         const dom = {
@@ -214,16 +218,30 @@
             paletteToggle: $('#palette-toggle'),
             paletteWidget: $('#color-palette-widget'),
             colorSwatchesContainer: $('#color-swatches'),
+            asymptotePaletteToggle: $('#asymptote-palette-toggle'),
+            asymptotePaletteWidget: $('#asymptote-color-palette-widget'),
+            asymptoteColorSwatchesContainer: $('#asymptote-color-swatches'),
+            branchToggleContainer: $('#branch-toggle-container'),
+            branchToggle: $('#branch-toggle'),
         };
 
         const RAD = Math.PI / 180;
         const PRECISION = 2;
-        const conicColors = ['#38bdf8', '#fb7185', '#4ade80', '#facc15', '#a78bfa', '#f472b6', '#2dd4bf', '#f87171', '#c084fc', '#fbbf24'];
+        let showBothBranches = false;
+        
+        const conicColors = ['#38bdf8', '#fb7185', '#4ade80', '#facc15', '#a78bfa', '#2dd4bf', '#f87171', '#c084fc', '#fbbf24', '#34d399'];
+        const asymptoteColors = ['#f97316', '#9ca3af', '#a16207', '#16a34a', '#be123c', '#6d28d9', '#0e7490', '#b91c1c', '#4a044e', '#065f46'];
 
-        let state = { e: 0.5, p: 1.5, theta0: 0, show3D: false, currentColor: conicColors[0] };
-        let three = { scene: null, camera: null, renderer: null, solidMesh: null, wireMesh: null, controls: null, animationFrameId: null };
+        let state = { 
+            e: 0.5, 
+            p: 4.0, 
+            theta0: 270, 
+            show3D: false, 
+            currentColor: conicColors[0], 
+            asymptoteColor: asymptoteColors[0]
+        };
+        let three = { scene: null, camera: null, renderer: null, meshes: [], controls: null, animationFrameId: null };
 
-        /* 2. MATHEMATICAL CALCULATIONS */
         function calculateConicProperties() {
             const { e, p } = state;
             const theta0Deg = state.theta0;
@@ -250,7 +268,11 @@
                 props.directrices.push({ text: 'No tiene (radio constante)' });
             } else {
                 const r_v1 = p / (1 + e);
-                const v1 = { x: r_v1 * Math.cos(theta0Rad), y: r_v1 * Math.sin(theta0Rad) };
+                const v1_unrotated = { x: r_v1, y: 0 };
+                const v1 = { 
+                    x: v1_unrotated.x * Math.cos(theta0Rad) - v1_unrotated.y * Math.sin(theta0Rad),
+                    y: v1_unrotated.x * Math.sin(theta0Rad) + v1_unrotated.y * Math.cos(theta0Rad)
+                };
                 
                 const d = p / e;
                 const cosT0 = Math.cos(theta0Rad);
@@ -264,8 +286,17 @@
                     props.foci = [f1];
                 } else {
                     const r_v2 = p / (1 - e);
-                    const v2 = { x: r_v2 * Math.cos(theta0Rad + Math.PI), y: r_v2 * Math.sin(theta0Rad + Math.PI) };
-                    props.vertices = [v1, v2];
+                    const v2_unrotated = { x: r_v2, y: 0 };
+                     const v2 = { 
+                        x: v2_unrotated.x * Math.cos(theta0Rad) - v2_unrotated.y * Math.sin(theta0Rad),
+                        y: v2_unrotated.x * Math.sin(theta0Rad) + v2_unrotated.y * Math.cos(theta0Rad)
+                    };
+                    
+                    if (props.type === 'Hipérbola' && !showBothBranches) {
+                        props.vertices = [v1];
+                    } else {
+                        props.vertices = [v1, v2];
+                    }
                     
                     const centerToFocusDist = c;
                     const centerSign = e < 1 ? -1 : 1;
@@ -296,13 +327,13 @@
                 E: 2 * p * e * sinT,
                 F: -p*p
             };
-
+            
             const allPoints = [...props.vertices, ...props.foci];
             if (props.center) allPoints.push(props.center);
-            let minX = Math.min(...allPoints.map(pt => pt.x));
-            let maxX = Math.max(...allPoints.map(pt => pt.x));
-            let minY = Math.min(...allPoints.map(pt => pt.y));
-            let maxY = Math.max(...allPoints.map(pt => pt.y));
+            let minX = Math.min(...allPoints.map(pt => pt.x).filter(isFinite));
+            let maxX = Math.max(...allPoints.map(pt => pt.x).filter(isFinite));
+            let minY = Math.min(...allPoints.map(pt => pt.y).filter(isFinite));
+            let maxY = Math.max(...allPoints.map(pt => pt.y).filter(isFinite));
             
             if (e > 0 && e < 1) {
                 const { x: cx, y: cy } = props.center;
@@ -312,18 +343,43 @@
                 minY = Math.min(minY, cy - dy); maxY = Math.max(maxY, cy + dy);
             } else if (e > 1) {
                 const width = maxX - minX; const height = maxY - minY;
-                minX -= width * 0.5; maxX += width * 0.5;
-                minY -= height * 0.5; maxY += height * 0.5;
+                minX -= width * 1.5; maxX += width * 1.5;
+                minY -= height * 1.5; maxY += height * 1.5;
             }
 
-            const R_raw = Math.max(Math.abs(minX), Math.abs(maxX), Math.abs(minY), Math.abs(maxY));
-            const R_final = (R_raw === 0 || !isFinite(R_raw)) ? 5 : R_raw * 1.2;
-            props.boundingBox = { x: [-R_final, R_final], y: [-R_final, R_final] };
+            if (props.type === 'Elipse' || props.type === 'Hipérbola' || props.type === 'Circunferencia') {
+                const xRange = isFinite(maxX - minX) ? maxX - minX : 10;
+                const yRange = isFinite(maxY - minY) ? maxY - minY : 10;
+                
+                const xPadding = xRange * 0.2;
+                const yPadding = yRange * 0.2;
+
+                const finalMinX = minX - xPadding;
+                const finalMaxX = maxX + xPadding;
+                const finalMinY = minY - yPadding;
+                const finalMaxY = maxY + yPadding;
+
+                const finalXRange = finalMaxX - finalMinX;
+                const finalYRange = finalMaxY - finalMinY;
+                const maxRange = Math.max(finalXRange, finalYRange);
+
+                const xCenter = (minX + maxX) / 2;
+                const yCenter = (minY + maxY) / 2;
+
+                props.boundingBox = {
+                    x: [xCenter - maxRange / 2, xCenter + maxRange / 2],
+                    y: [yCenter - maxRange / 2, yCenter + maxRange / 2]
+                };
+
+            } else { 
+                const R_raw = Math.max(Math.abs(minX), Math.abs(maxX), Math.abs(minY), Math.abs(maxY));
+                const R_final = (R_raw === 0 || !isFinite(R_raw)) ? 5 : R_raw * 1.5;
+                props.boundingBox = { x: [-R_final, R_final], y: [-R_final, R_final] };
+            }
 
             return props;
         }
 
-        /* 3. UI & INFO PANEL UPDATE */
         function formatNum(num) { return isFinite(num) ? num.toFixed(PRECISION) : '\\infty'; }
         function formatPoint(p) { return p ? `(${formatNum(p.x)}, ${formatNum(p.y)})` : 'N/A'; }
         
@@ -356,53 +412,114 @@
             html += `<p><strong class="font-semibold text-sky-400">Vértice(s):</strong> $${props.vertices.map(formatPoint).join(', ')}$</p>`;
             html += `<p><strong class="font-semibold text-sky-400">Foco(s):</strong> $${props.foci.map(formatPoint).join(', ')}$</p>`;
             html += `<p><strong class="font-semibold text-sky-400">Directriz/ces:</strong><br>${props.directrices.map(d => d.text).join('<br>')}</p>`;
+            if (props.type === 'Hipérbola' && !showBothBranches) {
+                html += `<p class="text-xs text-gray-400 mt-2"><i>Se visualiza una sola rama.</i></p>`;
+            }
             html += `</div>`;
 
             dom.infoPanel.innerHTML = html;
             if (window.MathJax) window.MathJax.typesetPromise([dom.infoPanel]);
         }
 
-
-        /* 4. PLOTLY 2D VISUALIZATION */
         function drawPlot(props) {
             const { e, p, theta0Rad } = props;
-            const N = 1001;
-            const theta = Array.from({length: N}, (_, i) => -2 * Math.PI + i * 4 * Math.PI / (N - 1));
-            
-            const x = [], y = [];
-            for (const th of theta) {
-                const den = 1 + e * Math.cos(th - theta0Rad);
-                if (Math.abs(den) < 1e-9) { x.push(null); y.push(null); continue; }
-                const r = p / den;
-                if (!isFinite(r) || Math.abs(r) > 1e4) { x.push(null); y.push(null); continue; }
-                x.push(r * Math.cos(th));
-                y.push(r * Math.sin(th));
-            }
+            const traces = [];
 
-            const traces = [
-                { x, y, mode: 'lines', name: 'Cónica', line: { color: state.currentColor, width: 3.5 }, hoverinfo: 'none' },
-                { x: props.foci.map(f => f.x), y: props.foci.map(f => f.y), mode: 'markers+text', name: 'Focos', marker: { color: '#ef4444', size: 10, symbol: 'circle', line: { color: '#111827', width: 2 } }, text: props.foci.map((f, i) => `F${i+1}`), textposition: 'top right', textfont: {color: '#ef4444'}, hoverinfo: 'none' },
-                { x: props.vertices.map(v => v.x), y: props.vertices.map(v => v.y), mode: 'markers+text', name: 'Vértices', marker: { color: '#60a5fa', size: 9, symbol: 'circle' }, text: props.vertices.map((v, i) => `V${i+1}`), textposition: 'bottom left', textfont: {color: '#60a5fa'}, hoverinfo: 'none' },
-            ];
-            
-            if (props.center) {
-                traces.push({ x: [props.center.x], y: [props.center.y], mode: 'markers+text', name: 'Centro', marker: { color: '#f59e0b', size: 9, symbol: 'diamond' }, text: ['C'], textposition: 'top center', textfont: {color: '#f59e0b'}, hoverinfo: 'none' });
+            if (e > 1) { 
+                const N = 1201;
+                const theta = Array.from({length: N}, (_, i) => -Math.PI + i * 2 * Math.PI / (N - 1));
+                const branch1 = { x: [], y: [] };
+                const branch2 = { x: [], y: [] };
+
+                theta.forEach(th_i => {
+                    const den = 1 + e * Math.cos(th_i);
+                    if (Math.abs(den) < 1e-7) { branch1.x.push(null); branch1.y.push(null); return; }
+                    let r = p / den;
+                    const thUse = th_i + theta0Rad;
+                    if (isFinite(r) && Math.abs(r) < 1e4) {
+                        branch1.x.push(r * Math.cos(thUse));
+                        branch1.y.push(r * Math.sin(thUse));
+                    } else {
+                        branch1.x.push(null); branch1.y.push(null);
+                    }
+                });
+
+                traces.push({
+                    x: branch1.x, y: branch1.y, mode: 'lines',
+                    line: { color: state.currentColor, width: 3.5 },
+                    name: 'Hipérbola', hoverinfo: 'none'
+                });
+
+                if (showBothBranches) {
+                    theta.forEach(th_i => {
+                        const den = 1 - e * Math.cos(th_i);
+                        if (Math.abs(den) < 1e-7) { branch2.x.push(null); branch2.y.push(null); return; }
+                        let r = p / den;
+                        const thUse = th_i + theta0Rad;
+                        if (isFinite(r) && Math.abs(r) < 1e4) {
+                            branch2.x.push(r * Math.cos(thUse));
+                            branch2.y.push(r * Math.sin(thUse));
+                        } else {
+                            branch2.x.push(null); branch2.y.push(null);
+                        }
+                    });
+
+                    traces.push({
+                        x: branch2.x, y: branch2.y, mode: 'lines',
+                        line: { color: state.currentColor, width: 3.5 },
+                        showlegend: false, hoverinfo: 'none'
+                    });
+                }
+            } else { 
+                const N = 1001;
+                const theta = Array.from({length: N}, (_, i) => -2 * Math.PI + i * 4 * Math.PI / (N - 1));
+                const x = [], y = [];
+                for (const th of theta) {
+                    const den = 1 + e * Math.cos(th - theta0Rad);
+                    if (Math.abs(den) < 1e-9) { x.push(null); y.push(null); continue; }
+                    const r = p / den;
+                    if (!isFinite(r) || Math.abs(r) > 1e4) {
+                        x.push(null); y.push(null); continue;
+                    }
+                    x.push(r * Math.cos(th));
+                    y.push(r * Math.sin(th));
+                }
+                traces.push({ 
+                    x, y, mode: 'lines', name: 'Cónica', 
+                    line: { color: state.currentColor, width: 3.5 }, 
+                    hoverinfo: 'none' 
+                });
             }
 
             if (props.asymptotes.length > 0) {
                 const [m1, m2] = props.asymptotes;
                 const { center } = props;
-                const rangeX = props.boundingBox.x[1];
+                const R = Math.max(...props.boundingBox.x.map(Math.abs));
+
+                const asymptoteStyle = {
+                    color: state.asymptoteColor,
+                    width: 2,
+                    dash: 'dash',
+                    simplify: false
+                };
+                
                 traces.push({
-                    x: [center.x - rangeX, center.x + rangeX],
-                    y: [center.y + m1 * ( -rangeX), center.y + m1 * (rangeX)],
-                    mode: 'lines', name: 'Asíntota', line: { color: '#f472b6', width: 2, dash: 'dot' }, hoverinfo: 'none'
+                    x: [center.x - R, center.x + R],
+                    y: [center.y + m1 * (-R), center.y + m1 * R],
+                    mode: 'lines', name: 'Asíntotas', line: asymptoteStyle, hoverinfo: 'none'
                 });
                 traces.push({
-                    x: [center.x - rangeX, center.x + rangeX],
-                    y: [center.y + m2 * (-rangeX), center.y + m2 * (rangeX)],
-                    mode: 'lines', name: 'Asíntota', line: { color: '#f472b6', width: 2, dash: 'dot' }, hoverinfo: 'none'
+                    x: [center.x - R, center.x + R],
+                    y: [center.y + m2 * (-R), center.y + m2 * R],
+                    mode: 'lines', line: asymptoteStyle, showlegend: false, hoverinfo: 'none'
                 });
+            }
+
+            traces.push({ x: props.foci.map(f => f.x), y: props.foci.map(f => f.y), mode: 'markers+text', name: 'Focos', marker: { color: '#ef4444', size: 10, symbol: 'circle', line: { color: '#111827', width: 2 } }, text: props.foci.map((f, i) => `F${i+1}`), textposition: 'top right', textfont: {color: '#ef4444'}, hoverinfo: 'none' });
+            traces.push({ x: props.vertices.map(v => v.x), y: props.vertices.map(v => v.y), mode: 'markers+text', name: 'Vértices', marker: { color: '#60a5fa', size: 9, symbol: 'circle' }, text: props.vertices.map((v, i) => `V${i+1}`), textposition: 'bottom left', textfont: {color: '#60a5fa'}, hoverinfo: 'none' });
+            
+            if (props.center) {
+                traces.push({ x: [props.center.x], y: [props.center.y], mode: 'markers+text', name: 'Centro', marker: { color: '#f59e0b', size: 9, symbol: 'diamond' }, text: ['C'], textposition: 'top center', textfont: {color: '#f59e0b'}, hoverinfo: 'none' });
             }
 
             const layout = {
@@ -426,7 +543,7 @@
                     tickfont: { color: '#FFFFFF' }
                 },
                 showlegend: false, dragmode: 'pan', hovermode: false,
-                transition: { duration: 300, easing: 'cubic-in-out' }
+                transition: { duration: 50, easing: 'cubic-in-out' }
             };
 
             const config = { responsive: true, scrollZoom: true, displaylogo: false, modeBarButtonsToRemove: ['select2d', 'lasso2d', 'zoomIn2d', 'zoomOut2d', 'toImage'] };
@@ -434,7 +551,6 @@
             Plotly.react(dom.plotContainer, traces, layout, config);
         }
         
-        /* 5. 3D VISUALIZATION */
         function init3D() {
             if (three.renderer) return;
             const width = dom.threeContainer.clientWidth;
@@ -481,68 +597,107 @@
 
         function draw3DScene(props) {
             init3D();
-            if (three.solidMesh) three.scene.remove(three.solidMesh);
-            if (three.wireMesh) three.scene.remove(three.wireMesh);
+            three.meshes.forEach(m => three.scene.remove(m));
+            three.meshes = [];
             
-            if (props.e === 1 || props.e === 0) return;
-
             const { e, p, theta0Rad } = props;
-            const points = [];
-            const N = 100;
-            
-            let startTheta, endTheta;
-            if (props.e > 1) {
-                const angleLimit = Math.acos(-1 / e);
-                startTheta = -angleLimit + 1e-4;
-                endTheta = angleLimit - 1e-4;
-            } else {
-                startTheta = -Math.PI;
-                endTheta = Math.PI;
-            }
 
-            for (let i = 0; i <= N; i++) {
-                const th = startTheta + (endTheta - startTheta) * i / N;
-                const r = p / (1 + e * Math.cos(th));
-                if (isFinite(r) && Math.abs(r) < 50) {
-                    points.push(new THREE.Vector2(r * Math.sin(th), r * Math.cos(th)));
+            const solidMat = new THREE.MeshStandardMaterial({
+                color: state.currentColor, metalness: 0.2, roughness: 0.5,
+                transparent: true, opacity: 0.8, side: THREE.DoubleSide,
+                polygonOffset: true, polygonOffsetFactor: 1, polygonOffsetUnits: 1
+            });
+            const wireMat = new THREE.MeshBasicMaterial({
+                color: '#FFFFFF', wireframe: true, transparent: true, opacity: 0.25
+            });
+            
+            const makeLathe = (points) => {
+                if (points.length < 2) return null;
+                const geom = new THREE.LatheGeometry(points, 96);
+                geom.center();
+                const solid = new THREE.Mesh(geom, solidMat);
+                const wire  = new THREE.Mesh(geom.clone(), wireMat);
+                const grp   = new THREE.Group();
+                grp.add(solid, wire);
+                grp.rotation.z = -theta0Rad;
+                return grp;
+            };
+
+            if (e > 1) {
+                const N = 200;
+                const buildBranch = (sign) => {
+                    const pts = [];
+                    const θlim = Math.acos(-1 / e) - 1e-4;
+                    for (let i = 0; i <= N; i++) {
+                        const θ = -θlim + (2 * θlim * i / N);
+                        const r = p / (1 + sign * e * Math.cos(θ));
+                        if (r > 0 && isFinite(r) && r < 5e3) {
+                            pts.push(new THREE.Vector2(r * Math.sin(θ), r * Math.cos(θ)));
+                        }
+                    }
+                    return pts;
+                };
+
+                const branch1Pts = buildBranch(1);
+                const g1 = makeLathe(branch1Pts);
+                if (g1) { three.scene.add(g1); three.meshes.push(g1); }
+
+                if (showBothBranches) {
+                    const branch2Pts = buildBranch(-1);
+                    const g2 = makeLathe(branch2Pts);
+                    if (g2) { 
+                        g2.rotation.z += Math.PI;
+                        three.scene.add(g2); 
+                        three.meshes.push(g2); 
+                    }
+                }
+            } else { 
+                const points = [];
+                const N = 200;
+                const theta = Array.from({length: N}, (_, i) => -Math.PI + i * 2 * Math.PI / (N - 1));
+                for (const th of theta) {
+                     const r = p / (1 + e * Math.cos(th));
+                     if(isFinite(r) && r > 0 && r < 50) {
+                         points.push(new THREE.Vector2(r * Math.sin(th), r * Math.cos(th)));
+                     }
+                }
+                const g = makeLathe(points);
+                if (g) {
+                    three.scene.add(g);
+                    three.meshes.push(g);
                 }
             }
 
-            if (points.length < 2) return;
+            const fitCameraToScene = () => {
+                const box = new THREE.Box3();
+                three.meshes.forEach(m => box.expandByObject(m));
+                if (box.isEmpty()) {
+                    three.camera.position.set(0, 0, 10);
+                    three.controls.target.set(0,0,0);
+                    return;
+                };
 
-            const geometry = new THREE.LatheGeometry(points, 64);
-            geometry.center();
-            
-            const solidMaterial = new THREE.MeshStandardMaterial({
-                color: state.currentColor, metalness: 0.2, roughness: 0.5,
-                transparent: true, opacity: 0.8, side: THREE.DoubleSide,
-                polygonOffset: true,
-                polygonOffsetFactor: 1,
-                polygonOffsetUnits: 1
-            });
-            three.solidMesh = new THREE.Mesh(geometry, solidMaterial);
-            
-            const wireMaterial = new THREE.MeshBasicMaterial({
-                color: '#FFFFFF', wireframe: true, transparent: true, opacity: 0.25
-            });
-            three.wireMesh = new THREE.Mesh(geometry, wireMaterial);
+                const center = new THREE.Vector3();
+                const size = new THREE.Vector3();
+                box.getCenter(center);
+                box.getSize(size);
+                
+                const fov = three.camera.fov * (Math.PI / 180);
+                const sizeLength = size.length();
+                let dist = sizeLength / (2 * Math.tan(fov / 2));
+                dist *= 1.2;
+                
+                three.camera.position.copy(center).add(new THREE.Vector3(0, 0, dist));
+                three.camera.near = dist / 100;
+                three.camera.far = dist * 100;
+                three.camera.updateProjectionMatrix();
 
-            three.solidMesh.rotation.z = -theta0Rad;
-            three.wireMesh.rotation.z = -theta0Rad;
-
-            three.scene.add(three.solidMesh);
-            three.scene.add(three.wireMesh);
-
-            geometry.computeBoundingSphere();
-            const radius = geometry.boundingSphere.radius;
-            const camDistance = radius / Math.sin(three.camera.fov * RAD / 2) * 2.0;
-
-            three.camera.position.set(0, 0, camDistance > 0 ? camDistance : 10);
-            three.controls.target.set(0, 0, 0);
-            three.controls.update();
+                three.controls.target.copy(center);
+                three.controls.update();
+            }
+            fitCameraToScene();
         }
 
-        /* 6. EVENT HANDLERS & INITIALIZATION */
         function toggle3DView(show) {
             state.show3D = show;
             dom.viewToggle.textContent = show ? '2D' : '3D';
@@ -568,8 +723,12 @@
             dom.wireframeBtn.classList.add(mode === 'wireframe' ? btnActive : btnInactive);
             dom.bothBtn.classList.add(mode === 'both' ? btnActive : btnInactive);
             
-            if (three.solidMesh) three.solidMesh.visible = (mode === 'solid' || mode === 'both');
-            if (three.wireMesh) three.wireMesh.visible = (mode === 'wireframe' || mode === 'both');
+            three.meshes.forEach(group => {
+                const solidMesh = group.children[0];
+                const wireMesh = group.children[1];
+                if (solidMesh) solidMesh.visible = (mode === 'solid' || mode === 'both');
+                if (wireMesh) wireMesh.visible = (mode === 'wireframe' || mode === 'both');
+            });
         }
 
         function mainUpdateCycle() {
@@ -582,6 +741,15 @@
 
             const props = calculateConicProperties();
             updateInfoPanel(props);
+
+            if (props.type === 'Hipérbola') {
+                dom.asymptotePaletteToggle.classList.remove('hidden');
+                dom.branchToggleContainer.classList.remove('hidden');
+            } else {
+                dom.asymptotePaletteToggle.classList.add('hidden');
+                dom.branchToggleContainer.classList.add('hidden');
+                dom.asymptotePaletteWidget.classList.add('opacity-0', 'pointer-events-none', 'scale-95', '-translate-y-2');
+            }
             
             if (state.show3D) {
                 draw3DScene(props);
@@ -597,39 +765,69 @@
                 mainUpdateCycle();
             });
 
+            dom.branchToggle.checked = showBothBranches;
+            dom.branchToggle.addEventListener('change', e => {
+               showBothBranches = e.target.checked;
+               mainUpdateCycle();
+            });
+
             dom.solidBtn.addEventListener('click', () => update3DDisplay('solid'));
             dom.wireframeBtn.addEventListener('click', () => update3DDisplay('wireframe'));
             dom.bothBtn.addEventListener('click', () => update3DDisplay('both'));
             
-            // Color Palette Logic
+            const closeAllPalettes = () => {
+                dom.paletteWidget.classList.add('opacity-0', 'pointer-events-none', 'scale-95', '-translate-y-2');
+                dom.asymptotePaletteWidget.classList.add('opacity-0', 'pointer-events-none', 'scale-95', '-translate-y-2');
+            };
+
+            const togglePalette = (widget) => {
+                const isOpening = widget.classList.contains('opacity-0');
+                closeAllPalettes();
+                if (isOpening) {
+                    widget.classList.remove('opacity-0', 'pointer-events-none', 'scale-95', '-translate-y-2');
+                }
+            };
+
             dom.paletteToggle.addEventListener('click', (e) => {
                 e.stopPropagation();
-                dom.paletteWidget.classList.toggle('opacity-0');
-                dom.paletteWidget.classList.toggle('pointer-events-none');
-                dom.paletteWidget.classList.toggle('scale-95');
-                dom.paletteWidget.classList.toggle('-translate-y-2');
+                togglePalette(dom.paletteWidget);
             });
-            document.addEventListener('click', () => {
-                dom.paletteWidget.classList.add('opacity-0', 'pointer-events-none', 'scale-95', '-translate-y-2');
-            });
-            dom.paletteWidget.addEventListener('click', e => e.stopPropagation());
 
-            conicColors.forEach(color => {
+            dom.asymptotePaletteToggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                togglePalette(dom.asymptotePaletteWidget);
+            });
+
+            document.addEventListener('click', closeAllPalettes);
+            dom.paletteWidget.addEventListener('click', e => e.stopPropagation());
+            dom.asymptotePaletteWidget.addEventListener('click', e => e.stopPropagation());
+
+            const createSwatch = (color, targetStateProperty) => {
                 const swatch = document.createElement('button');
                 swatch.className = 'w-7 h-7 rounded-full transition-transform duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white';
                 swatch.style.backgroundColor = color;
-                swatch.dataset.color = color;
-                dom.colorSwatchesContainer.appendChild(swatch);
-
                 swatch.addEventListener('click', () => {
-                    state.currentColor = color;
-                    Plotly.restyle(dom.plotContainer, { 'line.color': color }, [0]);
-                    if (three.solidMesh) {
-                        three.solidMesh.material.color.set(color);
+                    state[targetStateProperty] = color;
+                    if (targetStateProperty === 'currentColor') {
+                        three.meshes.forEach(group => {
+                            const solidMesh = group.children[0];
+                            if (solidMesh) solidMesh.material.color.set(color);
+                        });
                     }
-                    // Optional: close palette on selection
-                    dom.paletteToggle.click(); 
+                    mainUpdateCycle();
+                    closeAllPalettes();
                 });
+                return swatch;
+            };
+
+            dom.colorSwatchesContainer.innerHTML = '';
+            conicColors.forEach(color => {
+                dom.colorSwatchesContainer.appendChild(createSwatch(color, 'currentColor'));
+            });
+            
+            dom.asymptoteColorSwatchesContainer.innerHTML = '';
+            asymptoteColors.forEach(color => {
+                dom.asymptoteColorSwatchesContainer.appendChild(createSwatch(color, 'asymptoteColor'));
             });
         }
 
