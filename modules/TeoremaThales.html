@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teorema de Thales - Simulación Interactiva</title>
+
+    <!-- Carga de MathJax para renderizar fórmulas matemáticas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- Carga de Font Awesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- ===================================================================== -->
+    <!--  INICIO DE LA SECCIÓN DE ESTILOS (CSS)                                -->
+    <!-- ===================================================================== -->
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #ff6f61;
+            --animation-color: #28a745;
+            --background-color: #f0f4f8;
+            --panel-bg: rgba(255, 255, 255, 0.7);
+            --text-color: #333;
+            --border-radius: 15px;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        html {
+            height: 100%;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            background-image: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        
+        /* --- Contenedor Principal --- */
+        main {
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            gap: 25px;
+            flex-grow: 1;
+            margin-top: 20px;
+        }
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+        }
+        .right-panel {
+            padding: 15px;
+            min-height: 500px;
+        }
+        #thales-canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            border-radius: var(--border-radius);
+            background-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        /* --- Cabecera y Botones Modernos --- */
+        header {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 15px;
+            padding: 0 10px;
+            flex-wrap: wrap;
+        }
+        .modern-btn {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(145deg, #f0f0f0, #cacaca);
+            color: #555;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 5px 5px 10px #bebebe, -5px -5px 10px #ffffff;
+            transition: all 0.2s ease-in-out;
+        }
+        .modern-btn:hover {
+            box-shadow: 2px 2px 5px #bebebe, -2px -2px 5px #ffffff;
+            color: var(--primary-color);
+        }
+        .modern-btn:active {
+            box-shadow: inset 2px 2px 5px #bebebe, inset -2px -2px 5px #ffffff;
+        }
+        .modern-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+        .modern-btn i {
+            transition: transform 0.3s ease;
+        }
+        .modern-btn:hover i {
+            transform: scale(1.2);
+        }
+        
+        /* --- Panel Izquierdo --- */
+        .left-panel h2 {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        .controls-section {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .controls-section button {
+            flex-grow: 1;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .controls-section button:hover {
+            background-color: #0056b3;
+        }
+        .controls-section button:last-child {
+            background-color: var(--secondary-color);
+        }
+        .controls-section button:last-child:hover {
+            background-color: #d9534f;
+        }
+        #info-panel {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding-right: 10px;
+        }
+        
+        /* --- Estilos para Modales --- */
+        .modal {
+            display: none; position: fixed; z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: #fefefe; 
+            margin: 10% auto; padding: 25px 35px;
+            border: none; width: 90%; max-width: 600px;
+            border-radius: var(--border-radius); 
+            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+            position: relative; animation: slideIn 0.4s;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+        .modal-body ul {
+            list-style: none;
+            padding-left: 0;
+        }
+        .modal-body li {
+            margin-bottom: 10px;
+            line-height: 1.6;
+        }
+        .modal-body li strong {
+            color: var(--primary-color);
+        }
+        .modal-body p {
+            line-height: 1.7;
+            text-align: justify;
+        }
+        .close-btn {
+            color: #aaa; font-size: 32px; font-weight: bold;
+            cursor: pointer; transition: color 0.2s, transform 0.2s;
+        }
+        .close-btn:hover, .close-btn:focus { color: #e53e3e; transform: scale(1.1); }
+
+        .color-picker-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .color-picker-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding: 12px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        .color-picker-item label {
+            font-weight: bold;
+            flex-grow: 1;
+        }
+        .color-picker-item input[type="color"] {
+            -webkit-appearance: none;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            padding: 0;
+            background-color: transparent;
+            transition: transform 0.2s;
+        }
+        .color-picker-item input[type="color"]:hover {
+            transform: scale(1.1);
+        }
+        .color-picker-item input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+        .color-picker-item input[type="color"]::-webkit-color-swatch {
+            border: 2px solid #ddd;
+            border-radius: 50%;
+        }
+
+        #graph-modal-canvas {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+        }
+
+        /* --- Footer --- */
+        .main-footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: auto;
+            color: #eee;
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: var(--border-radius);
+            flex-shrink: 0;
+        }
+        
+        /* --- Animaciones y Responsividad --- */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-50px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
+        @media (max-width: 900px) {
+            body { padding: 10px; }
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto;
+            }
+            .right-panel {
+                min-height: 60vh;
+            }
+            header { justify-content: center; }
+            .modal-content { width: 95%; margin: 15% auto; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button class="modern-btn" title="Paleta de Colores" data-modal-target="color-modal">
+            <i class="fas fa-palette"></i>
+        </button>
+        <button class="modern-btn" title="Ampliar Gráfica" data-modal-target="graph-modal">
+            <i class="fas fa-expand-alt"></i>
+        </button>
+        <button class="modern-btn" title="Contexto Histórico" data-modal-target="history-modal">
+            <i class="fas fa-book-open"></i>
+        </button>
+        <button class="modern-btn" title="Ayuda" data-modal-target="help-modal">
+            <i class="fas fa-question-circle"></i>
+        </button>
+    </header>
+
+    <main>
+        <div class="panel left-panel">
+            <h2>Teorema de Thales</h2>
+            <div class="controls-section">
+                <button id="add-line-btn">Añadir Línea Paralela</button>
+                <button id="remove-line-btn">Eliminar Última Línea</button>
+            </div>
+            <div id="info-panel">
+                <!-- El contenido se genera dinámicamente con JavaScript -->
+            </div>
+        </div>
+
+        <div class="panel right-panel">
+            <canvas id="thales-canvas"></canvas>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        Autor: Msc Néstor Fabio Montoya Palacios y Gemini AI
+    </footer>
+
+    <!-- ===================================================================== -->
+    <!--  VENTANAS MODALES                                                     -->
+    <!-- ===================================================================== -->
+
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Guía de Uso Interactivo</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h4>Interactuando con la Gráfica</h4>
+                <ul>
+                    <li><strong>Mover Transversales:</strong> Haz clic y arrastra los puntos rojos grandes en los extremos de las líneas verdes para cambiar su posición e inclinación.</li>
+                    <li><strong>Ajustar Paralelas:</strong> Haz clic y arrastra cualquier línea azul paralela para cambiar su distancia verticalmente. El cursor cambiará a una flecha vertical.</li>
+                    <li><strong>Deslizar Intersecciones:</strong> Haz clic en un punto de intersección (A, B, C...) y arrástralo horizontalmente para deslizar toda la recta transversal.</li>
+                </ul>
+                <h4>Controles Adicionales</h4>
+                <ul>
+                    <li><strong>Añadir/Quitar Líneas:</strong> Usa los botones en el panel izquierdo para agregar o eliminar líneas paralelas.</li>
+                    <li><strong>Paleta de Colores:</strong> Personaliza los colores de la simulación usando el botón de la paleta (<i class="fas fa-palette"></i>).</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Contexto Histórico -->
+    <div id="history-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Un Poco de Historia</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="modal-body">
+                <h4>Thales de Mileto y la Gran Pirámide</h4>
+                <p>
+                    Thales de Mileto (c. 624-546 a.C.) fue un filósofo, matemático y astrónomo griego, considerado uno de los Siete Sabios de Grecia. A él se le atribuye el famoso teorema que lleva su nombre.
+                </p>
+                <p>
+                    Cuenta la leyenda que, durante un viaje a Egipto, Thales utilizó su ingenio y sus conocimientos de geometría para calcular la altura de la Gran Pirámide de Guiza. Se percató de que los rayos del sol incidían sobre la Tierra de forma paralela. Esperó hasta el momento del día en que su propia sombra midiera exactamente lo mismo que su altura. 
+                </p>
+                <p>
+                    En ese preciso instante, la sombra proyectada por la pirámide también debía ser igual a su altura. Al medir la longitud de la sombra de la pirámide (más la mitad de la base), pudo determinar su altura con una precisión asombrosa para la época. Este método es, en esencia, una aplicación directa de la semejanza de triángulos, el principio fundamental detrás de su teorema.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Paleta de Colores -->
+    <div id="color-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Paleta de Colores</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <div class="color-picker-list">
+                <div class="color-picker-item">
+                    <label for="parallel-color">Líneas Paralelas</label>
+                    <input type="color" id="parallel-color" data-color-key="parallels">
+                </div>
+                <div class="color-picker-item">
+                    <label for="transversal-color">Líneas Transversales</label>
+                    <input type="color" id="transversal-color" data-color-key="transversals">
+                </div>
+                <div class="color-picker-item">
+                    <label for="point-color">Puntos de Control</label>
+                    <input type="color" id="point-color" data-color-key="points">
+                </div>
+                <div class="color-picker-item">
+                    <label for="label-color">Etiquetas de Puntos</label>
+                    <input type="color" id="label-color" data-color-key="labels">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Gráfica Ampliada -->
+    <div id="graph-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Gráfica Ampliada</h2>
+                <span class="close-btn">&times;</span>
+            </div>
+            <canvas id="graph-modal-canvas"></canvas>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!--  INICIO DE LA LÓGICA (JAVASCRIPT)                                     -->
+    <!-- ===================================================================== -->
+    <script>
+        'use strict';
+
+        // --- 1. ELEMENTOS DEL DOM Y CONFIGURACIÓN INICIAL ---
+        const canvas = document.getElementById('thales-canvas');
+        const ctx = canvas.getContext('2d');
+        const infoPanel = document.getElementById('info-panel');
+        const addLineBtn = document.getElementById('add-line-btn');
+        const removeLineBtn = document.getElementById('remove-line-btn');
+        
+        const state = {
+            parallelLines: [],
+            transversals: [],
+            intersectionPoints: [[], []],
+            dragging: null,
+            colors: {
+                parallels: '#007bff',
+                transversals: '#28a745',
+                points: '#dc3545',
+                labels: '#343a40',
+                background: '#ffffff'
+            },
+            pointRadius: 6,
+        };
+
+        // --- 2. FUNCIONES MATEMÁTICAS Y DE UTILIDAD ---
+        function getLineIntersection(p1, p2, y) {
+            if (p1.y === p2.y) return null;
+            const t = (y - p1.y) / (p2.y - p1.y);
+            if (t < -10 || t > 10) return null;
+            const x = p1.x + t * (p2.x - p1.x);
+            return { x, y };
+        }
+
+        function distance(p1, p2) {
+            return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+        }
+
+        function getMousePos(evt, targetCanvas) {
+            const rect = targetCanvas.getBoundingClientRect();
+            const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+            const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+            return {
+                x: (clientX - rect.left) * (targetCanvas.width / rect.width),
+                y: (clientY - rect.top) * (targetCanvas.height / rect.height)
+            };
+        }
+        
+        // --- 3. LÓGICA DE DIBUJO EN CANVAS ---
+        function drawLine(p1, p2, color, width = 2) {
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+
+        function drawPoint(p, color, radius) {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, radius, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+        }
+
+        function drawLabel(text, p, color) {
+            ctx.fillStyle = color;
+            ctx.font = 'bold 16px Arial';
+            ctx.fillText(text, p.x + 10, p.y - 10);
+        }
+
+        function drawSegmentLabels() {
+            ctx.fillStyle = '#0056b3';
+            ctx.font = 'bold 14px Arial';
+            
+            state.intersectionPoints.forEach((transversalPoints) => {
+                for (let i = 0; i < transversalPoints.length - 1; i++) {
+                    const p1 = transversalPoints[i];
+                    const p2 = transversalPoints[i+1];
+
+                    if (p1 && p2) {
+                        const dist = distance(p1, p2);
+                        const midX = (p1.x + p2.x) / 2;
+                        const midY = (p1.y + p2.y) / 2;
+
+                        const dx = p2.x - p1.x;
+                        const dy = p2.y - p1.y;
+                        const length = Math.sqrt(dx*dx + dy*dy);
+                        const offsetX = -dy / length * 15;
+                        const offsetY = dx / length * 15;
+
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(dist.toFixed(1), midX + offsetX, midY + offsetY);
+                    }
+                }
+            });
+        }
+
+        function drawHorizontalSegmentLabels() {
+            ctx.fillStyle = '#c82333';
+            ctx.font = 'italic bold 13px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'top';
+
+            const [t1_points, t2_points] = state.intersectionPoints;
+
+            for (let i = 0; i < state.parallelLines.length; i++) {
+                const p1 = t1_points[i];
+                const p2 = t2_points[i];
+
+                if (p1 && p2) {
+                    const dist = Math.abs(p1.x - p2.x);
+                    const midX = (p1.x + p2.x) / 2;
+                    const y = state.parallelLines[i].y + 5;
+
+                    ctx.strokeStyle = '#c82333';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, y);
+                    ctx.lineTo(p2.x, y);
+                    ctx.stroke();
+                    ctx.fillText(dist.toFixed(1), midX, y + 2);
+                }
+            }
+        }
+
+        function drawScene() {
+            const dpr = window.devicePixelRatio || 1;
+            const rect = canvas.parentElement.getBoundingClientRect();
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            canvas.style.width = `${rect.width}px`;
+            canvas.style.height = `${rect.height}px`;
+
+            ctx.fillStyle = state.colors.background;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            calculateIntersections();
+
+            state.parallelLines.forEach(line => {
+                drawLine({x: 0, y: line.y}, {x: canvas.width / dpr, y: line.y}, state.colors.parallels);
+            });
+
+            state.transversals.forEach(t => {
+                drawLine(t.p1, t.p2, state.colors.transversals, 3);
+                drawPoint(t.p1, state.colors.points, state.pointRadius + 2);
+                drawPoint(t.p2, state.colors.points, state.pointRadius + 2);
+            });
+
+            state.intersectionPoints.forEach((transversal, tIndex) => {
+                transversal.forEach((point, pIndex) => {
+                    if(point) {
+                        drawPoint(point, state.colors.points, state.pointRadius);
+                        const label = String.fromCharCode(65 + pIndex) + (tIndex === 1 ? "'" : "");
+                        drawLabel(label, point, state.colors.labels);
+                    }
+                });
+            });
+            
+            drawSegmentLabels();
+            drawHorizontalSegmentLabels();
+
+            updateInfoPanel();
+        }
+        
+        // --- 4. CÁLCULOS Y ACTUALIZACIÓN DE DATOS ---
+        function calculateIntersections() {
+            state.intersectionPoints = state.transversals.map(t => 
+                state.parallelLines.map(line => getLineIntersection(t.p1, t.p2, line.y))
+            );
+        }
+
+        function updateInfoPanel() {
+            let content = `
+                <h3>Teorema</h3>
+                <p>Si varias rectas paralelas son cortadas por dos transversales, la razón de los segmentos de una transversal es igual a la razón de los segmentos correspondientes en la otra. <b>¡Arrastra las líneas paralelas para cambiar su espaciado!</b></p>
+                <h3>Fórmula General</h3>
+                <p>$$ \\frac{AB}{BC} = \\frac{A'B'}{B'C'} $$</p>
+                <h3>Valores Medidos</h3>
+            `;
+
+            const [t1_points, t2_points] = state.intersectionPoints;
+            if (t1_points.length < 2 || !t1_points[0] || !t1_points[1] ) {
+                 infoPanel.innerHTML = content + "<p>Se necesitan al menos dos líneas paralelas.</p>";
+                 if (window.MathJax) MathJax.typesetPromise([infoPanel]);
+                 return;
+            }
+
+            let resultsContent = "";
+            for (let i = 0; i < t1_points.length - 1; i++) {
+                const p1_start = t1_points[i];
+                const p1_end = t1_points[i+1];
+                const p2_start = t2_points[i];
+                const p2_end = t2_points[i+1];
+
+                if (p1_start && p1_end && p2_start && p2_end) {
+                    const dist1 = distance(p1_start, p1_end);
+                    const dist2 = distance(p2_start, p2_end);
+                    const label1 = String.fromCharCode(65 + i) + String.fromCharCode(65 + i + 1);
+                    const label2 = label1.split('').join("'") + "'";
+                    
+                    resultsContent += `<p>$$ \\overline{${label1}} = ${dist1.toFixed(2)} \\quad | \\quad \\overline{${label2}} = ${dist2.toFixed(2)} $$</p>`;
+                }
+            }
+
+            if (t1_points.length > 2 && t1_points[0] && t1_points[1] && t1_points[2]) {
+                const p1_A = t1_points[0], p1_B = t1_points[1], p1_C = t1_points[2];
+                const p2_A = t2_points[0], p2_B = t2_points[1], p2_C = t2_points[2];
+
+                if (p1_A && p1_B && p1_C && p2_A && p2_B && p2_C) {
+                    const dist_AB = distance(p1_A, p1_B);
+                    const dist_BC = distance(p1_B, p1_C);
+                    const dist_A_B_ = distance(p2_A, p2_B);
+                    const dist_B_C_ = distance(p2_B, p2_C);
+
+                    if (dist_BC > 0.1 && dist_B_C_ > 0.1) {
+                        const ratio1 = dist_AB / dist_BC;
+                        const ratio2 = dist_A_B_ / dist_B_C_;
+                        const diff = Math.abs(ratio1 - ratio2);
+                        const color = diff < 0.02 ? 'green' : 'red';
+
+                        resultsContent += `
+                            <h4>Verificación de la Proporción</h4>
+                            <p>$$ \\frac{${dist_AB.toFixed(2)}}{${dist_BC.toFixed(2)}} = ${ratio1.toFixed(3)} \\quad | \\quad \\frac{${dist_A_B_.toFixed(2)}}{${dist_B_C_.toFixed(2)}} = ${ratio2.toFixed(3)} $$</p>
+                            <p style="color:${color}; font-weight: bold;">Diferencia: ${diff.toFixed(4)} ${diff < 0.02 ? '✓ Teorema Cumplido' : '✗'}</p>
+                        `;
+                    }
+                }
+            }
+            
+            infoPanel.innerHTML = content + resultsContent;
+            if (window.MathJax) MathJax.typesetPromise([infoPanel]);
+        }
+
+        // --- 5. LÓGICA DE INTERACCIÓN DEL USUARIO ---
+        function handleMouseDown(e) {
+            e.preventDefault();
+            const pos = getMousePos(e, canvas);
+            
+            for (let tIndex = 0; tIndex < state.transversals.length; tIndex++) {
+                const t = state.transversals[tIndex];
+                if (distance(pos, t.p1) < state.pointRadius * 3) {
+                    state.dragging = { type: 'transversal', tIndex: tIndex, pIndex: 'p1' };
+                    canvas.style.cursor = 'grabbing';
+                    return;
+                }
+                if (distance(pos, t.p2) < state.pointRadius * 3) {
+                    state.dragging = { type: 'transversal', tIndex: tIndex, pIndex: 'p2' };
+                    canvas.style.cursor = 'grabbing';
+                    return;
+                }
+            }
+
+            for (let lIndex = 0; lIndex < state.parallelLines.length; lIndex++) {
+                if (Math.abs(pos.y - state.parallelLines[lIndex].y) < 15) {
+                    state.dragging = { type: 'parallel', lineObject: state.parallelLines[lIndex] };
+                    canvas.style.cursor = 'ns-resize';
+                    return;
+                }
+            }
+
+            for (let tIndex = 0; tIndex < state.intersectionPoints.length; tIndex++) {
+                for (let lIndex = 0; lIndex < state.intersectionPoints[tIndex].length; lIndex++) {
+                    const point = state.intersectionPoints[tIndex][lIndex];
+                    if (point && distance(pos, point) < state.pointRadius * 3) {
+                        state.dragging = { type: 'intersection', tIndex, lIndex };
+                        canvas.style.cursor = 'ew-resize';
+                        return;
+                    }
+                }
+            }
+        }
+        
+        function handleMouseMove(e) {
+            if (!state.dragging) return;
+            e.preventDefault();
+            const pos = getMousePos(e, canvas);
+            const dpr = window.devicePixelRatio || 1;
+
+            if (state.dragging.type === 'transversal') {
+                const { tIndex, pIndex } = state.dragging;
+                state.transversals[tIndex][pIndex].x = pos.x;
+                state.transversals[tIndex][pIndex].y = pos.y;
+            } else if (state.dragging.type === 'intersection') {
+                const { tIndex, lIndex } = state.dragging;
+                const transversal = state.transversals[tIndex];
+                const oldIntersection = state.intersectionPoints[tIndex][lIndex];
+                if (!oldIntersection) return;
+                
+                const dx = pos.x - oldIntersection.x;
+                transversal.p1.x += dx;
+                transversal.p2.x += dx;
+            } else if (state.dragging.type === 'parallel') {
+                const { lineObject } = state.dragging;
+                const newY = Math.max(10, Math.min(canvas.height / dpr - 10, pos.y));
+                lineObject.y = newY;
+            }
+            
+            drawScene();
+        }
+
+        function handleMouseUp() {
+            if (state.dragging && state.dragging.type === 'parallel') {
+                state.parallelLines.sort((a, b) => a.y - b.y);
+                drawScene();
+            }
+            state.dragging = null;
+            canvas.style.cursor = 'crosshair';
+        }
+
+        // --- 6. MANEJADORES DE EVENTOS DE BOTONES Y MODALES ---
+        function addParallelLine() {
+            if (state.parallelLines.length >= 8) return;
+            const dpr = window.devicePixelRatio || 1;
+            const lastY = state.parallelLines.length > 0 ? state.parallelLines[state.parallelLines.length - 1].y : 50;
+            const newY = lastY + 60;
+            if (newY < canvas.height / dpr - 50) {
+                state.parallelLines.push({ y: newY });
+                state.parallelLines.sort((a,b) => a.y - b.y);
+                drawScene();
+            }
+        }
+
+        function removeParallelLine() {
+            if (state.parallelLines.length > 2) {
+                state.parallelLines.pop();
+                drawScene();
+            }
+        }
+
+        function setupAllModals() {
+            const modalTriggers = document.querySelectorAll('[data-modal-target]');
+            
+            modalTriggers.forEach(trigger => {
+                trigger.addEventListener('click', () => {
+                    const modalId = trigger.getAttribute('data-modal-target');
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        if (modalId === 'graph-modal') {
+                            const modalCanvas = document.getElementById('graph-modal-canvas');
+                            const dpr = window.devicePixelRatio || 1;
+                            modalCanvas.width = canvas.width;
+                            modalCanvas.height = canvas.height;
+                            modalCanvas.style.width = `${canvas.width / dpr}px`;
+                            modalCanvas.style.height = `${canvas.height / dpr}px`;
+                            const modalCtx = modalCanvas.getContext('2d');
+                            modalCtx.scale(dpr, dpr);
+                            modalCtx.drawImage(canvas, 0, 0, canvas.width/dpr, canvas.height/dpr);
+                        }
+                        modal.style.display = 'block';
+                    }
+                });
+            });
+
+            const allModals = document.querySelectorAll('.modal');
+            allModals.forEach(modal => {
+                const closeBtn = modal.querySelector('.close-btn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        modal.style.display = 'none';
+                    });
+                }
+            });
+
+            window.addEventListener('click', (event) => {
+                allModals.forEach(modal => {
+                    if (event.target === modal) {
+                        modal.style.display = 'none';
+                    }
+                });
+            });
+        }
+
+        function setupColorPickers() {
+            const pickers = document.querySelectorAll('.color-picker-item input[type="color"]');
+            pickers.forEach(picker => {
+                const key = picker.dataset.colorKey;
+                picker.value = state.colors[key];
+                picker.addEventListener('input', (e) => {
+                    state.colors[key] = e.target.value;
+                    drawScene();
+                });
+            });
+        }
+
+        // --- 7. INICIALIZACIÓN ---
+        function init() {
+            state.parallelLines = [
+                { y: 100 },
+                { y: 200 },
+                { y: 300 }
+            ];
+            state.transversals = [
+                { p1: { x: 100, y: 50 }, p2: { x: 200, y: 450 } },
+                { p1: { x: 400, y: 50 }, p2: { x: 300, y: 450 } }
+            ];
+
+            canvas.addEventListener('mousedown', handleMouseDown);
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseup', handleMouseUp);
+            canvas.addEventListener('mouseleave', handleMouseUp);
+            
+            canvas.addEventListener('touchstart', handleMouseDown, { passive: false });
+            canvas.addEventListener('touchmove', handleMouseMove, { passive: false });
+            canvas.addEventListener('touchend', handleMouseUp);
+
+            addLineBtn.addEventListener('click', addParallelLine);
+            removeLineBtn.addEventListener('click', removeParallelLine);
+            
+            window.addEventListener('resize', drawScene);
+
+            setupAllModals();
+            setupColorPickers();
+
+            drawScene();
+            console.log("Aplicación del Teorema de Thales (versión final) inicializada.");
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+
+    </script>
+</body>
+</html>
