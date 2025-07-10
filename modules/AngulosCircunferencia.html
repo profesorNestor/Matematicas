@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ángulos en una Circunferencia - Versión Mejorada</title>
+    
+    <!-- Carga de MathJax para renderizar fórmulas matemáticas -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <!-- ===================================================================== -->
+    <!--  INICIO DE LA SECCIÓN DE ESTILOS (CSS)                                -->
+    <!-- ===================================================================== -->
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #ff8c00;
+            --background-color: #f0f4f8;
+            --panel-bg: rgba(255, 255, 255, 0.65);
+            --text-color: #333;
+            --border-radius: 15px;
+            --shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            --slider-track-bg: #dde;
+            --slider-thumb-bg: var(--primary-color);
+        }
+        html {
+            height: 100%;
+        }
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background-color);
+            background-image: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+            margin: 0;
+            padding: 20px;
+            color: var(--text-color);
+            min-height: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            box-sizing: border-box;
+        }
+        header {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 20px;
+            padding-right: 10px;
+        }
+        
+        main {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 25px;
+            flex-grow: 1;
+        }
+        .panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: var(--border-radius);
+            padding: 30px;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        .right-panel {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        #main-canvas {
+            width: 100%;
+            height: auto;
+            aspect-ratio: 1 / 1;
+            cursor: grab;
+            border-radius: var(--border-radius);
+            background-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        /* Botón de Ayuda Ultra Moderno */
+        #help-btn {
+            position: relative;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(145deg, #0d6efd, #0a58ca);
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+            transition: all 0.3s ease;
+        }
+        #help-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.5);
+        }
+        #help-btn:active {
+            transform: translateY(0) scale(1);
+            box-shadow: 0 4px 10px rgba(0, 123, 255, 0.4);
+        }
+        #help-btn svg {
+            width: 28px;
+            height: 28px;
+            fill: white;
+        }
+
+        .modern-select {
+            display: block;
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            font-size: 16px;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-sizing: border-box;
+            margin-top: 8px;
+            margin-bottom: 20px;
+        }
+        .modern-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.3);
+        }
+        
+        .slider-container { margin-top: 20px; }
+        .slider-container label { display: block; margin-bottom: 10px; font-weight: bold; }
+        .slider-container .radius-value { font-weight: normal; color: var(--primary-color); }
+        
+        input[type="range"] {
+            -webkit-appearance: none;
+            width: 100%;
+            height: 8px;
+            background: var(--slider-track-bg);
+            border-radius: 5px;
+            outline: none;
+            transition: opacity .2s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px;
+            background: var(--slider-thumb-bg);
+            cursor: pointer; border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px; height: 20px;
+            background: var(--slider-thumb-bg);
+            cursor: pointer; border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 0 8px rgba(0,0,0,0.2);
+        }
+
+        .info-container {
+            margin-top: 20px; padding: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.9);
+            max-height: 50vh;
+            overflow: auto;
+        }
+        .info-container h3 {
+            margin-top: 0;
+            border-bottom: 2px solid var(--primary-color);
+            padding-bottom: 8px;
+            color: var(--primary-color);
+        }
+        .info-container h4 { margin-top: 15px; margin-bottom: 5px; }
+        .info-container p { margin: 5px 0; line-height: 1.5; }
+
+        .modal {
+            display: none; position: fixed; z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            overflow: auto; background-color: rgba(0, 0, 0, 0.6);
+            animation: fadeIn 0.3s;
+        }
+        .modal-content {
+            background-color: #fefefe; 
+            margin: 10% auto; padding: 20px 30px 30px 30px;
+            border: none; width: 90%; max-width: 600px;
+            border-radius: var(--border-radius); 
+            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+            position: relative; animation: slideIn 0.4s;
+        }
+        .modal-content h2 { color: var(--primary-color); border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        .modal-content h3 { color: var(--secondary-color); margin-top: 20px; }
+        .modal-content ul { list-style: none; padding-left: 0; }
+        .modal-content li { background: #f9f9f9; margin-bottom: 8px; padding: 10px; border-radius: 8px; border-left: 4px solid var(--primary-color); }
+        .modal-footer {
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+        }
+        
+        .main-footer {
+            text-align: center;
+            padding: 20px;
+            margin-top: 20px;
+            color: #555;
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.5);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { transform: translateY(-50px) scale(0.95); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
+
+        .close-btn {
+            color: #aaa; position: absolute; top: 15px; right: 25px;
+            font-size: 32px; font-weight: bold; cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+        }
+        .close-btn:hover, .close-btn:focus { color: #e53e3e; transform: scale(1.1); }
+
+        @media (max-width: 800px) {
+            body { padding: 10px; }
+            main { grid-template-columns: 1fr; }
+            .modal-content { width: 95%; margin: 15% auto; }
+            .main-footer { font-size: 12px; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <button id="help-btn" title="Mostrar Ayuda">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg>
+        </button>
+    </header>
+
+    <main>
+        <div class="panel left-panel">
+            <h2>Ángulos en la Circunferencia</h2>
+            <p>Selecciona un tipo de ángulo y arrastra los puntos en el lienzo para explorar sus propiedades y teoremas de forma interactiva.</p>
+            
+            <label for="angle-selector">Tipo de Ángulo:</label>
+            <select id="angle-selector" class="modern-select">
+                <option value="central">1. Ángulo Central</option>
+                <option value="inscrito">2. Ángulo Inscrito</option>
+                <option value="semi-inscrito">3. Ángulo Semi-inscrito</option>
+                <option value="interior">4. Ángulo Interior</option>
+                <option value="exterior">5. Ángulo Exterior</option>
+            </select>
+
+            <div class="slider-container">
+                <label for="radius-slider">Radio: <span id="radius-value" class="radius-value">200</span>px</label>
+                <input type="range" id="radius-slider" min="50" max="250" value="200">
+            </div>
+
+            <div id="info-panel" class="info-container"></div>
+        </div>
+
+        <div class="panel right-panel">
+            <canvas id="main-canvas" width="600" height="600"></canvas>
+        </div>
+    </main>
+
+    <footer class="main-footer">
+        Autor: Msc Néstor Fabio Montoya Palacios, Gemini AI
+    </footer>
+
+    <div id="help-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" title="Cerrar">&times;</span>
+            <h2>Guía de Uso Interactivo</h2>
+            <p>Esta es una guía rápida para explorar los diferentes tipos de ángulos en la circunferencia.</p>
+            
+            <h3>Controles Generales</h3>
+            <ul>
+                <li><b>Selector de Ángulo:</b> Usa el menú desplegable para cambiar entre los diferentes teoremas.</li>
+                <li><b>Deslizador de Radio:</b> Ajusta el tamaño de la circunferencia.</li>
+                <li><b>Lienzo Interactivo:</b> Haz clic y arrastra los puntos de colores para modificar las figuras.</li>
+            </ul>
+
+            <h3>Interacciones por Tipo de Ángulo</h3>
+            <ul>
+                <li><b>Ángulo Central:</b> Arrastra los puntos A y B. Observa que el ángulo en el centro (α) es siempre igual al arco que subtiende.</li>
+                <li><b>Ángulo Inscrito:</b> Arrastra A, B y el vértice C. Comprueba que el ángulo inscrito (β) es siempre la mitad del arco que abarca.</li>
+                <li><b>Ángulo Semi-Inscrito:</b> Arrastra A y B. El ángulo (α) formado por la tangente y la cuerda es la mitad del arco interceptado.</li>
+                <li><b>Ángulo Interior:</b> Arrastra A, B, C y D. El punto P se calcula solo. El ángulo (δ) es la semisuma de los arcos que cortan las cuerdas.</li>
+                <li><b>Ángulo Exterior:</b> Arrastra A, B y el punto exterior P. El ángulo (δ) es la semidiferencia de los dos arcos que cortan las secantes.</li>
+            </ul>
+            <div class="modal-footer">
+                Autor: Msc Néstor Fabio Montoya Palacios, Gemini AI
+            </div>
+        </div>
+    </div>
+
+    <script>
+        'use strict';
+        // ===================================================================
+        // 1. ELEMENTOS DEL DOM Y CONFIGURACIÓN INICIAL
+        // ===================================================================
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d');
+        const angleSelector = document.getElementById('angle-selector');
+        const infoPanel = document.getElementById('info-panel');
+        const helpBtn = document.getElementById('help-btn');
+        const modal = document.getElementById('help-modal');
+        const closeBtn = document.querySelector('.close-btn');
+        const radiusSlider = document.getElementById('radius-slider');
+        const radiusValueSpan = document.getElementById('radius-value');
+
+        // ===================================================================
+        // 2. CONFIGURACIÓN GLOBAL Y ESTADO DE LA APLICACIÓN
+        // ===================================================================
+        const config = {
+            circle: { O: { x: 300, y: 300 }, radius: 200 },
+            styles: {
+                font: '16px Arial', 
+                pointRadius: 6, 
+                mainCircle: 'blue',
+                labelColor: 'black',
+                central: { 
+                    radii: 'black', arc: 'red', angle: 'rgba(0, 200, 0, 0.4)' 
+                },
+                exterior: {
+                    radii: 'grey', angleAlpha: 'rgba(0, 0, 255, 0.3)',
+                    angleBeta: 'rgba(255, 0, 0, 0.3)', angleDelta: 'rgba(255, 165, 0, 0.5)',
+                    secants: 'black', pointA_B_Color: 'orange', pointC_D_Color: 'red',
+                    pointP_Color: 'black', pointO_Color: 'blue'
+                },
+                interior: {
+                    radii: 'grey', chords: 'black',
+                    angleAlpha: 'rgba(255, 0, 0, 0.3)', angleBeta: 'rgba(0, 0, 255, 0.3)',
+                    angleDelta: 'rgba(255, 165, 0, 0.5)', arcAC: 'red', arcBD: 'green',
+                    pointA_C_Color: 'red', pointB_D_Color: 'orange',
+                    pointP_Color: 'black', pointO_Color: 'blue'
+                },
+                semiInscrito: {
+                    radii: 'grey', tangent: 'green', secant: 'black',
+                    angleAlpha: 'rgba(255, 0, 0, 0.4)', angleBeta: 'rgba(0, 0, 255, 0.3)',
+                    arcAB: 'purple', pointA_Color: 'red', pointB_Color: 'orange',
+                    pointO_Color: 'blue'
+                },
+                inscrito: {
+                    radii: 'black', chords: 'black', arc: 'red',
+                    angleAlpha: 'rgba(0, 200, 0, 0.15)', // Central
+                    angleBeta: 'rgba(0, 0, 255, 0.15)' // Inscrito
+                }
+            }
+        };
+
+        let state = { 
+            currentAngleType: 'central', 
+            points: {}, 
+            draggingPoint: null 
+        };
+
+        // ===================================================================
+        // 3. FUNCIONES AUXILIARES Y UTILIDADES MATEMÁTICAS
+        // ===================================================================
+        function toDegrees(rad) { return rad * 180 / Math.PI; }
+        function positiveAngle(angle) {
+            return (angle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
+        }
+        function distance(p1, p2) { return Math.hypot(p1.x - p2.x, p1.y - p2.y); }
+        function lineAngle(a1, a2) {
+            let diff = Math.abs(a1 - a2) % (2*Math.PI);
+            return diff > Math.PI ? 2*Math.PI - diff : diff;
+        }
+        function findLineIntersection(p1, p2, p3, p4) {
+            const den = (p1.x - p2.x) * (p3.y - p4.y) - (p1.y - p2.y) * (p3.x - p4.x);
+            if (Math.abs(den) < 1e-9) return null;
+            const t = ((p1.x - p3.x) * (p3.y - p4.y) - (p1.y - p3.y) * (p3.x - p4.x)) / den;
+            const u = -((p1.x - p2.x) * (p1.y - p3.y) - (p1.y - p2.y) * (p1.x - p3.x)) / den;
+            if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
+                return { x: p1.x + t * (p2.x - p1.x), y: p1.y + t * (p2.y - p1.y) };
+            }
+            return null;
+        }
+        function lineCircleIntersection(p1, p2, center, r) {
+            const dx = p2.x - p1.x; const dy = p2.y - p1.y;
+            const fx = p1.x - center.x; const fy = p1.y - center.y;
+            const a = dx * dx + dy * dy;
+            const b = 2 * (fx * dx + fy * dy);
+            const c = (fx * fx + fy * fy) - r * r;
+            const discriminant = b * b - 4 * a * c;
+            if (discriminant < 0) return [];
+            const sqrtD = Math.sqrt(discriminant);
+            const t1 = (-b + sqrtD) / (2 * a);
+            const t2 = (-b - sqrtD) / (2 * a);
+            return [{ x: p1.x + dx * t1, y: p1.y + dy * t1 }, { x: p1.x + dx * t2, y: p1.y + dy * t2 }];
+        }
+        function polarLabel(origin, angle, dist) {
+            return { x: origin.x + dist * Math.cos(angle), y: origin.y + dist * Math.sin(angle) };
+        }
+        function getMinorArc(angle1, angle2) {
+            const a1 = positiveAngle(angle1);
+            const a2 = positiveAngle(angle2);
+            let diff = positiveAngle(a2 - a1);
+            if (diff > Math.PI) {
+                diff = 2 * Math.PI - diff;
+                return { start: a2, end: a1, angle: diff };
+            }
+            return { start: a1, end: a2, angle: diff };
+        }
+
+        // ===================================================================
+        // 4. FUNCIONES DE DIBUJO EN CANVAS
+        // ===================================================================
+        function drawPoint(p, label, color = 'red') {
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, config.styles.pointRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = color; ctx.fill();
+            ctx.fillStyle = config.styles.labelColor; ctx.font = '16px Arial';
+            ctx.fillText(label, p.x + 12, p.y + 5);
+        }
+        function drawDottedLine(p1, p2, color) {
+            ctx.beginPath(); ctx.setLineDash([5, 5]);
+            ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color; ctx.lineWidth = 1.5; ctx.stroke();
+            ctx.setLineDash([]);
+        }
+        function drawSegment(p1, p2, color) {
+            ctx.beginPath();
+            ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+            ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+        }
+        function drawArc(center, radius, start, end, color, width) {
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, radius, start, end);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = width;
+            ctx.stroke();
+        }
+        function drawSector(center, start, end, r, fillStyle) {
+            ctx.beginPath();
+            ctx.moveTo(center.x, center.y);
+            ctx.arc(center.x, center.y, r, start, end);
+            ctx.closePath();
+            ctx.fillStyle = fillStyle; ctx.fill();
+        }
+        function drawLabel(text, pos, color = 'black') {
+            ctx.fillStyle = color; ctx.font = '16px Arial';
+            ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(text, pos.x, pos.y);
+            ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+        }
+
+        // ===================================================================
+        // 5. CONFIGURACIÓN DE PUNTOS INICIALES PARA CADA TIPO DE ÁNGULO
+        // ===================================================================
+        function setInitialCentralPoints() {
+            const { O, radius } = config.circle;
+            const angleRad = Math.PI / 3;
+            state.points.A = { x: O.x + radius, y: O.y };
+            state.points.B = { x: O.x + radius * Math.cos(angleRad), y: O.y + radius * Math.sin(angleRad) };
+        }
+        function setInitialExteriorPoints() {
+            const { O, radius } = config.circle;
+            const angleA = 150 * Math.PI / 180;
+            const angleB = 210 * Math.PI / 180;
+            state.points.A = { x: O.x + radius * Math.cos(angleA), y: O.y + radius * Math.sin(angleA) };
+            state.points.B = { x: O.x + radius * Math.cos(angleB), y: O.y + radius * Math.sin(angleB) };
+            state.points.P = { x: O.x + radius * 1.3, y: O.y };
+        }
+        function setInitialInteriorPoints() {
+            const { O, radius } = config.circle;
+            const angleA = 210 * Math.PI / 180; const angleB = 0 * Math.PI / 180;
+            const angleC = 150 * Math.PI / 180; const angleD = 270 * Math.PI / 180;
+            const A = { x: O.x + radius * Math.cos(angleA), y: O.y + radius * Math.sin(angleA) };
+            const B = { x: O.x + radius * Math.cos(angleB), y: O.y + radius * Math.sin(angleB) };
+            const C = { x: O.x + radius * Math.cos(angleC), y: O.y + radius * Math.sin(angleC) };
+            const D = { x: O.x + radius * Math.cos(angleD), y: O.y + radius * Math.sin(angleD) };
+            state.points.A = A; state.points.B = B; state.points.C = C; state.points.D = D;
+            state.points.P = findLineIntersection(A, B, C, D);
+        }
+        function setInitialSemiInscritoPoints() {
+            const { O, radius } = config.circle;
+            const angleA = 135 * Math.PI / 180;
+            const angleB = 315 * Math.PI / 180;
+            state.points.A = { x: O.x + radius * Math.cos(angleA), y: O.y + radius * Math.sin(angleA) };
+            state.points.B = { x: O.x + radius * Math.cos(angleB), y: O.y + radius * Math.sin(angleB) };
+            calculateTangentPoints();
+        }
+        function calculateTangentPoints() {
+            const { O } = config.circle;
+            const { A } = state.points;
+            if (!A) return;
+            const radiusVector = { x: A.x - O.x, y: A.y - O.y };
+            const tangentVector = { x: -radiusVector.y, y: radiusVector.x };
+            const length = Math.hypot(tangentVector.x, tangentVector.y);
+            const unitTangent = { x: tangentVector.x / length, y: tangentVector.y / length };
+            const tangentLength = config.circle.radius * 0.8;
+            state.points.T1 = { x: A.x + unitTangent.x * tangentLength, y: A.y + unitTangent.y * tangentLength };
+            state.points.T2 = { x: A.x - unitTangent.x * tangentLength, y: A.y - unitTangent.y * tangentLength };
+        }
+        function setInitialInscritoPoints() {
+            const { O, radius } = config.circle;
+            const angleA = Math.PI / 4;
+            const angleB = 3 * Math.PI / 4;
+            const angleC = Math.PI / 2 + Math.PI;
+            state.points.A = { x: O.x + radius * Math.cos(angleA), y: O.y + radius * Math.sin(angleA) };
+            state.points.B = { x: O.x + radius * Math.cos(angleB), y: O.y + radius * Math.sin(angleB) };
+            state.points.C = { x: O.x + radius * Math.cos(angleC), y: O.y + radius * Math.sin(angleC) };
+        }
+
+        // ===================================================================
+        // 6. FUNCIONES DE DIBUJO PARA CADA TIPO DE ÁNGULO
+        // ===================================================================
+        function drawCentralAngle() {
+            if (!state.points.A || !state.points.B) return;
+            const { O, radius } = config.circle;
+            const style = config.styles.central;
+            const { A, B } = state.points;
+            const angleA = Math.atan2(A.y - O.y, A.x - O.x);
+            const angleB = Math.atan2(B.y - O.y, B.x - O.x);
+            const arc = getMinorArc(angleA, angleB);
+            const alphaDegrees = toDegrees(arc.angle);
+            drawDottedLine(O, A, style.radii);
+            drawDottedLine(O, B, style.radii);
+            drawArc(O, radius, arc.start, arc.end, style.arc, 3);
+            drawSector(O, arc.start, arc.end, 40, style.angle);
+            drawLabel(`α = ${alphaDegrees.toFixed(1)}°`, polarLabel(O, arc.start + arc.angle / 2, 60));
+            drawPoint(A, 'A'); drawPoint(B, 'B'); drawPoint(O, 'O', 'blue');
+            updateInfoPanelForCentral(alphaDegrees);
+        }
+        function drawExteriorAngleOptimized() {
+            const { O, radius } = config.circle;
+            const { A, B, P } = state.points;
+            if (!A || !B || !P) return;
+            const style = config.styles.exterior;
+            const C = lineCircleIntersection(P, A, O, radius).find(pt => distance(pt, A) > 1e-6);
+            const D = lineCircleIntersection(P, B, O, radius).find(pt => distance(pt, B) > 1e-6);
+            if (!C || !D) {
+                drawPoint(A, 'A', style.pointA_B_Color); drawPoint(B, 'B', style.pointA_B_Color);
+                drawPoint(P, 'P', style.pointP_Color); drawPoint(O, 'O', style.pointO_Color);
+                return;
+            }
+            const arcAB = getMinorArc(Math.atan2(A.y - O.y, A.x - O.x), Math.atan2(B.y - O.y, B.x - O.x));
+            const arcCD = getMinorArc(Math.atan2(C.y - O.y, C.x - O.x), Math.atan2(D.y - O.y, D.x - O.x));
+            const alphaDeg = toDegrees(arcAB.angle);
+            const betaDeg = toDegrees(arcCD.angle);
+            const deltaDeg = Math.abs(alphaDeg - betaDeg) / 2;
+            drawDottedLine(O, A, style.radii); drawDottedLine(O, B, style.radii);
+            drawDottedLine(O, C, style.radii); drawDottedLine(O, D, style.radii);
+            drawSegment(P, A, style.secants); drawSegment(P, B, style.secants);
+            
+            // MODIFICACIÓN: Aumentar radios de sectores y etiquetas
+            drawSector(O, arcAB.start, arcAB.end, 55, "rgba(0,80,255,0.18)");
+            drawLabel(`α = ${alphaDeg.toFixed(1)}°`, polarLabel(O, arcAB.start + arcAB.angle / 2, 75), 'blue');
+            drawSector(O, arcCD.start, arcCD.end, 70, "rgba(255,0,0,0.14)");
+            drawLabel(`β = ${betaDeg.toFixed(1)}°`, polarLabel(O, arcCD.start + arcCD.angle / 2, 90), 'red');
+            
+            const anglePA = Math.atan2(A.y - P.y, A.x - P.x);
+            const anglePB = Math.atan2(B.y - P.y, B.x - P.x);
+            drawSector(P, anglePA, anglePB, 45, "rgba(255,140,0,0.15)");
+            drawLabel(`δ = ${deltaDeg.toFixed(1)}°`, polarLabel(P, anglePA + (anglePB - anglePA) / 2, 60), 'orange');
+
+            drawPoint(O, 'O', style.pointO_Color); drawPoint(A, 'A', style.pointA_B_Color);
+            drawPoint(B, 'B', style.pointA_B_Color); drawPoint(C, 'C', style.pointC_D_Color);
+            drawPoint(D, 'D', style.pointC_D_Color); drawPoint(P, 'P', style.pointP_Color);
+            updateInfoPanelForExterior(alphaDeg, betaDeg, deltaDeg);
+        }
+        function drawInteriorAngle() {
+            const { O, radius } = config.circle;
+            const { A, B, C, D, P } = state.points;
+            const style = config.styles.interior;
+            if (!A || !B || !C || !D) { console.warn("Puntos faltantes para ángulo interior"); return; }
+            drawDottedLine(O, A, style.radii); drawDottedLine(O, B, style.radii);
+            drawDottedLine(O, C, style.radii); drawDottedLine(O, D, style.radii);
+            drawSegment(A, B, style.chords); drawSegment(C, D, style.chords);
+            const angleOA = Math.atan2(A.y - O.y, A.x - O.x); const angleOB = Math.atan2(B.y - O.y, B.x - O.x);
+            const angleOC = Math.atan2(C.y - O.y, C.x - O.x); const angleOD = Math.atan2(D.y - O.y, D.x - O.x);
+            const normOA = positiveAngle(angleOA); const normOB = positiveAngle(angleOB);
+            const normOC = positiveAngle(angleOC); const normOD = positiveAngle(angleOD);
+            let alphaMinor = Math.abs(normOC - normOA);
+            if (alphaMinor > Math.PI) alphaMinor = 2 * Math.PI - alphaMinor;
+            const alphaDeg = toDegrees(alphaMinor);
+            let beta = Math.abs(normOD - normOB);
+            if (beta > Math.PI) beta = 2 * Math.PI - beta;
+            const betaDeg = toDegrees(beta);
+            let startAlpha, endAlpha;
+            if (alphaMinor === Math.abs(normOC - normOA)) {
+                startAlpha = Math.min(normOA, normOC); endAlpha = Math.max(normOA, normOC);
+            } else {
+                if (normOA > normOC) { startAlpha = normOC; endAlpha = normOA; }
+                else { startAlpha = normOA; endAlpha = normOC; }
+            }
+            drawSector(O, startAlpha, endAlpha, 50, style.angleAlpha);
+            let startBeta, endBeta;
+            startBeta = Math.min(normOB, normOD); endBeta = Math.max(normOB, normOD);
+            if (endBeta - startBeta > Math.PI) { [startBeta, endBeta] = [endBeta, startBeta + 2 * Math.PI]; }
+            drawSector(O, startBeta, endBeta, 60, style.angleBeta);
+            drawArc(O, radius, startAlpha, endAlpha, style.arcAC, 4);
+            drawArc(O, radius, startBeta, endBeta, style.arcBD, 4);
+            const deltaDeg = (alphaDeg + betaDeg) / 2;
+            if (P) {
+                const anglePB = Math.atan2(B.y - P.y, B.x - P.x); const anglePD = Math.atan2(D.y - P.y, D.x - P.x);
+                let startDelta, endDelta;
+                if (anglePD < anglePB) { startDelta = anglePD; endDelta = anglePB; }
+                else { startDelta = anglePB; endDelta = anglePD; }
+                drawSector(P, startDelta, endDelta, 40, style.angleDelta);
+                drawLabel(`δ = ${deltaDeg.toFixed(1)}°`, polarLabel(P, (startDelta + endDelta) / 2, 50), 'orange');
+            }
+            const alphaMidAngle = (startAlpha + endAlpha) / 2;
+            drawLabel(`α = ${alphaDeg.toFixed(1)}°`, polarLabel(O, alphaMidAngle, 70), 'red');
+            const betaMidAngle = (startBeta + endBeta) / 2;
+            drawLabel(`β = ${betaDeg.toFixed(1)}°`, polarLabel(O, betaMidAngle, 80), 'blue');
+            drawPoint(O, 'O', style.pointO_Color); drawPoint(A, 'A', style.pointA_C_Color);
+            drawPoint(B, 'B', style.pointB_D_Color); drawPoint(C, 'C', style.pointA_C_Color);
+            drawPoint(D, 'D', style.pointB_D_Color);
+            if (P) { drawPoint(P, 'P', style.pointP_Color); }
+            else { console.warn("Punto P no existe"); }
+            updateInfoPanelForInterior(alphaDeg, betaDeg, deltaDeg);
+        }
+        function drawSemiInscritoAngle() {
+            const { O, radius } = config.circle;
+            const { A, B, T1, T2 } = state.points;
+            const style = config.styles.semiInscrito;
+            if (!A || !B) { console.warn("Puntos faltantes para ángulo semi-inscrito"); return; }
+            drawDottedLine(O, A, style.radii);
+            drawDottedLine(O, B, style.radii);
+            if (T1 && T2) { drawSegment(T1, T2, style.tangent); }
+            drawSegment(A, B, style.secant);
+            const angleOA = Math.atan2(A.y - O.y, A.x - O.x);
+            const angleOB = Math.atan2(B.y - O.y, B.x - O.x);
+            const arc = getMinorArc(angleOA, angleOB);
+            const beta = arc.angle;
+            const betaDeg = toDegrees(beta);
+            drawSector(O, arc.start, arc.end, 50, style.angleBeta);
+            drawArc(O, radius, arc.start, arc.end, style.arcAB, 4);
+            const angleTangent1 = angleOA + Math.PI / 2;
+            const angleTangent2 = angleOA - Math.PI / 2;
+            const angleAB = Math.atan2(B.y - A.y, B.x - A.x);
+            const alpha1 = lineAngle(angleTangent1, angleAB);
+            const alpha2 = lineAngle(angleTangent2, angleAB);
+            const expectedAlphaRad = beta / 2;
+            const actualAlphaRad = Math.abs(alpha1 - expectedAlphaRad) < Math.abs(alpha2 - expectedAlphaRad) ? alpha1 : alpha2;
+            const tangentToUse = Math.abs(alpha1 - expectedAlphaRad) < Math.abs(alpha2 - expectedAlphaRad) ? angleTangent1 : angleTangent2;
+            const alphaDeg = toDegrees(actualAlphaRad);
+            const sectorAlpha = getMinorArc(tangentToUse, angleAB);
+            drawSector(A, sectorAlpha.start, sectorAlpha.end, 40, style.angleAlpha);
+            drawLabel(`β = ${betaDeg.toFixed(1)}°`, polarLabel(O, arc.start + arc.angle / 2, 70), 'blue');
+            drawLabel(`α = ${alphaDeg.toFixed(1)}°`, polarLabel(A, sectorAlpha.start + sectorAlpha.angle / 2, 55), 'red');
+            drawPoint(O, 'O', style.pointO_Color);
+            drawPoint(A, 'A', style.pointA_Color);
+            drawPoint(B, 'B', style.pointB_Color);
+            updateInfoPanelForSemiInscrito(alphaDeg, betaDeg);
+        }
+        function drawInscritoAngle() {
+            const { O, radius } = config.circle;
+            const { A, B, C } = state.points;
+            if (!A || !B || !C) return;
+            const style = config.styles.inscrito;
+            drawDottedLine(O, A, style.radii);
+            drawDottedLine(O, B, style.radii);
+            drawSegment(A, C, style.chords);
+            drawSegment(B, C, style.chords);
+            let angA = Math.atan2(A.y - O.y, A.x - O.x);
+            let angB = Math.atan2(B.y - O.y, B.x - O.x);
+            let arc = getMinorArc(angA, angB);
+            drawArc(O, radius, arc.start, arc.end, style.arc, 4);
+            let alpha = arc.angle;
+            let alphaDeg = toDegrees(alpha);
+            drawSector(O, arc.start, arc.end, 35, style.angleAlpha);
+            drawLabel(`α = ${alphaDeg.toFixed(2)}°`, polarLabel(O, arc.start + arc.angle/2, 60), "green");
+            let angCA = Math.atan2(A.y - C.y, A.x - C.x);
+            let angCB = Math.atan2(B.y - C.y, B.x - C.x);
+            let beta = lineAngle(angCA, angCB);
+            let betaDeg = toDegrees(beta);
+            let betaArc = getMinorArc(angCA, angCB);
+            drawSector(C, betaArc.start, betaArc.end, 25, style.angleBeta);
+            drawLabel(`β = ${betaDeg.toFixed(2)}°`, polarLabel(C, betaArc.start + betaArc.angle/2, 38), "blue");
+            drawPoint(O, "O", "black");
+            drawPoint(A, "A", "black");
+            drawPoint(B, "B", "black");
+            drawPoint(C, "C", "black");
+            updateInfoPanelForInscrito(alphaDeg, betaDeg);
+        }
+        
+        // ===================================================================
+        // 7. FUNCIÓN PRINCIPAL DE CONTROL Y DIBUJO
+        // ===================================================================
+        function changeAngleType(type) {
+            state.currentAngleType = type;
+            state.points = {};
+            switch (type) {
+                case 'central': setInitialCentralPoints(); break;
+                case 'exterior': setInitialExteriorPoints(); break;
+                case 'interior': setInitialInteriorPoints(); break;
+                case 'semi-inscrito': setInitialSemiInscritoPoints(); break;
+                case 'inscrito': setInitialInscritoPoints(); break;
+            }
+            drawScene();
+        }
+        function drawScene() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.beginPath();
+            ctx.arc(config.circle.O.x, config.circle.O.y, config.circle.radius, 0, 2 * Math.PI);
+            ctx.strokeStyle = '#3399ff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            switch (state.currentAngleType) {
+                case 'central': drawCentralAngle(); break;
+                case 'inscrito': drawInscritoAngle(); break;
+                case 'semi-inscrito': drawSemiInscritoAngle(); break;
+                case 'interior': drawInteriorAngle(); break;
+                case 'exterior': drawExteriorAngleOptimized(); break;
+            }
+        }
+
+        // ===================================================================
+        // 8. FUNCIONES DE ACTUALIZACIÓN DE PANELES DE INFORMACIÓN
+        // ===================================================================
+        function updateInfoPanelForCentral(angle) {
+            infoPanel.innerHTML = `
+                <h3>Ángulo Central: \\(\\alpha\\)</h3>
+                <p>Un ángulo central es aquel cuyo vértice se encuentra en el centro de la circunferencia (O) y cuyos lados son dos radios.</p>
+                <h4>Teorema</h4>
+                <p>La medida de un ángulo central es igual a la medida del arco de circunferencia que delimitan sus lados.</p>
+                <h4>Fórmula</h4>
+                <p>$$ \\alpha = \\overset{\\frown}{AB} $$</p>
+                <h4>Valor Medido</h4>
+                <p>$$ \\alpha = ${angle.toFixed(2)}^{\\circ} $$</p>
+            `;
+            if (window.MathJax) MathJax.typesetPromise([infoPanel]);
+        }
+        
+        function updateInfoPanelForInscrito(alphaDeg, betaDeg) {
+            const verification = (alphaDeg / 2).toFixed(2);
+            const difference = Math.abs(betaDeg - alphaDeg / 2).toFixed(2);
+            infoPanel.innerHTML = `
+                <h3>Ángulo Inscrito: \\(\\beta\\)</h3>
+                <p>Es un ángulo cuyo vértice (C) está sobre la circunferencia y cuyos lados son cuerdas de la misma.</p>
+                <h4>Teorema del Ángulo Inscrito</h4>
+                <p>La medida de un ángulo inscrito es igual a la mitad de la medida del arco que subtiende (arco AB).</p>
+                <h4>Fórmula</h4>
+                <p>$$ \\beta = \\frac{\\overset{\\frown}{AB}}{2} = \\frac{\\alpha}{2} $$</p>
+                <h4>Valores Medidos</h4>
+                <p>$$ \\text{Arco AB } (\\alpha): ${alphaDeg.toFixed(2)}^{\\circ} $$</p>
+                <p><b>$$ \\text{Ángulo Inscrito } (\\beta): ${betaDeg.toFixed(2)}^{\\circ} $$</b></p>
+                <h4>Verificación del Teorema</h4>
+                <p>$$ \\frac{${alphaDeg.toFixed(2)}^{\\circ}}{2} = ${verification}^{\\circ} $$</p>
+                <p style="color:${difference < 0.5 ? 'green':'red'}">$$ \\text{Diferencia: } ${difference}^{\\circ} \\quad ${difference < 0.5 ? '\\checkmark' : '\\times'} \\text{ Verificado} $$</p>`;
+            if (window.MathJax) MathJax.typesetPromise([infoPanel]);
+        }
+
+        function updateInfoPanelForSemiInscrito(alpha, beta) {
+            const verification = (beta / 2).toFixed(2);
+            const difference = Math.abs(alpha - beta/2).toFixed(2);
+            infoPanel.innerHTML = `
+                <h3>Ángulo Semi-inscrito: \\(\\alpha\\)</h3>
+                <p>Tiene su vértice (A) en la circunferencia, un lado es una tangente y el otro una secante.</p>
+                <h4>Teorema</h4>
+                <p>La medida de un ángulo semi-inscrito es la mitad de la medida del arco que intercepta su lado secante (arco AB).</p>
+                <h4>Fórmula</h4>
+                <p>$$ \\alpha = \\frac{\\overset{\\frown}{AB}}{2} = \\frac{\\beta}{2} $$</p>
+                <h4>Valores Medidos</h4>
+                <p>$$ \\text{Arco AB } (\\beta): ${beta.toFixed(2)}^{\\circ} $$</p>
+                <p><b>$$ \\text{Ángulo Semi-inscrito } (\\alpha): ${alpha.toFixed(2)}^{\\circ} $$</b></p>
+                <h4>Verificación del Teorema</h4>
+                <p>$$ \\frac{${beta.toFixed(2)}^{\\circ}}{2} = ${verification}^{\\circ} $$</p>
+                <p style="color: ${difference < 0.5 ? 'green' : 'red'};">$$ \\text{Diferencia: } ${difference}^{\\circ} \\quad ${difference < 0.5 ? '\\checkmark' : '\\times'} \\text{ Verificado} $$</p>`;
+            if (window.MathJax) MathJax.typesetPromise([infoPanel]);
+        }
+        
+        function updateInfoPanelForInterior(alpha, beta, delta) {
+            const verification = ((alpha + beta) / 2).toFixed(2);
+            const difference = Math.abs(delta - (alpha + beta) / 2).toFixed(2);
+            infoPanel.innerHTML = `
+                <h3>Ángulo Interior: \\(\\delta\\)</h3>
+                <p>Su vértice (P) se encuentra dentro de la circunferencia y está formado por la intersección de dos cuerdas.</p>
+                <h4>Teorema</h4>
+                <p>La medida de este ángulo es la mitad de la suma de las medidas de los arcos que intercepta él y su opuesto por el vértice.</p>
+                <h4>Fórmula</h4>
+                <p>$$ \\delta = \\frac{\\overset{\\frown}{AC} + \\overset{\\frown}{BD}}{2} = \\frac{\\alpha + \\beta}{2} $$</p>
+                <h4>Valores Medidos</h4>
+                <p>$$ \\text{Arco AC } (\\alpha): ${alpha.toFixed(2)}^{\\circ} $$</p>
+                <p>$$ \\text{Arco BD } (\\beta): ${beta.toFixed(2)}^{\\circ} $$</p>
+                <p><b>$$ \\text{Ángulo Interior } (\\delta): ${delta.toFixed(2)}^{\\circ} $$</b></p>
+                <h4>Verificación del Teorema</h4>
+                <p>$$ \\frac{${alpha.toFixed(2)}^{\\circ} + ${beta.toFixed(2)}^{\\circ}}{2} = ${verification}^{\\circ} $$</p>
+                <p style="color:${difference < 0.5 ? 'green':'red'}">$$ \\text{Diferencia: } ${difference}^{\\circ} \\quad ${difference < 0.5 ? '\\checkmark' : '\\times'} \\text{ Verificado} $$</p>`;
+            if (window.MathJax) MathJax.typesetPromise([infoPanel]);
+        }
+
+        function updateInfoPanelForExterior(alpha, beta, delta) {
+            const verification = ((alpha - beta) / 2).toFixed(2);
+            const difference = Math.abs(delta - (alpha - beta) / 2).toFixed(2);
+            infoPanel.innerHTML = `
+                <h3>Ángulo Exterior: \\(\\delta\\)</h3>
+                <p>Su vértice (P) se encuentra fuera de la circunferencia y sus lados son secantes o tangentes a la misma.</p>
+                <h4>Teorema</h4>
+                <p>La medida de este ángulo es la mitad de la diferencia de los arcos interceptados por sus lados.</p>
+                <h4>Fórmula</h4>
+                <p>$$ \\delta = \\frac{\\overset{\\frown}{AB} - \\overset{\\frown}{CD}}{2} = \\frac{\\alpha - \\beta}{2} $$</p>
+                <h4>Valores Medidos</h4>
+                <p>$$ \\text{Arco Mayor } (\\alpha): ${alpha.toFixed(2)}^{\\circ} $$</p>
+                <p>$$ \\text{Arco Menor } (\\beta): ${beta.toFixed(2)}^{\\circ} $$</p>
+                <p><b>$$ \\text{Ángulo Exterior } (\\delta): ${delta.toFixed(2)}^{\\circ} $$</b></p>
+                <h4>Verificación del Teorema</h4>
+                <p>$$ \\frac{${alpha.toFixed(2)}^{\\circ} - ${beta.toFixed(2)}^{\\circ}}{2} = ${verification}^{\\circ} $$</p>
+                <p style="color:${difference < 0.5 ? 'green':'red'}">$$ \\text{Diferencia: } ${difference}^{\\circ} \\quad ${difference < 0.5 ? '\\checkmark' : '\\times'} \\text{ Verificado} $$</p>`;
+            if (window.MathJax) MathJax.typesetPromise([infoPanel]);
+        }
+
+        // ===================================================================
+        // 9. LÓGICA DE INTERACCIÓN CON EL USUARIO
+        // ===================================================================
+        function getMousePos(evt) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
+            const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
+            return { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY };
+        }
+        function isPointHit(mousePos, point) {
+            if (!point || point.x === undefined) return false;
+            return distance(mousePos, point) < config.styles.pointRadius * 2;
+        }
+        function handleStart(e) {
+            e.preventDefault();
+            const mousePos = getMousePos(e);
+            let draggablePoints;
+            switch(state.currentAngleType) {
+                case 'central': draggablePoints = ['A', 'B']; break;
+                case 'exterior': draggablePoints = ['A', 'B', 'P']; break;
+                case 'interior': draggablePoints = ['A', 'B', 'C', 'D']; break;
+                case 'semi-inscrito': draggablePoints = ['A', 'B']; break;
+                case 'inscrito': draggablePoints = ['A', 'B', 'C']; break;
+                default: draggablePoints = Object.keys(state.points);
+            }
+            for (const key of draggablePoints) {
+                if (isPointHit(mousePos, state.points[key])) {
+                    state.draggingPoint = { key: key, point: state.points[key] };
+                    canvas.style.cursor = 'grabbing';
+                    return;
+                }
+            }
+        }
+        function handleMove(e) {
+            if (!state.draggingPoint) return;
+            e.preventDefault();
+            const mousePos = getMousePos(e);
+            const { O, radius } = config.circle;
+            const { key, point } = state.draggingPoint;
+
+            if (key === 'P' && state.currentAngleType === 'exterior') {
+                point.x = mousePos.x;
+                point.y = mousePos.y;
+                const distP = distance(point, O);
+                const maxDist = radius * 2.5;
+                if (distP > maxDist) {
+                    const angle = Math.atan2(point.y - O.y, point.x - O.x);
+                    point.x = O.x + maxDist * Math.cos(angle);
+                    point.y = O.y + maxDist * Math.sin(angle);
+                }
+                if (distP <= radius) {
+                    const angle = Math.atan2(point.y - O.y, point.x - O.x);
+                    point.x = O.x + (radius + 1) * Math.cos(angle);
+                    point.y = O.y + (radius + 1) * Math.sin(angle);
+                }
+            } else if (key !== 'P') { 
+                const angle = Math.atan2(mousePos.y - O.y, mousePos.x - O.x);
+                point.x = O.x + radius * Math.cos(angle);
+                point.y = O.y + radius * Math.sin(angle);
+
+                if (state.currentAngleType === 'interior' && state.points.A && state.points.B && state.points.C && state.points.D) {
+                    const { A, B, C, D } = state.points;
+                    state.points.P = findLineIntersection(A, B, C, D);
+                }
+                if (state.currentAngleType === 'semi-inscrito') {
+                    calculateTangentPoints();
+                }
+            }
+            drawScene();
+        }
+        function handleEnd() {
+            state.draggingPoint = null;
+            canvas.style.cursor = 'grab';
+        }
+
+        // ===================================================================
+        // 11. INICIALIZACIÓN Y MANEJADORES DE EVENTOS
+        // ===================================================================
+        function init() {
+            console.log('Inicializando aplicación...');
+            config.circle.radius = parseInt(radiusSlider.value);
+            radiusValueSpan.textContent = config.circle.radius;
+            changeAngleType(angleSelector.value);
+            canvas.addEventListener('mousedown', handleStart);
+            canvas.addEventListener('mousemove', handleMove);
+            canvas.addEventListener('mouseup', handleEnd);
+            canvas.addEventListener('mouseleave', handleEnd);
+            canvas.addEventListener('touchstart', handleStart, { passive: false });
+            canvas.addEventListener('touchmove', handleMove, { passive: false });
+            canvas.addEventListener('touchend', handleEnd);
+            radiusSlider.addEventListener('input', (e) => {
+                config.circle.radius = parseInt(e.target.value);
+                radiusValueSpan.textContent = config.circle.radius;
+                changeAngleType(state.currentAngleType);
+            });
+            angleSelector.addEventListener('change', (e) => {
+                changeAngleType(e.target.value);
+            });
+            helpBtn.addEventListener('click', () => { modal.style.display = 'block'; });
+            closeBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+            window.addEventListener('click', (e) => { if (e.target === modal) { modal.style.display = 'none'; } });
+            document.addEventListener('keydown', (e) => {
+                const keyMap = {'1': 'central', '2': 'inscrito', '3': 'semi-inscrito', '4': 'interior', '5': 'exterior'};
+                if (keyMap[e.key]) {
+                    angleSelector.value = keyMap[e.key];
+                    changeAngleType(keyMap[e.key]);
+                } else if (e.key.toLowerCase() === 'h') {
+                    modal.style.display = 'block';
+                } else if (e.key === 'Escape') {
+                    modal.style.display = 'none';
+                }
+            });
+            if (window.MathJax) { window.MathJax.startup.promise.then(() => { console.log('MathJax cargado'); }); }
+            console.log('Aplicación inicializada');
+        }
+
+        document.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('resize', () => { setTimeout(drawScene, 100); });
+
+    </script>
+</body>
+</html>
