@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piano Virtual Pro - Orchestra Edition</title>
+
+  <!-- SEO & OpenGraph Meta Tags -->
+  <meta name="description" content="Un piano virtual interactivo con múltiples instrumentos, estudio de grabación, armonización por IA, y partituras en vivo. Creado por Msc. Néstor Fabio Montoya y Gemini AI.">
+  <meta name="author" content="Msc Néstor Fabio Montoya, Gemini AI">
+  <meta property="og:title" content="Piano Virtual Pro - Orchestra Edition">
+  <meta property="og:description" content="Toca el piano, guitarra, flauta o violín. Graba, compone con asistencia de IA y aprende con partituras en vivo.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://placehold.co/1200x630/2d3748/ffffff?text=Piano%20Virtual%20Orchestra">
+  <meta property="og:url" content="#">
+
+  <!-- Favicon (Emoji) -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎹</text></svg>">
+
+  <!-- External Libraries -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  
+  <!-- MathJax Configuration -->
+  <script>
+    window.MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']],
+        displayMath: [['$$', '$$'], ['\\[', '\\]']],
+        processEscapes: true
+      },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Custom Styles & Tailwind Config -->
+  <style type="text/tailwindcss">
+    @layer base {
+      :root, .light {
+        --background: 220 13% 95%;
+        --foreground: 220 14% 10%;
+        --card: 0 0% 100%;
+        --card-foreground: 220 14% 10%;
+        --primary: 262 83% 58%;
+        --primary-foreground: 210 20% 98%;
+        --secondary: 220 13% 91%;
+        --secondary-foreground: 220 14% 10%;
+        --muted: 220 9% 46%;
+        --border: 220 13% 86%;
+        --ring: 262 83% 58%;
+        --piano-casing: 220 14% 20%;
+        --white-key-from: 0 0% 100%;
+        --white-key-to: 220 13% 93%;
+        --white-key-border: 220 13% 78%;
+        --black-key-from: 220 14% 15%;
+        --black-key-to: 0 0% 0%;
+        --black-key-border: 0 0% 0%;
+        --key-playing-glow: 262 93% 78%;
+      }
+      .dark {
+        --background: 220 14% 10%;
+        --foreground: 210 20% 98%;
+        --card: 220 14% 15%;
+        --card-foreground: 210 20% 98%;
+        --primary: 262 83% 68%;
+        --primary-foreground: 220 14% 10%;
+        --secondary: 220 14% 20%;
+        --secondary-foreground: 210 20% 98%;
+        --muted: 215 14% 65%;
+        --border: 220 14% 25%;
+        --ring: 262 83% 68%;
+        --piano-casing: 220 14% 5%;
+        --white-key-from: 220 13% 88%;
+        --white-key-to: 220 13% 80%;
+        --white-key-border: 220 13% 60%;
+        --black-key-from: 220 14% 18%;
+        --black-key-to: 0 0% 5%;
+        --black-key-border: 0 0% 0%;
+        --key-playing-glow: 262 93% 78%;
+      }
+      .neon {
+        --background: 257 100% 3%;
+        --foreground: 300 100% 97%;
+        --card: 260 83% 11%;
+        --card-foreground: 300 100% 97%;
+        --primary: 325 100% 50%;
+        --primary-foreground: 325 100% 95%;
+        --secondary: 260 83% 15%;
+        --secondary-foreground: 300 100% 97%;
+        --muted: 248 9% 65%;
+        --border: 260 83% 20%;
+        --ring: 325 100% 50%;
+        --piano-casing: 260 83% 5%;
+        --white-key-from: 220 13% 90%;
+        --white-key-to: 220 13% 80%;
+        --white-key-border: 220 13% 50%;
+        --black-key-from: 220 14% 15%;
+        --black-key-to: 0 0% 0%;
+        --black-key-border: 0 0% 0%;
+        --key-playing-glow: 180 100% 50%;
+      }
+    }
+    @layer utilities {
+      .fade-in { animation: fadeIn 0.3s ease-in-out; }
+      .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      .key.active { transform: translateY(2px); filter: brightness(0.9); box-shadow: none; }
+      .key.playing {
+        box-shadow: 0 0 15px 3px hsl(var(--key-playing-glow)), inset 0 0 10px hsl(var(--key-playing-glow) / 0.5);
+        transform: translateY(1px);
+      }
+      .recording-pulse { animation: recordingPulse 1.5s infinite; }
+      @keyframes recordingPulse {
+        0% { background-color: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+        70% { background-color: #ef4444; box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+        100% { background-color: #ef4444; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+      }
+    }
+  </style>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            border: 'hsl(var(--border))', ring: 'hsl(var(--ring))',
+            background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+            primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+            secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+            card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+            muted: { 'DEFAULT': 'hsl(var(--muted))' },
+          },
+          borderRadius: { lg: "0.75rem", md: "0.5rem", sm: "0.25rem" },
+          fontFamily: { sans: ['Inter', 'sans-serif', 'system-ui'] },
+        },
+      },
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-background text-foreground font-sans antialiased">
+
+  <div class="flex flex-col w-full min-h-screen">
+    
+    <!-- Header -->
+    <header class="flex items-center justify-between p-4 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
+      <h1 class="text-xl md:text-2xl font-bold text-primary flex items-center gap-2">
+          <i data-lucide="music-4"></i>
+          <span>Piano Virtual Pro</span>
+      </h1>
+      <div class="flex items-center gap-2">
+          <button id="theme-switcher" class="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Cambiar tema">
+              <i data-lucide="sun" class="light-icon w-5 h-5"></i>
+              <i data-lucide="moon" class="dark-icon hidden w-5 h-5"></i>
+              <i data-lucide="zap" class="neon-icon hidden w-5 h-5"></i>
+          </button>
+          <button id="help-modal-btn" class="p-2 rounded-full hover:bg-secondary transition-colors" aria-label="Mostrar ayuda">
+              <i data-lucide="help-circle" class="w-5 h-5"></i>
+          </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow flex flex-col items-center justify-center p-4 md:p-8">
+      <!-- Piano -->
+      <div id="piano-casing" class="bg-[hsl(var(--piano-casing))] rounded-lg md:rounded-xl shadow-2xl p-4 md:p-6 w-full max-w-5xl">
+        <div id="piano-keys" class="relative flex justify-center h-48 md:h-80">
+          <!-- White Keys -->
+          <div data-note="C" data-key="a" class="key white-key"><span class="key-label">Do</span></div>
+          <div data-note="D" data-key="s" class="key white-key"><span class="key-label">Re</span></div>
+          <div data-note="E" data-key="d" class="key white-key"><span class="key-label">Mi</span></div>
+          <div data-note="F" data-key="f" class="key white-key"><span class="key-label">Fa</span></div>
+          <div data-note="G" data-key="g" class="key white-key"><span class="key-label">Sol</span></div>
+          <div data-note="A" data-key="h" class="key white-key"><span class="key-label">La</span></div>
+          <div data-note="B" data-key="j" class="key white-key"><span class="key-label">Si</span></div>
+          <!-- Black Keys -->
+          <div data-note="C#" data-key="w" class="key black-key" style="left: 6.5%;"><span class="key-label">#Do</span></div>
+          <div data-note="D#" data-key="e" class="key black-key" style="left: 20.5%;"><span class="key-label">#Re</span></div>
+          <div data-note="F#" data-key="t" class="key black-key" style="left: 48.5%;"><span class="key-label">#Fa</span></div>
+          <div data-note="G#" data-key="y" class="key black-key" style="left: 62.5%;"><span class="key-label">#Sol</span></div>
+          <div data-note="A#" data-key="u" class="key black-key" style="left: 76.5%;"><span class="key-label">#La</span></div>
+        </div>
+        <style>
+          .white-key { 
+            width: 14.28%; 
+            background-image: linear-gradient(to bottom, hsl(var(--white-key-from)), hsl(var(--white-key-to)));
+            border: 1px solid hsl(var(--border));
+            border-bottom-width: 6px;
+            border-bottom-color: hsl(var(--white-key-border));
+            border-radius: 0 0 0.5rem 0.5rem; 
+            box-shadow: inset 0 1px 1px hsl(var(--white-key-from)), 0 4px 0 hsl(var(--white-key-border));
+            position: relative; 
+            z-index: 1; 
+            cursor: pointer; 
+            transition: all 0.05s ease-out;
+          }
+          .black-key { 
+            width: 8.5%; 
+            height: 60%;
+            background-image: linear-gradient(to bottom, hsl(var(--black-key-from)), hsl(var(--black-key-to)));
+            border: 1px solid black;
+            border-bottom-width: 6px;
+            border-bottom-color: hsl(var(--black-key-border));
+            border-radius: 0 0 0.5rem 0.5rem; 
+            box-shadow: inset 0 1px 1px rgba(255,255,255,0.1), 0 3px 0 hsl(var(--black-key-border));
+            position: absolute; 
+            z-index: 2; 
+            transform: translateX(-50%); 
+            cursor: pointer; 
+            transition: all 0.05s ease-out;
+          }
+          .key-label { 
+            position: absolute;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            user-select: none; 
+            font-weight: 500;
+          }
+          .white-key .key-label { color: hsl(var(--muted)); }
+          .black-key .key-label { color: #fff; font-size: 0.875rem; }
+          .black-key.active { height: calc(60% - 2px); }
+        </style>
+      </div>
+    </main>
+    
+    <!-- Bottom Panel -->
+    <footer class="p-4 border-t border-border bg-card/80 backdrop-blur-sm">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+            <!-- Controls Panel -->
+            <div class="bg-secondary/50 p-4 rounded-lg border border-border">
+                <h3 class="font-bold mb-3 text-center">Controles del Instrumento</h3>
+                <div class="flex flex-col gap-4">
+                    <button id="activate-audio-btn" class="w-full p-3 bg-primary text-primary-foreground font-bold rounded-lg hover:bg-primary/90 transition-all flex items-center justify-center gap-2">
+                        <i data-lucide="volume-x"></i>
+                        <span>Activar Audio</span>
+                    </button>
+                     <div>
+                        <label for="instrument-selector" class="text-sm font-medium text-muted">Instrumento</label>
+                        <select id="instrument-selector" class="w-full mt-1 p-2 bg-background border border-border rounded-lg appearance-none focus:ring-2 focus:ring-ring focus:outline-none">
+                            <option value="piano">Piano</option>
+                            <option value="guitar">Guitarra</option>
+                            <option value="flute">Flauta</option>
+                            <option value="violin">Violín</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="octave-slider" class="text-sm font-medium text-muted">Octava Manual: <span id="octave-value" class="font-bold text-foreground">4</span></label>
+                        <input type="range" min="2" max="6" value="4" id="octave-slider" class="w-full h-2 bg-background rounded-lg appearance-none cursor-pointer accent-primary mt-2">
+                    </div>
+                </div>
+            </div>
+            <!-- Melody Player -->
+            <div class="bg-secondary/50 p-4 rounded-lg border border-border">
+                <h3 class="font-bold mb-3 text-center">Reproductor de Melodías</h3>
+                <div class="flex flex-col gap-4">
+                    <div class="relative">
+                        <select id="melody-selector" class="w-full p-3 bg-background border border-border rounded-lg appearance-none focus:ring-2 focus:ring-ring focus:outline-none">
+                            <option value="">-- Elige una melodía --</option>
+                            <option value="paraElisa">Para Elisa</option>
+                            <option value="baladaParaAdelina">Balada Para Adelina</option>
+                            <option value="twinkleTwinkle">Estrellita</option>
+                        </select>
+                        <i data-lucide="chevron-down" class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted pointer-events-none"></i>
+                    </div>
+                    <button id="play-pause-btn" class="w-full p-3 bg-secondary font-bold rounded-lg hover:bg-border transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                        <i data-lucide="play"></i>
+                        <span id="play-pause-text">Reproducir</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Information Panel -->
+            <div class="bg-secondary/50 p-4 rounded-lg border border-border md:col-span-1">
+                <h3 class="font-bold mb-3 text-center">Información de la Nota</h3>
+                <div id="info-content" class="text-center text-muted flex items-center justify-center min-h-[100px]">
+                    <p>Toca una tecla o reproduce una melodía</p>
+                </div>
+            </div>
+        </div>
+        <div class="text-center text-xs text-muted mt-6">
+            Autor: Msc. Néstor Fabio Montoya Palacios y Gemini AI
+        </div>
+    </footer>
+  </div>
+
+  <!-- Help Modal -->
+  <div id="help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 fade-in">
+    <div class="bg-card border border-border rounded-2xl p-6 w-full max-w-2xl shadow-2xl slide-up max-h-[90vh] flex flex-col">
+        <div class="flex items-center justify-between mb-4 pb-4 border-b border-border">
+            <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="help-circle"></i> Guía del Piano Virtual</h2>
+            <button class="p-2 rounded-md hover:bg-secondary transition-colors close-modal-btn"><i data-lucide="x"></i></button>
+        </div>
+        <div class="overflow-y-auto prose prose-sm dark:prose-invert max-w-none prose-p:text-foreground/80 prose-headings:text-foreground">
+            <h4>¡Bienvenido al Estudio de Composición!</h4>
+            <p>Esta es una herramienta interactiva para tocar música y aprender sobre sus fundamentos físicos y teóricos.</p>
+            
+            <h5>Cómo Tocar</h5>
+            <ul>
+              <li><strong>Manual:</strong> Elige un instrumento, haz clic/toca las teclas o usa tu teclado físico (<code>A, S, D...</code>).</li>
+              <li><strong>Reproductor:</strong> Elige una melodía del selector y presiona el botón de reproducir.</li>
+            </ul>
+
+            <h5>Controles del Instrumento</h5>
+            <ul>
+                <li><strong>Instrumento:</strong> Cambia el sonido entre Piano, Guitarra, Flauta y Violín. Cada uno tiene su propia característica sonora.</li>
+                <li><strong>Octava Manual:</strong> Ajusta el tono de las notas que tocas manualmente.</li>
+            </ul>
+
+            <h5>El Panel de Información</h5>
+            <p>Cuando tocas una nota, el panel te muestra información detallada:</p>
+            <ul>
+                <li><strong>Nota y Frecuencia:</strong> Cada nota corresponde a una vibración con una frecuencia específica, medida en Hertz (Hz).</li>
+                <li><strong>Fórmula de Frecuencia:</strong> La frecuencia $f$ se calcula como: $$ f(n) = f_{ref} \times (\sqrt[12]{2})^n $$ Donde $n$ es el número de semitonos de distancia desde la nota de referencia (A4 = 440 Hz).</li>
+            </ul>
+        </div>
+    </div>
+  </div>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- DOM Elements ---
+      const activateAudioBtn = document.getElementById('activate-audio-btn');
+      const octaveSlider = document.getElementById('octave-slider');
+      const octaveValue = document.getElementById('octave-value');
+      const infoContent = document.getElementById('info-content');
+      const pianoKeys = document.querySelectorAll('.key');
+      const themeSwitcher = document.getElementById('theme-switcher');
+      const helpModalBtn = document.getElementById('help-modal-btn');
+      const helpModal = document.getElementById('help-modal');
+      const closeHelpModalBtn = helpModal.querySelector('.close-modal-btn');
+      const melodySelector = document.getElementById('melody-selector');
+      const playPauseBtn = document.getElementById('play-pause-btn');
+      const playPauseText = document.getElementById('play-pause-text');
+      const instrumentSelector = document.getElementById('instrument-selector');
+
+      // --- State ---
+      let audioContext;
+      let isAudioReady = false;
+      let currentTheme = 'light';
+      const themes = ['light', 'dark', 'neon'];
+      let isPlayingMelody = false;
+      let currentMelody = [];
+      let currentNoteIndex = 0;
+      let melodyTimeoutId = null;
+      
+      const NOTE_MAP = {
+        'C': 261.63, 'C#': 277.18, 'D': 293.66, 'D#': 311.13, 'E': 329.63,
+        'F': 349.23, 'F#': 369.99, 'G': 392.00, 'G#': 415.30, 'A': 440.00,
+        'A#': 466.16, 'B': 493.88
+      };
+
+      const KEY_TO_NOTE = {};
+      pianoKeys.forEach(key => {
+        const keyboardKey = key.dataset.key;
+        if (keyboardKey) KEY_TO_NOTE[keyboardKey] = key;
+      });
+
+      const MELODIES = {
+        paraElisa: [ { note: 'E5', duration: 150 }, { note: 'D#5', duration: 150 }, { note: 'E5', duration: 150 }, { note: 'D#5', duration: 150 }, { note: 'E5', duration: 150 }, { note: 'B4', duration: 150 }, { note: 'D5', duration: 150 }, { note: 'C5', duration: 150 }, { note: 'A4', duration: 300 }, { note: 'C4', duration: 150 }, { note: 'E4', duration: 150 }, { note: 'A4', duration: 150 }, { note: 'B4', duration: 300 }, { note: 'E4', duration: 150 }, { note: 'G#4', duration: 150 }, { note: 'B4', duration: 150 }, { note: 'C5', duration: 300 }, ],
+        baladaParaAdelina: [ { note: 'G4', duration: 200 }, { note: 'A4', duration: 200 }, { note: 'B4', duration: 400 }, { note: 'G4', duration: 200 }, { note: 'A4', duration: 200 }, { note: 'B4', duration: 200 }, { note: 'C5', duration: 400 }, { note: 'B4', duration: 200 }, { note: 'A4', duration: 200 }, { note: 'G4', duration: 400 }, { note: 'F#4', duration: 200 }, { note: 'A4', duration: 200 }, { note: 'G4', duration: 400 }, ],
+        twinkleTwinkle: [ { note: 'C4', duration: 250 }, { note: 'C4', duration: 250 }, { note: 'G4', duration: 250 }, { note: 'G4', duration: 250 }, { note: 'A4', duration: 250 }, { note: 'A4', duration: 250 }, { note: 'G4', duration: 500 }, { note: 'F4', duration: 250 }, { note: 'F4', duration: 250 }, { note: 'E4', duration: 250 }, { note: 'E4', duration: 250 }, { note: 'D4', duration: 250 }, { note: 'D4', duration: 250 }, { note: 'C4', duration: 500 }, ],
+      };
+
+      // --- Audio Functions ---
+      const initializeAudio = () => {
+        if (isAudioReady) return;
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioContext.state === 'suspended') audioContext.resume();
+        activateAudioBtn.innerHTML = `<i data-lucide="volume-2"></i><span>Audio Activado</span>`;
+        lucide.createIcons();
+        activateAudioBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+        activateAudioBtn.classList.remove('bg-primary', 'hover:bg-primary/90');
+        isAudioReady = true;
+      };
+
+      function playNote(note, octave, duration = 1.5) {
+          if (!isAudioReady) return;
+          const baseFreq = NOTE_MAP[note];
+          if (!baseFreq) return;
+          const freq = baseFreq * Math.pow(2, octave - 4);
+
+          const instrument = instrumentSelector.value;
+          const now = audioContext.currentTime;
+          const gainNode = audioContext.createGain();
+          gainNode.connect(audioContext.destination);
+
+          switch (instrument) {
+              case 'piano':
+                  gainNode.gain.setValueAtTime(0, now);
+                  gainNode.gain.linearRampToValueAtTime(0.4, now + 0.01);
+                  gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                  const osc = audioContext.createOscillator();
+                  osc.type = 'triangle';
+                  osc.frequency.value = freq;
+                  osc.connect(gainNode);
+                  osc.start(now);
+                  osc.stop(now + duration);
+                  break;
+              
+              case 'guitar':
+                  gainNode.gain.setValueAtTime(0, now);
+                  gainNode.gain.linearRampToValueAtTime(0.6, now + 0.01);
+                  gainNode.gain.exponentialRampToValueAtTime(0.001, now + 1);
+                  const guitarOsc = audioContext.createOscillator();
+                  guitarOsc.type = 'triangle';
+                  guitarOsc.frequency.value = freq;
+                  guitarOsc.connect(gainNode);
+                  guitarOsc.start(now);
+                  guitarOsc.stop(now + 1.2);
+                  // Pluck sound
+                  const pluckGain = audioContext.createGain();
+                  pluckGain.connect(audioContext.destination);
+                  pluckGain.gain.setValueAtTime(0.2, now);
+                  pluckGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                  const pluckOsc = audioContext.createOscillator();
+                  pluckOsc.type = 'square';
+                  pluckOsc.frequency.value = freq * 2;
+                  pluckOsc.connect(pluckGain);
+                  pluckOsc.start(now);
+                  pluckOsc.stop(now + 0.1);
+                  break;
+
+              case 'flute':
+                  gainNode.gain.setValueAtTime(0, now);
+                  gainNode.gain.linearRampToValueAtTime(0.5, now + 0.1); // Slower attack
+                  gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                  const fluteOsc = audioContext.createOscillator();
+                  fluteOsc.type = 'sine';
+                  fluteOsc.frequency.value = freq;
+                  fluteOsc.connect(gainNode);
+                  fluteOsc.start(now);
+                  fluteOsc.stop(now + duration);
+                  break;
+              
+              case 'violin':
+                  gainNode.gain.setValueAtTime(0, now);
+                  gainNode.gain.linearRampToValueAtTime(0.4, now + 0.2); // Slowest attack
+                  gainNode.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                  const violinOsc = audioContext.createOscillator();
+                  violinOsc.type = 'sawtooth';
+                  violinOsc.frequency.value = freq;
+                  violinOsc.connect(gainNode);
+                  violinOsc.start(now);
+                  violinOsc.stop(now + duration);
+                  break;
+          }
+          updateInfoPanel(note, octave, freq);
+      }
+      
+      // --- UI Functions ---
+      const updateInfoPanel = (note, octave, freq) => {
+          infoContent.innerHTML = `
+            <div class="space-y-2 text-left p-2 w-full">
+                <div class="flex justify-between items-baseline"><span class="text-sm text-muted">Nota</span><span class="text-xl font-bold text-primary">${note}${octave}</span></div>
+                <div class="flex justify-between items-baseline"><span class="text-sm text-muted">Frecuencia</span><span class="text-xl font-bold">${freq.toFixed(2)} Hz</span></div>
+                <div class="text-center mt-2"><div class="bg-background p-2 rounded-md text-xs">$$ f = ${NOTE_MAP[note].toFixed(2)} \\times 2^{(${octave} - 4)} $$</div></div>
+            </div>`;
+          if (window.MathJax) MathJax.typesetPromise([infoContent]);
+      }
+
+      const applyTheme = (theme) => {
+        document.documentElement.classList.remove(...themes);
+        document.documentElement.classList.add(theme);
+        currentTheme = theme;
+        localStorage.setItem('piano-theme', theme);
+        document.querySelectorAll('#theme-switcher i').forEach(i => i.style.display = 'none');
+        document.querySelector(`#theme-switcher .${theme}-icon`).style.display = 'block';
+      };
+      
+      const highlightKey = (noteName, duration) => {
+        const keyElement = document.querySelector(`.key[data-note="${noteName}"]`);
+        if (keyElement) {
+            keyElement.classList.add('playing');
+            setTimeout(() => keyElement.classList.remove('playing'), duration);
+        }
+      }
+      
+      // --- Melody Player Logic ---
+      const playNextNote = () => {
+        if (currentNoteIndex >= currentMelody.length) {
+            stopMelody();
+            return;
+        }
+
+        const noteData = currentMelody[currentNoteIndex];
+        const noteName = noteData.note.slice(0, -1);
+        const octave = parseInt(noteData.note.slice(-1));
+
+        playNote(noteName, octave, noteData.duration / 1000);
+        highlightKey(noteName, noteData.duration);
+
+        currentNoteIndex++;
+        melodyTimeoutId = setTimeout(playNextNote, noteData.duration);
+      };
+
+      const startMelody = () => {
+        if (!isAudioReady) initializeAudio();
+        isPlayingMelody = true;
+        playPauseBtn.innerHTML = `<i data-lucide="pause"></i>`;
+        playPauseText.textContent = "Pausar";
+        lucide.createIcons();
+        playNextNote();
+      };
+
+      const pauseMelody = () => {
+        isPlayingMelody = false;
+        clearTimeout(melodyTimeoutId);
+        playPauseBtn.innerHTML = `<i data-lucide="play"></i>`;
+        playPauseText.textContent = "Reproducir";
+        lucide.createIcons();
+      };
+
+      const stopMelody = () => {
+        isPlayingMelody = false;
+        clearTimeout(melodyTimeoutId);
+        currentNoteIndex = 0;
+        playPauseBtn.innerHTML = `<i data-lucide="play"></i>`;
+        playPauseText.textContent = "Reproducir";
+        lucide.createIcons();
+      };
+
+      // --- Event Listeners ---
+      activateAudioBtn.addEventListener('click', initializeAudio);
+      octaveSlider.addEventListener('input', (e) => octaveValue.textContent = e.target.value);
+
+      pianoKeys.forEach(key => {
+        const handlePress = (e) => {
+            e.preventDefault();
+            initializeAudio();
+            const note = key.dataset.note;
+            const octave = parseInt(octaveSlider.value);
+            playNote(note, octave);
+            key.classList.add('active');
+        };
+        const handleRelease = () => key.classList.remove('active');
+        
+        key.addEventListener('mousedown', handlePress);
+        key.addEventListener('mouseup', handleRelease);
+        key.addEventListener('mouseleave', handleRelease);
+        key.addEventListener('touchstart', handlePress, { passive: false });
+        key.addEventListener('touchend', handleRelease);
+      });
+
+      window.addEventListener('keydown', (e) => {
+        if (e.repeat) return;
+        const keyElement = KEY_TO_NOTE[e.key.toLowerCase()];
+        if (keyElement && !keyElement.classList.contains('active')) {
+            const note = keyElement.dataset.note;
+            const octave = parseInt(octaveSlider.value);
+            playNote(note, octave);
+            keyElement.classList.add('active');
+        }
+      });
+      window.addEventListener('keyup', (e) => {
+        const keyElement = KEY_TO_NOTE[e.key.toLowerCase()];
+        if (keyElement) keyElement.classList.remove('active');
+      });
+      
+      themeSwitcher.addEventListener('click', () => applyTheme(themes[(themes.indexOf(currentTheme) + 1) % themes.length]));
+
+      melodySelector.addEventListener('change', (e) => {
+        stopMelody();
+        const selected = e.target.value;
+        if (selected) {
+            currentMelody = MELODIES[selected];
+            playPauseBtn.disabled = false;
+        } else {
+            currentMelody = [];
+            playPauseBtn.disabled = true;
+        }
+      });
+
+      playPauseBtn.addEventListener('click', () => {
+        if (isPlayingMelody) {
+            pauseMelody();
+        } else {
+            startMelody();
+        }
+      });
+
+      // Modal Logic
+      helpModalBtn.addEventListener('click', () => helpModal.classList.replace('hidden', 'flex'));
+      closeHelpModalBtn.addEventListener('click', () => helpModal.classList.replace('flex', 'hidden'));
+      helpModal.addEventListener('click', (e) => { if (e.target === helpModal) helpModal.classList.replace('flex', 'hidden'); });
+      window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && helpModal.classList.contains('flex')) helpModal.classList.replace('flex', 'hidden'); });
+
+      // --- Initialization ---
+      lucide.createIcons();
+      const savedTheme = localStorage.getItem('piano-theme');
+      applyTheme(savedTheme && themes.includes(savedTheme) ? savedTheme : 'light');
+    });
+  </script>
+</body>
+</html>
