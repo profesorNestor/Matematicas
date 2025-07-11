@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de la Estrella Polar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Asegura que el canvas y los controles siempre estén visibles */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 100%;
+        }
+        .canvas-container {
+            flex-grow: 1; /* El canvas ocupa el espacio disponible */
+            position: relative;
+        }
+        .controls-container {
+            flex-shrink: 0; /* Los controles no se encogen */
+            padding: 1rem;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.85);
+            padding: 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            min-width: 240px;
+            backdrop-filter: blur(8px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
+            z-index: 10;
+        }
+        .info-panel h3 {
+            color: #93c5fd;
+            margin-bottom: 12px;
+            text-align: center;
+            font-weight: 600;
+        }
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+        .info-label {
+            color: #cbd5e1;
+        }
+        .info-value {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white">
+
+    <div class="main-container">
+        <div class="p-4 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-cyan-300 mb-2">Simulador de la Osa Menor y la Estrella Polar</h1>
+            <p class="text-gray-400">Mueve el deslizador para cambiar tu latitud y observa la altura de la Estrella Polar.</p>
+        </div>
+
+        <div class="canvas-container">
+            <canvas id="simulationCanvas"></canvas>
+            <div class="info-panel">
+                <h3>📊 Datos de Navegación</h3>
+                <div class="info-item">
+                    <span class="info-label">Latitud:</span>
+                    <span id="infoLatitude" class="info-value text-yellow-300">30° N</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Altura de la Polar:</span>
+                    <span id="infoPolarHeight" class="info-value text-green-400">30°</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Colatitud:</span>
+                    <span id="infoColatitude" class="info-value text-orange-400">60°</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-container w-full max-w-lg mx-auto">
+            <label for="latitudeSlider" class="block text-center text-lg font-medium mb-2">Latitud: <span id="latitudeValue" class="font-bold text-yellow-300">30° N</span></label>
+            <input id="latitudeSlider" type="range" min="0" max="90" value="30" class="w-full h-3 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg">
+        </div>
+
+        <footer class="w-full text-center p-4">
+            <div class="inline-block bg-slate-900/50 backdrop-blur-sm px-6 py-2 rounded-full border border-slate-700">
+                <p class="text-sm text-slate-400">Autor: Msc Néstor Fabio Montoya</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('simulationCanvas');
+            const ctx = canvas.getContext('2d');
+            const slider = document.getElementById('latitudeSlider');
+            const latitudeValueDisplay = document.getElementById('latitudeValue');
+            const infoLatitude = document.getElementById('infoLatitude');
+            const infoPolarHeight = document.getElementById('infoPolarHeight');
+            const infoColatitude = document.getElementById('infoColatitude');
+
+            const littleDipperRelativeCoords = [
+                { name: 'Polaris', x: 0, y: 0 },
+                { name: 'Yildun', x: -25, y: -60 },
+                { name: 'ε UMi', x: -30, y: -100 },
+                { name: 'ζ UMi', x: 10, y: -130 },
+                { name: 'η UMi', x: 50, y: -110 },
+                { name: 'Kochab', x: 100, y: -140 },
+                { name: 'Pherkad', x: 70, y: -170 }
+            ];
+            
+            const dipperConnections = [
+                ['Polaris', 'Yildun'], ['Yildun', 'ε UMi'], ['ε UMi', 'ζ UMi'],
+                ['ζ UMi', 'η UMi'], ['ζ UMi', 'Pherkad'], ['Pherkad', 'Kochab'],
+                ['Kochab', 'η UMi']
+            ];
+
+            let latitude = 30;
+
+            function drawScene() {
+                const rect = canvas.parentElement.getBoundingClientRect();
+                canvas.width = rect.width;
+                canvas.height = rect.height;
+                
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // --- Parámetros ---
+                const earthRadius = Math.min(canvas.width, canvas.height) * 0.18;
+                const earthCenterX = canvas.width / 2;
+                const earthCenterY = canvas.height * 0.8; 
+
+                const latRad = latitude * Math.PI / 180;
+                const observerAngle = -latRad;
+
+                const observerX = earthCenterX + earthRadius * Math.cos(observerAngle);
+                const observerY = earthCenterY + earthRadius * Math.sin(observerAngle);
+                
+                // --- Dibujar Elementos ---
+
+                // 1. Osa Menor y Estrella Polar
+                const polarisY = canvas.height * 0.02;
+                const polarisX = earthCenterX;
+                const constellationScale = 0.5;
+                const starCoords = {};
+                littleDipperRelativeCoords.forEach(star => {
+                    const x = polarisX + star.x * constellationScale;
+                    const y = polarisY - star.y * constellationScale;
+                    starCoords[star.name] = { x, y };
+                    ctx.beginPath();
+                    ctx.arc(x, y, star.name === 'Polaris' ? 3.5 : 2, 0, 2 * Math.PI);
+                    ctx.fillStyle = star.name === 'Polaris' ? '#FFFACD' : 'white';
+                    ctx.fill();
+                });
+                ctx.beginPath();
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.lineWidth = 1;
+                dipperConnections.forEach(conn => {
+                    ctx.moveTo(starCoords[conn[0]].x, starCoords[conn[0]].y);
+                    ctx.lineTo(starCoords[conn[1]].x, starCoords[conn[1]].y);
+                });
+                ctx.stroke();
+                ctx.font = '14px Inter';
+                ctx.fillStyle = '#a5f3fc';
+                ctx.textAlign = 'left';
+                ctx.fillText('Estrella Polar', polarisX + 10, polarisY + 5);
+
+                // 2. Eje Polar (Desde el centro de la Tierra a Polaris)
+                ctx.beginPath();
+                ctx.moveTo(earthCenterX, earthCenterY);
+                ctx.lineTo(polarisX, polarisY);
+                ctx.setLineDash([5, 10]);
+                ctx.strokeStyle = 'rgba(135, 206, 250, 0.6)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+
+                // 3. La Tierra y sus referencias
+                ctx.beginPath();
+                const gradient = ctx.createRadialGradient(earthCenterX - earthRadius * 0.3, earthCenterY - earthRadius * 0.3, earthRadius * 0.1, earthCenterX, earthCenterY, earthRadius);
+                gradient.addColorStop(0, '#87CEEB');
+                gradient.addColorStop(1, '#00008B');
+                ctx.fillStyle = gradient;
+                ctx.arc(earthCenterX, earthCenterY, earthRadius, 0, 2 * Math.PI);
+                ctx.fill();
+                
+                ctx.fillStyle = 'white';
+                ctx.font = '12px Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('Polo Norte', earthCenterX, earthCenterY - earthRadius - 10);
+                ctx.fillText('Polo Sur', earthCenterX, earthCenterY + earthRadius + 20);
+                ctx.beginPath();
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.lineWidth = 1.5;
+                ctx.moveTo(earthCenterX - earthRadius, earthCenterY);
+                ctx.lineTo(earthCenterX + earthRadius, earthCenterY);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.textAlign = 'left';
+                ctx.fillText('Ecuador', earthCenterX + earthRadius + 5, earthCenterY + 5);
+
+                // 4. Ángulo de latitud (dentro de la Tierra)
+                ctx.beginPath();
+                ctx.moveTo(observerX, observerY);
+                ctx.lineTo(earthCenterX, earthCenterY);
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.setLineDash([3, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                
+                ctx.beginPath();
+                ctx.fillStyle = 'rgba(250, 250, 210, 0.2)';
+                ctx.moveTo(earthCenterX, earthCenterY);
+                ctx.arc(earthCenterX, earthCenterY, earthRadius * 0.5, 0, observerAngle, true);
+                ctx.closePath();
+                ctx.fill();
+                ctx.beginPath();
+                ctx.strokeStyle = '#facc15';
+                ctx.lineWidth = 1;
+                ctx.arc(earthCenterX, earthCenterY, earthRadius * 0.5, 0, observerAngle, true);
+                ctx.stroke();
+                ctx.fillStyle = '#fde68a';
+                ctx.font = '14px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                let angleTextX = earthCenterX + earthRadius * 0.65 * Math.cos(observerAngle / 2);
+                let angleTextY = earthCenterY + earthRadius * 0.65 * Math.sin(observerAngle / 2);
+                ctx.fillText(`${latitude}°`, angleTextX, angleTextY);
+
+
+                // 5. El observador y su vertical (Cenit)
+                ctx.beginPath();
+                ctx.arc(observerX, observerY, 3, 0, 2 * Math.PI);
+                ctx.fillStyle = '#ef4444';
+                ctx.fill();
+                
+                const mastLength = 60;
+                const mastEndX = observerX + mastLength * Math.cos(observerAngle);
+                const mastEndY = observerY + mastLength * Math.sin(observerAngle);
+                ctx.beginPath();
+                ctx.moveTo(observerX, observerY);
+                ctx.lineTo(mastEndX, mastEndY);
+                ctx.setLineDash([4, 4]);
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // 6. Líneas y ángulos desde el observador
+                if (latitude > 0) {
+                    // --- Líneas de Referencia ---
+                    // Horizonte
+                    const horizonAngle = observerAngle - Math.PI / 2;
+                    const horizonLength = canvas.width * 0.4;
+                    ctx.beginPath();
+                    ctx.moveTo(observerX - horizonLength * Math.cos(horizonAngle), observerY - horizonLength * Math.sin(horizonAngle));
+                    ctx.lineTo(observerX + horizonLength * Math.cos(horizonAngle), observerY + horizonLength * Math.sin(horizonAngle));
+                    ctx.strokeStyle = '#34d399';
+                    ctx.lineWidth = 1.5;
+                    ctx.setLineDash([5, 5]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    
+                    // Etiqueta del Horizonte (posición corregida)
+                    ctx.save();
+                    const labelX = observerX + horizonLength * 0.7 * Math.cos(horizonAngle);
+                    const labelY = observerY + horizonLength * 0.7 * Math.sin(horizonAngle);
+                    ctx.translate(labelX, labelY);
+                    
+                    let textRotation = horizonAngle;
+                    if (textRotation < -Math.PI / 2) {
+                        textRotation += Math.PI;
+                    }
+
+                    ctx.rotate(textRotation);
+                    ctx.fillStyle = '#34d399';
+                    ctx.font = '12px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Horizonte', 0, -8); 
+                    ctx.restore();
+
+
+                    // Línea a Polaris (Vertical)
+                    ctx.beginPath();
+                    ctx.moveTo(observerX, observerY);
+                    ctx.lineTo(observerX, 0); 
+                    ctx.setLineDash([5, 5]);
+                    ctx.strokeStyle = 'rgba(135, 206, 250, 0.9)';
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // --- Ángulos del Observador ---
+                    const zenithAngle = observerAngle; 
+                    const polarisViewAngle = -Math.PI / 2;
+
+                    // Ángulo de Altura (Latitud)
+                    ctx.beginPath();
+                    ctx.moveTo(observerX, observerY);
+                    ctx.arc(observerX, observerY, 40, horizonAngle, polarisViewAngle, false);
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(52, 211, 153, 0.2)';
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#6ee7b7';
+                    ctx.lineWidth = 1.5;
+                    ctx.arc(observerX, observerY, 40, horizonAngle, polarisViewAngle, false);
+                    ctx.stroke();
+                    let angleForText = horizonAngle + (polarisViewAngle - horizonAngle) / 2;
+                    let textX = observerX + 55 * Math.cos(angleForText);
+                    let textY = observerY + 55 * Math.sin(angleForText);
+                    ctx.fillStyle = '#a7f3d0';
+                    ctx.fillText(`${latitude}°`, textX, textY);
+                    
+                    // Ángulo Cenital (Colatitud)
+                    ctx.beginPath();
+                    ctx.moveTo(observerX, observerY);
+                    ctx.arc(observerX, observerY, 60, polarisViewAngle, zenithAngle, false);
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(253, 186, 116, 0.3)';
+                    ctx.fill();
+                    ctx.beginPath();
+                    ctx.strokeStyle = '#fdba74';
+                    ctx.lineWidth = 1.5;
+                    ctx.arc(observerX, observerY, 60, polarisViewAngle, zenithAngle, false); 
+                    ctx.stroke();
+                    angleForText = polarisViewAngle + (zenithAngle - polarisViewAngle) / 2;
+                    textX = observerX + 75 * Math.cos(angleForText);
+                    textY = observerY + 75 * Math.sin(angleForText);
+                    ctx.fillStyle = '#fed7aa';
+                    ctx.fillText(`${90 - latitude}°`, textX, textY);
+                }
+            }
+
+            function handleSliderChange(event) {
+                latitude = parseInt(event.target.value);
+                const direction = 'N'; // Siempre en el hemisferio norte
+                latitudeValueDisplay.textContent = `${latitude}° ${direction}`;
+                
+                // Actualizar panel de información
+                if (infoLatitude) {
+                    const heightValue = latitude;
+                    infoLatitude.textContent = `${latitude}° ${direction}`;
+                    infoPolarHeight.textContent = `${heightValue}°`;
+                    infoColatitude.textContent = `${90 - heightValue}°`;
+                }
+
+                requestAnimationFrame(drawScene);
+            }
+            
+            function handleResize() {
+                requestAnimationFrame(drawScene);
+            }
+
+            slider.addEventListener('input', handleSliderChange);
+            window.addEventListener('resize', handleResize);
+
+            handleSliderChange({ target: { value: latitude } });
+        });
+    </script>
+</body>
+</html>
