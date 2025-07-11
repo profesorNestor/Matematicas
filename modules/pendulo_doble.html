@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador Avanzado de Péndulo Doble</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js para las gráficas -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+
+    <!-- MathJax para Fórmulas Matemáticas -->
+    <script>
+        window.MathJax = {
+            tex: { 
+                inlineMath: [['$', '$'], ['\\(', '\\)']], 
+                displayMath: [['$$', '$$'], ['\\[', '\\]']] 
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Estilos CSS Personalizados -->
+    <style>
+        :root {
+            --bg-color: #0f172a; /* slate-900 */
+            --card-bg: rgba(30, 41, 59, 0.5); /* slate-800 con alpha */
+            --card-border: rgba(255, 255, 255, 0.1);
+            --sim-bg: #020617; /* slate-950 */
+            --primary-accent: #38bdf8; /* sky-400 */
+            --secondary-accent: #fb7185; /* rose-400 */
+            --text-light: #f1f5f9; /* slate-100 */
+            --text-dark: #94a3b8; /* slate-400 */
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        .glassmorphism {
+            background: var(--card-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 6px; background: rgba(0,0,0,0.3);
+            border-radius: 6px;
+            outline: none;
+            transition: background 0.3s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 20px; height: 20px; background: var(--primary-accent);
+            border-radius: 50%; cursor: grab;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+        }
+        input[type="range"]:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.1); }
+        .modal { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .modal.hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        #pendulumCanvas { cursor: grab; }
+        #pendulumCanvas:active { cursor: grabbing; }
+        .scrollable-content::-webkit-scrollbar { width: 6px; }
+        .scrollable-content::-webkit-scrollbar-track { background: var(--bg-color); }
+        .scrollable-content::-webkit-scrollbar-thumb { background-color: var(--primary-accent); border-radius: 10px; }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div id="app-container" class="flex flex-col min-h-screen p-4 sm:p-6 lg:p-8 gap-6">
+        <header class="text-center shrink-0">
+            <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300">
+                Simulador Interactivo de Péndulo Doble
+            </h1>
+            <p class="text-md text-slate-400 mt-1">Explora la belleza del caos determinista.</p>
+        </header>
+
+        <main id="main-content" class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
+            
+            <div id="left-panel" class="lg:col-span-1 flex flex-col gap-6">
+                <div class="glassmorphism rounded-2xl p-6 flex flex-col">
+                    <h2 class="text-xl font-bold text-sky-400 mb-4 flex items-center gap-2 shrink-0"><i data-lucide="sliders-horizontal"></i>Parámetros</h2>
+                    <div class="space-y-5 overflow-y-auto pr-2 scrollable-content">
+                        <div id="controls-container"></div>
+                    </div>
+                     <div class="mt-6 shrink-0">
+                         <h2 class="text-xl font-bold text-sky-400 mb-4 flex items-center gap-2"><i data-lucide="play-circle"></i>Control</h2>
+                         <div class="grid grid-cols-2 gap-3">
+                            <button id="startStopBtn" class="col-span-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg"><i data-lucide="play"></i><span>Iniciar</span></button>
+                            <button id="resetBtn" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="rotate-cw"></i>Reiniciar</button>
+                            <button id="chartsBtn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="line-chart"></i>Gráficas</button>
+                            <button id="helpBtn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="help-circle"></i>Ayuda</button>
+                         </div>
+                         <div class="mt-4">
+                            <label for="trail-checkbox" class="flex items-center gap-2 text-slate-300 cursor-pointer">
+                                <input type="checkbox" id="trail-checkbox" class="accent-sky-400 w-5 h-5" checked>
+                                Mostrar Estela
+                            </label>
+                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="right-panel" class="lg:col-span-2 min-h-[60vh] lg:min-h-0 bg-slate-950 rounded-2xl p-2 relative shadow-2xl shadow-black/50">
+                <canvas id="pendulumCanvas" class="w-full h-full rounded-xl"></canvas>
+            </div>
+        </main>
+        
+        <footer class="text-center text-slate-500 text-xs mt-4 shrink-0">
+            Autor: Msc. Néstor Fabio Montoya Palacios
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <div id="help-modal" class="modal hidden"></div>
+    <div id="charts-modal" class="modal hidden"></div>
+
+    <script type="module">
+        lucide.createIcons();
+
+        const UIController = (() => {
+            const dom = {
+                controlsContainer: document.getElementById('controls-container'),
+                startStopBtn: document.getElementById('startStopBtn'),
+                resetBtn: document.getElementById('resetBtn'),
+                helpBtn: document.getElementById('helpBtn'),
+                chartsBtn: document.getElementById('chartsBtn'),
+                trailCheckbox: document.getElementById('trail-checkbox'),
+            };
+
+            const params = [
+                { id: 'l1', name: 'Longitud L1 (m)', min: 0.5, max: 2, value: 1.0, step: 0.05 },
+                { id: 'l2', name: 'Longitud L2 (m)', min: 0.5, max: 2, value: 1.0, step: 0.05 },
+                { id: 'm1', name: 'Masa M1 (kg)', min: 0.5, max: 5, value: 2.0, step: 0.1 },
+                { id: 'm2', name: 'Masa M2 (kg)', min: 0.5, max: 5, value: 1.5, step: 0.1 },
+                { id: 'g', name: 'Gravedad (m/s²)', min: 1, max: 25, value: 9.81, step: 0.1 },
+            ];
+
+            function createModal(id, title, icon, content) {
+                const modalContainer = document.getElementById(`${id}-modal`);
+                modalContainer.className = 'modal hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4';
+                modalContainer.innerHTML = `
+                    <div class="glassmorphism rounded-2xl p-6 lg:p-8 w-full max-w-4xl max-h-[90vh] flex flex-col transform">
+                        <div class="flex justify-between items-center mb-6">
+                            <h2 class="text-2xl font-bold text-sky-400 flex items-center gap-3"><i data-lucide="${icon}"></i>${title}</h2>
+                            <button id="close-${id}-modal" class="p-2 rounded-full hover:bg-slate-700/50 transition-colors text-2xl leading-none">&times;</button>
+                        </div>
+                        <div id="${id}-modal-content" class="overflow-y-auto pr-4 text-slate-300 space-y-6 scrollable-content flex-1 min-h-0">
+                            ${content}
+                        </div>
+                    </div>`;
+                lucide.createIcons();
+                document.getElementById(`close-${id}-modal`).addEventListener('click', () => modalContainer.classList.add('hidden'));
+                modalContainer.addEventListener('click', (e) => {
+                    if (e.target === modalContainer) modalContainer.classList.add('hidden');
+                });
+            }
+
+            function init(simulator) {
+                params.forEach(p => {
+                    const controlHTML = `
+                        <div class="flex justify-between items-center text-slate-300 mb-2">
+                            <label for="${p.id}-slider" class="font-medium text-sm">${p.name}</label>
+                            <span id="${p.id}-value" class="font-mono bg-slate-700 text-sky-300 py-1 px-2 rounded-full text-xs">${p.value.toFixed(2)}</span>
+                        </div>
+                        <input id="${p.id}-slider" type="range" min="${p.min}" max="${p.max}" value="${p.value}" step="${p.step}">`;
+                    const div = document.createElement('div');
+                    div.innerHTML = controlHTML;
+                    dom.controlsContainer.appendChild(div);
+                    document.getElementById(`${p.id}-slider`).addEventListener('input', (e) => {
+                        const value = parseFloat(e.target.value);
+                        document.getElementById(`${p.id}-value`).textContent = value.toFixed(2);
+                        simulator.updateParam(p.id, value);
+                    });
+                });
+                
+                dom.startStopBtn.addEventListener('click', () => simulator.togglePause());
+                dom.resetBtn.addEventListener('click', () => simulator.reset());
+                dom.trailCheckbox.addEventListener('change', (e) => simulator.setShowTrail(e.target.checked));
+
+                const helpContent = `...`; // Contenido de ayuda (omitido por brevedad)
+                createModal('help', 'Guía del Simulador', 'book-open', `<div><h3 class="font-bold text-sky-300 text-lg mb-2">¿Qué es un Péndulo Doble?</h3><p>Un péndulo doble es simplemente un péndulo unido al extremo de otro péndulo. Es un sistema dinámico simple que exhibe un comportamiento dinámico rico con una fuerte sensibilidad a las condiciones iniciales.</p></div><div><h3 class="font-bold text-sky-300 text-lg mb-2">Interactividad</h3><ul class="list-disc list-inside space-y-2 text-sm"><li><strong>Arrastrar Masas:</strong> Haz clic y arrastra las masas para cambiar las condiciones iniciales.</li><li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar.</li><li><strong>Paneo:</strong> Clic central y arrastre para mover la vista.</li></ul></div><div><h3 class="font-bold text-sky-300 text-lg mb-2">Ecuaciones del Movimiento</h3><p>El movimiento se rige por las siguientes ecuaciones, resueltas numéricamente:</p><p>$$ \\ddot{\\theta}_1 = \\frac{-g(2m_1+m_2)\\sin\\theta_1 - m_2 g \\sin(\\theta_1-2\\theta_2) - 2\\sin(\\theta_1-\\theta_2)m_2(\\dot{\\theta}_2^2 L_2 + \\dot{\\theta}_1^2 L_1 \\cos(\\theta_1-\\theta_2))}{L_1(2m_1+m_2-m_2\\cos(2\\theta_1-2\\theta_2))} $$</p><p>$$ \\ddot{\\theta}_2 = \\frac{2\\sin(\\theta_1-\\theta_2)(\\dot{\\theta}_1^2 L_1(m_1+m_2) + g(m_1+m_2)\\cos\\theta_1 + \\dot{\\theta}_2^2 L_2 m_2 \\cos(\\theta_1-\\theta_2))}{L_2(2m_1+m_2-m_2\\cos(2\\theta_1-2\\theta_2))} $$</p></div>`);
+                const chartsContent = `<div id="plot-theta1" class="w-full h-64"></div><div id="plot-theta2" class="w-full h-64 mt-8"></div>`;
+                createModal('charts', 'Gráficas de Movimiento', 'line-chart', chartsContent);
+                
+                dom.helpBtn.addEventListener('click', () => document.getElementById('help-modal').classList.remove('hidden'));
+                dom.chartsBtn.addEventListener('click', () => {
+                    document.getElementById('charts-modal').classList.remove('hidden');
+                    simulator.renderPlots();
+                });
+            }
+
+            function updateStartButton(isPaused) {
+                const icon = isPaused ? 'play' : 'pause';
+                const text = isPaused ? 'Iniciar' : 'Pausar';
+                dom.startStopBtn.innerHTML = `<i data-lucide="${icon}"></i><span>${text}</span>`;
+                lucide.createIcons();
+            }
+            
+            return { init, updateStartButton };
+        })();
+
+        const PendulumSimulator = (() => {
+            const canvas = document.getElementById('pendulumCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            let state = {
+                l1: 1.0, l2: 1.0, m1: 2.0, m2: 1.5, g: 9.81,
+                t1: Math.PI / 1.5, t2: Math.PI / 1.2, w1: 0, w2: 0,
+                isPaused: true, animationFrameId: null, dt: 1 / 60,
+                trail: [], maxTrailLength: 1000, showTrail: true,
+                scale: 150, originX: 0, originY: 0, panX: 0, panY: 0, isDragging: null,
+                time: 0, plotData: { time: [], theta1: [], theta2: [] }, maxPlotPoints: 500,
+            };
+
+            function resizeCanvas() {
+                const dpr = window.devicePixelRatio || 1;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                ctx.scale(dpr, dpr);
+                state.originX = canvas.width / (2 * dpr);
+                state.originY = canvas.height / (2 * dpr) * 0.75;
+                draw();
+            }
+
+            function physicsStep() {
+                if (state.isPaused) return;
+                
+                state.time += state.dt;
+
+                const rk4 = (y, dt, derivs) => {
+                    const k1 = derivs(y);
+                    const k2 = derivs(y.map((v, i) => v + dt * k1[i] / 2));
+                    const k3 = derivs(y.map((v, i) => v + dt * k2[i] / 2));
+                    const k4 = derivs(y.map((v, i) => v + dt * k3[i]));
+                    return y.map((v, i) => v + dt * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]) / 6);
+                };
+                const getDerivatives = (y) => {
+                    const [t1, w1, t2, w2] = y;
+                    const { l1, l2, m1, m2, g } = state;
+                    const den_common = 2*m1 + m2 - m2*Math.cos(2*t1 - 2*t2);
+                    const a1 = (-g*(2*m1+m2)*Math.sin(t1) - m2*g*Math.sin(t1-2*t2) - 2*Math.sin(t1-t2)*m2*(w2*w2*l2 + w1*w1*l1*Math.cos(t1-t2))) / (l1*den_common);
+                    const a2 = (2*Math.sin(t1-t2)*(w1*w1*l1*(m1+m2) + g*(m1+m2)*Math.cos(t1) + w2*w2*l2*m2*Math.cos(t1-t2))) / (l2*den_common);
+                    return [w1, a1, w2, a2];
+                };
+                const y0 = [state.t1, state.w1, state.t2, state.w2];
+                [state.t1, state.w1, state.t2, state.w2] = rk4(y0, state.dt, getDerivatives);
+
+                // Almacenar datos para gráficas
+                state.plotData.time.push(state.time);
+                state.plotData.theta1.push(state.t1 * 180 / Math.PI);
+                state.plotData.theta2.push(state.t2 * 180 / Math.PI);
+                if (state.plotData.time.length > state.maxPlotPoints) {
+                    state.plotData.time.shift();
+                    state.plotData.theta1.shift();
+                    state.plotData.theta2.shift();
+                }
+            }
+
+            function drawGridAndAxes() {
+                // ... (código de dibujado de ejes y cuadrícula sin cambios)
+                const { width, height } = canvas;
+                const dpr = window.devicePixelRatio || 1;
+                const { scale, panX, panY, originX, originY } = state;
+
+                const view = {
+                    xMin: (-originX - panX) / scale, xMax: (width / dpr - originX - panX) / scale,
+                    yMin: (-originY - panY) / scale, yMax: (height / dpr - originY - panY) / scale,
+                };
+
+                const targetLines = 10;
+                const viewWidth = view.xMax - view.xMin;
+                const rawSpacing = viewWidth / targetLines;
+                const magnitude = Math.pow(10, Math.floor(Math.log10(rawSpacing)));
+                const rescaledRaw = rawSpacing / magnitude;
+                let gridSpacing;
+                if (rescaledRaw > 5) gridSpacing = 5 * magnitude;
+                else if (rescaledRaw > 2) gridSpacing = 2 * magnitude;
+                else gridSpacing = 1 * magnitude;
+
+                const axisLineWidth = 2 / scale;
+                const gridLineWidth = 1 / scale;
+                const fontSize = 11 / scale;
+
+                ctx.save();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+                ctx.font = `${fontSize}px Inter`;
+                
+                const startX = Math.floor(view.xMin / gridSpacing) * gridSpacing;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+                for (let x = startX; x <= view.xMax; x += gridSpacing) {
+                    const canvasX = x * scale;
+                    ctx.beginPath();
+                    ctx.moveTo(canvasX, view.yMin * scale);
+                    ctx.lineTo(canvasX, view.yMax * scale);
+                    ctx.lineWidth = (Math.abs(x) < 1e-9) ? axisLineWidth : gridLineWidth;
+                    ctx.strokeStyle = (Math.abs(x) < 1e-9) ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 255, 255, 0.15)";
+                    ctx.stroke();
+                    if (Math.abs(x) > 1e-9) ctx.fillText(x.toFixed(2).replace(/\.00$/, ''), canvasX, 5 / scale);
+                }
+
+                const startY = Math.floor(view.yMin / gridSpacing) * gridSpacing;
+                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                for (let y = startY; y <= view.yMax; y += gridSpacing) {
+                    const canvasY = y * scale;
+                    ctx.beginPath();
+                    ctx.moveTo(view.xMin * scale, canvasY);
+                    ctx.lineTo(view.xMax * scale, canvasY);
+                    ctx.lineWidth = (Math.abs(y) < 1e-9) ? axisLineWidth : gridLineWidth;
+                    ctx.strokeStyle = (Math.abs(y) < 1e-9) ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 255, 255, 0.15)";
+                    ctx.stroke();
+                     if (Math.abs(y) > 1e-9) ctx.fillText(y.toFixed(2).replace(/\.00$/, ''), 5 / scale, canvasY);
+                }
+                
+                ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+                ctx.fillText("0", 5 / scale, 5 / scale);
+
+                ctx.restore();
+            }
+
+            function draw() {
+                // ... (código de dibujado del péndulo sin cambios)
+                const { width, height } = canvas;
+                ctx.save();
+                ctx.clearRect(0, 0, width, height);
+                ctx.translate(state.originX + state.panX, state.originY + state.panY);
+                drawGridAndAxes();
+                ctx.scale(state.scale, state.scale);
+
+                const { l1, l2, m1, m2, t1, t2 } = state;
+                const x1 = l1 * Math.sin(t1), y1 = l1 * Math.cos(t1);
+                const x2 = x1 + l2 * Math.sin(t2), y2 = y1 + l2 * Math.cos(t2);
+
+                if (!state.isPaused && state.showTrail) {
+                    state.trail.push({ x: x2, y: y2 });
+                    if (state.trail.length > state.maxTrailLength) state.trail.shift();
+                }
+                if (state.showTrail && state.trail.length > 1) {
+                    ctx.beginPath();
+                    ctx.moveTo(state.trail[0].x, state.trail[0].y);
+                    for (let i = 1; i < state.trail.length; i++) ctx.lineTo(state.trail[i].x, state.trail[i].y);
+                    const gradient = ctx.createLinearGradient(0, -l1-l2, 0, l1+l2);
+                    gradient.addColorStop(0, "rgba(251, 113, 133, 0.1)");
+                    gradient.addColorStop(1, "rgba(56, 189, 248, 0.8)");
+                    ctx.strokeStyle = gradient;
+                    ctx.lineWidth = 2 / state.scale;
+                    ctx.stroke();
+                }
+                ctx.beginPath();
+                ctx.moveTo(0, 0); ctx.lineTo(x1, y1); ctx.lineTo(x2, y2);
+                ctx.strokeStyle = 'rgba(241, 245, 249, 0.8)';
+                ctx.lineWidth = 4 / state.scale;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, 0, 8 / state.scale, 0, 2 * Math.PI);
+                ctx.fillStyle = '#94a3b8'; ctx.fill();
+                const r1 = 0.1 * Math.sqrt(m1), r2 = 0.1 * Math.sqrt(m2);
+                ctx.beginPath();
+                ctx.arc(x1, y1, r1, 0, 2 * Math.PI);
+                ctx.fillStyle = '#38bdf8'; ctx.fill();
+                ctx.beginPath();
+                ctx.arc(x2, y2, r2, 0, 2 * Math.PI);
+                ctx.fillStyle = '#fb7185'; ctx.fill();
+                ctx.restore();
+            }
+
+            function animate() {
+                physicsStep();
+                draw();
+                if (!document.getElementById('charts-modal').classList.contains('hidden') && !state.isPaused) {
+                    renderPlots();
+                }
+                state.animationFrameId = requestAnimationFrame(animate);
+            }
+            
+            function renderPlots() {
+                const layout = {
+                    paper_bgcolor: 'transparent', plot_bgcolor: 'rgba(15, 23, 42, 0.5)',
+                    font: { color: '#f1f5f9' },
+                    xaxis: { title: 'Tiempo (s)', gridcolor: 'rgba(255,255,255,0.1)' },
+                    yaxis: { title: 'Ángulo (°)', gridcolor: 'rgba(255,255,255,0.1)' },
+                    margin: { l: 50, r: 20, t: 40, b: 40 },
+                };
+                Plotly.react('plot-theta1', [{ x: state.plotData.time, y: state.plotData.theta1, type: 'scatter', mode: 'lines', line: {color: '#38bdf8'} }], { ...layout, title: 'Posición Angular de la Masa 1 (θ₁)' });
+                Plotly.react('plot-theta2', [{ x: state.plotData.time, y: state.plotData.theta2, type: 'scatter', mode: 'lines', line: {color: '#fb7185'} }], { ...layout, title: 'Posición Angular de la Masa 2 (θ₂)' });
+            }
+
+            function init() {
+                // ... (código de inicialización de eventos sin cambios)
+                resizeCanvas();
+                UIController.updateStartButton(state.isPaused);
+                window.addEventListener('resize', () => {
+                    resizeCanvas();
+                    if(!document.getElementById('charts-modal').classList.contains('hidden')) renderPlots();
+                });
+                canvas.addEventListener('mousedown', handleInteractionStart);
+                window.addEventListener('mousemove', handleInteractionMove);
+                window.addEventListener('mouseup', handleInteractionEnd);
+                canvas.addEventListener('touchstart', handleInteractionStart, { passive: true });
+                window.addEventListener('touchmove', handleInteractionMove, { passive: false });
+                window.addEventListener('touchend', handleInteractionEnd);
+                canvas.addEventListener('wheel', handleWheel, { passive: false });
+                canvas.addEventListener('mousedown', handlePanStart);
+                window.addEventListener('mousemove', handlePanMove);
+                window.addEventListener('mouseup', handlePanEnd);
+                animate();
+            }
+            
+            function handleInteractionStart(e) {
+                if (e.type === 'touchstart' && e.touches.length > 1) return;
+                const pos = getMousePos(e.type.startsWith('touch') ? e.touches[0] : e);
+                const { l1, l2, t1, t2, m1, m2 } = state;
+                const x1 = l1 * Math.sin(t1), y1 = l1 * Math.cos(t1);
+                const x2 = x1 + l2 * Math.sin(t2), y2 = y1 + l2 * Math.cos(t2);
+                const r1 = 0.1 * Math.sqrt(m1), r2 = 0.1 * Math.sqrt(m2);
+                if (Math.hypot(pos.x - x2, pos.y - y2) < r2 * 1.5) state.isDragging = 'm2';
+                else if (Math.hypot(pos.x - x1, pos.y - y1) < r1 * 1.5) state.isDragging = 'm1';
+                if (state.isDragging) {
+                    togglePause(true);
+                    canvas.style.cursor = 'grabbing';
+                }
+            }
+            function handleInteractionMove(e) {
+                if (!state.isDragging) return;
+                if (e.type === 'touchmove') e.preventDefault();
+                const pos = getMousePos(e.type.startsWith('touch') ? e.touches[0] : e);
+                if (state.isDragging === 'm1') state.t1 = Math.atan2(pos.x, pos.y);
+                else if (state.isDragging === 'm2') {
+                    const x1 = state.l1 * Math.sin(state.t1), y1 = state.l1 * Math.cos(state.t1);
+                    state.t2 = Math.atan2(pos.x - x1, pos.y - y1);
+                }
+                state.w1 = 0; state.w2 = 0;
+                draw();
+            }
+            function handleInteractionEnd() { state.isDragging = null; canvas.style.cursor = 'grab'; }
+            function handleWheel(e) { e.preventDefault(); state.scale *= Math.exp((e.deltaY < 0 ? 1 : -1) * 0.1); draw(); }
+            let lastPanX, lastPanY, isPanning = false;
+            function handlePanStart(e) { if (e.button === 1) { isPanning = true; lastPanX = e.clientX; lastPanY = e.clientY; canvas.style.cursor = 'move'; e.preventDefault(); } }
+            function handlePanMove(e) { if (isPanning) { state.panX += e.clientX - lastPanX; state.panY += e.clientY - lastPanY; lastPanX = e.clientX; lastPanY = e.clientY; draw(); } }
+            function handlePanEnd(e) { if (e.button === 1) { isPanning = false; canvas.style.cursor = 'grab'; } }
+            function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1; return { x: (evt.clientX - rect.left * dpr - (state.originX + state.panX)) / state.scale, y: (evt.clientY - rect.top * dpr - (state.originY + state.panY)) / state.scale }; }
+
+            function togglePause(forcePause = null) {
+                state.isPaused = forcePause !== null ? forcePause : !state.isPaused;
+                UIController.updateStartButton(state.isPaused);
+            }
+            
+            function reset() {
+                togglePause(true);
+                state.t1 = Math.PI / 1.5; state.t2 = Math.PI / 1.2;
+                state.w1 = 0; state.w2 = 0; state.time = 0;
+                state.trail = []; state.plotData = { time: [], theta1: [], theta2: [] };
+                draw();
+            }
+
+            function updateParam(id, value) { if (id in state) { state[id] = value; if (state.isPaused) draw(); } }
+            function setShowTrail(show) { state.showTrail = show; if (!show) state.trail = []; if (state.isPaused) draw(); }
+
+            return { init, togglePause, reset, updateParam, setShowTrail, renderPlots };
+        })();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            UIController.init(PendulumSimulator);
+            PendulumSimulator.init();
+        });
+    </script>
+</body>
+</html>
