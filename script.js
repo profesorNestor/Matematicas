@@ -44,7 +44,8 @@ const categories = [
   {
     name: 'Geometría', icon: '📐', children: [
       { name: 'Ángulos en la Circunferencia', slug: 'AngulosCircunferencia', icon: '📐' },
-      { name: 'Teorema de Thales',            slug: 'TeoremaThales',         icon: '📏' }
+      { name: 'Teorema de Thales',            slug: 'TeoremaThales',         icon: '📏' },
+      { name: 'Gauss (Polígonos)', slug: 'gauss', icon: '📊' }
     ]
   },
 
@@ -128,13 +129,19 @@ const categories = [
   /* ---- Física --------------------------------------------- */
   {
     name: 'Física', icon: '🔭', children: [
+      { name: 'Simulador de Latitud', slug: 'simulador_latitud', icon: '🌍' },
+      { name: 'Coordenadas Geográficas', slug: 'Coordenadas_GeoGraficas', icon: '📌' },
       { name: 'Movimiento Circular Uniforme',  slug: 'simulador_movimiento_circular_uniforme', icon: '🔄' },
       { name: 'Movimiento Parabólico',         slug: 'MovimientoParabolico',                  icon: '🎯' },
       { name: 'Proyectil con Resistencia',     slug: 'simulacionParabolicoResistencia',       icon: '💨' },  
       { name: 'Leyes de Kepler',   slug: 'Kepler',           icon: '🌌' },
       { name: 'Termómetros',       slug: 'termometros',      icon: '🌡️' },
       { name: 'Movimiento Armónico Simple',    slug: 'graficasMAS',                           icon: '🌊' },
+      { name: 'Péndulo Simple', slug: 'PenduloSimple', icon: '🔹' },
+      { name: 'Péndulo Doble', slug: 'pendulo_doble', icon: '🔹' },
+      { name: 'Péndulos Acoplados', slug: 'pendulos_acoplados', icon: '🔹' },
       { name: 'Tubos Sonoros',     slug: 'TubosSonoros',     icon: '🔊' },
+      { name: 'Piano Virtual', slug: 'piano-virtual', icon: '🎹' },
       { name: 'Ley de Snell',                  slug: 'LeyesSnell',                            icon: '📐' },
       { name: 'Espejo Cóncavo',                slug: 'EspejoConcavo',                         icon: '🪞' },
       { name: 'Espejo Convexo',                slug: 'EspejoConvexo',                         icon: '🔮' },
