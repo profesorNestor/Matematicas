@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor de Temperatura Interactivo</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax para Fórmulas -->
+    <script>
+        MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']]
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+    </script>
+
+    <!-- Estilos Personalizados -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9; /* slate-100 */
+        }
+
+        /* Estilos para los deslizadores (input range) */
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none; width: 100%; height: 8px;
+            background: #e2e8f0; /* slate-200 */
+            border-radius: 9999px; outline: none; transition: background .2s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none; width: 24px; height: 24px;
+            background: #3b82f6; /* blue-500 */
+            cursor: pointer; border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: transform 0.2s ease-in-out;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px; height: 24px; background: #3b82f6; cursor: pointer; border-radius: 50%;
+            border: 4px solid white; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        input[type="range"]:active::-webkit-slider-thumb { transform: scale(1.15); }
+
+        /* Estilos para los modales */
+        .modal { transition: opacity 0.3s ease; }
+        .modal-content { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Estilos para las opciones de personalización */
+        .style-option {
+            border: 2px solid #e5e7eb; /* gray-200 */
+            transition: all 0.2s ease-in-out;
+        }
+        .style-option.selected {
+            border-color: #3b82f6; /* blue-500 */
+            background-color: #eff6ff; /* blue-50 */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+        }
+        
+        /* Estilos para botones de acción */
+        .action-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+        
+        .font-orbitron { font-family: 'Orbitron', sans-serif; }
+        
+        /* Estilos del Canvas */
+        #thermometerCanvas {
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <div class="flex flex-col min-h-screen">
+        <main class="flex-grow p-4 md:p-6 lg:p-8">
+            
+            <header class="flex justify-between items-center mb-6">
+                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-700">Conversor de Temperatura</h1>
+                <div class="flex items-center gap-3 md:gap-4">
+                    <button id="color-palette-btn" class="action-btn p-3 rounded-full bg-white shadow-md hover:bg-blue-50" title="Cambiar Color"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg></button>
+                    <button id="style-btn" class="action-btn p-3 rounded-full bg-white shadow-md hover:bg-blue-50" title="Cambiar Estilo"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.096 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg></button>
+                    <button id="help-btn" class="action-btn p-3 rounded-full bg-white shadow-md hover:bg-blue-50" title="Ayuda"><svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></button>
+                </div>
+            </header>
+
+            <div id="real-time-weather" class="bg-white p-5 rounded-2xl shadow-lg mb-8 flex items-center justify-center text-center min-h-[120px]"></div>
+
+            <div class="flex flex-col lg:flex-row gap-6 md:gap-8">
+                <!-- Panel Izquierdo: Controles -->
+                <div class="w-full lg:w-2/5 bg-white p-6 rounded-2xl shadow-lg">
+                    <h2 class="text-xl font-bold mb-6 text-slate-700">Controles</h2>
+                    <div class="space-y-6">
+                        <!-- Celsius -->
+                        <div>
+                            <label for="celsius" class="block font-medium mb-2 text-slate-600">Celsius (°C)</label>
+                            <div class="flex items-center gap-3">
+                                <input type="range" id="celsius" min="-273.15" max="100" value="20" step="0.1" class="w-2/3">
+                                <div class="relative w-1/3">
+                                    <input type="number" id="celsius-input" step="0.1" class="w-full text-center text-lg font-bold text-blue-600 bg-slate-100 rounded-lg p-2 border-2 border-slate-200 focus:border-blue-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Fahrenheit -->
+                        <div>
+                            <label for="fahrenheit" class="block font-medium mb-2 text-slate-600">Fahrenheit (°F)</label>
+                            <div class="flex items-center gap-3">
+                                <input type="range" id="fahrenheit" min="-459.67" max="212" value="68" step="0.1" class="w-2/3">
+                                <div class="relative w-1/3">
+                                    <input type="number" id="fahrenheit-input" step="0.1" class="w-full text-center text-lg font-bold text-blue-600 bg-slate-100 rounded-lg p-2 border-2 border-slate-200 focus:border-blue-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Kelvin -->
+                        <div>
+                            <label for="kelvin" class="block font-medium mb-2 text-slate-600">Kelvin (K)</label>
+                            <div class="flex items-center gap-3">
+                                <input type="range" id="kelvin" min="0" max="373.15" value="293.15" step="0.1" class="w-2/3">
+                                <div class="relative w-1/3">
+                                    <input type="number" id="kelvin-input" step="0.1" class="w-full text-center text-lg font-bold text-blue-600 bg-slate-100 rounded-lg p-2 border-2 border-slate-200 focus:border-blue-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Rankine -->
+                        <div>
+                            <label for="rankine" class="block font-medium mb-2 text-slate-600">Rankine (°R)</label>
+                            <div class="flex items-center gap-3">
+                                <input type="range" id="rankine" min="0" max="671.67" value="527.67" step="0.1" class="w-2/3">
+                                <div class="relative w-1/3">
+                                    <input type="number" id="rankine-input" step="0.1" class="w-full text-center text-lg font-bold text-blue-600 bg-slate-100 rounded-lg p-2 border-2 border-slate-200 focus:border-blue-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Réaumur -->
+                        <div>
+                            <label for="reaumur" class="block font-medium mb-2 text-slate-600">Réaumur (°Ré)</label>
+                            <div class="flex items-center gap-3">
+                                <input type="range" id="reaumur" min="-218.52" max="80" value="16" step="0.1" class="w-2/3">
+                                <div class="relative w-1/3">
+                                    <input type="number" id="reaumur-input" step="0.1" class="w-full text-center text-lg font-bold text-blue-600 bg-slate-100 rounded-lg p-2 border-2 border-slate-200 focus:border-blue-500 focus:outline-none transition">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Controles de Visualización -->
+                        <div class="pt-6 border-t border-slate-200 space-y-6">
+                            <div><label for="ticks" class="block font-medium mb-2 text-slate-600">Divisiones de la Escala</label><input type="range" id="ticks" min="2" max="20" value="5" step="1" class="w-full"><div class="text-center text-lg font-semibold text-slate-700 mt-2" id="ticks-value">5 Divisiones</div></div>
+                            <div><label for="height-slider" class="block font-medium mb-2 text-slate-600">Altura de Termómetros</label><input type="range" id="height-slider" min="150" max="350" value="280" step="1" class="w-full"></div>
+                        </div>
+                    </div>
+                    <div class="mt-8 pt-6 border-t border-slate-200">
+                        <h3 class="text-lg font-bold mb-4 text-slate-700">Fórmulas de Conversión</h3>
+                        <div class="space-y-3 text-xs bg-slate-50 p-4 rounded-lg overflow-x-auto"><p>$T_C = (T_F - 32) \cdot 5/9$</p><p>$T_C = T_K - 273.15$</p><p>$T_C = (T_R - 491.67) \cdot 5/9$</p><p>$T_C = T_{Ré} \cdot 5/4$</p></div>
+                    </div>
+                </div>
+
+                <!-- Panel Derecho: Canvas -->
+                <div class="w-full lg:w-3/5 bg-white p-4 rounded-2xl shadow-lg flex justify-center items-start overflow-x-auto">
+                    <canvas id="thermometerCanvas"></canvas>
+                </div>
+            </div>
+        </main>
+
+        <footer class="text-center p-4 mt-8 bg-white/50 backdrop-blur-sm">
+            <p class="font-semibold text-slate-600">Autor: Msc. Néstor Fabio Montoya Palacios</p>
+        </footer>
+    </div>
+
+    <!-- Modales -->
+    <div id="color-modal" class="modal fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0"><div class="modal-content bg-white rounded-2xl shadow-2xl p-6 w-full max-w-sm transform scale-95 opacity-0"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-slate-700">Cambiar Color del Líquido</h3><button id="close-color-modal" class="text-slate-400 hover:text-slate-700 text-3xl leading-none">&times;</button></div><p class="text-slate-600 mb-6">Elige un color base para el líquido de los termómetros.</p><div class="flex justify-center items-center gap-4"><input type="color" id="color-picker" value="#3b82f6" class="w-16 h-16 p-0 border-none rounded-full cursor-pointer"><span id="color-value" class="font-mono text-lg text-slate-700">#3b82f6</span></div></div></div>
+    <div id="style-modal" class="modal fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0"><div class="modal-content bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg transform scale-95 opacity-0"><div class="flex justify-between items-center mb-6"><h3 class="text-xl font-bold text-slate-700">Elegir Estilo de Termómetro</h3><button id="close-style-modal" class="text-slate-400 hover:text-slate-700 transition-colors">&times;</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-6"><div id="style-modern" class="style-option selected cursor-pointer p-4 rounded-lg text-center"><p class="font-bold text-slate-700">Moderno</p><p class="text-sm text-slate-500 mt-1">Diseño actual con sombras y bordes redondeados.</p></div><div id="style-classic" class="style-option cursor-pointer p-4 rounded-lg text-center"><p class="font-bold text-slate-700">Clásico</p><p class="text-sm text-slate-500 mt-1">Aspecto de termómetro de laboratorio.</p></div></div></div></div>
+    <div id="help-modal" class="modal fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center p-4 hidden opacity-0"><div class="modal-content bg-white rounded-2xl shadow-2xl p-6 w-full max-w-lg transform scale-95 opacity-0"><div class="flex justify-between items-center mb-4"><h3 class="text-xl font-bold text-slate-700">Ayuda y Explicación</h3><button id="close-help-modal" class="text-slate-400 hover:text-slate-700 text-3xl leading-none transition-colors">&times;</button></div><div class="space-y-4 text-slate-600"><details class="bg-slate-50 p-3 rounded-lg" open><summary class="font-semibold cursor-pointer">¿Cómo funciona?</summary><p class="mt-2">Arrastra cualquiera de los cinco deslizadores para convertir temperaturas entre todas las escalas disponibles.</p></details><details class="bg-slate-50 p-3 rounded-lg"><summary class="font-semibold cursor-pointer">Personalización</summary><p class="mt-2">Usa los botones de la esquina superior derecha para cambiar el color del líquido y el estilo de los termómetros. También puedes ajustar el número de divisiones y la altura con los deslizadores.</p></details></div></div></div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // =================================================================================
+        // 1. ESTADO GLOBAL Y CONFIGURACIÓN
+        // =================================================================================
+        const state = {
+            celsius: 20.0,
+            liquidColor: '#3b82f6',
+            thermometerStyle: 'modern',
+            tickCount: 5,
+            thermoHeight: 280,
+            activeKeyPoint: null
+        };
+
+        const dimensions = {};
+
+        const keyPoints = {
+            '0': { title: 'Punto de Congelación del Agua', explanation: 'A 0°C (32°F), el agua líquida se solidifica y se convierte en hielo bajo presión atmosférica estándar. Es un punto de referencia fundamental en la escala Celsius.', color: '#0ea5e9' },
+            '100': { title: 'Punto de Ebullición del Agua', explanation: 'A 100°C o 212°F, el agua líquida se convierte en vapor. Este proceso, conocido como ebullición, ocurre cuando la presión de vapor del líquido iguala la presión atmosférica circundante.', color: '#f97316' },
+            '-273.15': { title: 'Cero Absoluto', explanation: 'Es la temperatura teórica más baja posible, donde las partículas subatómicas cesan todo movimiento. Es el punto de partida (0 K) para la escala Kelvin y la escala Rankine (0 °R).', color: '#1e293b' },
+            '37': { title: 'Temperatura Corporal Humana', explanation: 'La temperatura corporal interna normal de un ser humano sano es de aproximadamente 37°C (98.6°F). El cuerpo mantiene esta temperatura a través de un proceso llamado termorregulación.', color: '#16a34a' }
+        };
+
+        const ranges = {
+            celsius: { min: -100, max: 100 }, fahrenheit: { min: -148, max: 212 },
+            kelvin: { min: 173.15, max: 373.15 }, rankine: { min: 311.67, max: 671.67 },
+            reaumur: { min: -80, max: 80 }
+        };
+
+        // =================================================================================
+        // 2. SELECCIÓN DE ELEMENTOS DEL DOM
+        // =================================================================================
+        const ui = {
+            sliders: { celsius: document.getElementById('celsius'), fahrenheit: document.getElementById('fahrenheit'), kelvin: document.getElementById('kelvin'), rankine: document.getElementById('rankine'), reaumur: document.getElementById('reaumur') },
+            inputs: { celsius: document.getElementById('celsius-input'), fahrenheit: document.getElementById('fahrenheit-input'), kelvin: document.getElementById('kelvin-input'), rankine: document.getElementById('rankine-input'), reaumur: document.getElementById('reaumur-input') },
+            controls: { ticks: document.getElementById('ticks'), height: document.getElementById('height-slider'), ticksValue: document.getElementById('ticks-value') },
+            canvas: document.getElementById('thermometerCanvas'),
+            ctx: document.getElementById('thermometerCanvas').getContext('2d'),
+            weatherPanel: document.getElementById('real-time-weather'),
+            modals: { color: document.getElementById('color-modal'), style: document.getElementById('style-modal'), help: document.getElementById('help-modal') },
+            openModalBtns: { color: document.getElementById('color-palette-btn'), style: document.getElementById('style-btn'), help: document.getElementById('help-btn') },
+            closeModalBtns: { color: document.getElementById('close-color-modal'), style: document.getElementById('close-style-modal'), help: document.getElementById('close-help-modal') },
+            styleOptions: { modern: document.getElementById('style-modern'), classic: document.getElementById('style-classic') },
+            colorPicker: { input: document.getElementById('color-picker'), value: document.getElementById('color-value') }
+        };
+
+        // =================================================================================
+        // 3. LÓGICA DE CONVERSIÓN Y ACTUALIZACIÓN
+        // =================================================================================
+        const convert = {
+            cToF: c => (c * 9/5) + 32, cToK: c => c + 273.15,
+            cToRa: c => (c + 273.15) * 9/5, cToRe: c => c * 4/5,
+            fToC: f => (f - 32) * 5/9, kToC: k => k - 273.15,
+            raToC: ra => (ra - 491.67) * 5/9, reToC: re => re * 5/4
+        };
+
+        /**
+         * Actualiza toda la interfaz de usuario basándose en un valor de Celsius.
+         * @param {number} celsiusValue - La temperatura en grados Celsius.
+         */
+        function updateAllUIs(celsiusValue) {
+            state.celsius = celsiusValue;
+
+            const f = convert.cToF(celsiusValue);
+            const k = convert.cToK(celsiusValue);
+            const ra = convert.cToRa(celsiusValue);
+            const re = convert.cToRe(celsiusValue);
+
+            // Actualiza los deslizadores
+            ui.sliders.celsius.value = celsiusValue;
+            ui.sliders.fahrenheit.value = f;
+            ui.sliders.kelvin.value = k;
+            ui.sliders.rankine.value = ra;
+            ui.sliders.reaumur.value = re;
+
+            // Actualiza los campos de entrada numérica
+            ui.inputs.celsius.value = celsiusValue.toFixed(1);
+            ui.inputs.fahrenheit.value = f.toFixed(1);
+            ui.inputs.kelvin.value = k.toFixed(1);
+            ui.inputs.rankine.value = ra.toFixed(1);
+            ui.inputs.reaumur.value = re.toFixed(1);
+            
+            // Comprueba los puntos clave y redibuja el canvas
+            state.activeKeyPoint = Object.keys(keyPoints).find(temp => Math.abs(celsiusValue - parseFloat(temp)) < 0.5) ? keyPoints[Object.keys(keyPoints).find(temp => Math.abs(celsiusValue - parseFloat(temp)) < 0.5)] : null;
+            fullRedraw();
+        }
+
+
+        // =================================================================================
+        // 4. MOTOR DE DIBUJO DEL CANVAS
+        // =================================================================================
+
+        function calculateAndSetDimensions() {
+            const container = ui.canvas.parentElement;
+            const maxCanvasWidth = Math.min(container.clientWidth, 680);
+
+            const marginTop = 40;
+            const marginBottom = state.activeKeyPoint ? 160 : 40;
+            const thermometerHeight = state.thermoHeight;
+
+            ui.canvas.width = maxCanvasWidth;
+            ui.canvas.height = marginTop + thermometerHeight + marginBottom;
+
+            const thermometerCount = 5;
+            const outerMargin = Math.max(20, ui.canvas.width * 0.04);
+            const availableWidth = ui.canvas.width - 2 * outerMargin;
+
+            let spacing = Math.max(24, availableWidth * 0.035);
+            let width = (availableWidth - spacing * (thermometerCount - 1)) / thermometerCount;
+            width = Math.max(40, Math.min(width, 84));
+            if (width < 55) spacing = Math.max(12, spacing / 2);
+
+            const totalWidth = thermometerCount * width + (thermometerCount - 1) * spacing;
+            const realMargin = (ui.canvas.width - totalWidth) / 2;
+
+            dimensions.width = width;
+            dimensions.height = thermometerHeight;
+            dimensions.startY = marginTop + thermometerHeight;
+            dimensions.marginTop = marginTop;
+            dimensions.marginBottom = marginBottom;
+            dimensions.startX = realMargin;
+            dimensions.spacing = width + spacing;
+        }
+
+        function fullRedraw() {
+            calculateAndSetDimensions();
+            if (ui.canvas.width < 50) return; 
+            
+            ui.ctx.clearRect(0, 0, ui.canvas.width, ui.canvas.height);
+
+            const { width, height, startX, spacing, startY } = dimensions;
+            const drawFunction = state.thermometerStyle === 'classic' ? drawThermometerClassic : drawThermometerModern;
+
+            drawFunction(startX, startY, width, height, 'Celsius', state.celsius, ranges.celsius);
+            drawFunction(startX + spacing, startY, width, height, 'Fahrenheit', convert.cToF(state.celsius), ranges.fahrenheit);
+            drawFunction(startX + 2 * spacing, startY, width, height, 'Kelvin', convert.cToK(state.celsius), ranges.kelvin);
+            drawFunction(startX + 3 * spacing, startY, width, height, 'Rankine', convert.cToRa(state.celsius), ranges.rankine);
+            drawFunction(startX + 4 * spacing, startY, width, height, 'Réaumur', convert.cToRe(state.celsius), ranges.reaumur);
+            
+            if (state.activeKeyPoint) {
+                drawKeyPointInfo(state.activeKeyPoint);
+            }
+        }
+        
+        function drawThermometerModern(x, y, width, height, label, value, range) {
+            const { min, max } = range;
+            const tubeWidth = width / 2.5;
+            const tubeX = x + width / 2 - tubeWidth / 2;
+            const bulbRadius = width * 0.38;
+            
+            ui.ctx.save();
+            ui.ctx.shadowColor = 'rgba(0, 0, 0, 0.1)'; ui.ctx.shadowBlur = 10; ui.ctx.shadowOffsetY = 4;
+            ui.ctx.fillStyle = '#f8fafc'; ui.ctx.strokeStyle = '#e2e8f0'; ui.ctx.lineWidth = 3;
+            ui.ctx.beginPath(); ui.ctx.arc(x + width / 2, y, bulbRadius, 0, 2 * Math.PI); ui.ctx.fill(); ui.ctx.stroke();
+            ui.ctx.beginPath(); ui.ctx.roundRect(tubeX, y - height, tubeWidth, height, [tubeWidth / 2, tubeWidth / 2, 0, 0]); ui.ctx.fill(); ui.ctx.stroke();
+            ui.ctx.restore();
+
+            const valuePercent = Math.max(0, Math.min(1, (value - min) / (max - min)));
+            const mercuryHeight = valuePercent * (height - bulbRadius * 1.5);
+            const mercuryStartY = y - bulbRadius;
+            ui.ctx.fillStyle = state.liquidColor;
+            if (mercuryHeight > 0) {
+                ui.ctx.beginPath(); ui.ctx.arc(x + width / 2, y, Math.max(0, bulbRadius - 5), 0, 2 * Math.PI); ui.ctx.fill();
+                const liquidTubeWidth = Math.max(0, tubeWidth - 10);
+                ui.ctx.beginPath(); ui.ctx.roundRect(tubeX + 5, mercuryStartY, liquidTubeWidth, -mercuryHeight, [liquidTubeWidth / 2]); ui.ctx.fill();
+            }
+            
+            ui.ctx.save();
+            ui.ctx.fillStyle = '#1e293b';
+            ui.ctx.font = `bold ${Math.floor(width * 0.25)}px Inter`;
+            ui.ctx.textAlign = 'center';
+            ui.ctx.textBaseline = 'middle';
+            ui.ctx.fillText(label, x + width / 2, dimensions.marginTop / 2);
+            ui.ctx.restore();
+
+            ui.ctx.font = '11px Inter'; ui.ctx.fillStyle = '#111827'; ui.ctx.strokeStyle = '#111827';
+            for (let i = 0; i <= state.tickCount; i++) {
+                if (state.tickCount === 0) break;
+                const tickPercent = i / state.tickCount;
+                const tickY = mercuryStartY - (tickPercent * (height - bulbRadius * 1.5));
+                const tickValue = min + (tickPercent * (max - min));
+                ui.ctx.beginPath(); ui.ctx.moveTo(tubeX + tubeWidth, tickY); ui.ctx.lineTo(tubeX + tubeWidth + 8, tickY);
+                ui.ctx.lineWidth = 1; ui.ctx.stroke();
+                ui.ctx.textAlign = 'left'; ui.ctx.fillText(tickValue.toFixed(0), tubeX + tubeWidth + 12, tickY + 4);
+            }
+        }
+
+        function drawThermometerClassic(x, y, width, height, label, value, range) {
+            const { min, max } = range;
+            const tubeWidth = width / 3;
+            const tubeX = x + width / 2 - tubeWidth / 2;
+            const bulbRadius = width * 0.38;
+            
+            ui.ctx.fillStyle = 'white'; ui.ctx.strokeStyle = '#4b5563'; ui.ctx.lineWidth = 2;
+            ui.ctx.beginPath(); ui.ctx.arc(x + width / 2, y, bulbRadius, 0, 2 * Math.PI); ui.ctx.fill(); ui.ctx.stroke();
+            ui.ctx.beginPath(); ui.ctx.rect(tubeX, y - height, tubeWidth, height); ui.ctx.fill(); ui.ctx.stroke();
+            
+            const valuePercent = Math.max(0, Math.min(1, (value - min) / (max - min)));
+            const mercuryHeight = valuePercent * (height - bulbRadius);
+            const mercuryStartY = y - bulbRadius;
+            ui.ctx.fillStyle = state.liquidColor;
+            if (mercuryHeight > 0) {
+                ui.ctx.beginPath(); ui.ctx.arc(x + width / 2, y, Math.max(0, bulbRadius - 3), 0, 2 * Math.PI); ui.ctx.fill();
+                ui.ctx.beginPath(); ui.ctx.rect(tubeX + 3, mercuryStartY, Math.max(0, tubeWidth - 6), -mercuryHeight); ui.ctx.fill();
+            }
+            
+            ui.ctx.save();
+            ui.ctx.fillStyle = '#111827';
+            ui.ctx.font = `bold ${Math.floor(width * 0.25)}px Inter`;
+            ui.ctx.textAlign = 'center';
+            ui.ctx.textBaseline = 'middle';
+            ui.ctx.fillText(label, x + width / 2, dimensions.marginTop / 2);
+            ui.ctx.restore();
+            
+            ui.ctx.font = '12px Inter'; ui.ctx.fillStyle = '#111827'; ui.ctx.strokeStyle = '#111827';
+            for (let i = 0; i <= state.tickCount; i++) {
+                if (state.tickCount < 2) break;
+                const tickPercent = i / state.tickCount;
+                const tickY = y - bulbRadius - (tickPercent * (height - bulbRadius));
+                const tickValue = min + (tickPercent * (max - min));
+                const isMajorTick = state.tickCount >= 10 ? i % 5 === 0 : i % 2 === 0 || i === state.tickCount;
+                const tickLength = isMajorTick ? 12 : 6;
+                ui.ctx.beginPath(); ui.ctx.moveTo(tubeX - tickLength, tickY); ui.ctx.lineTo(tubeX, tickY);
+                ui.ctx.lineWidth = 1; ui.ctx.stroke();
+                if (isMajorTick) {
+                    ui.ctx.textAlign = 'right';
+                    ui.ctx.fillText(tickValue.toFixed(0), tubeX - tickLength - 4, tickY + 4);
+                }
+            }
+        }
+
+        function drawKeyPointInfo(keyPoint) {
+            const yPos = ui.canvas.height - dimensions.marginBottom + 60;
+            ui.ctx.save();
+            ui.ctx.fillStyle = keyPoint.color;
+            ui.ctx.font = 'bold 16px Inter';
+            ui.ctx.textAlign = 'center';
+            ui.ctx.fillText(keyPoint.title, ui.canvas.width / 2, yPos);
+            
+            ui.ctx.fillStyle = '#334155';
+            ui.ctx.font = '14px Inter';
+            wrapText(ui.ctx, keyPoint.explanation, ui.canvas.width / 2, yPos + 25, ui.canvas.width * 0.85, 20);
+            ui.ctx.restore();
+        }
+
+        function wrapText(context, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            for(let n = 0; n < words.length; n++) {
+                const testLine = line + words[n] + ' ';
+                const testWidth = context.measureText(testLine).width;
+                if (testWidth > maxWidth && n > 0) {
+                    context.fillText(line, x, y);
+                    line = words[n] + ' ';
+                    y += lineHeight;
+                } else {
+                    line = testLine;
+                }
+            }
+            context.fillText(line, x, y);
+        }
+
+        // =================================================================================
+        // 5. MANEJO DE EVENTOS
+        // =================================================================================
+        function setupEventListeners() {
+            // Eventos para deslizadores
+            Object.keys(ui.sliders).forEach(key => {
+                ui.sliders[key].addEventListener('input', (e) => {
+                    let c = 0;
+                    const value = parseFloat(e.target.value);
+                    switch (key) {
+                        case 'celsius': c = value; break;
+                        case 'fahrenheit': c = convert.fToC(value); break;
+                        case 'kelvin': c = convert.kToC(value); break;
+                        case 'rankine': c = convert.raToC(value); break;
+                        case 'reaumur': c = convert.reToC(value); break;
+                    }
+                    updateAllUIs(c);
+                });
+            });
+
+            // Eventos para campos de entrada numérica
+            Object.keys(ui.inputs).forEach(key => {
+                ui.inputs[key].addEventListener('change', (e) => { // Usar 'change' para actualizar al finalizar
+                    let c = 0;
+                    const value = parseFloat(e.target.value);
+                    if (isNaN(value)) {
+                        updateAllUIs(state.celsius); // Revertir si la entrada es inválida
+                        return;
+                    }
+                    switch (key) {
+                        case 'celsius': c = value; break;
+                        case 'fahrenheit': c = convert.fToC(value); break;
+                        case 'kelvin': c = convert.kToC(value); break;
+                        case 'rankine': c = convert.raToC(value); break;
+                        case 'reaumur': c = convert.reToC(value); break;
+                    }
+                    updateAllUIs(c);
+                });
+            });
+
+            window.addEventListener('resize', fullRedraw);
+
+            ui.controls.ticks.addEventListener('input', (e) => {
+                state.tickCount = parseInt(e.target.value, 10);
+                ui.controls.ticksValue.textContent = `${state.tickCount} Divisiones`;
+                fullRedraw();
+            });
+            ui.controls.height.addEventListener('input', (e) => {
+                state.thermoHeight = parseInt(e.target.value, 10);
+                fullRedraw();
+            });
+
+            ui.colorPicker.input.addEventListener('input', (e) => {
+                state.liquidColor = e.target.value;
+                ui.colorPicker.value.textContent = state.liquidColor;
+                fullRedraw();
+            });
+            Object.keys(ui.styleOptions).forEach(styleKey => {
+                ui.styleOptions[styleKey].addEventListener('click', () => {
+                    state.thermometerStyle = styleKey;
+                    Object.keys(ui.styleOptions).forEach(key => {
+                        ui.styleOptions[key].classList.toggle('selected', key === styleKey);
+                    });
+                    fullRedraw();
+                });
+            });
+
+            const openModal = (modal) => { modal.classList.remove('hidden'); setTimeout(() => { modal.classList.remove('opacity-0'); modal.querySelector('.modal-content').classList.remove('scale-95', 'opacity-0'); }, 10); };
+            const closeModal = (modal) => { modal.classList.add('opacity-0'); modal.querySelector('.modal-content').classList.add('scale-95', 'opacity-0'); setTimeout(() => modal.classList.add('hidden'), 300); };
+            Object.keys(ui.openModalBtns).forEach(key => ui.openModalBtns[key].addEventListener('click', () => openModal(ui.modals[key])));
+            Object.values(ui.modals).forEach(modal => modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(modal); }));
+            Object.values(ui.closeModalBtns).forEach(btn => btn.addEventListener('click', () => closeModal(btn.closest('.modal'))));
+        }
+
+        // =================================================================================
+        // 6. LÓGICA DE CLIMA EN TIEMPO REAL
+        // =================================================================================
+        async function getRealTimeWeather() {
+            ui.weatherPanel.innerHTML = `<p class="text-slate-500">Obteniendo su ubicación...</p>`;
+            if (!navigator.geolocation) {
+                ui.weatherPanel.innerHTML = `<p class="text-red-500 font-semibold">La geolocalización no es compatible con su navegador.</p>`;
+                return;
+            }
+
+            try {
+                const position = await new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000 });
+                });
+
+                const { latitude, longitude } = position.coords;
+                ui.weatherPanel.innerHTML = `<p class="text-slate-500">Ubicación obtenida. Buscando clima...</p>`;
+
+                const weatherResponse = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`);
+                if (!weatherResponse.ok) throw new Error(`Error del servicio de clima: ${weatherResponse.statusText}`);
+                const weatherData = await weatherResponse.json();
+
+                const geoResponse = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=es`);
+                if (!geoResponse.ok) throw new Error(`Error del servicio de geocodificación: ${geoResponse.statusText}`);
+                const geoData = await geoResponse.json();
+                
+                const city = geoData.city || geoData.locality || 'Ubicación desconocida';
+                
+                displayWeather(city, weatherData.current_weather.temperature, weatherData.current_weather.weathercode);
+
+            } catch (error) {
+                let errorMessage = 'No se pudo obtener el clima en tiempo real.';
+                // Check if the error is a GeolocationPositionError
+                if (error && error.code) {
+                    switch(error.code) {
+                        case 1: // PERMISSION_DENIED
+                            errorMessage = 'Permiso de ubicación denegado. Habilítelo para ver el clima local.';
+                            break;
+                        case 2: // POSITION_UNAVAILABLE
+                            errorMessage = 'La ubicación no está disponible en este momento.';
+                            break;
+                        case 3: // TIMEOUT
+                            errorMessage = 'Se agotó el tiempo de espera para obtener la ubicación.';
+                            break;
+                    }
+                } else if (error && error.message) {
+                    // Handle network errors or other generic errors
+                    errorMessage = `Error de red: ${error.message}`;
+                }
+                
+                console.error("Error al obtener clima:", errorMessage, "Objeto de error original:", error);
+                ui.weatherPanel.innerHTML = `<p class="text-red-500 font-semibold">${errorMessage}</p>`;
+            }
+        }
+
+        function displayWeather(city, temp, code) {
+            const icon = getWeatherIcon(code);
+            ui.weatherPanel.innerHTML = `
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 text-center sm:text-left w-full">
+                    <div class="w-16 h-16 text-yellow-500 flex-shrink-0">${icon}</div>
+                    <div class="flex-grow">
+                        <p class="text-slate-500 text-lg font-medium">${city}</p>
+                        <p class="font-orbitron text-4xl font-bold text-slate-800">${temp.toFixed(1)}°C</p>
+                    </div>
+                </div>`;
+        }
+
+        function getWeatherIcon(code) {
+            if (code === 0) return `<svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>`; // Sol
+            if (code >= 1 && code <= 3) return `<svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-9.653 3.916A2.25 2.25 0 002.25 15z" /></svg>`; // Nubes
+            if (code >= 45 && code <= 48) return `<svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25v13.5m-7.5-13.5v13.5" /></svg>`; // Niebla
+            if ( (code >= 51 && code <= 67) || (code >= 80 && code <= 82) ) return `<svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" /></svg>`; // Lluvia
+            if ( (code >= 71 && code <= 77) || (code >= 85 && code <= 86) ) return `<svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16.5V9.75m0 0l3 3m-3-3l-3 3M6.75 19.5a4.5 4.5 0 01-1.41-8.775 5.25 5.25 0 0110.233-2.33 3 3 0 013.758 3.848A3.752 3.752 0 0118 19.5H6.75z" /></svg>`; // Nieve
+            if (code >= 95 && code <= 99) return `<svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" /></svg>`; // Tormenta
+            return `<svg xmlns="http://www.w3.org/2000/svg" class="h-full w-full" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>`; // Desconocido
+        }
+
+
+        // =================================================================================
+        // 7. INICIALIZACIÓN
+        // =================================================================================
+        function init() {
+            setupEventListeners();
+            updateAllUIs(state.celsius);
+            getRealTimeWeather(); // ACTIVADO
+        }
+
+        init();
+    });
+    </script>
+</body>
+</html>

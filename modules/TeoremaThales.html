@@ -69,10 +69,11 @@
         #thales-canvas {
             width: 100%;
             height: 100%;
-            cursor: crosshair;
+            cursor: grab;
             border-radius: var(--border-radius);
             background-color: #ffffff;
             box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            touch-action: none; /* Desactiva acciones táctiles por defecto del navegador */
         }
 
         /* --- Cabecera y Botones Modernos --- */
@@ -105,10 +106,6 @@
         }
         .modern-btn:active {
             box-shadow: inset 2px 2px 5px #bebebe, inset -2px -2px 5px #ffffff;
-        }
-        .modern-btn:disabled {
-            cursor: not-allowed;
-            opacity: 0.6;
         }
         .modern-btn i {
             transition: transform 0.3s ease;
@@ -332,9 +329,9 @@
             <div class="modal-body">
                 <h4>Interactuando con la Gráfica</h4>
                 <ul>
-                    <li><strong>Mover Transversales:</strong> Haz clic y arrastra los puntos rojos grandes en los extremos de las líneas verdes para cambiar su posición e inclinación.</li>
-                    <li><strong>Ajustar Paralelas:</strong> Haz clic y arrastra cualquier línea azul paralela para cambiar su distancia verticalmente. El cursor cambiará a una flecha vertical.</li>
-                    <li><strong>Deslizar Intersecciones:</strong> Haz clic en un punto de intersección (A, B, C...) y arrástralo horizontalmente para deslizar toda la recta transversal.</li>
+                    <li><strong>Mover Puntos:</strong> Mantén presionado y arrastra con el dedo (o el ratón) los puntos rojos o las líneas paralelas.</li>
+                    <li><strong>Hacer Zoom:</strong> Pellizca la pantalla con dos dedos para acercar o alejar. Con el ratón, usa la rueda de scroll.</li>
+                    <li><strong>Mover la Vista (Pan):</strong> Arrastra con dos dedos sobre el lienzo. Con el ratón, haz clic y arrastra con el botón central (rueda).</li>
                 </ul>
                 <h4>Controles Adicionales</h4>
                 <ul>
@@ -424,6 +421,13 @@
             transversals: [],
             intersectionPoints: [[], []],
             dragging: null,
+            // NUEVO: Objeto para gestionar la vista (pan y zoom)
+            view: {
+                scale: 1,
+                x: 0,
+                y: 0,
+            },
+            lastTouch: { x: 0, y: 0, dist: 0 },
             colors: {
                 parallels: '#007bff',
                 transversals: '#28a745',
@@ -438,7 +442,7 @@
         function getLineIntersection(p1, p2, y) {
             if (p1.y === p2.y) return null;
             const t = (y - p1.y) / (p2.y - p1.y);
-            if (t < -10 || t > 10) return null;
+            if (t < -100 || t > 100) return null; // Aumentar rango para zoom
             const x = p1.x + t * (p2.x - p1.x);
             return { x, y };
         }
@@ -447,13 +451,22 @@
             return Math.hypot(p1.x - p2.x, p1.y - p2.y);
         }
 
-        function getMousePos(evt, targetCanvas) {
+        function getScreenPos(evt, targetCanvas) {
             const rect = targetCanvas.getBoundingClientRect();
+            // Maneja tanto eventos de ratón como táctiles
             const clientX = evt.touches ? evt.touches[0].clientX : evt.clientX;
             const clientY = evt.touches ? evt.touches[0].clientY : evt.clientY;
             return {
-                x: (clientX - rect.left) * (targetCanvas.width / rect.width),
-                y: (clientY - rect.top) * (targetCanvas.height / rect.height)
+                x: clientX - rect.left,
+                y: clientY - rect.top
+            };
+        }
+
+        // NUEVO: Convierte coordenadas de pantalla a coordenadas del mundo (canvas)
+        function screenToWorld(pos) {
+            return {
+                x: (pos.x - state.view.x) / state.view.scale,
+                y: (pos.y - state.view.y) / state.view.scale
             };
         }
         
@@ -463,26 +476,28 @@
             ctx.moveTo(p1.x, p1.y);
             ctx.lineTo(p2.x, p2.y);
             ctx.strokeStyle = color;
-            ctx.lineWidth = width;
+            ctx.lineWidth = width / state.view.scale; // Ajustar grosor con zoom
             ctx.stroke();
         }
 
         function drawPoint(p, color, radius) {
             ctx.beginPath();
-            ctx.arc(p.x, p.y, radius, 0, 2 * Math.PI);
+            ctx.arc(p.x, p.y, radius / state.view.scale, 0, 2 * Math.PI);
             ctx.fillStyle = color;
             ctx.fill();
         }
 
         function drawLabel(text, p, color) {
+            const fontSize = 16 / state.view.scale;
             ctx.fillStyle = color;
-            ctx.font = 'bold 16px Arial';
-            ctx.fillText(text, p.x + 10, p.y - 10);
+            ctx.font = `bold ${fontSize}px Arial`;
+            ctx.fillText(text, p.x + (10 / state.view.scale), p.y - (10 / state.view.scale));
         }
 
         function drawSegmentLabels() {
+            const fontSize = 14 / state.view.scale;
             ctx.fillStyle = '#0056b3';
-            ctx.font = 'bold 14px Arial';
+            ctx.font = `bold ${fontSize}px Arial`;
             
             state.intersectionPoints.forEach((transversalPoints) => {
                 for (let i = 0; i < transversalPoints.length - 1; i++) {
@@ -493,13 +508,12 @@
                         const dist = distance(p1, p2);
                         const midX = (p1.x + p2.x) / 2;
                         const midY = (p1.y + p2.y) / 2;
-
                         const dx = p2.x - p1.x;
                         const dy = p2.y - p1.y;
-                        const length = Math.sqrt(dx*dx + dy*dy);
-                        const offsetX = -dy / length * 15;
-                        const offsetY = dx / length * 15;
-
+                        const length = Math.hypot(dx, dy);
+                        const offset = 15 / state.view.scale;
+                        const offsetX = -dy / length * offset;
+                        const offsetY = dx / length * offset;
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText(dist.toFixed(1), midX + offsetX, midY + offsetY);
@@ -509,8 +523,9 @@
         }
 
         function drawHorizontalSegmentLabels() {
+            const fontSize = 13 / state.view.scale;
             ctx.fillStyle = '#c82333';
-            ctx.font = 'italic bold 13px Arial';
+            ctx.font = `italic bold ${fontSize}px Arial`;
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
 
@@ -523,15 +538,14 @@
                 if (p1 && p2) {
                     const dist = Math.abs(p1.x - p2.x);
                     const midX = (p1.x + p2.x) / 2;
-                    const y = state.parallelLines[i].y + 5;
-
+                    const y = state.parallelLines[i].y + (5 / state.view.scale);
                     ctx.strokeStyle = '#c82333';
-                    ctx.lineWidth = 1;
+                    ctx.lineWidth = 1 / state.view.scale;
                     ctx.beginPath();
                     ctx.moveTo(p1.x, y);
                     ctx.lineTo(p2.x, y);
                     ctx.stroke();
-                    ctx.fillText(dist.toFixed(1), midX, y + 2);
+                    ctx.fillText(dist.toFixed(1), midX, y + (2 / state.view.scale));
                 }
             }
         }
@@ -542,16 +556,22 @@
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.scale(dpr, dpr);
-            canvas.style.width = `${rect.width}px`;
-            canvas.style.height = `${rect.height}px`;
-
+            
+            ctx.save(); // Guardar estado del contexto
             ctx.fillStyle = state.colors.background;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Aplicar transformaciones de vista (pan y zoom)
+            ctx.translate(state.view.x, state.view.y);
+            ctx.scale(state.view.scale, state.view.scale);
 
             calculateIntersections();
 
+            const viewWidth = canvas.width / dpr / state.view.scale;
+            const viewX = -state.view.x / state.view.scale;
+
             state.parallelLines.forEach(line => {
-                drawLine({x: 0, y: line.y}, {x: canvas.width / dpr, y: line.y}, state.colors.parallels);
+                drawLine({x: viewX, y: line.y}, {x: viewX + viewWidth, y: line.y}, state.colors.parallels);
             });
 
             state.transversals.forEach(t => {
@@ -573,6 +593,7 @@
             drawSegmentLabels();
             drawHorizontalSegmentLabels();
 
+            ctx.restore(); // Restaurar estado del contexto
             updateInfoPanel();
         }
         
@@ -648,65 +669,77 @@
         // --- 5. LÓGICA DE INTERACCIÓN DEL USUARIO ---
         function handleMouseDown(e) {
             e.preventDefault();
-            const pos = getMousePos(e, canvas);
+            const screenPos = getScreenPos(e, canvas);
+            const worldPos = screenToWorld(screenPos);
             
+            // Prioridad 1: Puntos extremos de las transversales
             for (let tIndex = 0; tIndex < state.transversals.length; tIndex++) {
                 const t = state.transversals[tIndex];
-                if (distance(pos, t.p1) < state.pointRadius * 3) {
+                if (distance(worldPos, t.p1) < state.pointRadius * 3 / state.view.scale) {
                     state.dragging = { type: 'transversal', tIndex: tIndex, pIndex: 'p1' };
                     canvas.style.cursor = 'grabbing';
                     return;
                 }
-                if (distance(pos, t.p2) < state.pointRadius * 3) {
+                if (distance(worldPos, t.p2) < state.pointRadius * 3 / state.view.scale) {
                     state.dragging = { type: 'transversal', tIndex: tIndex, pIndex: 'p2' };
                     canvas.style.cursor = 'grabbing';
                     return;
                 }
             }
 
+            // Prioridad 2: Líneas paralelas
             for (let lIndex = 0; lIndex < state.parallelLines.length; lIndex++) {
-                if (Math.abs(pos.y - state.parallelLines[lIndex].y) < 15) {
+                if (Math.abs(worldPos.y - state.parallelLines[lIndex].y) < 15 / state.view.scale) {
                     state.dragging = { type: 'parallel', lineObject: state.parallelLines[lIndex] };
                     canvas.style.cursor = 'ns-resize';
                     return;
                 }
             }
 
+            // Prioridad 3: Puntos de intersección (para deslizar)
             for (let tIndex = 0; tIndex < state.intersectionPoints.length; tIndex++) {
                 for (let lIndex = 0; lIndex < state.intersectionPoints[tIndex].length; lIndex++) {
                     const point = state.intersectionPoints[tIndex][lIndex];
-                    if (point && distance(pos, point) < state.pointRadius * 3) {
+                    if (point && distance(worldPos, point) < state.pointRadius * 3 / state.view.scale) {
                         state.dragging = { type: 'intersection', tIndex, lIndex };
                         canvas.style.cursor = 'ew-resize';
                         return;
                     }
                 }
             }
+
+            // Si no se arrastra nada, iniciar pan
+            state.dragging = { type: 'pan', start: screenPos };
+            canvas.style.cursor = 'grabbing';
         }
         
         function handleMouseMove(e) {
             if (!state.dragging) return;
             e.preventDefault();
-            const pos = getMousePos(e, canvas);
-            const dpr = window.devicePixelRatio || 1;
+            const screenPos = getScreenPos(e, canvas);
+            const worldPos = screenToWorld(screenPos);
 
             if (state.dragging.type === 'transversal') {
                 const { tIndex, pIndex } = state.dragging;
-                state.transversals[tIndex][pIndex].x = pos.x;
-                state.transversals[tIndex][pIndex].y = pos.y;
+                state.transversals[tIndex][pIndex] = worldPos;
             } else if (state.dragging.type === 'intersection') {
                 const { tIndex, lIndex } = state.dragging;
                 const transversal = state.transversals[tIndex];
                 const oldIntersection = state.intersectionPoints[tIndex][lIndex];
                 if (!oldIntersection) return;
                 
-                const dx = pos.x - oldIntersection.x;
+                const dx = worldPos.x - oldIntersection.x;
                 transversal.p1.x += dx;
                 transversal.p2.x += dx;
             } else if (state.dragging.type === 'parallel') {
                 const { lineObject } = state.dragging;
-                const newY = Math.max(10, Math.min(canvas.height / dpr - 10, pos.y));
-                lineObject.y = newY;
+                lineObject.y = worldPos.y;
+            } else if (state.dragging.type === 'pan') {
+                const dx = screenPos.x - state.dragging.start.x;
+                const dy = screenPos.y - state.dragging.start.y;
+                state.view.x += dx;
+                state.view.y += dy;
+                state.dragging.start = screenPos;
             }
             
             drawScene();
@@ -715,23 +748,75 @@
         function handleMouseUp() {
             if (state.dragging && state.dragging.type === 'parallel') {
                 state.parallelLines.sort((a, b) => a.y - b.y);
-                drawScene();
             }
             state.dragging = null;
-            canvas.style.cursor = 'crosshair';
+            canvas.style.cursor = 'grab';
+            drawScene();
+        }
+        
+        // --- 6. MANEJADORES DE ZOOM Y TÁCTILES ---
+        function handleWheel(e) {
+            e.preventDefault();
+            const scaleAmount = 1.1;
+            const pos = getScreenPos(e, canvas);
+            
+            if (e.deltaY < 0) { // Zoom in
+                state.view.scale *= scaleAmount;
+            } else { // Zoom out
+                state.view.scale /= scaleAmount;
+            }
+            state.view.scale = Math.max(0.1, Math.min(10, state.view.scale)); // Limitar zoom
+
+            // Hacer zoom hacia el cursor
+            state.view.x = pos.x - (pos.x - state.view.x) * (e.deltaY < 0 ? scaleAmount : 1/scaleAmount);
+            state.view.y = pos.y - (pos.y - state.view.y) * (e.deltaY < 0 ? scaleAmount : 1/scaleAmount);
+
+            drawScene();
         }
 
-        // --- 6. MANEJADORES DE EVENTOS DE BOTONES Y MODALES ---
-        function addParallelLine() {
-            if (state.parallelLines.length >= 8) return;
-            const dpr = window.devicePixelRatio || 1;
-            const lastY = state.parallelLines.length > 0 ? state.parallelLines[state.parallelLines.length - 1].y : 50;
-            const newY = lastY + 60;
-            if (newY < canvas.height / dpr - 50) {
-                state.parallelLines.push({ y: newY });
-                state.parallelLines.sort((a,b) => a.y - b.y);
+        function handleTouchStart(e) {
+            if (e.touches.length === 1) {
+                handleMouseDown(e);
+            } else if (e.touches.length === 2) {
+                e.preventDefault();
+                state.lastTouch.dist = distance(e.touches[0], e.touches[1]);
+                state.lastTouch.x = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                state.lastTouch.y = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                state.dragging = { type: 'zoompan' };
+            }
+        }
+
+        function handleTouchMove(e) {
+            if (e.touches.length === 1) {
+                handleMouseMove(e);
+            } else if (e.touches.length === 2 && state.dragging && state.dragging.type === 'zoompan') {
+                e.preventDefault();
+                // Zoom
+                const newDist = distance(e.touches[0], e.touches[1]);
+                const scaleFactor = newDist / state.lastTouch.dist;
+                state.view.scale *= scaleFactor;
+                state.view.scale = Math.max(0.1, Math.min(10, state.view.scale));
+                
+                // Pan
+                const newMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+                const newMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+                state.view.x += newMidX - state.lastTouch.x;
+                state.view.y += newMidY - state.lastTouch.y;
+
+                state.lastTouch.dist = newDist;
+                state.lastTouch.x = newMidX;
+                state.lastTouch.y = newMidY;
                 drawScene();
             }
+        }
+
+        // --- 7. MANEJADORES DE BOTONES Y MODALES ---
+        function addParallelLine() {
+            if (state.parallelLines.length >= 8) return;
+            const lastY = state.parallelLines.length > 0 ? state.parallelLines[state.parallelLines.length - 1].y : 100;
+            state.parallelLines.push({ y: lastY + 100 });
+            state.parallelLines.sort((a,b) => a.y - b.y);
+            drawScene();
         }
 
         function removeParallelLine() {
@@ -757,8 +842,7 @@
                             modalCanvas.style.width = `${canvas.width / dpr}px`;
                             modalCanvas.style.height = `${canvas.height / dpr}px`;
                             const modalCtx = modalCanvas.getContext('2d');
-                            modalCtx.scale(dpr, dpr);
-                            modalCtx.drawImage(canvas, 0, 0, canvas.width/dpr, canvas.height/dpr);
+                            modalCtx.drawImage(canvas, 0, 0);
                         }
                         modal.style.display = 'block';
                     }
@@ -796,25 +880,26 @@
             });
         }
 
-        // --- 7. INICIALIZACIÓN ---
+        // --- 8. INICIALIZACIÓN ---
         function init() {
             state.parallelLines = [
-                { y: 100 },
-                { y: 200 },
-                { y: 300 }
+                { y: 100 }, { y: 200 }, { y: 300 }
             ];
             state.transversals = [
                 { p1: { x: 100, y: 50 }, p2: { x: 200, y: 450 } },
                 { p1: { x: 400, y: 50 }, p2: { x: 300, y: 450 } }
             ];
 
+            // Eventos de Ratón
             canvas.addEventListener('mousedown', handleMouseDown);
             canvas.addEventListener('mousemove', handleMouseMove);
             canvas.addEventListener('mouseup', handleMouseUp);
             canvas.addEventListener('mouseleave', handleMouseUp);
+            canvas.addEventListener('wheel', handleWheel);
             
-            canvas.addEventListener('touchstart', handleMouseDown, { passive: false });
-            canvas.addEventListener('touchmove', handleMouseMove, { passive: false });
+            // Eventos Táctiles
+            canvas.addEventListener('touchstart', handleTouchStart, { passive: true });
+            canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
             canvas.addEventListener('touchend', handleMouseUp);
 
             addLineBtn.addEventListener('click', addParallelLine);
@@ -826,7 +911,7 @@
             setupColorPickers();
 
             drawScene();
-            console.log("Aplicación del Teorema de Thales (versión final) inicializada.");
+            console.log("Aplicación del Teorema de Thales (con zoom y pan) inicializada.");
         }
 
         document.addEventListener('DOMContentLoaded', init);

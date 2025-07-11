@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simulador de Leyes de Kepler | Néstor Montoya & Gemini AI</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Plotly.js -->
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js" charset="utf-8"></script>
+    
+    <!-- MathJax -->
+    <script>
+        window.MathJax = {
+            tex: { inlineMath: [['$', '$'], ['\\(', '\\)']], displayMath: [['$$', '$$'], ['\\[', '\\]']] },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Estilos CSS -->
+    <style>
+        :root {
+            --bg-color: #111827; /* gray-900 */
+            --card-bg: rgba(31, 41, 55, 0.5); /* gray-800 con alpha */
+            --card-border: rgba(255, 255, 255, 0.1);
+            --neumorph-bg: #1f2937; /* gray-800 */
+            --neumorph-shadow-light: rgba(255, 255, 255, 0.05);
+            --neumorph-shadow-dark: rgba(0, 0, 0, 0.5);
+            --primary-accent: #38bdf8; /* sky-400 */
+            --secondary-accent: #fb7185; /* rose-400 */
+            --text-light: #f3f4f6; /* gray-100 */
+            --text-dark: #9ca3af; /* gray-400 */
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-light);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-y: auto;
+        }
+        .glassmorphism {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--card-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .neumorph-inset {
+            background: var(--neumorph-bg);
+            box-shadow: inset 6px 6px 12px var(--neumorph-shadow-dark), inset -6px -6px 12px var(--neumorph-shadow-light);
+        }
+        input[type="range"] {
+            -webkit-appearance: none; appearance: none;
+            width: 100%; height: 8px; background: var(--neumorph-bg);
+            border-radius: 8px;
+            box-shadow: inset 3px 3px 6px var(--neumorph-shadow-dark), inset -3px -3px 6px var(--neumorph-shadow-light);
+            outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; appearance: none;
+            width: 24px; height: 24px; background: var(--primary-accent);
+            border-radius: 50%; cursor: grab;
+            box-shadow: 4px 4px 8px var(--neumorph-shadow-dark), -4px -4px 8px var(--neumorph-shadow-light);
+            transition: transform 0.2s ease;
+        }
+        input[type="range"]:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.1); }
+        .info-panel-content::-webkit-scrollbar { width: 6px; }
+        .info-panel-content::-webkit-scrollbar-track { background: var(--neumorph-bg); border-radius: 10px; }
+        .info-panel-content::-webkit-scrollbar-thumb { background-color: var(--primary-accent); border-radius: 10px; border: 2px solid var(--neumorph-bg); }
+        .modal { transition: opacity 0.3s ease, transform 0.3s ease; }
+        .modal.hidden { opacity: 0; pointer-events: none; transform: scale(0.95); }
+        .color-target-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .color-target-btn.active {
+            background-color: var(--primary-accent);
+            color: var(--bg-color);
+            font-weight: bold;
+        }
+        .simulate-btn {
+            background-color: var(--primary-accent);
+            color: var(--bg-color);
+            transition: all 0.2s ease;
+        }
+        .simulate-btn:hover {
+            background-color: #0ea5e9; /* sky-500 */
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen">
+    <div id="app-container" class="container mx-auto p-4 sm:p-6 lg:p-8 transition-all duration-500">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300">
+                Simulador Interactivo de las Leyes de Kepler
+            </h1>
+        </header>
+
+        <main id="main-content" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <!-- ===== Panel Izquierdo de Controles e Información ===== -->
+            <div id="left-panel" class="lg:col-span-2 flex flex-col gap-6">
+                <div class="glassmorphism rounded-2xl p-6">
+                    <h2 class="text-xl font-bold text-sky-400 mb-4">Selecciona una Ley</h2>
+                    <select id="law-selector" class="w-full neumorph-inset p-3 text-sm rounded-lg focus:ring-2 focus:ring-sky-400 focus:outline-none appearance-none bg-gray-800 text-white">
+                        <option value="1">1ª Ley: Ley de las Órbitas</option>
+                        <option value="2">2ª Ley: Ley de las Áreas</option>
+                        <option value="3">3ª Ley: Ley de los Períodos</option>
+                    </select>
+                </div>
+                
+                <div class="glassmorphism rounded-2xl p-6 flex-1 flex flex-col">
+                    <h2 id="info-title" class="text-xl font-bold text-sky-400 mb-4">Información</h2>
+                    <div id="info-panel" class="text-sm space-y-4 text-gray-300 overflow-y-auto info-panel-content pr-2 flex-1">
+                        <!-- El contenido se inyectará con JavaScript -->
+                    </div>
+                </div>
+
+                <!-- Panel de Datos en Tiempo Real -->
+                <div id="realtime-data-card" class="glassmorphism rounded-2xl p-6">
+                    <h2 class="text-xl font-bold text-sky-400 mb-4">Propiedades Orbitales</h2>
+                    <div class="text-sm space-y-2 text-gray-300">
+                        <div class="flex justify-between"><span>Período (años):</span><span id="period-data" class="font-mono text-sky-300">---</span></div>
+                        <div class="flex justify-between"><span>Distancia Perihelio (UA):</span><span id="perihelion-data" class="font-mono text-sky-300">---</span></div>
+                        <div class="flex justify-between"><span>Distancia Afelio (UA):</span><span id="aphelion-data" class="font-mono text-sky-300">---</span></div>
+                        <hr class="border-gray-600 my-3">
+                        <div class="flex justify-between"><span>Distancia Actual (UA):</span><span id="dist-data" class="font-mono text-sky-300">---</span></div>
+                        <div class="flex justify-between"><span>Velocidad Actual (km/s):</span><span id="speed-data" class="font-mono text-sky-300">---</span></div>
+                        <div class="flex justify-between"><span>Ángulo Actual (°):</span><span id="angle-data" class="font-mono text-sky-300">---</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== Panel Derecho de Simulación ===== -->
+            <div id="right-panel" class="lg:col-span-3 min-h-[60vh] lg:min-h-0 neumorph-inset rounded-2xl p-2 relative">
+                <div id="plot-container" class="w-full h-full rounded-xl overflow-hidden"></div>
+                
+                <!-- Botones de Control sobre el Gráfico -->
+                <div class="absolute top-4 right-4 z-20 flex items-center gap-2 p-2 rounded-full glassmorphism">
+                     <button id="help-toggle" aria-label="Ayuda" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></button>
+                    <button id="pause-toggle" aria-label="Pausar animación" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors"><svg id="pause-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><svg id="play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="hidden"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg></button>
+                    <button id="palette-toggle" aria-label="Cambiar color" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0L12 2.69z"/></svg></button>
+                    <button id="fullscreen-toggle" aria-label="Ampliar gráfica" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors"><svg id="fullscreen-icon-open" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg><svg id="fullscreen-icon-close" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="hidden"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg></button>
+                    <button id="planet-data-toggle" aria-label="Datos de planetas" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20z"/><path d="M2 12h20"/></svg></button>
+                </div>
+
+                <!-- Widget de Paleta de Colores -->
+                <div id="color-palette-widget" class="absolute top-20 right-4 z-30 p-4 rounded-2xl glassmorphism opacity-0 pointer-events-none transition-all duration-300 transform scale-95 -translate-y-2">
+                    <div id="color-target-selector" class="grid grid-cols-3 gap-2 mb-4">
+                        <button data-target="orbit" class="color-target-btn px-2 py-1 text-xs rounded-full">Órbita</button>
+                        <button data-target="planet" class="color-target-btn px-2 py-1 text-xs rounded-full">Planeta</button>
+                        <button data-target="sun" class="color-target-btn px-2 py-1 text-xs rounded-full">Sol</button>
+                        <button data-target="velocity" class="color-target-btn px-2 py-1 text-xs rounded-full">Velocidad</button>
+                        <button data-target="radiusVector" class="color-target-btn px-2 py-1 text-xs rounded-full">Radio</button>
+                    </div>
+                    <div id="color-swatches" class="grid grid-cols-5 gap-3"></div>
+                </div>
+            </div>
+        </main>
+        
+        <footer class="text-center text-gray-500 text-sm mt-12 pb-4">Autor: Msc. Néstor Fabio Montoya Palacios y Gemini AI</footer>
+    </div>
+
+    <!-- ===== Ventana Modal de Datos Planetarios ===== -->
+    <div id="planet-data-modal" class="modal hidden fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="glassmorphism rounded-2xl p-6 lg:p-8 w-full max-w-4xl max-h-[80vh] flex flex-col transform">
+            <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold text-sky-400">Datos Orbitales del Sistema Solar</h2><button id="close-planet-modal" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors text-2xl leading-none">&times;</button></div>
+            <div class="overflow-auto"><table class="w-full text-sm text-left"><thead class="text-xs text-sky-300 uppercase bg-gray-900/50"><tr><th scope="col" class="px-6 py-3 rounded-l-lg">Planeta</th><th scope="col" class="px-6 py-3">Semieje Mayor (a)<br><span class="font-normal normal-case">(UA)</span></th><th scope="col" class="px-6 py-3">Excentricidad (e)</th><th scope="col" class="px-6 py-3 rounded-r-lg">Acción</th></tr></thead><tbody id="planet-table-body"></tbody></table></div>
+        </div>
+    </div>
+    
+    <!-- ===== Ventana Modal de Ayuda ===== -->
+    <div id="help-modal" class="modal hidden fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div class="glassmorphism rounded-2xl p-6 lg:p-8 w-full max-w-2xl max-h-[80vh] flex flex-col transform">
+            <div class="flex justify-between items-center mb-6"><h2 class="text-2xl font-bold text-sky-400">Guía del Simulador</h2><button id="close-help-modal" class="p-2 rounded-full hover:bg-gray-700/50 transition-colors text-2xl leading-none">&times;</button></div>
+            <div class="overflow-y-auto pr-2 text-gray-300 space-y-4 info-panel-content"><p>¡Bienvenido al Simulador Interactivo de las Leyes de Kepler!</p><div><h3 class="font-bold text-sky-300 mb-2">Uso General</h3><ul class="list-disc list-inside space-y-1 text-sm"><li>Utiliza el selector en el panel izquierdo para cambiar entre las tres leyes de Kepler.</li><li>La información y los controles relevantes para cada ley aparecerán debajo del selector.</li><li>El panel derecho muestra la simulación visual. Puedes interactuar con ella usando el zoom y el paneo del ratón.</li></ul></div><div><h3 class="font-bold text-sky-300 mb-2">Controles del Gráfico</h3><ul class="list-disc list-inside space-y-1 text-sm"><li><span class="font-bold">Ayuda:</span> Muestra esta ventana.</li><li><span class="font-bold">Pausa/Reanudar:</span> Inicia o detiene la animación.</li><li><span class="font-bold">Paleta de Colores:</span> Abre un widget para cambiar los colores de la simulación.</li><li><span class="font-bold">Ampliar:</span> Expande el panel de la simulación para una vista más grande.</li><li><span class="font-bold">Datos Planetarios:</span> Muestra una tabla con datos orbitales. ¡Ahora puedes hacer clic en "Simular" para cargar la órbita de un planeta!</li></ul></div><p>Este simulador fue creado para ofrecer una forma visual e interactiva de comprender los principios fundamentales que rigen el movimiento planetario.</p></div>
+        </div>
+    </div>
+
+    <!-- ===== Script Principal de la Aplicación ===== -->
+    <script type="module">
+        // ===== Referencias al DOM =====
+        const $ = (selector) => document.querySelector(selector);
+        const dom = {
+            lawSelector: $('#law-selector'), infoTitle: $('#info-title'), infoPanel: $('#info-panel'),
+            plotContainer: $('#plot-container'), paletteToggle: $('#palette-toggle'), paletteWidget: $('#color-palette-widget'),
+            colorTargetSelector: $('#color-target-selector'), colorSwatches: $('#color-swatches'),
+            fullscreenToggle: $('#fullscreen-toggle'), fullscreenOpen: $('#fullscreen-icon-open'), fullscreenClose: $('#fullscreen-icon-close'),
+            planetDataToggle: $('#planet-data-toggle'), planetDataModal: $('#planet-data-modal'), closePlanetModal: $('#close-planet-modal'),
+            planetTableBody: $('#planet-table-body'), pauseToggle: $('#pause-toggle'), pauseIcon: $('#pause-icon'), playIcon: $('#play-icon'),
+            helpToggle: $('#help-toggle'), helpModal: $('#help-modal'), closeHelpModal: $('#close-help-modal'),
+            leftPanel: $('#left-panel'), rightPanel: $('#right-panel'), realtimeDataCard: $('#realtime-data-card'),
+            distData: $('#dist-data'), speedData: $('#speed-data'), angleData: $('#angle-data'),
+            periodData: $('#period-data'), perihelionData: $('#perihelion-data'), aphelionData: $('#aphelion-data'),
+        };
+
+        // ===== Estado de la Aplicación =====
+        let state = {
+            currentLaw: 1, animationFrameId: null, isPaused: true,
+            colors: { orbit: '#38bdf8', planet: '#facc15', sun: '#f97316', area: 'rgba(56, 189, 248, 0.3)', velocity: '#f43f5e', radiusVector: '#a3e635' },
+            colorTarget: 'orbit', 
+            simulationParams: { e: 0.4, a: 1.0, speed: 50, name: 'Caso de Prueba' },
+            isFullscreen: false, animationLoop: null,
+        };
+
+        // ===== Datos y Constantes =====
+        const colorPalette = ['#38bdf8', '#fb7185', '#4ade80', '#facc15', '#a78bfa', '#2dd4bf', '#f87171', '#c084fc', '#fbbf24', '#34d399'];
+        const planetData = [
+            { name: 'Caso de Prueba', a: 1.0, e: 0.4 },
+            { name: 'Mercurio', a: 0.387, e: 0.206 }, { name: 'Venus', a: 0.723, e: 0.007 },
+            { name: 'Tierra', a: 1.000, e: 0.017 }, { name: 'Marte', a: 1.524, e: 0.093 },
+            { name: 'Júpiter', a: 5.203, e: 0.048 }, { name: 'Saturno', a: 9.537, e: 0.054 },
+            { name: 'Urano', a: 19.19, e: 0.047 }, { name: 'Neptuno', a: 30.07, e: 0.009 },
+        ];
+        const G = (2 * Math.PI)**2; // Constante gravitacional en (UA^3 / M_sol * año^2)
+        const AU_KM = 149597870.7; // UA en km
+        const YEAR_S = 31557600; // Año en segundos
+        
+        // ===== Funciones de Ayuda y Control (Definidas antes de su uso) =====
+        function updateStaticData() {
+            const { a, e } = state.simulationParams;
+            const period = Math.pow(a, 1.5);
+            const perihelion = a * (1 - e);
+            const aphelion = a * (1 + e);
+            dom.periodData.textContent = period.toFixed(3);
+            dom.perihelionData.textContent = perihelion.toFixed(3);
+            dom.aphelionData.textContent = aphelion.toFixed(3);
+        }
+
+        function updateDynamicData(distance, velocityUA, angleRad) {
+            dom.distData.textContent = distance.toFixed(3);
+            const velocityKMS = velocityUA * AU_KM / YEAR_S;
+            dom.speedData.textContent = velocityKMS.toFixed(2);
+            let angleDeg = angleRad * 180 / Math.PI;
+            if (angleDeg < 0) angleDeg += 360;
+            dom.angleData.textContent = angleDeg.toFixed(2);
+        }
+
+        function solveKepler(M, e) {
+            let E = M; // Initial guess
+            for(let i=0; i<7; i++) { // 7 iterations are usually enough
+                E = E - (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+            }
+            return E;
+        }
+
+        function createBaseLayout() {
+            const {a, e} = state.simulationParams;
+            const maxR = a * (1 + e) * 1.1; // Afelio
+            return {
+                paper_bgcolor: 'transparent',
+                plot_bgcolor: 'transparent',
+                margin: { l: 50, r: 20, t: 40, b: 50 },
+                xaxis: { title: 'x (UA)', zeroline: true, zerolinecolor: '#9ca3af', gridcolor: 'rgba(255, 255, 255, 0.1)', scaleanchor: 'y', scaleratio: 1, range: [-maxR, maxR], color: '#FFFFFF' },
+                yaxis: { title: 'y (UA)', zeroline: true, zerolinecolor: '#9ca3af', gridcolor: 'rgba(255, 255, 255, 0.1)', range: [-maxR, maxR], color: '#FFFFFF' },
+                showlegend: false,
+                hovermode: 'closest',
+                dragmode: 'pan',
+                annotations: [{
+                    showarrow: true, arrowhead: 2, arrowsize: 1.5, arrowwidth: 2,
+                    axref: 'x', ayref: 'y', xref: 'x', yref: 'y',
+                    ax: 0, ay: 0, x: 0, y: 0,
+                    arrowcolor: state.colors.velocity,
+                }]
+            };
+        }
+        
+        const plotlyConfig = {
+            responsive: true,
+            scrollZoom: true,
+            displaylogo: false,
+            modeBarButtonsToRemove: ['select2d', 'lasso2d']
+        };
+
+        function stopAnimation() {
+            state.isPaused = true;
+            if (state.animationFrameId) {
+                cancelAnimationFrame(state.animationFrameId);
+                state.animationFrameId = null;
+            }
+            dom.pauseIcon.classList.add('hidden');
+            dom.playIcon.classList.remove('hidden');
+        }
+
+        function startAnimation() {
+            if (!state.animationLoop) return;
+            state.isPaused = false;
+            dom.playIcon.classList.add('hidden');
+            dom.pauseIcon.classList.remove('hidden');
+            state.animationLoop();
+        }
+
+        function togglePause() {
+            state.isPaused ? startAnimation() : stopAnimation();
+        }
+
+        // ===== Lógica de las Leyes de Kepler =====
+        const laws = {
+            1: {
+                title: '1ª Ley: Ley de las Órbitas',
+                description: () => {
+                    if (state.simulationParams.name && state.simulationParams.name !== 'Caso de Prueba') {
+                        return `<div class="p-2 bg-sky-900/50 rounded-lg">
+                                    <h3 class="font-bold text-sky-300">Simulando: ${state.simulationParams.name}</h3>
+                                    <p class="text-xs mt-1">Semieje Mayor (a): ${state.simulationParams.a.toFixed(3)} UA</p>
+                                    <p class="text-xs">Excentricidad (e): ${state.simulationParams.e.toFixed(3)}</p>
+                                </div>`;
+                    }
+                    return `<p>"La órbita de cada planeta es una elipse con el Sol en uno de los dos focos."</p>
+                            <p>Esta ley describe la forma de la órbita. La excentricidad ($e$) de la elipse determina cuán "achatada" es.</p>
+                            <div class="my-4"><strong>Parámetros de Simulación:</strong><div id="controls-law-1">
+                                <div class="flex justify-between items-center mb-1 mt-2"><label for="e-slider" class="font-medium text-xs">Excentricidad ($e$)</label><span id="e-value-display" class="font-mono text-xs bg-gray-900/50 text-sky-300 py-1 px-2 rounded-full"></span></div>
+                                <input id="e-slider" type="range" min="0" max="0.95" step="0.01" value="${state.simulationParams.e}"></div></div>`;
+                },
+                setupControls: () => {
+                    const eSlider = dom.infoPanel.querySelector('#e-slider');
+                    if (eSlider) {
+                        const eValueDisplay = dom.infoPanel.querySelector('#e-value-display');
+                        eValueDisplay.textContent = state.simulationParams.e.toFixed(3);
+                        eSlider.value = state.simulationParams.e;
+                    }
+                },
+                draw: () => {
+                    updateStaticData();
+                    const { a, e } = state.simulationParams, p = a * (1 - e*e);
+                    const theta = Array.from({length: 201}, (_, i) => 2 * Math.PI * i / 200);
+                    const r = theta.map(t => p / (1 + e * Math.cos(t)));
+                    const x = r.map((rad, i) => rad * Math.cos(theta[i])), y = r.map((rad, i) => rad * Math.sin(theta[i]));
+                    const traces = [
+                        { x, y, mode: 'lines', line: { color: state.colors.orbit, width: 3 } },
+                        { x: [0], y: [0], mode: 'markers', marker: { color: state.colors.sun, size: 15 } },
+                        { x: [x[0]], y: [y[0]], mode: 'markers', marker: { color: state.colors.planet, size: 10 } },
+                        { x: [], y: [], mode: 'lines', line: { color: state.colors.radiusVector, width: 1.5, dash: 'dot' } }
+                    ];
+                    Plotly.react(dom.plotContainer, traces, createBaseLayout(), plotlyConfig);
+                    let frame = 0; const totalFrames = 1000;
+                    state.animationLoop = () => {
+                        if (state.isPaused) return;
+                        frame = (frame + 1 * (state.simulationParams.speed || 50)) % totalFrames;
+                        const M = (2 * Math.PI * frame) / totalFrames, E = solveKepler(M, e);
+                        const trueAnomaly = 2 * Math.atan2(Math.sqrt(1+e) * Math.sin(E/2), Math.sqrt(1-e) * Math.cos(E/2));
+                        const r_pos = p / (1 + e * Math.cos(trueAnomaly));
+                        const planet_x = r_pos * Math.cos(trueAnomaly), planet_y = r_pos * Math.sin(trueAnomaly);
+                        
+                        const v_ua_yr = Math.sqrt(G * (2/r_pos - 1/a));
+                        const vx = -Math.sqrt(G/p) * Math.sin(trueAnomaly);
+                        const vy = Math.sqrt(G/p) * (e + Math.cos(trueAnomaly));
+
+                        updateDynamicData(r_pos, v_ua_yr, trueAnomaly);
+                        
+                        const update = {
+                            'annotations[0].ax': planet_x, 'annotations[0].ay': planet_y,
+                            'annotations[0].x': planet_x + vx * 0.1 * a, 'annotations[0].y': planet_y + vy * 0.1 * a,
+                            'annotations[0].arrowcolor': state.colors.velocity
+                        };
+                        Plotly.relayout(dom.plotContainer, update);
+
+                        Plotly.restyle(dom.plotContainer, { 
+                            x: [[planet_x], [0, planet_x]], 
+                            y: [[planet_y], [0, planet_y]] 
+                        }, [2, 3]);
+                        
+                        state.animationFrameId = requestAnimationFrame(state.animationLoop);
+                    };
+                    startAnimation();
+                }
+            },
+            2: {
+                title: '2ª Ley: Ley de las Áreas',
+                description: () => {
+                     if (state.simulationParams.name && state.simulationParams.name !== 'Caso de Prueba') {
+                        return `<div class="p-2 bg-sky-900/50 rounded-lg">
+                                    <h3 class="font-bold text-sky-300">Simulando: ${state.simulationParams.name}</h3>
+                                    <p class="text-xs mt-1">Semieje Mayor (a): ${state.simulationParams.a.toFixed(3)} UA</p>
+                                    <p class="text-xs">Excentricidad (e): ${state.simulationParams.e.toFixed(3)}</p>
+                                </div>`;
+                    }
+                    return `<p>"La línea que une un planeta al Sol barre áreas iguales en intervalos de tiempo iguales."</p>
+                            <p>Esto significa que el planeta se mueve más rápido cuando está más cerca del Sol (perihelio) y más lento cuando está más lejos (afelio).</p>
+                            <div class="my-4"><strong>Controles:</strong><div id="controls-law-2">
+                                <div class="flex justify-between items-center mb-1 mt-2"><label for="speed-slider" class="font-medium text-xs">Velocidad</label><span id="speed-value-display" class="font-mono text-xs bg-gray-900/50 text-sky-300 py-1 px-2 rounded-full"></span></div>
+                                <input id="speed-slider" type="range" min="10" max="150" step="1" value="${state.simulationParams.speed || 50}"></div></div>`;
+                },
+                setupControls: () => {
+                     const speedSlider = dom.infoPanel.querySelector('#speed-slider');
+                     if(speedSlider) {
+                         const speedValueDisplay = dom.infoPanel.querySelector('#speed-value-display');
+                         speedValueDisplay.textContent = state.simulationParams.speed || 50;
+                     }
+                },
+                draw: () => {
+                    updateStaticData();
+                    const { a, e } = state.simulationParams, p = a * (1 - e*e);
+                    const orbitTheta = Array.from({length: 201}, (_, i) => 2 * Math.PI * i / 200);
+                    const orbitR = orbitTheta.map(t => p / (1 + e * Math.cos(t)));
+                    const orbitX = orbitR.map((r, i) => r * Math.cos(orbitTheta[i])), orbitY = orbitR.map((r, i) => r * Math.sin(orbitTheta[i]));
+                    const traces = [
+                        { x: orbitX, y: orbitY, mode: 'lines', line: { color: state.colors.orbit, width: 3 } },
+                        { x: [0], y: [0], mode: 'markers', marker: { color: state.colors.sun, size: 15 } },
+                        { x: [], y: [], mode: 'markers', marker: { color: state.colors.planet, size: 10 } },
+                        { x: [], y: [], mode: 'lines', fill: 'toself', fillcolor: state.colors.area, line: { color: 'transparent' } },
+                        { x: [], y: [], mode: 'lines', fill: 'toself', fillcolor: state.colors.area, line: { color: 'transparent' } },
+                        { x: [], y: [], mode: 'lines', line: { color: state.colors.radiusVector, width: 1.5, dash: 'dot' } }
+                    ];
+                    Plotly.react(dom.plotContainer, traces, createBaseLayout(), plotlyConfig);
+                    let frame = 0; const totalFrames = 800, areaDurationFrames = 60;
+                    state.animationLoop = () => {
+                        if (state.isPaused) return;
+                        frame = (frame + 1 * (state.simulationParams.speed || 50)) % totalFrames;
+                        const M = (2 * Math.PI * frame) / totalFrames, E = solveKepler(M, e);
+                        const theta = 2 * Math.atan2(Math.sqrt(1+e) * Math.sin(E/2), Math.sqrt(1-e) * Math.cos(E/2));
+                        const r = p / (1 + e * Math.cos(theta));
+                        const planet_x = r * Math.cos(theta), planet_y = r * Math.sin(theta);
+                        
+                        const v = Math.sqrt(G * (2/r - 1/a));
+                        const vx = -Math.sqrt(G/p) * Math.sin(theta);
+                        const vy = Math.sqrt(G/p) * (e + Math.cos(theta));
+                        
+                        updateDynamicData(r, v, theta);
+                        
+                        const update = {
+                            'annotations[0].ax': planet_x, 'annotations[0].ay': planet_y,
+                            'annotations[0].x': planet_x + vx * 0.1 * a, 'annotations[0].y': planet_y + vy * 0.1 * a,
+                            'annotations[0].arrowcolor': state.colors.velocity
+                        };
+                        Plotly.relayout(dom.plotContainer, update);
+
+                        Plotly.restyle(dom.plotContainer, { 
+                            x: [[planet_x], [0, planet_x]], 
+                            y: [[planet_y], [0, planet_y]] 
+                        }, [2, 5]);
+
+                        const perihelionStart = totalFrames * 0.95, aphelionStart = totalFrames * 0.45;
+                        if (frame > perihelionStart && frame < perihelionStart + areaDurationFrames) {
+                            const points = generateAreaSlice(perihelionStart, perihelionStart + areaDurationFrames, 20, totalFrames);
+                            Plotly.restyle(dom.plotContainer, { x: [points.x], y: [points.y] }, [3]);
+                        } else if (frame > aphelionStart && frame < aphelionStart + areaDurationFrames) {
+                            const points = generateAreaSlice(aphelionStart, aphelionStart + areaDurationFrames, 20, totalFrames);
+                            Plotly.restyle(dom.plotContainer, { x: [points.x], y: [points.y] }, [4]);
+                        } else if (frame > perihelionStart + areaDurationFrames || frame < aphelionStart) {
+                            Plotly.restyle(dom.plotContainer, { x: [[]], y: [[]] }, [3, 4]);
+                        }
+                        state.animationFrameId = requestAnimationFrame(state.animationLoop);
+                    };
+                    const generateAreaSlice = (start, end, steps, total) => {
+                        const x_pts = [0], y_pts = [0];
+                        for (let i = 0; i <= steps; i++) {
+                            const current = start + (end - start) * i / steps;
+                            const M_c = (2 * Math.PI * current) / total, E_c = solveKepler(M_c, e);
+                            const t_c = 2 * Math.atan2(Math.sqrt(1+e) * Math.sin(E_c/2), Math.sqrt(1-e) * Math.cos(E_c/2));
+                            const r_c = p / (1 + e * Math.cos(t_c));
+                            x_pts.push(r_c * Math.cos(t_c)); y_pts.push(r_c * Math.sin(t_c));
+                        }
+                        return {x: x_pts, y: y_pts};
+                    };
+                    startAnimation();
+                }
+            },
+            3: {
+                title: '3ª Ley: Ley de los Períodos',
+                description: () => `
+                    <p>"El cuadrado del período orbital ($P$) de un planeta es proporcional al cubo de su semieje mayor ($a$)."</p>
+                    <p>$$P^2 \\propto a^3$$</p><p>Si medimos $P$ en años y $a$ en Unidades Astronómicas (UA), la relación para nuestro sistema solar es: $$P^2 \\approx a^3$$</p>`,
+                setupControls: () => {},
+                draw: () => {
+                    stopAnimation();
+                    const a_vals = planetData.slice(1).map(p => p.a), P_vals = planetData.slice(1).map(p => Math.pow(p.a, 1.5));
+                    const text_vals = planetData.slice(1).map(p => `${p.name}<br>a=${p.a} UA<br>P=${Math.pow(p.a, 1.5).toFixed(2)} años`);
+                    const traces = [{
+                        x: a_vals, y: P_vals, mode: 'markers+text', text: planetData.slice(1).map(p => p.name), textposition: 'top right',
+                        textfont: { color: state.colors.orbit }, marker: { size: planetData.slice(1).map(p => 5 + Math.log(p.a)*4), color: state.colors.planet },
+                        hoverinfo: 'text', hovertext: text_vals
+                    }];
+                    const layout = createBaseLayout();
+                    Object.assign(layout, {
+                        title: 'Período vs. Semieje Mayor (Escala Log)',
+                        xaxis: {...layout.xaxis, title: 'Semieje Mayor (a) en UA', type: 'log', range: [Math.log10(0.3), Math.log10(40)]},
+                        yaxis: {...layout.yaxis, title: 'Período Orbital (P) en años', type: 'log', range: [Math.log10(0.2), Math.log10(200)]}
+                    });
+                    Plotly.react(dom.plotContainer, traces, layout, plotlyConfig);
+                }
+            }
+        };
+
+        function updateInfoPanel() {
+            const law = laws[state.currentLaw];
+            dom.infoTitle.textContent = law.title; dom.infoPanel.innerHTML = law.description();
+            if (window.MathJax && typeof window.MathJax.typesetPromise === 'function') {
+                window.MathJax.typesetPromise([dom.infoPanel]).catch((err) => console.error('MathJax error: ' + err.message));
+            }
+            law.setupControls();
+        }
+        function mainUpdate() {
+            stopAnimation();
+            const law = laws[state.currentLaw];
+            dom.realtimeDataCard.style.display = (state.currentLaw < 3) ? 'block' : 'none';
+            dom.pauseToggle.style.display = (state.currentLaw < 3) ? 'flex' : 'none';
+            if (state.currentLaw === 3) {
+                dom.paletteToggle.style.display = 'none';
+            } else {
+                dom.paletteToggle.style.display = 'flex';
+            }
+            law.draw();
+        }
+        function setupEventListeners() {
+            dom.lawSelector.addEventListener('change', (e) => {
+                state.currentLaw = parseInt(e.target.value);
+                const testCase = planetData.find(p => p.name === 'Caso de Prueba');
+                state.simulationParams = { a: testCase.a, e: testCase.e, speed: 50, name: 'Caso de Prueba' };
+                updateInfoPanel();
+                mainUpdate();
+            });
+            dom.pauseToggle.addEventListener('click', togglePause);
+            dom.paletteToggle.addEventListener('click', (e) => { e.stopPropagation(); dom.paletteWidget.classList.toggle('opacity-0'); dom.paletteWidget.classList.toggle('pointer-events-none'); });
+            document.addEventListener('click', () => dom.paletteWidget.classList.add('opacity-0', 'pointer-events-none'));
+            dom.paletteWidget.addEventListener('click', e => e.stopPropagation());
+            dom.planetDataToggle.addEventListener('click', () => dom.planetDataModal.classList.remove('hidden'));
+            dom.closePlanetModal.addEventListener('click', () => dom.planetDataModal.classList.add('hidden'));
+            dom.helpToggle.addEventListener('click', () => dom.helpModal.classList.remove('hidden'));
+            dom.closeHelpModal.addEventListener('click', () => dom.helpModal.classList.add('hidden'));
+            dom.fullscreenToggle.addEventListener('click', () => {
+                state.isFullscreen = !state.isFullscreen;
+                dom.leftPanel.classList.toggle('hidden', state.isFullscreen);
+                dom.rightPanel.classList.toggle('lg:col-span-3', !state.isFullscreen);
+                dom.rightPanel.classList.toggle('lg:col-span-5', state.isFullscreen);
+                dom.fullscreenOpen.classList.toggle('hidden'); dom.fullscreenClose.classList.toggle('hidden');
+                setTimeout(() => { if (Plotly && dom.plotContainer) { Plotly.Plots.resize(dom.plotContainer); } }, 300);
+            });
+            dom.planetTableBody.addEventListener('click', (e) => {
+                if (e.target.classList.contains('simulate-btn')) {
+                    const index = e.target.dataset.index;
+                    const planet = planetData[index];
+                    if (planet) {
+                        state.simulationParams = { ...state.simulationParams, a: planet.a, e: planet.e, name: planet.name };
+                        dom.planetDataModal.classList.add('hidden');
+                        if (dom.lawSelector.value > 2) dom.lawSelector.value = 1;
+                        mainUpdate();
+                        updateInfoPanel();
+                    }
+                }
+            });
+            dom.infoPanel.addEventListener('input', e => {
+                if (e.target.id === 'e-slider') {
+                    state.simulationParams.a = 1.0;
+                    state.simulationParams.e = parseFloat(e.target.value);
+                    state.simulationParams.name = 'Caso de Prueba';
+                    updateInfoPanel();
+                    mainUpdate();
+                } else if (e.target.id === 'speed-slider') {
+                    state.simulationParams.speed = parseInt(e.target.value);
+                    const speedValueDisplay = dom.infoPanel.querySelector('#speed-value-display');
+                    if(speedValueDisplay) speedValueDisplay.textContent = state.simulationParams.speed;
+                }
+            });
+        }
+        function initialize() {
+            planetData.forEach((p, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-700 hover:bg-gray-800/50';
+                row.innerHTML = `<th scope="row" class="px-6 py-4 font-medium whitespace-nowrap text-white">${p.name}</th><td class="px-6 py-4">${p.a.toFixed(3)}</td><td class="px-6 py-4">${p.e.toFixed(3)}</td><td class="px-6 py-4"><button data-index="${index}" class="simulate-btn px-3 py-1 text-xs rounded-full font-bold">Simular</button></td>`;
+                dom.planetTableBody.appendChild(row);
+            });
+            dom.colorTargetSelector.addEventListener('click', (e) => {
+                if (e.target.classList.contains('color-target-btn')) {
+                    state.colorTarget = e.target.dataset.target;
+                    dom.colorTargetSelector.querySelectorAll('.color-target-btn').forEach(btn => btn.classList.remove('active'));
+                    e.target.classList.add('active');
+                }
+            });
+            dom.colorTargetSelector.querySelector(`[data-target="${state.colorTarget}"]`).classList.add('active');
+            colorPalette.forEach(color => {
+                const swatch = document.createElement('button');
+                swatch.className = 'w-7 h-7 rounded-full transition-transform duration-200 hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white';
+                swatch.style.backgroundColor = color;
+                swatch.addEventListener('click', () => {
+                    state.colors[state.colorTarget] = color;
+                    if (state.colorTarget === 'orbit') { state.colors.area = color.replace(')', ', 0.3)').replace('rgb', 'rgba'); }
+                    mainUpdate();
+                });
+                dom.colorSwatches.appendChild(swatch);
+            });
+            setupEventListeners(); updateInfoPanel(); mainUpdate();
+            window.addEventListener('resize', () => { if (Plotly && dom.plotContainer) { Plotly.Plots.resize(dom.plotContainer); } });
+        }
+        document.addEventListener('DOMContentLoaded', initialize);
+    </script>
+</body>
+</html>

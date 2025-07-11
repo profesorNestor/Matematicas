@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tubos Sonoros</title>
+    
+    <!-- Tailwind CSS para un diseño moderno y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- MathJax para renderizar fórmulas matemáticas con calidad -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Estilos personalizados para mejorar la apariencia -->
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #10b981;
+            --background-color: #f0f2f5;
+            --panel-background: #ffffff;
+            --text-color: #1f2937;
+            --label-color: #4b5563;
+            --canvas-bg: #111827;
+        }
+        html, body {
+            height: 100%;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+        /* Estilos para los sliders */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.9;
+            transition: opacity .2s;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            cursor: pointer;
+            border-radius: 50%;
+            transition: background .3s;
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            background: var(--primary-color);
+            cursor: pointer;
+            border-radius: 50%;
+            border: none;
+            transition: background .3s;
+        }
+        .btn {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.15);
+        }
+        .panel {
+            background-color: var(--panel-background);
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+        }
+        .modal {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        .modal-content {
+            max-height: 80vh;
+        }
+        /* Estilos para los Toggles de visibilidad */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: var(--primary-color);
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: var(--primary-color);
+        }
+    </style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="flex flex-col">
+
+    <main class="flex-grow flex flex-col lg:flex-row p-4 gap-4">
+        <!-- ================== PANEL IZQUIERDO ================== -->
+        <div class="w-full lg:w-5/12 flex flex-col gap-4">
+            <div class="panel p-6 flex-shrink-0">
+                <h2 class="text-2xl font-bold mb-6 text-indigo-600 border-b pb-2">Controles de Simulación</h2>
+                
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="flex items-center justify-center">
+                        <span class="text-sm font-medium text-gray-700 mr-3">Onda</span>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggleWave" id="toggleWave" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="toggleWave" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                     <div class="flex items-center justify-center">
+                        <span class="text-sm font-medium text-gray-700 mr-3">Partículas</span>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggleParticles" id="toggleParticles" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="toggleParticles" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <span class="text-sm font-medium text-gray-700 mr-3">Degradado</span>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggleGradient" id="toggleGradient" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="toggleGradient" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <span class="text-sm font-medium text-gray-700 mr-3">Nodos</span>
+                        <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggleNodes" id="toggleNodes" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="toggleNodes" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-5">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Tipo de Tubo</label>
+                    <div class="flex gap-2">
+                        <button id="btn-open" class="btn flex-1 bg-indigo-500 text-white py-2 px-4 rounded-lg font-semibold">Abierto</button>
+                        <button id="btn-closed" class="btn flex-1 bg-white text-gray-700 py-2 px-4 rounded-lg font-semibold">Cerrado</button>
+                    </div>
+                </div>
+                <div class="mb-5">
+                    <label for="length-slider" class="block text-sm font-medium text-gray-700">Longitud del Tubo (L): <span id="length-value" class="font-bold text-indigo-600"></span> m</label>
+                    <input id="length-slider" type="range" min="0.1" max="2" step="0.01" class="mt-2">
+                </div>
+                <div class="mb-5">
+                    <label for="harmonic-slider" class="block text-sm font-medium text-gray-700">Armónico (n): <span id="harmonic-value" class="font-bold text-indigo-600"></span></label>
+                    <input id="harmonic-slider" type="range" min="1" max="10" step="1" class="mt-2">
+                </div>
+                <div class="mb-5">
+                    <label for="amplitude-slider" class="block text-sm font-medium text-gray-700">Amplitud (A): <span id="amplitude-value" class="font-bold text-indigo-600"></span></label>
+                    <input id="amplitude-slider" type="range" min="0.01" max="0.2" step="0.005" class="mt-2">
+                </div>
+                <div class="mb-5">
+                    <label for="temp-slider" class="block text-sm font-medium text-gray-700">Temperatura: <span id="temp-value" class="font-bold text-indigo-600"></span> °C</label>
+                    <input id="temp-slider" type="range" min="-20" max="40" step="1" class="mt-2">
+                </div>
+            </div>
+            <div class="panel p-6 flex-grow overflow-y-auto">
+                <h2 class="text-2xl font-bold mb-6 text-emerald-600 border-b pb-2">Fórmulas y Resultados</h2>
+                <div id="math-formulas" class="space-y-5 text-lg">
+                    <p>Velocidad del Sonido (v): <span id="speed-value" class="font-bold text-emerald-500 float-right"></span></p>
+                    <div id="formula-speed">$$v = 331.45 + 0.607 \cdot T_C$$</div>
+                    <p>Longitud de Onda (λ): <span id="lambda-value" class="font-bold text-emerald-500 float-right"></span></p>
+                    <div id="formula-lambda"></div>
+                    <p>Frecuencia (f): <span id="freq-value" class="font-bold text-emerald-500 float-right"></span></p>
+                    <div id="formula-freq"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================== PANEL DERECHO ================== -->
+        <div class="w-full lg:w-7/12 flex flex-col panel p-6">
+            <div class="relative">
+                <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Visualización de la Onda Estacionaria</h1>
+                <div class="absolute top-0 right-0 flex gap-2">
+                    <button id="color-palette-btn" class="btn bg-white p-2 rounded-full shadow-lg hover:bg-gray-100">
+                        <svg class="h-6 w-6 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2.69l.34 2.28a2 2 0 001.7 1.4l2.28.34-1.64 1.6a2 2 0 00-.58 1.8l.38 2.28-2.04-1.08a2 2 0 00-1.8 0L9.6 12.18l.38-2.28a2 2 0 00-.58-1.8L7.78 6.5l2.28-.34a2 2 0 001.7-1.4L12 2.69zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25z"/>
+                        </svg>
+                    </button>
+                    <button id="help-btn" class="btn bg-white p-2 rounded-full shadow-lg hover:bg-gray-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                    </button>
+                </div>
+            </div>
+            <div class="flex-grow bg-gray-800 rounded-lg overflow-hidden border-4 border-gray-700 mt-4 min-h-[450px]">
+                <canvas id="wave-canvas"></canvas>
+            </div>
+            <div class="flex justify-center items-center gap-4 mt-6">
+                <div class="flex items-center">
+                    <span class="text-sm font-medium text-gray-700 mr-3">Pausa/Play</span>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="playPauseToggle" id="playPauseToggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                        <label for="playPauseToggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="text-center py-2 bg-gray-200 text-gray-600 text-sm flex-shrink-0">
+        Autor: Msc: Néstor Fabio Montoya Palacios
+    </footer>
+    
+    <!-- Ventana Modal de Paleta de Colores -->
+    <div id="color-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none -translate-y-4">
+        <div class="modal-content panel w-full max-w-lg p-6 overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-indigo-600">Personalizar Colores</h3>
+                <button id="close-color-modal" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="space-y-6">
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2">Color de Onda</h4>
+                    <div id="wave-color-swatches" class="flex flex-wrap gap-3"></div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2">Color de Partículas</h4>
+                    <div id="particle-color-swatches" class="flex flex-wrap gap-3"></div>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2">Color de Degradado</h4>
+                    <div id="gradient-color-swatches" class="flex flex-wrap gap-3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ventana Modal de Ayuda -->
+    <div id="help-modal" class="modal fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 opacity-0 pointer-events-none -translate-y-4">
+        <div class="modal-content panel w-full max-w-2xl p-6 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-indigo-600">Ayuda y Explicación</h3>
+                <button id="close-help-modal" class="text-gray-500 hover:text-gray-800 text-3xl leading-none">&times;</button>
+            </div>
+            <div class="prose max-w-none">
+                <h4>Bienvenido al Simulador de Ondas Estacionarias</h4>
+                <p>Esta herramienta te permite visualizar y comprender cómo se comportan las ondas sonoras longitudinales dentro de tubos abiertos y cerrados.</p>
+                <h4>Controles</h4>
+                <ul>
+                    <li><strong>Mostrar Onda/Partículas/Degradado/Nodos:</strong> Activa o desactiva los diferentes elementos visuales de la simulación.</li>
+                    <li><strong>Tipo de Tubo:</strong> Selecciona si el tubo tiene ambos extremos abiertos o uno cerrado.</li>
+                    <li><strong>Longitud, Armónico, Temperatura, Amplitud:</strong> Ajusta los parámetros físicos de la simulación.</li>
+                    <li><strong>Pausa/Play:</strong> Controla la animación de la simulación.</li>
+                </ul>
+                <h4>Conceptos Físicos</h4>
+                <ul>
+                    <li><strong>Nodos:</strong> Puntos donde el desplazamiento es siempre cero. Se forman en los extremos cerrados.</li>
+                    <li><strong>Antinodos:</strong> Puntos donde el desplazamiento es máximo. Se forman en los extremos abiertos.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('wave-canvas');
+            const ctx = canvas.getContext('2d');
+            const btnOpen = document.getElementById('btn-open');
+            const btnClosed = document.getElementById('btn-closed');
+            const lengthSlider = document.getElementById('length-slider');
+            const harmonicSlider = document.getElementById('harmonic-slider');
+            const amplitudeSlider = document.getElementById('amplitude-slider');
+            const tempSlider = document.getElementById('temp-slider');
+            const toggleWave = document.getElementById('toggleWave');
+            const toggleParticles = document.getElementById('toggleParticles');
+            const toggleGradient = document.getElementById('toggleGradient');
+            const toggleNodes = document.getElementById('toggleNodes');
+            const playPauseToggle = document.getElementById('playPauseToggle');
+
+            const lengthValue = document.getElementById('length-value');
+            const harmonicValue = document.getElementById('harmonic-value');
+            const amplitudeValue = document.getElementById('amplitude-value');
+            const tempValue = document.getElementById('temp-value');
+            
+            const speedValue = document.getElementById('speed-value');
+            const lambdaValue = document.getElementById('lambda-value');
+            const freqValue = document.getElementById('freq-value');
+            const formulaSpeed = document.getElementById('formula-speed');
+            const formulaLambda = document.getElementById('formula-lambda');
+            const formulaFreq = document.getElementById('formula-freq');
+            
+            const colorModal = document.getElementById('color-modal');
+            const helpModal = document.getElementById('help-modal');
+            const colorPaletteBtn = document.getElementById('color-palette-btn');
+            const helpBtn = document.getElementById('help-btn');
+            const closeColorModal = document.getElementById('close-color-modal');
+            const closeHelpModal = document.getElementById('close-help-modal');
+            
+            const waveSwatches = document.getElementById('wave-color-swatches');
+            const particleSwatches = document.getElementById('particle-color-swatches');
+            const gradientSwatches = document.getElementById('gradient-color-swatches');
+
+            let state = {
+                tubeType: 'open',
+                tubeLength: 1.0,
+                harmonic: 1,
+                amplitude: 0.1,
+                temperature: 20,
+                showWave: true,
+                showParticles: true,
+                showGradient: true,
+                showNodes: true,
+                speedOfSound: 0,
+                lambda: 0,
+                frequency: 0,
+                time: 0,
+                isPlaying: true,
+                animationFrameId: null,
+                lastFrameTime: 0,
+                waveColor: { r: 79, g: 70, b: 229 },
+                particleColor: { r: 0, g: 255, b: 255 },
+                gradientColor: { r: 79, g: 70, b: 229 }
+            };
+            
+            const availableColors = [
+                { r: 79, g: 70, b: 229 }, { r: 16, g: 185, b: 129 }, { r: 219, g: 39, b: 119 },
+                { r: 234, g: 88, b: 12 }, { r: 220, g: 38, b: 38 }, { r: 2, g: 132, b: 199 },
+                { r: 255, g: 255, b: 255 }, { r: 245, g: 158, b: 11 }, { r: 139, g: 92, b: 246 },
+                { r: 34, g: 197, b: 94 }, { r: 0, g: 255, b: 255}
+            ];
+
+            function updateSimulationState() {
+                state.speedOfSound = 331.45 + 0.607 * state.temperature;
+                if (state.tubeType === 'open') {
+                    state.lambda = (2 * state.tubeLength) / state.harmonic;
+                    formulaLambda.innerHTML = `$$\\lambda_n = \\frac{2L}{n}$$`;
+                    formulaFreq.innerHTML = `$$f_n = \\frac{nv}{2L}$$`;
+                } else { // closed at one end
+                    state.lambda = (4 * state.tubeLength) / (2 * state.harmonic - 1);
+                     formulaLambda.innerHTML = `$$\\lambda_n = \\frac{4L}{2n-1}, \\quad n=1, 2, 3, ...$$`;
+                    formulaFreq.innerHTML = `$$f_n = \\frac{(2n-1)v}{4L}$$`;
+                }
+                state.frequency = state.speedOfSound / state.lambda;
+
+                lengthValue.textContent = state.tubeLength.toFixed(2);
+                harmonicValue.textContent = state.harmonic;
+                amplitudeValue.textContent = state.amplitude.toFixed(3);
+                tempValue.textContent = state.temperature.toFixed(0);
+                speedValue.textContent = `${state.speedOfSound.toFixed(2)} m/s`;
+                lambdaValue.textContent = `${state.lambda.toFixed(2)} m`;
+                freqValue.textContent = `${state.frequency.toFixed(2)} Hz`;
+                if (window.MathJax) {
+                    MathJax.typesetPromise([formulaLambda, formulaFreq, formulaSpeed]);
+                }
+            }
+
+            function resizeCanvas() {
+                const container = canvas.parentElement;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+            }
+
+            function draw(currentTime) {
+                state.animationFrameId = requestAnimationFrame(draw);
+                
+                if (state.lastFrameTime === 0) {
+                    state.lastFrameTime = currentTime;
+                }
+                const deltaTime = (currentTime - state.lastFrameTime) / 1000;
+                state.lastFrameTime = currentTime;
+
+                if (!state.isPlaying) {
+                     return;
+                }
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                const tubeHeight = canvas.height * 0.4;
+                const tubeY = (canvas.height - tubeHeight) / 2;
+                const tubeMargin = canvas.width * 0.1;
+                const visualTubeLength = canvas.width - 2 * tubeMargin;
+
+                const visualFreq = 0.5; // Hz
+                const visualOmega = 2 * Math.PI * visualFreq;
+
+                let k;
+                if (state.tubeType === 'open') {
+                    k = state.harmonic * Math.PI / state.tubeLength;
+                } else {
+                    k = (2 * state.harmonic - 1) * Math.PI / (2 * state.tubeLength);
+                }
+
+                if (state.showGradient) {
+                    const { r, g, b } = state.gradientColor;
+                    const numPoints = 200;
+                    for(let i=0; i < numPoints; i++) {
+                        const x_map = (i / numPoints) * state.tubeLength;
+                        const x_pos = tubeMargin + (i / numPoints) * visualTubeLength;
+                        const envelope = Math.abs(Math.sin(k * x_map));
+                        ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${envelope * 0.35})`;
+                        ctx.fillRect(x_pos, tubeY, visualTubeLength/numPoints, tubeHeight);
+                    }
+                }
+
+                ctx.strokeStyle = '#6b7280';
+                ctx.lineWidth = 4;
+                ctx.strokeRect(tubeMargin, tubeY, visualTubeLength, tubeHeight);
+
+                if (state.tubeType === 'closed') {
+                    ctx.fillStyle = '#6b7280';
+                    ctx.fillRect(tubeMargin + visualTubeLength, tubeY, 10, tubeHeight);
+                }
+                
+                if (state.showNodes) {
+                    drawNodesAndAntinodes(tubeMargin, visualTubeLength, tubeY, tubeHeight);
+                }
+
+                const timeFactor = Math.cos(visualOmega * state.time);
+                
+                if (state.showParticles) {
+                    const { r, g, b } = state.particleColor;
+                    const numRows = 7;
+                    const numParticlesPerRow = 60;
+                    const particleRadius = 2.5;
+                    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.9)`;
+                    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.7)`;
+                    ctx.shadowBlur = 5;
+                    for (let row = 0; row < numRows; row++) {
+                        const y_row = tubeY + (tubeHeight / (numRows + 1)) * (row + 1);
+                        for (let i = 0; i < numParticlesPerRow; i++) {
+                            const x_eq = tubeMargin + (i / (numParticlesPerRow - 1)) * visualTubeLength;
+                            const x_map = (x_eq - tubeMargin) / visualTubeLength * state.tubeLength;
+                            const displacement = state.amplitude * Math.sin(k * x_map) * timeFactor;
+                            const visualDisplacement = (displacement / state.amplitude) * (visualTubeLength * 0.05);
+                            let x_pos = x_eq + visualDisplacement;
+                            x_pos = Math.max(tubeMargin + particleRadius, Math.min(x_pos, tubeMargin + visualTubeLength - particleRadius));
+                            ctx.beginPath();
+                            ctx.arc(x_pos, y_row, particleRadius, 0, 2 * Math.PI);
+                            ctx.fill();
+                        }
+                    }
+                    ctx.shadowBlur = 0;
+                }
+
+                if (state.showWave) {
+                    const { r, g, b } = state.waveColor;
+                    const visualAmplitude = (tubeHeight / 2) * 0.8;
+                    ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.beginPath();
+                    for (let i = 0; i <= visualTubeLength; i++) {
+                        const x_pos = tubeMargin + i;
+                        const x_map = (i / visualTubeLength) * state.tubeLength;
+                        const waveDisp = state.amplitude * Math.sin(k * x_map) * timeFactor;
+                        const y_pos = tubeY + tubeHeight / 2 - (waveDisp / state.amplitude) * visualAmplitude;
+                        if (i === 0) ctx.moveTo(x_pos, y_pos); else ctx.lineTo(x_pos, y_pos);
+                    }
+                    ctx.stroke();
+                }
+                
+                drawXAxis(tubeMargin, visualTubeLength, tubeY + tubeHeight);
+                state.time += deltaTime;
+            }
+            
+            function drawNodesAndAntinodes(tubeMargin, visualTubeLength, tubeY, tubeHeight) {
+                ctx.font = 'bold 12px Inter';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+
+                if (state.tubeType === 'open') {
+                    for (let i = 0; i <= state.harmonic; i++) {
+                        let posFrac = i / state.harmonic;
+                        let x = tubeMargin + posFrac * visualTubeLength;
+                        ctx.fillStyle = "#ef4444"; // rojo
+                        ctx.beginPath();
+                        ctx.arc(x, tubeY + tubeHeight / 2, 8, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = "#ef4444";
+                        ctx.fillText("Nodo", x, tubeY + tubeHeight / 2 + 12);
+                    }
+                    for (let i = 0; i < state.harmonic; i++) {
+                        let posFrac = (i + 0.5) / state.harmonic;
+                        let x = tubeMargin + posFrac * visualTubeLength;
+                        ctx.fillStyle = "#22c55e"; // verde
+                        ctx.beginPath();
+                        ctx.arc(x, tubeY + tubeHeight / 2, 8, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = "#22c55e";
+                        ctx.fillText("Antinodo", x, tubeY + tubeHeight / 2 + 12);
+                    }
+                } else if (state.tubeType === 'closed') {
+                    let N = state.harmonic;
+                    for (let i = 0; i < N; i++) {
+                        let posFrac = (2 * i) / (2 * N - 1);
+                        let x = tubeMargin + posFrac * visualTubeLength;
+                        ctx.fillStyle = "#ef4444";
+                        ctx.beginPath();
+                        ctx.arc(x, tubeY + tubeHeight / 2, 8, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = "#ef4444";
+                        ctx.fillText("Nodo", x, tubeY + tubeHeight / 2 + 12);
+                    }
+                    for (let i = 0; i < N; i++) {
+                        let posFrac = (2 * i + 1) / (2 * N - 1);
+                        let x = tubeMargin + posFrac * visualTubeLength;
+                        ctx.fillStyle = "#22c55e";
+                        ctx.beginPath();
+                        ctx.arc(x, tubeY + tubeHeight / 2, 8, 0, 2 * Math.PI);
+                        ctx.fill();
+                        ctx.fillStyle = "#22c55e";
+                        ctx.fillText("Antinodo", x, tubeY + tubeHeight / 2 + 12);
+                    }
+                }
+            }
+
+            function drawXAxis(startX, width, y) {
+                const axisY = y + 30;
+                ctx.strokeStyle = 'white';
+                ctx.fillStyle = 'white';
+                ctx.lineWidth = 1.5;
+                ctx.font = '12px Inter';
+                ctx.textAlign = 'center';
+                ctx.beginPath();
+                ctx.moveTo(startX, axisY);
+                ctx.lineTo(startX + width, axisY);
+                ctx.stroke();
+                const numTicks = 5;
+                for (let i = 0; i <= numTicks; i++) {
+                    const x = startX + (i / numTicks) * width;
+                    ctx.beginPath();
+                    ctx.moveTo(x, axisY - 5);
+                    ctx.lineTo(x, axisY + 5);
+                    ctx.stroke();
+                    const label = (i / numTicks * state.tubeLength).toFixed(2);
+                    ctx.fillText(label + ' m', x, axisY + 20);
+                }
+            }
+            
+            const toggleModal = (modal, show) => {
+                if (show) modal.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+                else modal.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+            };
+
+            function setupEventListeners() {
+                window.addEventListener('resize', resizeCanvas);
+                btnOpen.addEventListener('click', () => {
+                    state.tubeType = 'open';
+                    btnOpen.classList.add('bg-indigo-500', 'text-white');
+                    btnOpen.classList.remove('bg-white', 'text-gray-700');
+                    btnClosed.classList.add('bg-white', 'text-gray-700');
+                    btnClosed.classList.remove('bg-indigo-500', 'text-white');
+                    updateSimulationState();
+                });
+                btnClosed.addEventListener('click', () => {
+                    state.tubeType = 'closed';
+                    btnClosed.classList.add('bg-indigo-500', 'text-white');
+                    btnClosed.classList.remove('bg-white', 'text-gray-700');
+                    btnOpen.classList.add('bg-white', 'text-gray-700');
+                    btnOpen.classList.remove('bg-indigo-500', 'text-white');
+                    updateSimulationState();
+                });
+                lengthSlider.addEventListener('input', (e) => { state.tubeLength = parseFloat(e.target.value); updateSimulationState(); });
+                harmonicSlider.addEventListener('input', (e) => { state.harmonic = parseInt(e.target.value); updateSimulationState(); });
+                amplitudeSlider.addEventListener('input', (e) => { state.amplitude = parseFloat(e.target.value); updateSimulationState(); });
+                tempSlider.addEventListener('input', (e) => { state.temperature = parseInt(e.target.value); updateSimulationState(); });
+                toggleWave.addEventListener('change', (e) => { state.showWave = e.target.checked; });
+                toggleParticles.addEventListener('change', (e) => { state.showParticles = e.target.checked; });
+                toggleGradient.addEventListener('change', (e) => { state.showGradient = e.target.checked; });
+                toggleNodes.addEventListener('change', (e) => { state.showNodes = e.target.checked; });
+                playPauseToggle.addEventListener('change', (e) => { state.isPlaying = e.target.checked; });
+                
+                colorPaletteBtn.addEventListener('click', () => toggleModal(colorModal, true));
+                closeColorModal.addEventListener('click', () => toggleModal(colorModal, false));
+                helpBtn.addEventListener('click', () => toggleModal(helpModal, true));
+                closeHelpModal.addEventListener('click', () => toggleModal(helpModal, false));
+                colorModal.addEventListener('click', (e) => { if (e.target === colorModal) toggleModal(colorModal, false); });
+                helpModal.addEventListener('click', (e) => { if (e.target === helpModal) toggleModal(helpModal, false); });
+            }
+            
+            function createColorSwatches(container, targetStateKey) {
+                availableColors.forEach(color => {
+                    const swatch = document.createElement('button');
+                    swatch.className = 'w-9 h-9 rounded-full shadow-md transform hover:scale-110 transition-transform border-2 border-gray-200 focus:border-indigo-500 focus:outline-none';
+                    swatch.style.backgroundColor = `rgb(${color.r}, ${color.g}, ${color.b})`;
+                    swatch.addEventListener('click', () => {
+                        state[targetStateKey] = color;
+                    });
+                    container.appendChild(swatch);
+                });
+            }
+
+            function init() {
+                lengthSlider.value = state.tubeLength;
+                harmonicSlider.value = state.harmonic;
+                amplitudeSlider.value = state.amplitude;
+                tempSlider.value = state.temperature;
+                toggleWave.checked = state.showWave;
+                toggleParticles.checked = state.showParticles;
+                toggleGradient.checked = state.showGradient;
+                toggleNodes.checked = state.showNodes;
+                playPauseToggle.checked = state.isPlaying;
+
+                createColorSwatches(waveSwatches, 'waveColor');
+                createColorSwatches(particleSwatches, 'particleColor');
+                createColorSwatches(gradientSwatches, 'gradientColor');
+
+                resizeCanvas();
+                setupEventListeners();
+                updateSimulationState();
+                requestAnimationFrame(draw);
+            }
+
+            init();
+        });
+    </script>
+</body>
+</html>
