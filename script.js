@@ -39,6 +39,15 @@ const categories = [
     ]
   },
 
+
+ /* ---- Geometría ------------------------------------------- */
+  {
+    name: 'Geometría', icon: '📐', children: [
+      { name: 'Ángulos en la Circunferencia', slug: 'AngulosCircunferencia', icon: '📐' },
+      { name: 'Teorema de Thales',            slug: 'TeoremaThales',         icon: '📏' }
+    ]
+  },
+
 /* ---- Geometría Analítica -------------------------------- */
 {
   name: 'Geometría Analítica',
@@ -61,8 +70,9 @@ const categories = [
   {
     name: 'Trigonometría', icon: '📏', children: [
       { name: 'Conversión de Ángulos', slug: 'ConversionAngular', icon: '🔄' },
+      { name: 'Teorema de Pitágoras', slug: 'TeoremaPitagoras', icon: '📐' },
       { name: 'Triángulos',            slug: 'triangulos',        icon: '🔺' },
-      { name: 'Trigonometría',         slug: 'trigonometria',     icon: '📐' },
+      { name: 'Trigonometría',         slug: 'trigonometria',     icon: '🧮' },
       { name: 'Vectores',              slug: 'vectores',          icon: '🧭' },
       { name: 'Círculo trigonométrico', slug: 'CirculoTrigonometrico', icon: '🎯' },
       { name: 'Graficador trigonométrico', slug: 'GraficadorTrigonometrico', icon: '📊' },
@@ -118,10 +128,13 @@ const categories = [
   /* ---- Física --------------------------------------------- */
   {
     name: 'Física', icon: '🔭', children: [
-      { name: 'Movimiento Parabólico',         slug: 'MovimientoParabolico',                  icon: '🎯' },
-      { name: 'Proyectil con Resistencia',     slug: 'simulacionParabolicoResistencia',       icon: '💨' },
       { name: 'Movimiento Circular Uniforme',  slug: 'simulador_movimiento_circular_uniforme', icon: '🔄' },
+      { name: 'Movimiento Parabólico',         slug: 'MovimientoParabolico',                  icon: '🎯' },
+      { name: 'Proyectil con Resistencia',     slug: 'simulacionParabolicoResistencia',       icon: '💨' },  
+      { name: 'Leyes de Kepler',   slug: 'Kepler',           icon: '🌌' },
+      { name: 'Termómetros',       slug: 'termometros',      icon: '🌡️' },
       { name: 'Movimiento Armónico Simple',    slug: 'graficasMAS',                           icon: '🌊' },
+      { name: 'Tubos Sonoros',     slug: 'TubosSonoros',     icon: '🔊' },
       { name: 'Ley de Snell',                  slug: 'LeyesSnell',                            icon: '📐' },
       { name: 'Espejo Cóncavo',                slug: 'EspejoConcavo',                         icon: '🪞' },
       { name: 'Espejo Convexo',                slug: 'EspejoConvexo',                         icon: '🔮' },
@@ -129,7 +142,7 @@ const categories = [
       { name: 'Difracción Rendija Doble',      slug: 'Difraccion_rendija_doble',              icon: '💠' },
       { name: 'Difracción Rejilla',            slug: 'DifraccionRendijaRejilla',              icon: '💠' },
       { name: 'Difracción Rendija Rectangular',slug: 'DifraccionRendijaRectangular',          icon: '💠' },
-      { name: 'Difracción Rendija Circular',   slug: 'DifraccionRendijaCircular',             icon: '💠' }
+      { name: 'Difracción Rendija Circular',   slug: 'DifraccionRendijaCircular',             icon: '💠' },
     ]
   },
 
