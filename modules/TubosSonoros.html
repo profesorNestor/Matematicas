@@ -174,7 +174,7 @@
         <!-- ================== PANEL DERECHO ================== -->
         <div class="w-full lg:w-7/12 flex flex-col panel p-6">
             <div class="relative">
-                <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Visualización de la Onda Estacionaria</h1>
+                <h1 class="text-3xl font-bold text-center mb-4 text-gray-800">Tubos Sonoros</h1>
                 <div class="absolute top-0 right-0 flex gap-2">
                     <button id="color-palette-btn" class="btn bg-white p-2 rounded-full shadow-lg hover:bg-gray-100">
                         <svg class="h-6 w-6 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -187,7 +187,7 @@
                     </button>
                 </div>
             </div>
-            <div class="flex-grow bg-gray-800 rounded-lg overflow-hidden border-4 border-gray-700 mt-4 min-h-[450px]">
+            <div class="flex-grow bg-gray-800 rounded-lg overflow-hidden border-4 border-gray-700 mt-4">
                 <canvas id="wave-canvas"></canvas>
             </div>
             <div class="flex justify-center items-center gap-4 mt-6">
@@ -353,6 +353,12 @@
                 canvas.width = container.clientWidth;
                 canvas.height = container.clientHeight;
             }
+            
+            // Helper function to scale drawing parameters based on canvas width
+            function scale(value) {
+                const baseWidth = 1000; // A reference desktop width
+                return value * (canvas.width / baseWidth);
+            }
 
             function draw(currentTime) {
                 state.animationFrameId = requestAnimationFrame(draw);
@@ -397,12 +403,12 @@
                 }
 
                 ctx.strokeStyle = '#6b7280';
-                ctx.lineWidth = 4;
+                ctx.lineWidth = scale(4);
                 ctx.strokeRect(tubeMargin, tubeY, visualTubeLength, tubeHeight);
 
                 if (state.tubeType === 'closed') {
                     ctx.fillStyle = '#6b7280';
-                    ctx.fillRect(tubeMargin + visualTubeLength, tubeY, 10, tubeHeight);
+                    ctx.fillRect(tubeMargin + visualTubeLength, tubeY, scale(10), tubeHeight);
                 }
                 
                 if (state.showNodes) {
@@ -415,10 +421,10 @@
                     const { r, g, b } = state.particleColor;
                     const numRows = 7;
                     const numParticlesPerRow = 60;
-                    const particleRadius = 2.5;
+                    const particleRadius = scale(2.5);
                     ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.9)`;
                     ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.7)`;
-                    ctx.shadowBlur = 5;
+                    ctx.shadowBlur = scale(5);
                     for (let row = 0; row < numRows; row++) {
                         const y_row = tubeY + (tubeHeight / (numRows + 1)) * (row + 1);
                         for (let i = 0; i < numParticlesPerRow; i++) {
@@ -440,7 +446,7 @@
                     const { r, g, b } = state.waveColor;
                     const visualAmplitude = (tubeHeight / 2) * 0.8;
                     ctx.strokeStyle = `rgb(${r}, ${g}, ${b})`;
-                    ctx.lineWidth = 6;
+                    ctx.lineWidth = scale(6);
                     ctx.lineCap = 'round';
                     ctx.beginPath();
                     for (let i = 0; i <= visualTubeLength; i++) {
@@ -458,7 +464,7 @@
             }
             
             function drawNodesAndAntinodes(tubeMargin, visualTubeLength, tubeY, tubeHeight) {
-                ctx.font = 'bold 12px Inter';
+                ctx.font = `bold ${scale(12)}px Inter`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'top';
 
@@ -468,20 +474,20 @@
                         let x = tubeMargin + posFrac * visualTubeLength;
                         ctx.fillStyle = "#ef4444"; // rojo
                         ctx.beginPath();
-                        ctx.arc(x, tubeY + tubeHeight / 2, 8, 0, 2 * Math.PI);
+                        ctx.arc(x, tubeY + tubeHeight / 2, scale(8), 0, 2 * Math.PI);
                         ctx.fill();
                         ctx.fillStyle = "#ef4444";
-                        ctx.fillText("Nodo", x, tubeY + tubeHeight / 2 + 12);
+                        ctx.fillText("Nodo", x, tubeY + tubeHeight / 2 + scale(12));
                     }
                     for (let i = 0; i < state.harmonic; i++) {
                         let posFrac = (i + 0.5) / state.harmonic;
                         let x = tubeMargin + posFrac * visualTubeLength;
                         ctx.fillStyle = "#22c55e"; // verde
                         ctx.beginPath();
-                        ctx.arc(x, tubeY + tubeHeight / 2, 8, 0, 2 * Math.PI);
+                        ctx.arc(x, tubeY + tubeHeight / 2, scale(8), 0, 2 * Math.PI);
                         ctx.fill();
                         ctx.fillStyle = "#22c55e";
-                        ctx.fillText("Antinodo", x, tubeY + tubeHeight / 2 + 12);
+                        ctx.fillText("Antinodo", x, tubeY + tubeHeight / 2 + scale(12));
                     }
                 } else if (state.tubeType === 'closed') {
                     let N = state.harmonic;
@@ -490,20 +496,20 @@
                         let x = tubeMargin + posFrac * visualTubeLength;
                         ctx.fillStyle = "#ef4444";
                         ctx.beginPath();
-                        ctx.arc(x, tubeY + tubeHeight / 2, 8, 0, 2 * Math.PI);
+                        ctx.arc(x, tubeY + tubeHeight / 2, scale(8), 0, 2 * Math.PI);
                         ctx.fill();
                         ctx.fillStyle = "#ef4444";
-                        ctx.fillText("Nodo", x, tubeY + tubeHeight / 2 + 12);
+                        ctx.fillText("Nodo", x, tubeY + tubeHeight / 2 + scale(12));
                     }
                     for (let i = 0; i < N; i++) {
                         let posFrac = (2 * i + 1) / (2 * N - 1);
                         let x = tubeMargin + posFrac * visualTubeLength;
                         ctx.fillStyle = "#22c55e";
                         ctx.beginPath();
-                        ctx.arc(x, tubeY + tubeHeight / 2, 8, 0, 2 * Math.PI);
+                        ctx.arc(x, tubeY + tubeHeight / 2, scale(8), 0, 2 * Math.PI);
                         ctx.fill();
                         ctx.fillStyle = "#22c55e";
-                        ctx.fillText("Antinodo", x, tubeY + tubeHeight / 2 + 12);
+                        ctx.fillText("Antinodo", x, tubeY + tubeHeight / 2 + scale(12));
                     }
                 }
             }
@@ -512,8 +518,8 @@
                 const axisY = y + 30;
                 ctx.strokeStyle = 'white';
                 ctx.fillStyle = 'white';
-                ctx.lineWidth = 1.5;
-                ctx.font = '12px Inter';
+                ctx.lineWidth = scale(1.5);
+                ctx.font = `bold ${scale(12)}px Inter`;
                 ctx.textAlign = 'center';
                 ctx.beginPath();
                 ctx.moveTo(startX, axisY);
@@ -523,11 +529,11 @@
                 for (let i = 0; i <= numTicks; i++) {
                     const x = startX + (i / numTicks) * width;
                     ctx.beginPath();
-                    ctx.moveTo(x, axisY - 5);
-                    ctx.lineTo(x, axisY + 5);
+                    ctx.moveTo(x, axisY - scale(5));
+                    ctx.lineTo(x, axisY + scale(5));
                     ctx.stroke();
                     const label = (i / numTicks * state.tubeLength).toFixed(2);
-                    ctx.fillText(label + ' m', x, axisY + 20);
+                    ctx.fillText(label + ' m', x, axisY + scale(20));
                 }
             }
             
