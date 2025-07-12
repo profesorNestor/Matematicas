@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Efecto Doppler con Estilo Glass</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- MathJax Configuration -->
+    <script>
+        window.MathJax = {
+          tex: {
+            inlineMath: [['$', '$'], ['\\(', '\\)']],
+            displayMath: [['$$', '$$'], ['\\[', '\\]']],
+            processEscapes: true
+          },
+          svg: {
+            fontCache: 'global'
+          }
+        };
+    </script>
+    <script id="MathJax-script" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif, Arial, sans-serif;
+            background-color: #0a0e1a;
+            color: #e2e8f0;
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(255,255,255,0.08) 1px, transparent 0),
+                radial-gradient(circle at 20px 20px, rgba(255,255,255,0.08) 1px, transparent 0);
+            background-size: 40px 40px;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        #doppler {
+            cursor: grab;
+        }
+
+        #doppler:active {
+            cursor: grabbing;
+        }
+        
+        /* Estilos para el panel de ayuda colapsable */
+        details > summary {
+            list-style: none; /* Remueve el marcador por defecto */
+        }
+        details > summary::-webkit-details-marker {
+            display: none; /* Remueve el marcador en Chrome/Safari */
+        }
+        details[open] summary .chevron {
+            transform: rotate(180deg);
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-500">
+                Simulación Avanzada del Efecto Doppler
+            </h1>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Columna de Controles y Resultados -->
+            <div class="lg:col-span-1 space-y-8">
+                <!-- Panel de Controles -->
+                <div class="glass-panel p-6">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><i data-lucide="sliders-horizontal"></i> Controles</h2>
+                    <div class="space-y-4">
+                        <div class="control-group">
+                            <label for="source-speed">Velocidad de la fuente ($v_s$):</label>
+                            <input class="w-full bg-slate-800/50 border border-slate-700 rounded p-2" type="number" id="source-speed" value="0.5" min="0" max="2" step="0.1">
+                        </div>
+                        <div class="control-group">
+                            <label for="wave-speed">Velocidad de la onda ($v_w$):</label>
+                            <input class="w-full bg-slate-800/50 border border-slate-700 rounded p-2" type="number" id="wave-speed" value="2.0" min="0.1" step="0.1">
+                        </div>
+                        <div class="control-group">
+                            <label for="frequency">Frecuencia de la fuente ($f_s$):</label>
+                            <input class="w-full bg-slate-800/50 border border-slate-700 rounded p-2" type="number" id="frequency" value="1.0" min="0.1" max="5" step="0.1">
+                        </div>
+                    </div>
+                     <div class="flex gap-4 mt-6">
+                        <button id="start-btn" class="w-full flex items-center justify-center gap-2 py-2 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors shadow-lg">
+                            <i data-lucide="play"></i><span>Iniciar</span>
+                        </button>
+                        <button id="reset-btn" class="w-full flex items-center justify-center gap-2 py-2 px-4 bg-slate-600 hover:bg-slate-700 text-white rounded-lg font-semibold transition-colors">
+                            <i data-lucide="rotate-cw"></i>Reiniciar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Panel de Resultados y Fórmulas -->
+                <div class="glass-panel p-6">
+                    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2"><i data-lucide="calculator"></i> Resultados y Fórmulas</h2>
+                    <div id="results-panel" class="space-y-4 text-sm">
+                        <!-- Los resultados se insertarán aquí -->
+                    </div>
+                </div>
+
+                <!-- Panel de Ayuda Colapsable -->
+                <details class="glass-panel">
+                    <summary class="cursor-pointer p-4 flex justify-between items-center text-lg font-semibold">
+                        <span class="flex items-center gap-2"><i data-lucide="help-circle"></i> Guía del Simulador</span>
+                        <i data-lucide="chevron-down" class="chevron transition-transform duration-300"></i>
+                    </summary>
+                    <div class="px-4 pb-4 border-t border-white/10 text-slate-300 space-y-3">
+                         <div>
+                            <h3 class="font-semibold text-white mt-3">¿Qué es el Efecto Doppler?</h3>
+                            <p class="text-sm">Es el cambio aparente en la frecuencia de una onda cuando la fuente y el observador están en movimiento relativo. Un ejemplo clásico es cómo el sonido de una sirena de ambulancia parece más agudo al acercarse y más grave al alejarse.</p>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-white">Funcionamiento del Programa</h3>
+                            <ul class="list-disc list-inside space-y-2 text-sm mt-2">
+                                <li><strong>Controles:</strong> Ajusta los valores de velocidad y frecuencia para ver su impacto en tiempo real.</li>
+                                <li><strong>Panel de Resultados:</strong> Muestra las frecuencias observadas calculadas para un observador situado delante y detrás de la fuente.</li>
+                                <li><strong>Visualizador Interactivo:</strong>
+                                    <ul class="list-inside list-disc ml-4 mt-1">
+                                        <li>Usa la <strong>rueda del ratón</strong> para hacer zoom.</li>
+                                        <li><strong>Haz clic y arrastra</strong> para moverte por el plano.</li>
+                                        <li>En dispositivos móviles, usa los <strong>gestos táctiles</strong> para el zoom y el arrastre.</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </details>
+            </div>
+
+            <!-- Columna del Canvas -->
+            <div class="lg:col-span-2 glass-panel p-2 min-h-[60vh] lg:h-auto">
+                <canvas id="doppler" class="rounded-lg w-full h-full"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('doppler');
+            const ctx = canvas.getContext('2d');
+            const resultsPanel = document.getElementById('results-panel');
+            
+            let animationId = null;
+            let isRunning = false;
+            let time = 0;
+            let sourceX = 0;
+            let emissionTimes = [];
+            let emissionPositions = [];
+
+            // Variables para Pan & Zoom
+            let scale = 40;
+            let origin = { x: 100, y: 0 };
+            let isDragging = false;
+            let lastDragPos = { x: 0, y: 0 };
+            const zoomSensitivity = 0.001;
+
+            function resizeCanvas() {
+                canvas.width = canvas.clientWidth;
+                canvas.height = canvas.clientHeight;
+                scale = canvas.height / 20; 
+                origin.y = canvas.height / 2;
+                draw();
+            }
+
+            function drawGrid() {
+                let majorGridStep = 50;
+                if (scale > 80) majorGridStep = 10;
+                else if (scale > 40) majorGridStep = 25;
+                else if (scale < 15) majorGridStep = 100;
+                
+                const minorGridStep = majorGridStep / 5;
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+                ctx.lineWidth = 0.5;
+                for (let x = origin.x % minorGridStep; x < canvas.width; x += minorGridStep) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                for (let y = origin.y % minorGridStep; y < canvas.height; y += minorGridStep) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                ctx.lineWidth = 1;
+                for (let x = origin.x % majorGridStep; x < canvas.width; x += majorGridStep) {
+                    ctx.beginPath();
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                    ctx.stroke();
+                }
+                for (let y = origin.y % majorGridStep; y < canvas.height; y += majorGridStep) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                    ctx.stroke();
+                }
+
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(0, origin.y);
+                ctx.lineTo(canvas.width, origin.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(origin.x, 0);
+                ctx.lineTo(origin.x, canvas.height);
+                ctx.stroke();
+
+                ctx.fillStyle = '#FFFFFF';
+                ctx.font = '12px Inter';
+                const unitStep = majorGridStep / scale;
+
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                for (let i = 0; origin.x + i * scale < canvas.width; i += unitStep) {
+                    if (i !== 0) ctx.fillText(i.toFixed(0), origin.x + i * scale, origin.y + 8);
+                }
+                for (let i = -unitStep; origin.x + i * scale > 0; i -= unitStep) {
+                    ctx.fillText(i.toFixed(0), origin.x + i * scale, origin.y + 8);
+                }
+
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                for (let i = unitStep; origin.y - i * scale > 0; i += unitStep) {
+                    ctx.fillText(i.toFixed(0), origin.x - 8, origin.y - i * scale);
+                }
+                 for (let i = -unitStep; origin.y - i * scale < canvas.height; i -= unitStep) {
+                    if (i !== 0) ctx.fillText(i.toFixed(0), origin.x - 8, origin.y - i * scale);
+                }
+            }
+
+            function drawSource(x) {
+                ctx.beginPath();
+                ctx.arc(origin.x + x * scale, origin.y, 8, 0, 2 * Math.PI);
+                ctx.fillStyle = '#f43f5e';
+                ctx.shadowColor = '#f43f5e';
+                ctx.shadowBlur = 15;
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            }
+
+            function drawWave(x, y, radius) {
+                ctx.beginPath();
+                ctx.arc(origin.x + x * scale, origin.y + y * scale, radius * scale, 0, 2 * Math.PI);
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.8)';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            function updateResults() {
+                const vs = parseFloat(document.getElementById('source-speed').value);
+                const vw = parseFloat(document.getElementById('wave-speed').value);
+                const fs = parseFloat(document.getElementById('frequency').value);
+
+                let f_obs_front = 0;
+                let f_obs_back = 0;
+
+                if (vw > vs) {
+                    f_obs_front = fs * (vw / (vw - vs));
+                }
+                f_obs_back = fs * (vw / (vw + vs));
+
+                resultsPanel.innerHTML = `
+                    <div>
+                        <p class="font-semibold">Frecuencia Observada (Delante):</p>
+                        <p class="font-mono text-cyan-300 text-lg">${f_obs_front.toFixed(2)} Hz</p>
+                        <p class="text-xs text-slate-400">$$ f' = f_s \\left( \\frac{v_w}{v_w - v_s} \\right) $$</p>
+                    </div>
+                    <div>
+                        <p class="font-semibold">Frecuencia Observada (Detrás):</p>
+                        <p class="font-mono text-amber-300 text-lg">${f_obs_back.toFixed(2)} Hz</p>
+                        <p class="text-xs text-slate-400">$$ f'' = f_s \\left( \\frac{v_w}{v_w + v_s} \\right) $$</p>
+                    </div>
+                `;
+                if (window.MathJax && MathJax.startup) {
+                    MathJax.startup.promise.then(() => {
+                        MathJax.typesetClear([resultsPanel]);
+                        MathJax.typeset([resultsPanel]);
+                    });
+                }
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'rgba(10, 14, 26, 0.8)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                drawGrid();
+                const waveSpeed = parseFloat(document.getElementById('wave-speed').value);
+                for (let i = 0; i < emissionTimes.length; i++) {
+                    const radius = waveSpeed * (time - emissionTimes[i]);
+                    if (radius > 0) {
+                        drawWave(emissionPositions[i], 0, radius);
+                    }
+                }
+                drawSource(sourceX);
+            }
+
+            function update() {
+                if (!isRunning) return;
+
+                const sourceSpeed = parseFloat(document.getElementById('source-speed').value);
+                const frequency = parseFloat(document.getElementById('frequency').value);
+
+                const deltaTime = 1 / 60;
+                time += deltaTime;
+                sourceX = sourceSpeed * time;
+
+                const timeStep = 1 / frequency;
+                if (emissionTimes.length === 0 || (time - emissionTimes[emissionTimes.length - 1]) >= timeStep) {
+                    emissionTimes.push(time);
+                    emissionPositions.push(sourceX);
+                }
+
+                draw();
+                if (!isDragging) updateResults();
+
+                const waveSpeed = parseFloat(document.getElementById('wave-speed').value);
+                while (emissionTimes.length > 0 && (origin.x + emissionPositions[0]*scale + waveSpeed * (time - emissionTimes[0]) * scale) < 0) {
+                    emissionTimes.shift();
+                    emissionPositions.shift();
+                }
+
+                if (origin.x + sourceX * scale > canvas.width + 50) {
+                    reset();
+                    return;
+                }
+
+                animationId = requestAnimationFrame(update);
+            }
+
+            function start() {
+                const startBtn = document.getElementById('start-btn');
+                if (!isRunning) {
+                    isRunning = true;
+                    startBtn.innerHTML = `<i data-lucide="pause"></i><span>Pausar</span>`;
+                    lucide.createIcons();
+                    animationId = requestAnimationFrame(update);
+                } else {
+                    isRunning = false;
+                    startBtn.innerHTML = `<i data-lucide="play"></i><span>Iniciar</span>`;
+                    lucide.createIcons();
+                    cancelAnimationFrame(animationId);
+                }
+            }
+
+            function reset() {
+                isRunning = false;
+                cancelAnimationFrame(animationId);
+                time = 0;
+                sourceX = 0;
+                emissionTimes = [];
+                emissionPositions = [];
+                
+                const startBtn = document.getElementById('start-btn');
+                startBtn.innerHTML = `<i data-lucide="play"></i><span>Iniciar</span>`;
+                lucide.createIcons();
+
+                resizeCanvas();
+                updateResults();
+            }
+
+            function getEventLocation(e) {
+                if (e.touches && e.touches.length === 1) {
+                    return { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                } else if (e.clientX && e.clientY) {
+                    return { x: e.clientX, y: e.clientY };
+                }
+            }
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                lastDragPos = getEventLocation(e);
+            });
+
+            canvas.addEventListener('mouseup', () => { isDragging = false; });
+            canvas.addEventListener('mouseleave', () => { isDragging = false; });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const pos = getEventLocation(e);
+                const dx = pos.x - lastDragPos.x;
+                const dy = pos.y - lastDragPos.y;
+                lastDragPos = pos;
+                origin.x += dx;
+                origin.y += dy;
+                draw();
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const rect = canvas.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left;
+                const mouseY = e.clientY - rect.top;
+                const worldX = (mouseX - origin.x) / scale;
+                const worldY = (mouseY - origin.y) / scale;
+                const zoom = 1 - e.deltaY * zoomSensitivity;
+                scale *= zoom;
+                origin.x = mouseX - worldX * scale;
+                origin.y = mouseY - worldY * scale;
+                draw();
+            });
+            
+            canvas.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isDragging = true;
+                    lastDragPos = getEventLocation(e);
+                }
+            }, { passive: false });
+            
+            canvas.addEventListener('touchend', () => { isDragging = false; });
+            
+            canvas.addEventListener('touchmove', (e) => {
+                if (!isDragging || e.touches.length !== 1) return;
+                e.preventDefault();
+                const pos = getEventLocation(e);
+                const dx = pos.x - lastDragPos.x;
+                const dy = pos.y - lastDragPos.y;
+                lastDragPos = pos;
+                origin.x += dx;
+                origin.y += dy;
+                draw();
+            }, { passive: false });
+
+            // --- INICIALIZACIÓN ---
+            document.getElementById('start-btn').addEventListener('click', start);
+            document.getElementById('reset-btn').addEventListener('click', reset);
+            
+            ['source-speed', 'wave-speed', 'frequency'].forEach(id => {
+                document.getElementById(id).addEventListener('input', updateResults);
+            });
+
+            window.addEventListener('resize', resizeCanvas);
+            
+            lucide.createIcons();
+            resizeCanvas();
+            updateResults();
+        });
+    </script>
+</body>
+</html>

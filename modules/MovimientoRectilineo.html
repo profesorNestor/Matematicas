@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Movimiento Rectilíneo</title>
+
+    <!-- Librerías Externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gauge.js/1.3.7/gauge.min.js"></script>
+    <!-- Librería MathJax para renderizar fórmulas LaTeX -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        /* Variables CSS para la interfaz principal */
+        :root {
+            --primary-color: #00ff88;
+            --secondary-color: #ff0080;
+            --accent-color: #00d4ff;
+            --success-color: #39ff14;
+            --warning-color: #ff6b00;
+            --danger-color: #ff073a;
+            --background-color: #0a0a0a;
+            --panel-bg: #1a1a1a;
+            --panel-border-color: #666666;
+            --input-bg: #2a2a2a;
+            --digital-display-bg: #000000;
+            --text-primary: #ffffff;
+            --text-secondary: #aaaaaa;
+            --text-accent: #00ff88;
+            --border-radius: 16px;
+            --shadow: 0 8px 24px rgba(0, 255, 136, 0.15);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --graph-position-color: #00ff88;
+            --graph-velocity-color: #00d4ff;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--background-color);
+            min-height: 100vh;
+            color: var(--text-primary);
+            position: relative;
+            overflow-x: hidden;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 0 20px var(--primary-color);
+            color: var(--primary-color);
+        }
+        .header p { font-size: 1.2rem; color: var(--text-primary); }
+        
+        .palette-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1001;
+            width: 50px;
+            height: 50px;
+            background: var(--panel-bg);
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            color: var(--primary-color);
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 0 20px var(--primary-color);
+            transition: var(--transition);
+        }
+        .palette-btn:hover {
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: 0 0 25px var(--primary-color);
+            color: var(--accent-color);
+        }
+
+        .color-options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .color-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            border: 2px solid transparent;
+            background: var(--input-bg);
+        }
+        .color-option:hover { border-color: var(--primary-color); box-shadow: 0 0 10px var(--primary-color); }
+        .color-option.active {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 15px var(--primary-color);
+            background: color-mix(in srgb, var(--primary-color) 20%, var(--input-bg));
+        }
+        .color-preview { display: flex; gap: 4px; }
+        .color-dot { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.3); }
+        .color-label { font-size: 0.85rem; color: var(--text-primary); font-weight: 500; }
+        
+        /* Panel de control (ahora solo para inputs) */
+        .control-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 0 20px var(--primary-color);
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            align-items: center;
+        }
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { font-weight: 600; margin-bottom: 8px; color: var(--primary-color); }
+        .input-group input {
+            padding: 12px;
+            border: 2px solid var(--accent-color);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: var(--transition);
+            background: var(--input-bg);
+            color: var(--text-primary);
+        }
+        .input-group input::placeholder { color: var(--text-secondary); }
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px var(--primary-color);
+        }
+        
+        /* Botones (ahora en su propio contenedor) */
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 20px; }
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 120px;
+            justify-content: center;
+            color: var(--background-color);
+        }
+        .btn-primary { background: var(--primary-color); box-shadow: 0 0 15px var(--primary-color); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 0 25px currentColor; }
+        .btn-success { background: var(--success-color); box-shadow: 0 0 15px var(--success-color); }
+        .btn-warning { background: var(--warning-color); box-shadow: 0 0 15px var(--warning-color); }
+        .btn-danger { background: var(--danger-color); box-shadow: 0 0 15px var(--danger-color); }
+
+        /* Área de simulación */
+        .simulation-area {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+        .main-simulation {
+            background: var(--panel-bg);
+            border: 2px solid var(--secondary-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 0 20px var(--secondary-color);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-simulation h3, .instruments-panel h3, .chart-container h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .animation-container {
+            height: 100px;
+            background: var(--input-bg);
+            border-radius: 12px;
+            position: relative;
+            margin: 0; /* Ajustado */
+            border: 2px solid var(--accent-color);
+            overflow: hidden;
+        }
+        .track {
+            position: absolute;
+            bottom: 25px;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color);
+        }
+        
+        .moving-object {
+            position: absolute;
+            bottom: 27px;
+            left: 10px;
+            width: 96px;
+            height: 42px;
+            transform: scaleX(-1);
+            z-index: 10;
+            background: transparent;
+            border-radius: 0;
+        }
+        .moving-object svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 8px var(--primary-color));
+            transition: var(--transition);
+        }
+        .car-body { fill: var(--primary-color); transition: var(--transition); }
+        .car-wheels { fill: var(--accent-color); transition: var(--transition); }
+        .car-windows { fill: var(--digital-display-bg); stroke: var(--accent-color); stroke-width: 1; }
+        .car-lights { fill: var(--danger-color); }
+
+        /* Estilo para la fórmula con MathJax */
+        .formula-container {
+            text-align: center;
+            margin: 15px 0;
+            color: var(--text-accent);
+            font-size: 1.1rem;
+        }
+        .formula-container strong {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .instruments-panel {
+            background: var(--panel-bg);
+            border: 2px solid var(--accent-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 0 20px var(--accent-color);
+        }
+        .instrument h3 { text-align: center; margin-bottom: 15px; font-size: 1.1rem; color: var(--primary-color); font-weight: 600; }
+        .digital-display {
+            background: var(--digital-display-bg);
+            color: var(--primary-color);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+            border: 2px solid var(--primary-color);
+            text-shadow: 0 0 10px var(--primary-color);
+            box-shadow: 0 0 15px var(--primary-color) inset;
+        }
+        .instrument { margin-bottom: 25px; }
+        .gauge-container { width: 200px; height: 120px; margin: 0 auto; }
+        
+        .charts-area { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; margin-bottom: 25px; }
+        .chart-container {
+            background: var(--panel-bg);
+            border: 2px solid var(--warning-color);
+            border-radius: var(--border-radius);
+            padding: 25px;
+            box-shadow: 0 0 20px var(--warning-color);
+        }
+        .chart-container h3 { text-align: center; margin-bottom: 15px; font-size: 1.3rem; color: var(--primary-color); font-weight: 600; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.8); }
+        .modal-content {
+            background: var(--panel-bg);
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            width: 90%;
+            box-shadow: 0 0 30px var(--primary-color);
+            border: 2px solid var(--primary-color);
+            position: relative;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        @keyframes modalSlideIn { from { opacity: 0; transform: translateY(-50px) scale(0.9); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        .modal-header { text-align: center; margin-bottom: 25px; }
+        .modal-header h2 { color: var(--primary-color); font-size: 1.8rem; margin-bottom: 10px; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: var(--secondary-color); color: var(--background-color); padding: 15px; border-radius: 8px; text-align: center; box-shadow: 0 0 15px var(--secondary-color); }
+        .stat-card h4 { font-size: 0.9rem; opacity: 0.9; margin-bottom: 5px; }
+        .stat-card .value { font-size: 1.4rem; font-weight: bold; }
+        .close { position: absolute; top: 15px; right: 20px; color: var(--text-secondary); font-size: 28px; font-weight: bold; cursor: pointer; transition: var(--transition); }
+        .close:hover { color: var(--danger-color); text-shadow: 0 0 10px var(--danger-color); }
+
+        .color-modal-content { max-width: 350px; }
+        .color-modal-content h4 { color: var(--primary-color); margin-bottom: 25px; font-size: 1.5rem; text-align: center; font-weight: 600; }
+        .stats-modal-content { max-width: 500px; }
+
+        @media (max-width: 1024px) { .simulation-area, .charts-area { grid-template-columns: 1fr; } }
+        @media (max-width: 768px) {
+            .control-panel { grid-template-columns: 1fr; }
+            .header h1 { font-size: 2rem; }
+            .stats-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button id="colorPaletteBtn" class="palette-btn" title="Cambiar Colores de Gráficos">🎨</button>
+
+        <div class="header">
+            <h1>🚗 Simulador de Movimiento Rectilíneo</h1>
+            <p>Explora las leyes del movimiento uniformemente acelerado</p>
+        </div>
+
+        <div class="control-panel">
+            <div class="input-group"><label for="initialPosition">Posición Inicial (m)</label><input type="number" id="initialPosition" value="0" step="0.1"></div>
+            <div class="input-group"><label for="initialVelocity">Velocidad Inicial (m/s)</label><input type="number" id="initialVelocity" value="5" step="0.1"></div>
+            <div class="input-group"><label for="acceleration">Aceleración (m/s²)</label><input type="number" id="acceleration" value="2" step="0.1"></div>
+        </div>
+
+        <div class="simulation-area">
+            <div class="main-simulation">
+                <h3>Simulación Visual</h3>
+                <div class="animation-container">
+                    <div class="track"></div>
+                    <div class="moving-object" id="movingObject">
+                        <svg viewBox="0 0 96 42">
+                            <g class="car-wheels"><circle cx="20" cy="34" r="8"/><circle cx="76" cy="34" r="8"/></g>
+                            <g class="car-body-group">
+                                <path class="car-body" d="M95,28.21a5.32,5.32,0,0,0-3.95-3.35L78.6,21.1a16.41,16.41,0,0,0-14.7-8.31H32.45a16.34,16.34,0,0,0-15,9.2L1,34H1a1,1,0,0,0,0,2H95a1,1,0,0,0,0-2h0Z"/>
+                                <path class="car-windows" d="M33.53,14.41,48.2,14.1S66.3,14.41,74.5,22.61s-24.8,0-24.8,0Z"/>
+                                <path class="car-lights" d="M95,28.21a4,4,0,0,0-1.47-.21H88a4,4,0,0,0-1,7.82,4.1,4.1,0,0,0,1.47.18h5.53A4,4,0,0,0,95,28.21Z"/>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+                <div class="formula-container">
+                    <strong>Ecuación del Movimiento:</strong>
+                    $$x(t) = x_0 + v_0 t + \frac{1}{2} a t^2$$
+                </div>
+                <div class="button-group">
+                    <button class="btn btn-success" id="startBtn">▶️ Iniciar</button>
+                    <button class="btn btn-warning" id="pauseBtn">⏸️ Pausa</button>
+                    <button class="btn btn-danger" id="resetBtn">🔄 Reiniciar</button>
+                    <button class="btn btn-primary" id="statsBtn">📊 Estadísticas</button>
+                </div>
+            </div>
+            <div class="instruments-panel">
+                <div class="instrument">
+                    <h3>⚡ Velocímetro</h3>
+                    <div class="gauge-container"><canvas id="speedGauge" width="200" height="120"></canvas></div>
+                    <div class="digital-display" id="speedDisplay">0.0 m/s</div>
+                </div>
+                <div class="instrument"><h3>📏 Posición</h3><div class="digital-display" id="positionDisplay">0.0 m</div></div>
+                <div class="instrument"><h3>⏱️ Cronómetro</h3><div class="digital-display" id="timeDisplay">0.0 s</div></div>
+            </div>
+        </div>
+
+        <div class="charts-area">
+            <div class="chart-container"><h3>📈 Posición vs Tiempo</h3><div id="positionChart"></div></div>
+            <div class="chart-container"><h3>📊 Velocidad vs Tiempo</h3><div id="velocityChart"></div></div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content stats-modal-content">
+            <span class="close" id="closeStatsModal">&times;</span>
+            <div class="modal-header"><h2>📊 Estadísticas</h2><p>Resultados del movimiento</p></div>
+            <div class="stats-grid">
+                <div class="stat-card"><h4>Posición Final</h4><div class="value" id="finalPosition">0.0 m</div></div>
+                <div class="stat-card"><h4>Velocidad Final</h4><div class="value" id="finalVelocity">0.0 m/s</div></div>
+                <div class="stat-card"><h4>Tiempo Total</h4><div class="value" id="totalTime">0.0 s</div></div>
+                <div class="stat-card"><h4>Distancia Recorrida</h4><div class="value" id="totalDistance">0.0 m</div></div>
+            </div>
+            <div style="text-align: center;"><button class="btn btn-primary" onclick="closeStatsModal()">Cerrar</button></div>
+        </div>
+    </div>
+    
+    <div id="colorModal" class="modal">
+        <div class="modal-content color-modal-content">
+            <span class="close" id="closeColorModal">&times;</span>
+            <h4>🎨 Colores de Gráficos</h4>
+            <div class="color-options">
+                <div class="color-option active" data-graph="cyber"><div class="color-preview"><div class="color-dot" style="background: #00ff88;"></div><div class="color-dot" style="background: #00d4ff;"></div></div><span class="color-label">Neon</span></div>
+                <div class="color-option" data-graph="electric"><div class="color-preview"><div class="color-dot" style="background: #8b5cf6;"></div><div class="color-dot" style="background: #06b6d4;"></div></div><span class="color-label">Púrpura</span></div>
+                <div class="color-option" data-graph="crimson"><div class="color-preview"><div class="color-dot" style="background: #dc2626;"></div><div class="color-dot" style="background: #f59e0b;"></div></div><span class="color-label">Fuego</span></div>
+                <div class="color-option" data-graph="ocean"><div class="color-preview"><div class="color-dot" style="background: #0ea5e9;"></div><div class="color-dot" style="background: #06b6d4;"></div></div><span class="color-label">Océano</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales de simulación
+        let simulation = {
+            isRunning: false, isPaused: false, startTime: 0, currentTime: 0,
+            initialPosition: 0, initialVelocity: 0, acceleration: 0,
+            animationId: null, positionData: [], velocityData: [], timeData: []
+        };
+
+        // Referencias a elementos DOM
+        const elements = {
+            initialPosition: document.getElementById('initialPosition'),
+            initialVelocity: document.getElementById('initialVelocity'),
+            acceleration: document.getElementById('acceleration'),
+            startBtn: document.getElementById('startBtn'),
+            pauseBtn: document.getElementById('pauseBtn'),
+            resetBtn: document.getElementById('resetBtn'),
+            statsBtn: document.getElementById('statsBtn'),
+            movingObject: document.getElementById('movingObject'),
+            speedDisplay: document.getElementById('speedDisplay'),
+            positionDisplay: document.getElementById('positionDisplay'),
+            timeDisplay: document.getElementById('timeDisplay'),
+            statsModal: document.getElementById('statsModal'),
+            closeStatsModalBtn: document.getElementById('closeStatsModal'),
+            colorPaletteBtn: document.getElementById('colorPaletteBtn'),
+            colorModal: document.getElementById('colorModal'),
+            closeColorModalBtn: document.getElementById('closeColorModal')
+        };
+
+        // Configuración de gráficos Plotly
+        let chartConfig = {
+            layout: {
+                margin: { t: 20, r: 20, b: 40, l: 50 },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: '#2a2a2a',
+                font: { family: 'Segoe UI, sans-serif', size: 12, color: '#ffffff' }
+            },
+            config: { displayModeBar: true, modeBarButtonsToRemove: ['pan2d', 'lasso2d', 'select2d'], displaylogo: false }
+        };
+
+        let speedGauge;
+
+        function initSpeedGauge() {
+            const canvas = document.getElementById('speedGauge');
+            const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--primary-color').trim();
+            const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent-color').trim();
+            const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
+            const opts = {
+                angle: 0.0, lineWidth: 0.2, radiusScale: 0.9,
+                pointer: { length: 0.5, strokeWidth: 0.05, color: primaryColor },
+                limitMax: false, limitMin: false, colorStart: primaryColor, colorStop: accentColor,
+                strokeColor: '#2A2A2A', generateGradient: true, highDpiSupport: true,
+                staticLabels: { font: "10px 'Courier New', monospace", labels: [0, 10, 20, 30], color: textColor, fractionDigits: 0 },
+                staticZones: [ {strokeStyle: "#39FF14", min: 0, max: 10}, {strokeStyle: "#FF6B00", min: 10, max: 20}, {strokeStyle: "#FF073A", min: 20, max: 30} ],
+                renderTicks: { divisions: 6, divWidth: 1.2, divLength: 0.15, divColor: '#666666', subDivisions: 5, subLength: 0.08, subWidth: 0.8, subColor: '#444444' }
+            };
+            speedGauge = new Gauge(canvas).setOptions(opts);
+            speedGauge.maxValue = 30; speedGauge.setMinValue(0); speedGauge.set(0);
+        }
+
+        function calculatePosition(t) { return simulation.initialPosition + simulation.initialVelocity * t + 0.5 * simulation.acceleration * t * t; }
+        function calculateVelocity(t) { return simulation.initialVelocity + simulation.acceleration * t; }
+        function calculateDistance() { return Math.abs(calculatePosition(simulation.currentTime) - simulation.initialPosition); }
+
+        function updateDisplay() {
+            const position = calculatePosition(simulation.currentTime);
+            const velocity = calculateVelocity(simulation.currentTime);
+            elements.positionDisplay.textContent = `${position.toFixed(1)} m`;
+            elements.speedDisplay.textContent = `${Math.abs(velocity).toFixed(1)} m/s`;
+            elements.timeDisplay.textContent = `${simulation.currentTime.toFixed(1)} s`;
+            speedGauge.set(Math.abs(velocity));
+            updateObjectPosition(position);
+            simulation.positionData.push(position);
+            simulation.velocityData.push(velocity);
+            simulation.timeData.push(simulation.currentTime);
+            if (simulation.timeData.length % 5 === 0) updateCharts();
+        }
+
+        function updateObjectPosition(position) {
+            const container = document.querySelector('.animation-container');
+            const containerWidth = container.offsetWidth - 96; 
+            const maxPos = simulation.initialPosition + (containerWidth / 10);
+            const minPos = simulation.initialPosition;
+            const displayPosition = Math.max(minPos, Math.min(maxPos, position));
+            const normalizedPosition = (displayPosition - minPos) * 10;
+            gsap.to(elements.movingObject, { duration: 0.1, x: normalizedPosition, ease: "none" });
+        }
+
+        function updateCharts() {
+            const positionColor = getComputedStyle(document.documentElement).getPropertyValue('--graph-position-color').trim();
+            const velocityColor = getComputedStyle(document.documentElement).getPropertyValue('--graph-velocity-color').trim();
+            Plotly.newPlot('positionChart', [{ x: [...simulation.timeData], y: [...simulation.positionData], type: 'scatter', mode: 'lines+markers', name: 'Posición', line: { color: positionColor, width: 3 }, marker: { size: 4, color: positionColor } }], { ...chartConfig.layout, xaxis: { title: 'Tiempo (s)', gridcolor: '#333333' }, yaxis: { title: 'Posición (m)', gridcolor: '#333333' } }, chartConfig.config);
+            Plotly.newPlot('velocityChart', [{ x: [...simulation.timeData], y: [...simulation.velocityData], type: 'scatter', mode: 'lines+markers', name: 'Velocidad', line: { color: velocityColor, width: 3 }, marker: { size: 4, color: velocityColor } }], { ...chartConfig.layout, xaxis: { title: 'Tiempo (s)', gridcolor: '#333333' }, yaxis: { title: 'Velocidad (m/s)', gridcolor: '#333333' } }, chartConfig.config);
+        }
+
+        function animationLoop() {
+            if (!simulation.isRunning || simulation.isPaused) return;
+            simulation.currentTime = (Date.now() - simulation.startTime) / 1000;
+            updateDisplay();
+            simulation.animationId = requestAnimationFrame(animationLoop);
+        }
+
+        function startSimulation() {
+            if (!simulation.isRunning) {
+                simulation.initialPosition = parseFloat(elements.initialPosition.value) || 0;
+                simulation.initialVelocity = parseFloat(elements.initialVelocity.value) || 0;
+                simulation.acceleration = parseFloat(elements.acceleration.value) || 0;
+                simulation.isRunning = true; simulation.isPaused = false;
+                simulation.startTime = Date.now(); simulation.currentTime = 0;
+                simulation.positionData = []; simulation.velocityData = []; simulation.timeData = [];
+            } else if (simulation.isPaused) {
+                simulation.isPaused = false;
+                simulation.startTime = Date.now() - simulation.currentTime * 1000;
+            }
+            toggleButtons(true);
+            animationLoop();
+        }
+
+        function pauseSimulation() {
+            if (!simulation.isRunning || simulation.isPaused) return;
+            simulation.isPaused = true;
+            toggleButtons(false);
+        }
+        
+        function toggleButtons(isRunning) {
+            elements.startBtn.style.display = isRunning ? 'none' : 'flex';
+            elements.pauseBtn.style.display = isRunning ? 'flex' : 'none';
+        }
+
+        function resetSimulation() {
+            simulation.isRunning = false; simulation.isPaused = false; simulation.currentTime = 0;
+            if (simulation.animationId) cancelAnimationFrame(simulation.animationId);
+            toggleButtons(false);
+            elements.positionDisplay.textContent = '0.0 m';
+            elements.speedDisplay.textContent = '0.0 m/s';
+            elements.timeDisplay.textContent = '0.0 s';
+            speedGauge.set(0);
+            gsap.to(elements.movingObject, { duration: 0.5, x: 0, ease: "back.out(1.7)" });
+            showPredictiveTrajectory();
+        }
+
+        function openStatsModal() {
+            document.getElementById('finalPosition').textContent = `${calculatePosition(simulation.currentTime).toFixed(2)} m`;
+            document.getElementById('finalVelocity').textContent = `${calculateVelocity(simulation.currentTime).toFixed(2)} m/s`;
+            document.getElementById('totalTime').textContent = `${simulation.currentTime.toFixed(2)} s`;
+            document.getElementById('totalDistance').textContent = `${calculateDistance().toFixed(2)} m`;
+            elements.statsModal.style.display = 'block';
+            gsap.fromTo('.stats-modal-content', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.7)" });
+        }
+        function closeStatsModal() {
+            gsap.to('.stats-modal-content', { duration: 0.2, scale: 0.8, opacity: 0, ease: "power2.in", onComplete: () => { elements.statsModal.style.display = 'none'; } });
+        }
+        window.closeStatsModal = closeStatsModal;
+
+        function openColorModal() {
+            elements.colorModal.style.display = 'block';
+            gsap.fromTo('.color-modal-content', { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: "back.out(1.7)" });
+        }
+        function closeColorModal() {
+            gsap.to('.color-modal-content', { duration: 0.2, scale: 0.8, opacity: 0, ease: "power2.in", onComplete: () => { elements.colorModal.style.display = 'none'; } });
+        }
+
+        function changeGraphColors(colorScheme) {
+            document.querySelectorAll('.color-option').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-graph="${colorScheme}"]`).classList.add('active');
+            const schemes = {
+                cyber: { position: '#00ff88', velocity: '#00d4ff' }, electric: { position: '#8b5cf6', velocity: '#06b6d4' },
+                crimson: { position: '#dc2626', velocity: '#f59e0b' }, ocean: { position: '#0ea5e9', velocity: '#06b6d4' }
+            };
+            const colors = schemes[colorScheme];
+            document.documentElement.style.setProperty('--graph-position-color', colors.position);
+            document.documentElement.style.setProperty('--graph-velocity-color', colors.velocity);
+            simulation.timeData.length > 0 ? updateCharts() : showPredictiveTrajectory();
+        }
+        
+        function generatePredictiveTrajectory() {
+            simulation.initialPosition = parseFloat(elements.initialPosition.value) || 0;
+            simulation.initialVelocity = parseFloat(elements.initialVelocity.value) || 0;
+            simulation.acceleration = parseFloat(elements.acceleration.value) || 0;
+            const maxTime = 10, timeStep = 0.1, p = [], v = [], t = [];
+            for (let time = 0; time <= maxTime; time += timeStep) { p.push(calculatePosition(time)); v.push(calculateVelocity(time)); t.push(time); }
+            return { positions: p, velocities: v, times: t };
+        }
+
+        function showPredictiveTrajectory() {
+            if (simulation.isRunning) return;
+            const prediction = generatePredictiveTrajectory();
+            const posColor = getComputedStyle(document.documentElement).getPropertyValue('--graph-position-color').trim();
+            const velColor = getComputedStyle(document.documentElement).getPropertyValue('--graph-velocity-color').trim();
+            Plotly.newPlot('positionChart', [{ x: prediction.times, y: prediction.positions, type: 'scatter', mode: 'lines', name: 'Predicción', line: { color: posColor, width: 2, dash: 'dash' }, opacity: 0.7 }], { ...chartConfig.layout, xaxis: { title: 'Tiempo (s)', gridcolor: '#333333' }, yaxis: { title: 'Posición (m)', gridcolor: '#333333' } }, chartConfig.config);
+            Plotly.newPlot('velocityChart', [{ x: prediction.times, y: prediction.velocities, type: 'scatter', mode: 'lines', name: 'Predicción', line: { color: velColor, width: 2, dash: 'dash' }, opacity: 0.7 }], { ...chartConfig.layout, xaxis: { title: 'Tiempo (s)', gridcolor: '#333333' }, yaxis: { title: 'Velocidad (m/s)', gridcolor: '#333333' } }, chartConfig.config);
+        }
+
+        function exportData() {
+            if (simulation.timeData.length === 0) { alert('No hay datos para exportar.'); return; }
+            const data = {
+                parametros: { posicionInicial: simulation.initialPosition, velocidadInicial: simulation.initialVelocity, aceleracion: simulation.acceleration },
+                datos: simulation.timeData.map((time, i) => ({ tiempo: time.toFixed(2), posicion: simulation.positionData[i].toFixed(2), velocidad: simulation.velocityData[i].toFixed(2) }))
+            };
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
+            link.download = 'simulacion_movimiento.json';
+            link.click(); URL.revokeObjectURL(link.href);
+        }
+
+        // CAMBIO: Se elimina la creación del botón de predicción
+        function addAdvancedControls() {
+            const buttonGroup = document.querySelector('.button-group');
+            const exportBtn = document.createElement('button');
+            exportBtn.className = 'btn btn-primary';
+            exportBtn.innerHTML = '💾 Exportar';
+            exportBtn.addEventListener('click', exportData);
+            buttonGroup.appendChild(exportBtn);
+        }
+
+        function handleResize() {
+            Plotly.Plots.resize('positionChart'); Plotly.Plots.resize('velocityChart');
+            if (speedGauge) speedGauge.render();
+        }
+
+        function initializeApp() {
+            console.log('🚗 Simulador de Movimiento Rectilíneo v2.3 Iniciado');
+            initSpeedGauge(); addAdvancedControls(); changeGraphColors('cyber'); showPredictiveTrajectory();
+            
+            elements.pauseBtn.style.display = 'none';
+            elements.startBtn.addEventListener('click', startSimulation);
+            elements.pauseBtn.addEventListener('click', pauseSimulation);
+            elements.resetBtn.addEventListener('click', resetSimulation);
+            elements.statsBtn.addEventListener('click', openStatsModal);
+            
+            elements.colorPaletteBtn.addEventListener('click', openColorModal);
+            elements.closeColorModalBtn.addEventListener('click', closeColorModal);
+            elements.closeStatsModalBtn.addEventListener('click', closeStatsModal);
+
+            document.querySelectorAll('.color-option').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    changeGraphColors(btn.getAttribute('data-graph'));
+                    setTimeout(closeColorModal, 200);
+                });
+            });
+            
+            window.addEventListener('click', (event) => {
+                if (event.target === elements.statsModal) closeStatsModal();
+                if (event.target === elements.colorModal) closeColorModal();
+            });
+            
+            ['input', 'change'].forEach(evt => {
+                elements.initialPosition.addEventListener(evt, showPredictiveTrajectory);
+                elements.initialVelocity.addEventListener(evt, showPredictiveTrajectory);
+                elements.acceleration.addEventListener(evt, showPredictiveTrajectory);
+            });
+            
+            document.addEventListener('keydown', (event) => {
+                if (event.key === ' ' && !event.repeat) {
+                    event.preventDefault();
+                    if(!simulation.isRunning || simulation.isPaused) { startSimulation(); } else { pauseSimulation(); }
+                }
+                if (event.key === "Escape") {
+                    closeStatsModal();
+                    closeColorModal();
+                }
+            });
+            
+            window.addEventListener('resize', handleResize);
+            window.addEventListener('beforeunload', () => { if (simulation.animationId) cancelAnimationFrame(simulation.animationId); });
+            console.log('✅ Aplicación inicializada correctamente');
+        }
+
+        document.addEventListener('DOMContentLoaded', initializeApp);
+    </script>
+</body>
+</html>
