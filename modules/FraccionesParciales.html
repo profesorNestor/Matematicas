@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es" class="light"> <!-- La clase 'dark' o 'light' se gestiona con JS -->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Fracciones Parciales | Estilo Optimizado</title>
+    
+    <!-- Librerías Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    
+    <!-- Librerías de Cálculo y Renderizado Matemático -->
+    <script>
+      window.MathJax = { tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }, svg: { fontCache: 'global' } };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nerdamer@1.1.13/all.min.js"></script>
+
+    <!-- Fuentes de Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&family=Fira+Code&display=swap" rel="stylesheet">
+
+    <!-- Estilos Personalizados y Configuración de Tailwind -->
+    <style type="text/tailwindcss">
+        @layer base {
+            :root, .light {
+                --background: 0 0% 100%;
+                --foreground: 224 71.4% 4.1%;
+                --card: 0 0% 100%;
+                --card-foreground: 224 71.4% 4.1%;
+                --popover: 0 0% 100%;
+                --popover-foreground: 224 71.4% 4.1%;
+                --primary: 220.9 39.3% 11%;
+                --primary-foreground: 210 20% 98%;
+                --secondary: 220 14.3% 95.9%;
+                --secondary-foreground: 220.9 39.3% 11%;
+                --muted: 220 14.3% 95.9%;
+                --muted-foreground: 225 8.9% 46.1%;
+                --accent: 220 14.3% 95.9%;
+                --accent-foreground: 220.9 39.3% 11%;
+                --border: 220 13% 91%;
+                --input: 220 13% 91%;
+                --ring: 224 71.4% 4.1%;
+                --radius: 0.75rem;
+            }
+            .dark {
+                --background: 224 71.4% 4.1%;
+                --foreground: 210 20% 98%;
+                --card: 224 71.4% 4.1%;
+                --card-foreground: 210 20% 98%;
+                --popover: 224 71.4% 4.1%;
+                --popover-foreground: 210 20% 98%;
+                --primary: 210 20% 98%;
+                --primary-foreground: 220.9 39.3% 11%;
+                --secondary: 215 27.9% 16.9%;
+                --secondary-foreground: 210 20% 98%;
+                --muted: 215 27.9% 16.9%;
+                --muted-foreground: 217.9 10.6% 64.9%;
+                --accent: 215 27.9% 16.9%;
+                --accent-foreground: 210 20% 98%;
+                --border: 215 27.9% 16.9%;
+                --input: 215 27.9% 16.9%;
+                --ring: 216 12.2% 83.9%;
+            }
+        }
+        @layer utilities {
+          .fade-in { animation: fadeIn 0.5s ease-in-out; }
+          .fade-out { animation: fadeOut 0.5s ease-in-out forwards; }
+          .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+          @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+          @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        }
+        /* Estilos para el contenido del modal de ayuda */
+        .help-content h5 {
+            @apply text-lg font-bold mt-4 mb-2 text-primary;
+        }
+        .help-content p {
+            @apply text-muted-foreground mb-2;
+        }
+        .help-content ul {
+            @apply list-disc list-inside text-muted-foreground space-y-1;
+        }
+        .help-content code {
+            @apply bg-secondary text-secondary-foreground font-mono px-1.5 py-1 rounded-md text-sm;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        border: 'hsl(var(--border))', input: 'hsl(var(--input))', ring: 'hsl(var(--ring))',
+                        background: 'hsl(var(--background))', foreground: 'hsl(var(--foreground))',
+                        primary: { DEFAULT: 'hsl(var(--primary))', foreground: 'hsl(var(--primary-foreground))' },
+                        secondary: { DEFAULT: 'hsl(var(--secondary))', foreground: 'hsl(var(--secondary-foreground))' },
+                        muted: { DEFAULT: 'hsl(var(--muted))', foreground: 'hsl(var(--muted-foreground))' },
+                        accent: { DEFAULT: 'hsl(var(--accent))', foreground: 'hsl(var(--accent-foreground))' },
+                        card: { DEFAULT: 'hsl(var(--card))', foreground: 'hsl(var(--card-foreground))' },
+                    },
+                    borderRadius: { lg: "var(--radius)", md: "calc(var(--radius) - 2px)", sm: "calc(var(--radius) - 4px)" },
+                    fontFamily: { sans: ['Inter', 'sans-serif'], mono: ['Fira Code', 'monospace'] },
+                },
+            },
+        }
+    </script>
+</head>
+
+<body class="bg-background text-foreground font-sans antialiased">
+    
+    <!-- Controles Superiores -->
+    <div class="absolute top-4 right-4 z-30 flex items-center gap-2">
+        <button id="theme-toggle" class="p-2 rounded-full bg-card/50 backdrop-blur-sm border border-border hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Cambiar tema">
+            <i data-lucide="sun" class="light-icon w-5 h-5"></i>
+            <i data-lucide="moon" class="dark-icon hidden w-5 h-5"></i>
+        </button>
+        <button id="help-modal-btn" class="p-2 rounded-full bg-card/50 backdrop-blur-sm border border-border hover:bg-secondary transition-colors focus:ring-2 focus:ring-ring focus:outline-none" aria-label="Mostrar ayuda">
+            <i data-lucide="help-circle" class="w-5 h-5"></i>
+        </button>
+    </div>
+
+    <main class="w-full min-h-screen flex flex-col items-center justify-center p-4">
+        
+        <div class="w-full max-w-2xl mx-auto">
+            <header class="text-center mb-8">
+                <h1 class="text-3xl md:text-5xl font-extrabold text-primary">
+                    Calculadora de Fracciones Parciales
+                </h1>
+                <p class="mt-3 text-base md:text-lg text-muted-foreground max-w-xl mx-auto">
+                    Ingresa una expresión racional para descomponerla. Usa 
+                    <code class="bg-secondary rounded-md px-1.5 py-0.5 font-mono text-sm">*</code> para multiplicar y 
+                    <code class="bg-secondary rounded-md px-1.5 py-0.5 font-mono text-sm">^</code> para potencias.
+                </p>
+            </header>
+
+            <div class="bg-card border border-border w-full p-6 md:p-8 rounded-lg shadow-lg slide-up">
+                
+                <!-- Panel de Ejemplos -->
+                <div class="mb-6 text-center">
+                    <p class="font-medium text-muted-foreground mb-3">Cargar un ejemplo:</p>
+                    <div id="ejemplos-panel" class="flex flex-wrap justify-center gap-2"></div>
+                </div>
+
+                <!-- Formulario -->
+                <form id="form-fracciones" class="space-y-5">
+                    <div>
+                        <label for="numerador" class="block text-left mb-1.5 font-medium text-muted-foreground">Numerador</label>
+                        <input type="text" id="numerador" placeholder="Ej: 2*x + 3" required class="w-full px-4 py-2.5 bg-secondary border border-border rounded-md font-mono focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300">
+                    </div>
+                    <div>
+                        <label for="denominador" class="block text-left mb-1.5 font-medium text-muted-foreground">Denominador</label>
+                        <input type="text" id="denominador" placeholder="Ej: x^2 - 5*x + 6" required class="w-full px-4 py-2.5 bg-secondary border border-border rounded-md font-mono focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-300">
+                    </div>
+                    <div class="pt-2">
+                        <button type="submit" class="w-full bg-primary text-primary-foreground font-bold py-3 px-6 rounded-lg shadow-lg hover:bg-primary/90 transform hover:-translate-y-0.5 transition-all duration-300 text-lg flex items-center justify-center space-x-2">
+                            <i data-lucide="calculator" class="w-5 h-5"></i>
+                            <span id="submit-text">Calcular</span>
+                            <svg id="loader" class="animate-spin h-5 w-5 text-white hidden" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Sección de Resultado -->
+            <section id="resultado-wrapper" class="w-full mt-8 opacity-0 transition-all duration-700 ease-out">
+                <div class="bg-card border border-border w-full p-6 rounded-lg shadow-lg">
+                    <h2 class="text-xl font-bold text-primary mb-4 text-center">Resultado</h2>
+                    <div id="resultado" class="overflow-x-auto overflow-y-hidden whitespace-nowrap py-2 text-lg md:text-xl text-center"></div>
+                    <div id="error" class="text-red-500 font-bold mt-3 text-center"></div>
+                </div>
+            </section>
+        </div>
+
+        <footer class="w-full text-center py-8 text-sm text-muted-foreground">
+            <p>Autor: MSc. Néstor Fabio Montoya Palacios &middot; Asistente IA</p>
+        </footer>
+    </main>
+
+    <!-- Modal de Ayuda -->
+    <div id="help-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+        <div class="bg-card border border-border rounded-lg p-6 w-full max-w-2xl shadow-lg slide-up max-h-[90vh] flex flex-col modal-content">
+            <div class="flex items-center justify-between mb-4 pb-4 border-b border-border">
+                <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="help-circle"></i> Guía de Uso</h2>
+                <button class="p-2 rounded-md hover:bg-secondary transition-colors close-modal-btn"><i data-lucide="x"></i></button>
+            </div>
+            <div class="overflow-y-auto help-content">
+                <h5>Bienvenido a la Calculadora de Fracciones Parciales</h5>
+                <p>Esta herramienta te permite descomponer una expresión racional (un polinomio dividido por otro) en una suma de fracciones más simples.</p>
+                
+                <h5>¿Cómo usar la calculadora?</h5>
+                <ol class="list-decimal list-inside space-y-2 text-muted-foreground">
+                    <li><strong>Ingresa el Numerador:</strong> Escribe el polinomio del numerador en el primer campo.</li>
+                    <li><strong>Ingresa el Denominador:</strong> Escribe el polinomio del denominador en el segundo campo.</li>
+                    <li><strong>Calcula:</strong> Presiona el botón "Calcular" para obtener el resultado.</li>
+                </ol>
+
+                <h5>Sintaxis de las Expresiones</h5>
+                <p>Para que la calculadora entienda tus polinomios, sigue estas reglas:</p>
+                <ul>
+                    <li>Usa <code>x</code> como la variable.</li>
+                    <li>Para multiplicar un número y una variable, usa el asterisco <code>*</code>. Ejemplo: <code>2*x</code>.</li>
+                    <li>Para las potencias, usa el acento circunflejo <code>^</code>. Ejemplo: <code>x^2</code> para $x^2$.</li>
+                    <li>Puedes usar paréntesis <code>()</code> para agrupar términos. Ejemplo: <code>(x-1)*(x+2)</code>.</li>
+                </ul>
+
+                <h5>Ejemplos Rápidos</h5>
+                <p>¿No sabes por dónde empezar? Usa los botones de "Cargar un ejemplo" para rellenar los campos con expresiones comunes y ver cómo funcionan.</p>
+            </div>
+        </div>
+    </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+    // --- Lógica del Tema ---
+    const themeToggleBtn = document.getElementById('theme-toggle');
+    const themes = ['light', 'dark'];
+
+    const applyTheme = (theme) => {
+        document.documentElement.classList.remove(...themes);
+        document.documentElement.classList.add(theme);
+        localStorage.setItem('calculator-theme', theme);
+        document.querySelector('.light-icon').style.display = theme === 'light' ? 'block' : 'none';
+        document.querySelector('.dark-icon').style.display = theme === 'dark' ? 'block' : 'none';
+    };
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = localStorage.getItem('calculator-theme') || 'light';
+        const nextTheme = themes[(themes.indexOf(currentTheme) + 1) % themes.length];
+        applyTheme(nextTheme);
+    });
+
+    // --- Lógica del Modal de Ayuda ---
+    const helpModalBtn = document.getElementById('help-modal-btn');
+    const helpModal = document.getElementById('help-modal');
+    
+    const openModal = (modal) => {
+        modal.classList.replace('hidden', 'flex');
+        // Previene el scroll del body cuando el modal está abierto
+        document.body.style.overflow = 'hidden';
+    };
+
+    const closeModal = (modal) => {
+        modal.classList.add('fade-out');
+        modal.addEventListener('animationend', () => {
+            modal.classList.replace('flex', 'hidden');
+            modal.classList.remove('fade-out');
+            // Restaura el scroll del body
+            document.body.style.overflow = '';
+        }, { once: true });
+    };
+
+    helpModalBtn.addEventListener('click', () => openModal(helpModal));
+    helpModal.querySelector('.close-modal-btn').addEventListener('click', () => closeModal(helpModal));
+    // Cierra el modal si se hace clic en el fondo oscuro
+    helpModal.addEventListener('click', (e) => {
+        if (e.target === helpModal) {
+            closeModal(helpModal);
+        }
+    });
+
+    // Cierra el modal con la tecla Escape
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpModal.classList.contains('flex')) {
+            closeModal(helpModal);
+        }
+    });
+
+    // --- Lógica de la Calculadora ---
+    const ejemplos = [
+        { num: "2*x+3", den: "x^2-5*x+6" },
+        { num: "x+1", den: "x^2-1" },
+        { num: "x^2+7", den: "x*(x-1)^2" },
+        { num: "1", den: "x^3-1" },
+        { num: "x^3+2", den: "x^2+1" },
+        { num: "3*x^2-2*x+1", den: "x^3-4*x" }
+    ];
+
+    const panelEjemplos = document.getElementById('ejemplos-panel');
+    const numInput = document.getElementById('numerador');
+    const denInput = document.getElementById('denominador');
+    const form = document.getElementById('form-fracciones');
+    const resultadoWrapper = document.getElementById('resultado-wrapper');
+    const resultadoDiv = document.getElementById('resultado');
+    const errorDiv = document.getElementById('error');
+    const loader = document.getElementById('loader');
+    const submitText = document.getElementById('submit-text');
+    const submitButton = form.querySelector('button[type="submit"]');
+
+    // Crear botones de ejemplo
+    ejemplos.forEach((ej, i) => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'px-3 py-1 text-sm font-medium text-secondary-foreground bg-secondary border border-border rounded-md hover:bg-accent transition-colors';
+        btn.textContent = `Ej. ${i+1}`;
+        btn.title = `(${ej.num}) / (${ej.den})`;
+        btn.onclick = () => {
+            numInput.value = ej.num;
+            denInput.value = ej.den;
+            resultadoWrapper.style.opacity = '0';
+        };
+        panelEjemplos.appendChild(btn);
+    });
+
+    // Manejar el envío del formulario
+    form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        
+        loader.classList.remove('hidden');
+        submitText.textContent = 'Calculando...';
+        submitButton.disabled = true;
+
+        let num = numInput.value.trim();
+        let den = denInput.value.trim();
+
+        resultadoDiv.innerHTML = "";
+        errorDiv.textContent = "";
+
+        setTimeout(() => {
+            try {
+                num = num.replace(/(\d)([a-zA-Z])/g, '$1*$2');
+                den = den.replace(/(\d)([a-zA-Z])/g, '$1*$2');
+
+                const expr = `(${num})/(${den})`;
+                const result = nerdamer(`partfrac(${expr}, x)`);
+                const latexEntrada = nerdamer(expr).toTeX();
+                const latexSalida = result.toTeX();
+
+                resultadoDiv.innerHTML = `<div style="min-width:360px;">$$${latexEntrada} = ${latexSalida}$$</div>`;
+                MathJax.typesetPromise([resultadoDiv]).then(() => {
+                    resultadoWrapper.style.opacity = '1';
+                    resultadoWrapper.style.transform = 'translateY(0)';
+                });
+
+            } catch (err) {
+                errorDiv.textContent = "Error en el cálculo. Revisa la sintaxis de la expresión.";
+                resultadoWrapper.style.opacity = '1';
+                resultadoWrapper.style.transform = 'translateY(0)';
+            } finally {
+                loader.classList.add('hidden');
+                submitText.textContent = 'Calcular';
+                submitButton.disabled = false;
+            }
+        }, 100); 
+    });
+
+    // --- Inicialización ---
+    const savedTheme = localStorage.getItem('calculator-theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    applyTheme(savedTheme || (prefersDark ? 'dark' : 'light'));
+    lucide.createIcons();
+});
+</script>
+
+</body>
+</html>
