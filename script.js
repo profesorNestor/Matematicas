@@ -21,6 +21,7 @@ const categories = [
   {
     name: 'Matemáticas Básicas', icon: '🧮', children: [
       { name: 'Álgebra',                slug: 'algebra',             icon: '🧮' },
+      { name: 'Polinomios', slug: 'polinomios', icon: '🔤' },
       { name: 'MCD y MCM',              slug: 'calculadora_mcd_mcm', icon: '➗' },
       { name: 'Conversión de Unidades', slug: 'ConversionUnidades',  icon: '📏' },
       { name: 'Conjuntos',              slug: 'conjuntos',           icon: '📂' },
@@ -84,6 +85,7 @@ const categories = [
   {
     name: 'Cálculo', icon: '♾️', children: [
       { name: 'Sucesión de Fibonacci',    slug: 'fibonacci',            icon: '🌀' },
+      { name: 'Fracciones Parciales', slug: 'FraccionesParciales', icon: '🧸' },
       { name: 'Cálculo (general)',        slug: 'calculo',              icon: '♾️' },
       { name: 'Definición de Límites',    slug: 'limites',              icon: '♾️' },
       { name: 'Integrales Definidas',     slug: 'IntegralesDefinidas',  icon: '🔗' },
@@ -131,6 +133,7 @@ const categories = [
     name: 'Física', icon: '🔭', children: [
       { name: 'Simulador de Latitud', slug: 'simulador_latitud', icon: '🌍' },
       { name: 'Coordenadas Geográficas', slug: 'Coordenadas_GeoGraficas', icon: '📌' },
+      { name: 'Movimiento Rectilíneo', slug: 'MovimientoRectilineo', icon: '🚗' },
       { name: 'Movimiento Circular Uniforme',  slug: 'simulador_movimiento_circular_uniforme', icon: '🔄' },
       { name: 'Movimiento Parabólico',         slug: 'MovimientoParabolico',                  icon: '🎯' },
       { name: 'Proyectil con Resistencia',     slug: 'simulacionParabolicoResistencia',       icon: '💨' },  
@@ -140,6 +143,8 @@ const categories = [
       { name: 'Péndulo Simple', slug: 'PenduloSimple', icon: '🔹' },
       { name: 'Péndulo Doble', slug: 'pendulo_doble', icon: '🔹' },
       { name: 'Péndulos Acoplados', slug: 'pendulos_acoplados', icon: '🔹' },
+      { name: 'Ondas en Cuerda', slug: 'OndasCuerdas', icon: '🌊' },
+      { name: 'Efecto Doppler', slug: 'EfectoDoppler', icon: '🎤' },
       { name: 'Tubos Sonoros',     slug: 'TubosSonoros',     icon: '🔊' },
       { name: 'Piano Virtual', slug: 'piano-virtual', icon: '🎹' },
       { name: 'Ley de Snell',                  slug: 'LeyesSnell',                            icon: '📐' },
