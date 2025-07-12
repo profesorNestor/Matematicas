@@ -84,7 +84,7 @@
 </head>
 
 <body class="min-h-screen">
-    <div id="app-container" class="flex flex-col min-h-screen p-4 sm:p-6 lg:p-8 gap-6">
+    <div id="app-container" class="flex flex-col h-screen p-4 sm:p-6 lg:p-8 gap-6 max-w-screen-2xl mx-auto w-full">
         <header class="text-center shrink-0">
             <h1 class="text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-cyan-300">
                 Simulador Interactivo de Péndulo Doble
@@ -95,18 +95,20 @@
         <main id="main-content" class="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-0">
             
             <div id="left-panel" class="lg:col-span-1 flex flex-col gap-6">
-                <div class="glassmorphism rounded-2xl p-6 flex flex-col">
+                <div class="glassmorphism rounded-2xl p-6 flex flex-col h-full">
                     <h2 class="text-xl font-bold text-sky-400 mb-4 flex items-center gap-2 shrink-0"><i data-lucide="sliders-horizontal"></i>Parámetros</h2>
-                    <div class="space-y-5 overflow-y-auto pr-2 scrollable-content">
+                    <div class="space-y-5 mb-6 pr-2 scrollable-content flex-grow">
                         <div id="controls-container"></div>
                     </div>
-                     <div class="mt-6 shrink-0">
+                     <div class="shrink-0">
                          <h2 class="text-xl font-bold text-sky-400 mb-4 flex items-center gap-2"><i data-lucide="play-circle"></i>Control</h2>
-                         <div class="grid grid-cols-2 gap-3">
-                            <button id="startStopBtn" class="col-span-2 bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg"><i data-lucide="play"></i><span>Iniciar</span></button>
-                            <button id="resetBtn" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="rotate-cw"></i>Reiniciar</button>
-                            <button id="chartsBtn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="line-chart"></i>Gráficas</button>
-                            <button id="helpBtn" class="bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="help-circle"></i>Ayuda</button>
+                         <div class="space-y-3">
+                            <button id="startStopBtn" class="w-full bg-sky-500 hover:bg-sky-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 text-lg"><i data-lucide="play"></i><span>Iniciar</span></button>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button id="resetBtn" class="bg-rose-500 hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="rotate-cw"></i>Reiniciar</button>
+                                <button id="chartsBtn" class="bg-teal-500 hover:bg-teal-600 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="line-chart"></i>Gráficas</button>
+                            </div>
+                            <button id="helpBtn" class="w-full bg-slate-600 hover:bg-slate-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 flex items-center justify-center gap-2"><i data-lucide="help-circle"></i>Ayuda</button>
                          </div>
                          <div class="mt-4">
                             <label for="trail-checkbox" class="flex items-center gap-2 text-slate-300 cursor-pointer">
@@ -123,7 +125,7 @@
             </div>
         </main>
         
-        <footer class="text-center text-slate-500 text-xs mt-4 shrink-0">
+        <footer class="text-center text-slate-500 text-xs mt-auto shrink-0 py-2">
             Autor: Msc. Néstor Fabio Montoya Palacios
         </footer>
     </div>
@@ -176,11 +178,13 @@
             function init(simulator) {
                 params.forEach(p => {
                     const controlHTML = `
-                        <div class="flex justify-between items-center text-slate-300 mb-2">
-                            <label for="${p.id}-slider" class="font-medium text-sm">${p.name}</label>
-                            <span id="${p.id}-value" class="font-mono bg-slate-700 text-sky-300 py-1 px-2 rounded-full text-xs">${p.value.toFixed(2)}</span>
-                        </div>
-                        <input id="${p.id}-slider" type="range" min="${p.min}" max="${p.max}" value="${p.value}" step="${p.step}">`;
+                        <div>
+                            <div class="flex justify-between items-center text-slate-300 mb-2">
+                                <label for="${p.id}-slider" class="font-medium text-sm">${p.name}</label>
+                                <span id="${p.id}-value" class="font-mono bg-slate-700 text-sky-300 py-1 px-2 rounded-full text-xs">${p.value.toFixed(2)}</span>
+                            </div>
+                            <input id="${p.id}-slider" type="range" min="${p.min}" max="${p.max}" value="${p.value}" step="${p.step}">
+                        </div>`;
                     const div = document.createElement('div');
                     div.innerHTML = controlHTML;
                     dom.controlsContainer.appendChild(div);
@@ -195,12 +199,47 @@
                 dom.resetBtn.addEventListener('click', () => simulator.reset());
                 dom.trailCheckbox.addEventListener('change', (e) => simulator.setShowTrail(e.target.checked));
 
-                const helpContent = `...`; // Contenido de ayuda (omitido por brevedad)
-                createModal('help', 'Guía del Simulador', 'book-open', `<div><h3 class="font-bold text-sky-300 text-lg mb-2">¿Qué es un Péndulo Doble?</h3><p>Un péndulo doble es simplemente un péndulo unido al extremo de otro péndulo. Es un sistema dinámico simple que exhibe un comportamiento dinámico rico con una fuerte sensibilidad a las condiciones iniciales.</p></div><div><h3 class="font-bold text-sky-300 text-lg mb-2">Interactividad</h3><ul class="list-disc list-inside space-y-2 text-sm"><li><strong>Arrastrar Masas:</strong> Haz clic y arrastra las masas para cambiar las condiciones iniciales.</li><li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar.</li><li><strong>Paneo:</strong> Clic central y arrastre para mover la vista.</li></ul></div><div><h3 class="font-bold text-sky-300 text-lg mb-2">Ecuaciones del Movimiento</h3><p>El movimiento se rige por las siguientes ecuaciones, resueltas numéricamente:</p><p>$$ \\ddot{\\theta}_1 = \\frac{-g(2m_1+m_2)\\sin\\theta_1 - m_2 g \\sin(\\theta_1-2\\theta_2) - 2\\sin(\\theta_1-\\theta_2)m_2(\\dot{\\theta}_2^2 L_2 + \\dot{\\theta}_1^2 L_1 \\cos(\\theta_1-\\theta_2))}{L_1(2m_1+m_2-m_2\\cos(2\\theta_1-2\\theta_2))} $$</p><p>$$ \\ddot{\\theta}_2 = \\frac{2\\sin(\\theta_1-\\theta_2)(\\dot{\\theta}_1^2 L_1(m_1+m_2) + g(m_1+m_2)\\cos\\theta_1 + \\dot{\\theta}_2^2 L_2 m_2 \\cos(\\theta_1-\\theta_2))}{L_2(2m_1+m_2-m_2\\cos(2\\theta_1-2\\theta_2))} $$</p></div>`);
+                const helpContent = `
+                    <div>
+                        <h3 class="font-bold text-sky-300 text-lg mb-2">¿Qué es un Péndulo Doble?</h3>
+                        <p>Un péndulo doble es un péndulo unido al extremo de otro. Aunque su construcción es simple, su movimiento es un ejemplo clásico de <strong>caos determinista</strong>: es sensible a las condiciones iniciales y puede volverse impredecible, a pesar de estar gobernado por ecuaciones exactas.</p>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sky-300 text-lg mb-2">Interactividad</h3>
+                        <ul class="list-disc list-inside space-y-2 text-sm">
+                            <li><strong>Arrastrar Masas:</strong> Haz clic y arrastra las masas para establecer nuevas posiciones iniciales. La simulación se pausará mientras arrastras.</li>
+                            <li><strong>Zoom:</strong> Usa la rueda del ratón para acercar o alejar la vista.</li>
+                            <li><strong>Paneo:</strong> Haz clic con el botón central del ratón (rueda) y arrastra para mover la vista por el lienzo.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-sky-300 text-lg mb-2">Ecuaciones del Movimiento</h3>
+                        <p>El movimiento del péndulo se describe mediante un sistema de ecuaciones diferenciales ordinarias no lineales, derivadas de la mecánica Lagrangiana. Estas son las ecuaciones que el simulador resuelve numéricamente. En el código, $\\theta_1$ y $\\theta_2$ se representan como <code>t1</code> y <code>t2</code>, y sus velocidades angulares $\\dot{\\theta}_1, \\dot{\\theta}_2$ como <code>w1</code> y <code>w2</code>.</p>
+                        <p class="mt-4 font-semibold text-base">Aceleración angular de la primera masa ($\\ddot{\\theta}_1$):</p>
+                        <p class="text-sm">
+                        $$ \\ddot{\\theta}_1 = \\frac{-g(2m_1+m_2)\\sin\\theta_1 - m_2 g \\sin(\\theta_1-2\\theta_2) - 2\\sin(\\theta_1-\\theta_2)m_2(\\dot{\\theta}_2^2 L_2 + \\dot{\\theta}_1^2 L_1 \\cos(\\theta_1-\\theta_2))}{L_1(2m_1+m_2-m_2\\cos(2\\theta_1-2\\theta_2))} $$
+                        </p>
+                        <p class="mt-4 font-semibold text-base">Aceleración angular de la segunda masa ($\\ddot{\\theta}_2$):</p>
+                        <p class="text-sm">
+                        $$ \\ddot{\\theta}_2 = \\frac{2\\sin(\\theta_1-\\theta_2)(\\dot{\\theta}_1^2 L_1(m_1+m_2) + g(m_1+m_2)\\cos\\theta_1 + \\dot{\\theta}_2^2 L_2 m_2 \\cos(\\theta_1-\\theta_2))}{L_2(2m_1+m_2-m_2\\cos(2\\theta_1-2\\theta_2))} $$
+                        </p>
+                    </div>
+                     <div>
+                        <h3 class="font-bold text-sky-300 text-lg mb-2">Método de Simulación</h3>
+                        <p>Estas ecuaciones no tienen una solución analítica simple. Por lo tanto, utilizamos un método numérico para aproximar la solución paso a paso en el tiempo. Este simulador emplea el <strong>método de Runge-Kutta de 4º orden (RK4)</strong>, un algoritmo robusto y preciso para resolver sistemas de ecuaciones diferenciales. En cada fotograma, el método RK4 calcula las nuevas posiciones y velocidades angulares, lo que da como resultado la animación y las gráficas que observas.</p>
+                    </div>
+                `;
+                createModal('help', 'Guía del Simulador', 'book-open', helpContent);
                 const chartsContent = `<div id="plot-theta1" class="w-full h-64"></div><div id="plot-theta2" class="w-full h-64 mt-8"></div>`;
                 createModal('charts', 'Gráficas de Movimiento', 'line-chart', chartsContent);
                 
-                dom.helpBtn.addEventListener('click', () => document.getElementById('help-modal').classList.remove('hidden'));
+                dom.helpBtn.addEventListener('click', () => {
+                    const modal = document.getElementById('help-modal');
+                    modal.classList.remove('hidden');
+                    if (window.MathJax) {
+                        window.MathJax.typesetPromise([modal]);
+                    }
+                });
                 dom.chartsBtn.addEventListener('click', () => {
                     document.getElementById('charts-modal').classList.remove('hidden');
                     simulator.renderPlots();
@@ -237,7 +276,7 @@
                 canvas.height = rect.height * dpr;
                 ctx.scale(dpr, dpr);
                 state.originX = canvas.width / (2 * dpr);
-                state.originY = canvas.height / (2 * dpr) * 0.75;
+                state.originY = canvas.height / (2 * dpr);
                 draw();
             }
 
@@ -264,7 +303,6 @@
                 const y0 = [state.t1, state.w1, state.t2, state.w2];
                 [state.t1, state.w1, state.t2, state.w2] = rk4(y0, state.dt, getDerivatives);
 
-                // Almacenar datos para gráficas
                 state.plotData.time.push(state.time);
                 state.plotData.theta1.push(state.t1 * 180 / Math.PI);
                 state.plotData.theta2.push(state.t2 * 180 / Math.PI);
@@ -276,16 +314,13 @@
             }
 
             function drawGridAndAxes() {
-                // ... (código de dibujado de ejes y cuadrícula sin cambios)
                 const { width, height } = canvas;
                 const dpr = window.devicePixelRatio || 1;
                 const { scale, panX, panY, originX, originY } = state;
-
                 const view = {
                     xMin: (-originX - panX) / scale, xMax: (width / dpr - originX - panX) / scale,
                     yMin: (-originY - panY) / scale, yMax: (height / dpr - originY - panY) / scale,
                 };
-
                 const targetLines = 10;
                 const viewWidth = view.xMax - view.xMin;
                 const rawSpacing = viewWidth / targetLines;
@@ -296,54 +331,75 @@
                 else if (rescaledRaw > 2) gridSpacing = 2 * magnitude;
                 else gridSpacing = 1 * magnitude;
 
-                const axisLineWidth = 2 / scale;
                 const gridLineWidth = 1 / scale;
                 const fontSize = 11 / scale;
 
+                // Dibuja la cuadrícula dinámica
                 ctx.save();
-                ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                ctx.translate(originX + panX, originY + panY);
+                ctx.scale(scale, scale);
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.1)";
                 ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
                 ctx.font = `${fontSize}px Inter`;
+                ctx.lineWidth = gridLineWidth;
                 
                 const startX = Math.floor(view.xMin / gridSpacing) * gridSpacing;
                 ctx.textAlign = 'center'; ctx.textBaseline = 'top';
                 for (let x = startX; x <= view.xMax; x += gridSpacing) {
-                    const canvasX = x * scale;
+                    if (Math.abs(x) < 1e-9) continue; // Saltar el eje principal
+                    const canvasX = x;
                     ctx.beginPath();
-                    ctx.moveTo(canvasX, view.yMin * scale);
-                    ctx.lineTo(canvasX, view.yMax * scale);
-                    ctx.lineWidth = (Math.abs(x) < 1e-9) ? axisLineWidth : gridLineWidth;
-                    ctx.strokeStyle = (Math.abs(x) < 1e-9) ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 255, 255, 0.15)";
+                    ctx.moveTo(canvasX, view.yMin);
+                    ctx.lineTo(canvasX, view.yMax);
                     ctx.stroke();
-                    if (Math.abs(x) > 1e-9) ctx.fillText(x.toFixed(2).replace(/\.00$/, ''), canvasX, 5 / scale);
+                    ctx.fillText(x.toFixed(2).replace(/\.00$/, ''), canvasX, 5 / scale);
                 }
 
                 const startY = Math.floor(view.yMin / gridSpacing) * gridSpacing;
                 ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                 for (let y = startY; y <= view.yMax; y += gridSpacing) {
-                    const canvasY = y * scale;
+                    if (Math.abs(y) < 1e-9) continue; // Saltar el eje principal
+                    const canvasY = y;
                     ctx.beginPath();
-                    ctx.moveTo(view.xMin * scale, canvasY);
-                    ctx.lineTo(view.xMax * scale, canvasY);
-                    ctx.lineWidth = (Math.abs(y) < 1e-9) ? axisLineWidth : gridLineWidth;
-                    ctx.strokeStyle = (Math.abs(y) < 1e-9) ? "rgba(255, 255, 255, 0.5)" : "rgba(255, 255, 255, 0.15)";
+                    ctx.moveTo(view.xMin, canvasY);
+                    ctx.lineTo(view.xMax, canvasY);
                     ctx.stroke();
-                     if (Math.abs(y) > 1e-9) ctx.fillText(y.toFixed(2).replace(/\.00$/, ''), 5 / scale, canvasY);
+                     ctx.fillText(y.toFixed(2).replace(/\.00$/, ''), 5 / scale, canvasY);
                 }
-                
-                ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-                ctx.fillText("0", 5 / scale, 5 / scale);
+                ctx.restore();
 
+                // Dibuja los ejes fijos
+                ctx.save();
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.5)";
+                ctx.lineWidth = 1;
+                // Eje X
+                ctx.beginPath();
+                ctx.moveTo(0, originY + panY);
+                ctx.lineTo(width / dpr, originY + panY);
+                ctx.stroke();
+                // Eje Y
+                ctx.beginPath();
+                ctx.moveTo(originX + panX, 0);
+                ctx.lineTo(originX + panX, height / dpr);
+                ctx.stroke();
+                
+                // Etiqueta del origen
+                ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+                ctx.font = `${11}px Inter`;
+                ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+                ctx.fillText("0", originX + panX + 5, originY + panY + 5);
                 ctx.restore();
             }
 
             function draw() {
-                // ... (código de dibujado del péndulo sin cambios)
                 const { width, height } = canvas;
+                const dpr = window.devicePixelRatio || 1;
                 ctx.save();
-                ctx.clearRect(0, 0, width, height);
-                ctx.translate(state.originX + state.panX, state.originY + state.panY);
+                ctx.clearRect(0, 0, width / dpr, height / dpr);
+                
                 drawGridAndAxes();
+
+                ctx.translate(state.originX + state.panX, state.originY + state.panY);
                 ctx.scale(state.scale, state.scale);
 
                 const { l1, l2, m1, m2, t1, t2 } = state;
@@ -405,7 +461,6 @@
             }
 
             function init() {
-                // ... (código de inicialización de eventos sin cambios)
                 resizeCanvas();
                 UIController.updateStartButton(state.isPaused);
                 window.addEventListener('resize', () => {
@@ -457,7 +512,7 @@
             function handlePanStart(e) { if (e.button === 1) { isPanning = true; lastPanX = e.clientX; lastPanY = e.clientY; canvas.style.cursor = 'move'; e.preventDefault(); } }
             function handlePanMove(e) { if (isPanning) { state.panX += e.clientX - lastPanX; state.panY += e.clientY - lastPanY; lastPanX = e.clientX; lastPanY = e.clientY; draw(); } }
             function handlePanEnd(e) { if (e.button === 1) { isPanning = false; canvas.style.cursor = 'grab'; } }
-            function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1; return { x: (evt.clientX - rect.left * dpr - (state.originX + state.panX)) / state.scale, y: (evt.clientY - rect.top * dpr - (state.originY + state.panY)) / state.scale }; }
+            function getMousePos(evt) { const rect = canvas.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1; return { x: (evt.clientX - rect.left - (state.originX + state.panX)) / state.scale, y: (evt.clientY - rect.top - (state.originY + state.panY)) / state.scale }; }
 
             function togglePause(forcePause = null) {
                 state.isPaused = forcePause !== null ? forcePause : !state.isPaused;
